@@ -83,6 +83,32 @@ spire-server:
   enabled: true
   ## @param spire-server.nameOverride Overrides the name of Spire server pods
   nameOverride: server
+
+  image:
+    registry: ""
+    repository: "spire-server"
+    tag: "latest-local"
+
+  dataStore:
+    sql:
+      # -- Other supported databases are "postgres" and "mysql"
+      databaseType: mysql
+      # -- Only used by "postgres" or "mysql"
+      databaseName: spire
+      # -- Only used by "postgres" or "mysql"
+      host: "mysql.default.svc"
+      # -- If 0 (default), it will auto set to 5432 for postgres and 3306 for mysql. Only used by those databases.
+      port: 0
+      # -- Only used by "postgres" or "mysql"
+      username: root
+      # -- Only used by "postgres" or "mysql"
+      password: "password"
+      # -- Only used by "postgres" or "mysql"
+      options: []
+
+      # -- Settings from https://github.com/spiffe/spire/blob/main/doc/plugin_server_datastore_sql.md go in this section
+      plugin_data: {}
+
   controllerManager:
     ## @param spire-server.controllerManager.enabled Enable controller manager and provision CRD's
     enabled: true
