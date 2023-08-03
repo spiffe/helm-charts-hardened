@@ -102,6 +102,7 @@ fi
 
 branch_name="bump-${chart}-version"
 
+git branch -r --delete origin/"${branch_name}"
 git checkout main
 git pull
 git checkout --track -B "${branch_name}" main
