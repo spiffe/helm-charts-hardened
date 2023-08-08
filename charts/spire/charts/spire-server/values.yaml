@@ -374,6 +374,10 @@ notifier:
     ## @param notifier.k8sbundle.namespace Namespace to push the bundle into, if blank will default to SPIRE Server namespace
     namespace: ""
 
+experimental:
+  cacheReloadInterval: 5s
+  eventsPurgeInterval: 10s
+
 controllerManager:
   ## @param controllerManager.enabled Flag to enable controller manager
   enabled: false
