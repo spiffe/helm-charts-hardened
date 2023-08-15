@@ -376,7 +376,9 @@ notifier:
 
 experimental:
   cacheReloadInterval: 5s
-  eventsPurgeInterval: 10s
+  pruneEventsInterval: 10s
+  featureFlags:
+    eventsBasedCache: true
 
 controllerManager:
   ## @param controllerManager.enabled Flag to enable controller manager
