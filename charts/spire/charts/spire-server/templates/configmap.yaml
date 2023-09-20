@@ -89,19 +89,19 @@ plugins:
   {{- if eq (.enabled | toString) "true" }}
   {{- $keyManagerUsed = add1 $keyManagerUsed }}
   KeyManager:
-    - aws_kms:
-        plugin_data:
-          region: {{ .region | quote }}
-          key_metadata_file: "/run/spire/data/aws-kms-key-metadata"
-          {{- if ne .accessKeyID "" }}
-          access_key_id: "${AWS_KMS_ACCESS_KEY_ID}"
-          {{- end }}
-          {{- if ne .secretAccessKey "" }}
-          secret_access_key: "${AWS_KMS_SECRET_ACCESS_KEY}"
-          {{- end }}
-          {{- if or (ne .keyPolicy.policy "") (ne .keyPolicy.existingConfigMap "") }}
-          key_policy_file: "/run/spire/data/aws-kms-key-policy.json"
-          {{- end }}
+    aws_kms:
+      plugin_data:
+        region: {{ .region | quote }}
+        key_metadata_file: "/run/spire/data/aws-kms-key-metadata"
+        {{- if ne .accessKeyID "" }}
+        access_key_id: "${AWS_KMS_ACCESS_KEY_ID}"
+        {{- end }}
+        {{- if ne .secretAccessKey "" }}
+        secret_access_key: "${AWS_KMS_SECRET_ACCESS_KEY}"
+        {{- end }}
+        {{- if or (ne .keyPolicy.policy "") (ne .keyPolicy.existingConfigMap "") }}
+        key_policy_file: "/run/spire/data/aws-kms-key-policy.json"
+        {{- end }}
   {{- end }}
   {{- end }}
 
@@ -193,23 +193,23 @@ plugins:
   {{- if eq (.enabled | toString) "true" }}
   {{- $upstreamAuthorityUsed = add1 $upstreamAuthorityUsed }}
   UpstreamAuthority:
-    - aws_pca:
-        plugin_data:
-          region: {{ .region | quote }}
-          certificate_authority_arn: {{ .certificateAuthorityARN | quote }}
-          ca_signing_template_arn: {{ .caSigningTemplateARN | default "arn:aws:acm-pca:::template/SubordinateCACertificate_PathLen0/V1" | quote }}
-          {{- if ne .signingAlgorithm "" }}
-          signing_algorithm: {{ .signingAlgorithm | quote }}
-          {{- end }}          
-          {{- if ne .assumeRoleARN "" }}
-          assume_role_arn: {{ .assumeRoleARN | quote }}
-          {{- end }}          
-          {{- if ne .endpoint "" }}
-          endpoint: {{ .endpoint | quote }}
-          {{- end }}          
-          {{- if ne .supplementalBundlePath "" }}
-          supplemental_bundle_path: {{ .supplementalBundlePath  | quote }}
-          {{- end }}          
+    aws_pca:
+      plugin_data:
+        region: {{ .region | quote }}
+        certificate_authority_arn: {{ .certificateAuthorityARN | quote }}
+        ca_signing_template_arn: {{ .caSigningTemplateARN | default "arn:aws:acm-pca:::template/SubordinateCACertificate_PathLen0/V1" | quote }}
+        {{- if ne .signingAlgorithm "" }}
+        signing_algorithm: {{ .signingAlgorithm | quote }}
+        {{- end }}          
+        {{- if ne .assumeRoleARN "" }}
+        assume_role_arn: {{ .assumeRoleARN | quote }}
+        {{- end }}          
+        {{- if ne .endpoint "" }}
+        endpoint: {{ .endpoint | quote }}
+        {{- end }}          
+        {{- if ne .supplementalBundlePath "" }}
+        supplemental_bundle_path: {{ .supplementalBundlePath  | quote }}
+        {{- end }}          
   {{- end }}
   {{- end }}  
 {{- if gt $upstreamAuthorityUsed 1 }}
