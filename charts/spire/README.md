@@ -63,9 +63,7 @@ Now you can interact with the Spire agent socket from your own application. The 
 | Name | Email | Url |
 | ---- | ------ | --- |
 | marcofranssen | <marco.franssen@gmail.com> | <https://marcofranssen.nl> |
-| kfox1111 | <Kevin.Fox@pnnl.gov> |  |
 | faisal-memon | <fymemon@yahoo.com> |  |
-| edwbuck | <edwbuck@gmail.com> |  |
 
 ## Source Code
 

@@ -14,12 +14,8 @@ maintainers:
   - name: marcofranssen
     email: marco.franssen@gmail.com
     url: https://marcofranssen.nl
-  - name: kfox1111
-    email: Kevin.Fox@pnnl.gov
   - name: faisal-memon
     email: fymemon@yahoo.com
-  - name: edwbuck
-    email: edwbuck@gmail.com
 kubeVersion: ">=1.21.0-0"
 dependencies:
   - name: spire-server
