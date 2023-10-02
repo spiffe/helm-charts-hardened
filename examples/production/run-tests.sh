@@ -3,7 +3,7 @@
 set -xe
 
 UPGRADE_VERSION=v0.13.0
-UPGRADE_REPO=https://spiffe.github.io/helm-charts
+UPGRADE_REPO=https://spiffe.github.io/helm-charts-hardened
 
 SCRIPT="$(readlink -f "$0")"
 SCRIPTPATH="$(dirname "${SCRIPT}")"
