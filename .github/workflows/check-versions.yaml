@@ -1,0 +1,76 @@
+name: Check versions
+
+on:
+  schedule:
+    - cron: '0 8 * * 1'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  HELM_VERSION: v3.11.1
+
+jobs:
+  check-helm-chart-versions:
+    runs-on: ubuntu-22.04
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3.5
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Update test chart versions
+        run: |
+          ./.github/scripts/update-versions.sh
+          git diff
+
+      - name: Setup go
+        uses: actions/setup-go@v4.1.0
+        with:
+          go-version: '1.21'
+
+      - name: Setup crane
+        uses: imjasonh/setup-crane@v0.3
+
+      - uses: actions/setup-python@v4.6.1
+        with:
+          python-version: '3.9'
+
+      - name: Install ubuntu packages
+        run: sudo apt-get install wget apt-transport-https gnupg lsb-release
+
+      - name: Install yq
+        run: go install github.com/mikefarah/yq/v4@latest
+
+      - name: Install python dependencies
+        run: pip install -r .github/scripts/requirements.txt
+
+      - name: Update image tags
+        run: |
+          ./.github/scripts/update-tags.sh
+          git diff
+
+      - name: Create Pull Request
+        id: cpr
+        uses: peter-evans/create-pull-request@v5.0.2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: Bump test chart dependencies
+          branch: bump-test-chart-deps
+          commit-message: Bump test chart dependencies
+          body: Bump the Helm charts used in test scenarios to latest available versions.
+          signoff: true
+          add-paths: |
+            .github/tests
+
+      - name: Check outputs
+        if: ${{ steps.cpr.outputs.pull-request-number }}
+        run: 'echo "::notice title=PR #${{ steps.cpr.outputs.pull-request-number }}::${{ steps.cpr.outputs.pull-request-url }}"'

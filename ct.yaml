@@ -1,0 +1,11 @@
+remote: origin
+target-branch: main
+chart-dirs:
+  - charts
+chart-repos:
+  - spiffe=https://spiffe.github.io/helm-charts/
+  - bitnami=https://charts.bitnami.com/bitnami
+  - ingress-nginx=https://kubernetes.github.io/ingress-nginx
+exclude-deprecated: true
+debug: true
+helm-extra-args: "--timeout 15m"

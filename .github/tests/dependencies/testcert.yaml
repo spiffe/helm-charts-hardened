@@ -1,0 +1,52 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: selfsigned-issuer
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: demo-selfsigned-ca
+spec:
+  isCA: true
+  commonName: demo-selfsigned-ca
+  secretName: root-secret
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: selfsigned-issuer
+    kind: Issuer
+    group: cert-manager.io
+  subject:
+    countries:
+    - US
+    organizations:
+    - test
+    organizationalUnits:
+    - test
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: demo-ca
+spec:
+  ca:
+    secretName: root-secret
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: oidc
+spec:
+  dnsNames:
+    - oidc-discovery.production.other
+    - spire-server-federation.production.other
+  secretName: tls-cert
+  issuerRef:
+    name: demo-ca
+    kind: Issuer
+    group: cert-manager.io

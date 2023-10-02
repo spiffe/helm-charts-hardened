@@ -1,0 +1,27 @@
+spiffe-oidc-discovery-provider:
+  enabled: true
+  namespaceOverride: spire-server
+  insecureScheme:
+    enabled: true
+
+spire-server:
+  namespaceOverride: spire-server
+  nodeAttestor:
+    k8sPsat:
+      serviceAccountAllowList: ["spire-system:spire-agent"]
+  notifier:
+    k8sbundle:
+      namespace: spire-system
+
+spiffe-csi-driver:
+  enabled: true
+  namespaceOverride: spire-system
+
+spire-agent:
+  enabled: true
+  namespaceOverride: spire-system
+  serviceAccount:
+    # -- The name of the service account to use.
+    name: spire-agent
+  server:
+    namespaceOverride: spire-server

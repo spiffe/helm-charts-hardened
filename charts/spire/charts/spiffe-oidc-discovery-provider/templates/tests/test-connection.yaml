@@ -1,0 +1,64 @@
+{{ $values := merge .Values }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "spiffe-oidc-discovery-provider.fullname" . }}-test-connection"
+  namespace: {{ include "spiffe-oidc-discovery-provider.namespace" . }}
+  labels:
+    {{- include "spiffe-oidc-discovery-provider.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  securityContext:
+    {{- toYaml .Values.podSecurityContext | nindent 4 }}
+  containers:
+    - name: curl-service-name
+      image: {{ template "spire-lib.image" (dict "image" .Values.tests.bash.image "global" .Values.global) }}
+      command: ['curl']
+      args: ['-s', '-f', 'http://{{ include "spiffe-oidc-discovery-provider.fullname" . }}:{{ .Values.service.port }}/.well-known/openid-configuration']
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+    - name: curl-service-name-namespace
+      image: {{ template "spire-lib.image" (dict "image" .Values.tests.bash.image "global" .Values.global) }}
+      command: ['curl']
+      args: ['-s', '-f', 'http://{{ include "spiffe-oidc-discovery-provider.fullname" . }}.{{ include "spiffe-oidc-discovery-provider.namespace" . }}:{{ .Values.service.port }}/.well-known/openid-configuration']
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+    - name: curl-service-name-namespace-svc-cluster-local
+      image: {{ template "spire-lib.image" (dict "image" .Values.tests.bash.image "global" .Values.global) }}
+      command: ['curl']
+      args: ['-s', '-f', 'http://{{ include "spiffe-oidc-discovery-provider.fullname" . }}.{{ include "spiffe-oidc-discovery-provider.namespace" . }}.svc.{{ include "spire-lib.cluster-domain" . }}:{{ .Values.service.port }}/.well-known/openid-configuration']
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+    {{- if .Values.ingress.enabled }}
+    - name: curl-ingress
+      image: {{ template "spire-lib.image" (dict "image" .Values.tests.bash.image "global" .Values.global) }}
+      command: ['curl']
+      {{- if dig "tests" "tls" "enabled" false $values }}
+      {{- if ne (len (dig "tests" "tls" "customCA" "" $values)) 0 }}
+      args: ['-s', '-f', '--cacert', '/ca/ca.crt', 'https://{{ (index .Values.ingress.hosts 0).host }}/.well-known/openid-configuration']
+      {{- else }}
+      args: ['-s', '-f', 'https://{{ (index .Values.ingress.hosts 0).host }}/.well-known/openid-configuration']
+      {{- end }}
+      {{- if ne (len (dig "tests" "tls" "customCA" "" $values)) 0 }}
+      volumeMounts:
+        - name: custom-ca
+          mountPath: /ca
+      {{- end }}
+      {{- else }}
+      args: ['-s', '-f', 'http://{{ (index .Values.ingress.hosts 0).host }}/.well-known/openid-configuration']
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+    {{- end }}
+  {{- if ne (len (dig "tests" "hostAliases" "" $values)) 0 }}
+  hostAliases:
+    {{- toYaml .Values.tests.hostAliases | nindent 4 }}
+  {{- end }}
+  {{- if ne (len (dig "tests" "tls" "customCA" "" $values)) 0 }}
+  volumes:
+    - name: custom-ca
+      secret:
+        secretName: {{ .Values.tests.tls.customCA }}
+  {{- end }}
+  restartPolicy: Never

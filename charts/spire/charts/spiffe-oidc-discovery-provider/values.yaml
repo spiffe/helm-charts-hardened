@@ -1,0 +1,340 @@
+# Default configuration for Spire OIDC Provider chart
+# SPDX-License-Identifier: APACHE-2.0
+
+## @skip global
+global: {}
+
+## @section Chart parameters
+##
+## @param agentSocketName The name of the spire-agent unix socket
+agentSocketName: spire-agent.sock
+
+## @param replicaCount Replica count 
+replicaCount: 1
+
+## @param namespaceOverride Namespace override 
+namespaceOverride: ""
+
+## @param annotations [object] Annotations for the deployment
+annotations: {}
+
+image:
+  ## @param image.registry The OCI registry to pull the image from
+  ## @param image.repository The repository within the registry
+  ## @param image.pullPolicy The image pull policy
+  ## @param image.version This value is deprecated in favor of tag. (Will be removed in a future release)
+  ## @param image.tag Overrides the image tag whose default is the chart appVersion
+  ##
+  registry: ghcr.io
+  repository: spiffe/oidc-discovery-provider
+  pullPolicy: IfNotPresent
+  version: ""
+  tag: ""
+
+## @param resources [object] Resource requests and limits
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # requests:
+  #   cpu: 50m
+  #   memory: 32Mi
+  # limits:
+  #   cpu: 100m
+  #   memory: 64Mi
+
+## @param service.type Service type
+## @param service.port Service port
+## @param service.annotations Annotations for service resource
+##
+service:
+  type: ClusterIP
+  port: 80
+  annotations: {}
+  # external-dns.alpha.kubernetes.io/hostname: oidc-discovery.example.org
+
+configMap:
+  ## @param configMap.annotations [object] Annotations to add to the SPIFFE OIDC Discovery Provider ConfigMap
+  annotations: {}
+
+## @param podSecurityContext [object] Pod security context for OIDC discovery provider pods
+podSecurityContext: {}
+  # fsGroup: 2000
+
+## @param securityContext [object] Security context for OIDC discovery provider deployment
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+## @param readinessProbe.initialDelaySeconds Initial delay seconds for readinessProbe
+## @param readinessProbe.periodSeconds Period seconds for readinessProbe
+##
+readinessProbe:
+  initialDelaySeconds: 5
+  periodSeconds: 5
+
+## @param livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
+## @param livenessProbe.periodSeconds Period seconds for livenessProbe
+##
+livenessProbe:
+  initialDelaySeconds: 5
+  periodSeconds: 5
+
+## @param podAnnotations [object] Pod annotations for Spire OIDC discovery provider
+podAnnotations: {}
+
+insecureScheme:
+  ## @param insecureScheme.enabled Flag to enable insecure schema
+  enabled: false
+
+  nginx:
+    ## @param insecureScheme.nginx.image.registry The OCI registry to pull the image from
+    ## @param insecureScheme.nginx.image.repository The repository within the registry
+    ## @param insecureScheme.nginx.image.pullPolicy The image pull policy
+    ## @param insecureScheme.nginx.image.version This value is deprecated in favor of tag. (Will be removed in a future release)
+    ## @param insecureScheme.nginx.image.tag Overrides the image tag whose default is the chart appVersion
+    ## Example:
+    ## chainguard image does not support the templates feature
+    ## https://github.com/chainguard-images/nginx/issues/43
+    ## registry: cgr.dev
+    ## repository: chainguard/nginx
+    ## pullPolicy: IfNotPresent
+    ## tag: "1.23.2"
+    ##
+    image:
+      registry: docker.io
+      repository: nginxinc/nginx-unprivileged
+      pullPolicy: IfNotPresent
+      version: ""
+      tag: 1.24.0-alpine
+    ## @param insecureScheme.nginx.resources Resource requests and limits
+    resources: {}
+      # We usually recommend not to specify default resources and to leave this as a conscious
+      # choice for the user. This also increases chances charts run on environments with little
+      # resources, such as Minikube. If you do want to specify resources, uncomment the following
+      # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+      # requests:
+      #   cpu: 50m
+      #   memory: 32Mi
+      # limits:
+      #   cpu: 100m
+      #   memory: 64Mi
+
+## @param jwtIssuer Path to JWT issuer
+jwtIssuer: https://oidc-discovery.example.org
+
+config:
+  ## @param config.logLevel The log level, valid values are "debug", "info", "warn", and "error"
+  logLevel: info
+  ## @param config.additionalDomains [array] Add additional domains that can be used for oidc discovery
+  additionalDomains:
+    - localhost
+
+  acme:
+    ## @param config.acme.tosAccepted Flag for Terms of Service acceptance
+    tosAccepted: false
+    ## @param config.acme.cacheDir Path for cache directory
+    cacheDir: /run/spire
+    ## @param config.acme.directoryUrl URL for acme directory
+    directoryUrl: https://acme-v02.api.letsencrypt.org/directory
+    ## @param config.acme.emailAddress Email address for registration
+    emailAddress: letsencrypt@example.org
+
+## @param imagePullSecrets [array] Image pull secret names
+imagePullSecrets: []
+
+## @param nameOverride Name override
+nameOverride: ""
+
+## @param fullnameOverride Full name override
+fullnameOverride: ""
+
+## @param serviceAccount.create Specifies whether a service account should be created
+## @param serviceAccount.annotations Annotations to add to the service account
+## @param serviceAccount.name The name of the service account to use. If not set and create is true, a name is generated.
+##
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+deleteHook:
+  ## @param deleteHook.enabled Enable Helm hooks to autofix common delete issues (should be disabled when using `helm template`)
+  enabled: true
+
+## @param autoscaling.enabled Flag to enable autoscaling
+## @param autoscaling.minReplicas Minimum replicas for autoscaling
+## @param autoscaling.maxReplicas Maximum replicas for autoscaling
+## @param autoscaling.targetCPUUtilizationPercentage Target CPU utlization that triggers autoscaling
+## @param autoscaling.targetMemoryUtilizationPercentage Target Memory utlization that triggers autoscaling
+##
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+## @param nodeSelector [object] Node selector
+nodeSelector: {}
+
+## @param tolerations [array] iist of tolerations
+tolerations: []
+
+## @param affinity [object] Node affinity
+affinity: {}
+
+## @param trustDomain Set the trust domain to be used for the SPIFFE identifiers
+trustDomain: example.org
+
+## @param clusterDomain The name of the Kubernetes cluster (`kubeadm init --service-dns-domain`)
+clusterDomain: cluster.local
+
+telemetry:
+  prometheus:
+    ## @param telemetry.prometheus.enabled Flag to enable prometheus monitoring
+    enabled: false
+    ## @param telemetry.prometheus.port Port for prometheus metrics
+    port: 9988
+    podMonitor:
+      ## @param telemetry.prometheus.podMonitor.enabled Enable podMonitor for prometheus
+      enabled: false
+      ## @param telemetry.prometheus.podMonitor.namespace Override where to install the podMonitor, if not set will use the same namespace as the helm release
+      namespace: ""
+      ## @param telemetry.prometheus.podMonitor.labels [object] Pod labels to filter for prometheus monitoring
+      labels: {}
+
+    nginxExporter:
+      ## @param telemetry.prometheus.nginxExporter.image.registry The OCI registry to pull the image from
+      ## @param telemetry.prometheus.nginxExporter.image.repository The repository within the registry
+      ## @param telemetry.prometheus.nginxExporter.image.pullPolicy The image pull policy
+      ## @param telemetry.prometheus.nginxExporter.image.version This value is deprecated in favor of tag. (Will be removed in a future release)
+      ## @param telemetry.prometheus.nginxExporter.image.tag Overrides the image tag whose default is the chart appVersion
+      ##
+      image:
+        registry: docker.io
+        repository: nginx/nginx-prometheus-exporter
+        pullPolicy: IfNotPresent
+        version: ""
+        tag: "0.11.0"
+
+      ## @param telemetry.prometheus.nginxExporter.resources [object] Resource requests and limits
+      resources: {}
+        # We usually recommend not to specify default resources and to leave this as a conscious
+        # choice for the user. This also increases chances charts run on environments with little
+        # resources, such as Minikube. If you do want to specify resources, uncomment the following
+        # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+        # requests:
+        #   cpu: 50m
+        #   memory: 32Mi
+        # limits:
+        #   cpu: 100m
+        #   memory: 64Mi
+
+ingress:
+  ## @param ingress.enabled Flag to enable ingress
+  enabled: false
+  ## @param ingress.className Ingress class name
+  className: ""
+  ## @param ingress.annotations [object] Annotations for ingress object
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+
+  ## @param ingress.hosts [array] Host paths for ingress object
+  hosts:
+    - host: oidc-discovery.example.org
+      paths:
+        - path: /
+          pathType: Prefix
+  ## @param ingress.tls [array] Secrets containining TLS certs to enable https on ingress
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - oidc-discovery.example.org
+
+tests:
+  ## @param tests.hostAliases [array] List of host aliases for testing
+  hostAliases: []
+  tls:
+    ## @param tests.tls.enabled Flag for enabling tls for tests
+    enabled: false
+    ## @param tests.tls.customCA Custom CA value for tests
+    customCA: ""
+  bash:
+    ## @param tests.bash.image.registry The OCI registry to pull the image from
+    ## @param tests.bash.image.repository The repository within the registry
+    ## @param tests.bash.image.pullPolicy The image pull policy
+    ## @param tests.bash.image.version This value is deprecated in favor of tag. (Will be removed in a future release)
+    ## @param tests.bash.image.tag Overrides the image tag whose default is the chart appVersion
+    ##
+    image:
+      registry: cgr.dev
+      repository: chainguard/bash
+      pullPolicy: IfNotPresent
+      version: ""
+      tag: latest@sha256:96ab1600d945b4a99c8610b5c8b31e346da63dc20573a26bb0777dd0190db5d4
+
+  toolkit:
+    ## @param tests.toolkit.image.registry The OCI registry to pull the image from
+    ## @param tests.toolkit.image.repository The repository within the registry
+    ## @param tests.toolkit.image.pullPolicy The image pull policy
+    ## @param tests.toolkit.image.version This value is deprecated in favor of tag. (Will be removed in a future release)
+    ## @param tests.toolkit.image.tag Overrides the image tag whose default is the chart appVersion
+    ##
+    image:
+      registry: cgr.dev
+      repository: chainguard/slim-toolkit-debug
+      pullPolicy: IfNotPresent
+      version: ""
+      tag: latest@sha256:d717d0a2c88518f8e36d9cfe1571639a40617e8c4291e34876d46bdeefb1ab5a
+
+  busybox:
+    ## @param tests.busybox.image.registry The OCI registry to pull the image from
+    ## @param tests.busybox.image.repository The repository within the registry
+    ## @param tests.busybox.image.pullPolicy The image pull policy
+    ## @param tests.busybox.image.version This value is deprecated in favor of tag. (Will be removed in a future release)
+    ## @param tests.busybox.image.tag Overrides the image tag whose default is the chart appVersion
+    ##
+    image:
+      registry: ""
+      repository: busybox
+      pullPolicy: IfNotPresent
+      version: ""
+      tag: uclibc@sha256:3e516f71d8801b0ce6c3f8f8e4f11093ec04e168177a90f1da4498014ee06b6b
+
+  agent:
+    ## @param tests.agent.image.registry The OCI registry to pull the image from
+    ## @param tests.agent.image.repository The repository within the registry
+    ## @param tests.agent.image.pullPolicy The image pull policy
+    ## @param tests.agent.image.version This value is deprecated in favor of tag. (Will be removed in a future release)
+    ## @param tests.agent.image.tag Overrides the image tag whose default is the chart appVersion
+    ##
+    image:
+      registry: ghcr.io
+      repository: spiffe/spire-agent
+      pullPolicy: IfNotPresent
+      version: ""
+      tag: ""
+
+tools:
+  kubectl:
+    ## @param tools.kubectl.image.registry The OCI registry to pull the image from
+    ## @param tools.kubectl.image.repository The repository within the registry
+    ## @param tools.kubectl.image.pullPolicy The image pull policy
+    ## @param tools.kubectl.image.version This value is deprecated in favor of tag. (Will be removed in a future release)
+    ## @param tools.kubectl.image.tag Overrides the image tag whose default is the chart appVersion
+    ##
+    image:
+      registry: docker.io
+      repository: rancher/kubectl
+      pullPolicy: IfNotPresent
+      version: ""
+      tag: ""

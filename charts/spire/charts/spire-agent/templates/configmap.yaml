@@ -1,0 +1,74 @@
+{{- include "spire-lib.check-strict-mode" (list . "clusterName must be set" (eq (include "spire-lib.cluster-name" .) "example-cluster"))}}
+{{- include "spire-lib.check-strict-mode" (list . "trustDomain must be set" (eq (include "spire-lib.trust-domain" .) "example.org"))}}
+{{- define "spire-agent.yaml-config" -}}
+agent:
+  data_dir: "/run/spire"
+  log_level: {{ .Values.logLevel | quote }}
+  server_address: {{ include "spire-agent.server-address" . | trim | quote }}
+  server_port: {{ .Values.server.port | quote }}
+  socket_path: {{ include "spire-agent.socket-path" . | quote }}
+  {{- if ne (len .Values.trustBundleURL) 0 }}
+  trust_bundle_url: {{ .Values.trustBundleURL | quote }}
+  trust_bundle_format: {{ .Values.trustBundleFormat | quote }}
+  {{- else }}
+  trust_bundle_path: "/run/spire/bundle/bundle.crt"
+  {{- end }}
+  trust_domain: {{ include "spire-lib.trust-domain" . | quote }}
+  {{- if .Values.sds.enabled }}
+  sds:
+    default_svid_name: {{ .Values.sds.defaultSvidName | quote }}
+    default_bundle_name: {{ .Values.sds.defaultBundleName | quote }}
+    default_all_bundles_name: {{ .Values.sds.defaultAllBundlesName | quote }}
+    disable_spiffe_cert_validation: {{ .Values.sds.disableSpiffeCertValidation }}
+  {{- end }}
+
+plugins:
+  NodeAttestor:
+    - k8s_psat:
+        plugin_data:
+          cluster: {{ include "spire-lib.cluster-name" . | quote }}
+
+  KeyManager:
+    - memory:
+        plugin_data:
+
+  WorkloadAttestor:
+    - k8s:
+        plugin_data:
+          # Defaults to the secure kubelet port by default.
+          # Minikube does not have a cert in the cluster CA bundle that
+          # can authenticate the kubelet cert, so skip validation.
+          skip_kubelet_verification: {{ .Values.workloadAttestors.k8s.skipKubeletVerification }}
+          disable_container_selectors: {{ .Values.workloadAttestors.k8s.disableContainerSelectors }}
+
+  {{- if .Values.workloadAttestors.unix.enabled }}
+    - unix:
+        plugin_data:
+  {{- end }}
+
+health_checks:
+  listener_enabled: true
+  bind_address: "0.0.0.0"
+  bind_port: {{ .Values.healthChecks.port | quote }}
+  live_path: "/live"
+  ready_path: "/ready"
+
+{{- if (dig "telemetry" "prometheus" "enabled" .Values.telemetry.prometheus.enabled .Values.global) }}
+telemetry:
+  - Prometheus:
+      - host: "0.0.0.0"
+        port: {{ .Values.telemetry.prometheus.port }}
+{{- end }}
+{{- end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spire-agent.fullname" . }}
+  namespace: {{ include "spire-agent.namespace" . }}
+  {{- with .Values.configMap.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+data:
+  agent.conf: |
+    {{- include "spire-agent.yaml-config" . | fromYaml | toPrettyJson | nindent 4 }}

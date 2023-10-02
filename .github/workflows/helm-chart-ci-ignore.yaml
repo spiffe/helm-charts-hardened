@@ -1,0 +1,75 @@
+name: Helm Chart CI
+
+on:
+  pull_request:
+    types: [synchronize, opened, reopened]
+    paths-ignore:
+      - 'charts/**'
+      - '.github/workflows/helm-chart-ci.yaml'
+      - '.github/kind/conf/kind-config.yaml'
+      - '.github/tests/**/*.yaml'
+      - '.github/tests/**/*.sh'
+      - '.github/tests/**/*.json'
+      - 'examples/**/*.yaml'
+      - 'helm-docs.sh'
+
+jobs:
+  lint-chart:
+    runs-on: ubuntu-22.04
+    steps:
+      - run: 'echo "Skipping linter"'
+
+  checks:
+    runs-on: ubuntu-22.04
+    steps:
+      - run: 'echo "Skipping checks"'
+
+  test:
+    runs-on: ubuntu-22.04
+
+    strategy:
+      matrix:
+        k8s:
+          - v1.27.2
+          - v1.26.4
+          - v1.25.9
+
+    steps:
+      - run: 'echo "Skipping tests"'
+
+  build-matrix:
+    name: Build matrix
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.0
+
+      - id: set-matrix
+        name: Collect all examples
+        run: |
+          examples="$(find examples -maxdepth 2 -type f -name run-tests.sh | xargs -I % dirname %)"
+          examples_json="$(echo "$examples" | jq -c --slurp --raw-input 'split("\n") | map(select(. != ""))')"
+          echo "${examples_json}"
+          echo "examples=$examples_json" >>"$GITHUB_OUTPUT"
+
+    outputs:
+      examples: ${{ steps.set-matrix.outputs.examples }}
+
+  example-test:
+    runs-on: ubuntu-22.04
+
+    needs:
+      - build-matrix
+
+    strategy:
+      matrix:
+        k8s:
+          - v1.27.2
+          - v1.26.4
+          - v1.25.9
+        example:
+          - ${{ fromJson(needs.build-matrix.outputs.examples) }}
+
+    steps:
+      - run: 'echo "Skipping example-test"'

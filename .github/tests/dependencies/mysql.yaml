@@ -1,0 +1,12 @@
+primary:
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: [ALL]
+    seccompProfile:
+      type: RuntimeDefault
+auth:
+  database: spire-server
+  username: spire
+  password: sp1ff3Test
+  rootPassword: sp1ff3TestPassword

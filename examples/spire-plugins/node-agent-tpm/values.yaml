@@ -1,0 +1,25 @@
+spire-server:
+  initContainers:
+  - name: tpm-init
+    image: busybox
+    command:
+    - sh
+    - -c
+    - |
+      mkdir -p /run/spire/data/certs
+      mkdir -p /run/spire/data/hashes
+    volumeMounts:
+    - mountPath: /run/spire/data
+      name: spire-data
+  image:
+    registry: docker.io
+    repository: kfox1111/misc
+    version: tpm-server-test
+  customPlugins:
+    nodeAttestor:
+      tpm:
+        plugin_cmd: /bin/tpm_attestor_server
+        plugin_checksum: 97442358ae946e3fb8f2464432b8c23efdc0b5d44ec1eea27babe59ef646cc2f
+        plugin_data:
+        - ca_path: /run/spire/data/certs
+          hash_path: /run/spire/data/hashes

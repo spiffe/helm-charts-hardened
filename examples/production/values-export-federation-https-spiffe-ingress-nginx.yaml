@@ -1,0 +1,25 @@
+spire-server:
+  federation:
+    enabled: true
+    ingress:
+      enabled: true
+      annotations:
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+        nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+
+        # Optional settings you may put in your own values.
+        # kubernetes.io/ingress.class: nginx
+        # kubernetes.io/tls-acme: "true"
+
+      # className: nginx
+ 
+      hosts:
+        - host: spire-server-federation.example.org
+          paths:
+            - path: /
+              pathType: Prefix
+      tls:
+        - hosts:
+            - spire-server-federation.example.org

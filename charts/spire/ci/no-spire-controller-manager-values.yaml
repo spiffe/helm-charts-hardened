@@ -1,0 +1,3 @@
+spire-server:
+  controllerManager:
+    enabled: false

@@ -1,0 +1,143 @@
+{{- $configSum := (include (print $.Template.BasePath "/configmap.yaml") . | sha256sum) }}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "spire-agent.fullname" . }}
+  namespace: {{ include "spire-agent.namespace" . }}
+  labels:
+    {{- include "spire-agent.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "spire-agent.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ $configSum }}
+        {{- with .Values.podAnnotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "spire-agent.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      hostPID: true
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      serviceAccountName: {{ include "spire-agent.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName }}
+      {{- end }}
+      {{- if ne (len .Values.hostAliases) 0 }}
+      hostAliases:
+        {{- toYaml .Values.hostAliases | nindent 8 }}
+      {{- end }}
+      initContainers:
+        - name: init
+          # This is a small image with wait-for-it, choose whatever image
+          # you prefer that waits for a service to be up. This image is built
+          # from https://github.com/vishnubob/wait-for-it
+          image: {{ template "spire-lib.image" (dict "image" .Values.waitForIt.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.waitForIt.image.pullPolicy }}
+          args: ["-t", "30", "-h", "{{ include "spire-agent.server-address" . | trim }}", "-p", {{ .Values.server.port | quote }}]
+          resources:
+            {{- toYaml .Values.waitForIt.resources | nindent 12 }}
+        {{- if gt (int (dig "fsGroup" 0 .Values.podSecurityContext)) 0 }}
+        - name: fsgroupfix
+          image: {{ template "spire-lib.image" (dict "image" .Values.fsGroupFix.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.fsGroupFix.image.pullPolicy }}
+          command: ["bash", "-c"]
+          args:
+            - "chown -R {{ .Values.podSecurityContext.runAsUser }}:{{ .Values.podSecurityContext.fsGroup }} {{ include "spire-agent.socket-path" . | dir }}"
+          resources:
+            {{- toYaml .Values.fsGroupFix.resources | nindent 12 }}
+          volumeMounts:
+            - name: spire-agent-socket-dir
+              mountPath: {{ include "spire-agent.socket-path" . | dir }}
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+        {{- end }}
+        {{- if gt (len .Values.initContainers) 0 }}
+        {{- toYaml .Values.initContainers | nindent 8 }}
+        {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: ["-config", "/run/spire/config/agent.conf"]
+          ports:
+            - containerPort: {{ .Values.healthChecks.port }}
+              name: healthz
+            {{- if (dig "telemetry" "prometheus" "enabled" .Values.telemetry.prometheus.enabled .Values.global) }}
+            - containerPort: {{ .Values.telemetry.prometheus.port }}
+              name: prom
+            {{- end }}
+          volumeMounts:
+            - name: spire-config
+              mountPath: /run/spire/config
+              readOnly: true
+            {{- if eq (len .Values.trustBundleURL) 0 }}
+            - name: spire-bundle
+              mountPath: /run/spire/bundle
+              readOnly: true
+            {{- end }}
+            - name: spire-agent-socket-dir
+              mountPath: {{ include "spire-agent.socket-path" . | dir }}
+              readOnly: false
+            - name: spire-token
+              mountPath: /var/run/secrets/tokens
+            {{- if gt (len .Values.extraVolumeMounts) 0 }}
+            {{- toYaml .Values.extraVolumeMounts | nindent 12 }}
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /live
+              port: healthz
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: healthz
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+        {{- if gt (len .Values.extraContainers) 0 }}
+        {{- toYaml .Values.extraContainers | nindent 8 }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: spire-config
+          configMap:
+            name: {{ include "spire-agent.fullname" . }}
+        {{- if eq (len .Values.trustBundleURL) 0 }}
+        - name: spire-bundle
+          configMap:
+            name: {{ include "spire-lib.bundle-configmap" . }}
+        {{- end }}
+        - name: spire-token
+          projected:
+            sources:
+            - serviceAccountToken:
+                path: spire-agent
+                expirationSeconds: 7200
+                audience: spire-server
+        - name: spire-agent-socket-dir
+          hostPath:
+            path: {{ include "spire-agent.socket-path" . | dir }}
+            type: DirectoryOrCreate
+        {{- if gt (len .Values.extraVolumes) 0 }}
+        {{- toYaml .Values.extraVolumes | nindent 8 }}
+        {{- end }}

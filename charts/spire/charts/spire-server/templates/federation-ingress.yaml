@@ -1,0 +1,18 @@
+{{- if .Values.federation.enabled }}
+{{- if .Values.federation.ingress.enabled -}}
+{{- $svcName := include "spire-server.fullname" . }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ printf "%s-federation" $svcName }}
+  namespace: {{ include "spire-server.namespace" . }}
+  labels:
+    {{ include "spire-server.labels" . | nindent 4 }}
+  {{- with .Values.federation.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{ include "spire-lib.ingress-spec" (dict "ingress" .Values.federation.ingress "svcName" $svcName "port" .Values.federation.bundleEndpoint.port "global" .Values.global) | nindent 2 }}
+{{- end }}
+{{- end }}

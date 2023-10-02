@@ -1,0 +1,25 @@
+spire-server:
+  ingress:
+    enabled: true
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+      nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+
+      # Optional settings you may put in your own values.
+      # kubernetes.io/tls-acme: "true"
+      # kubernetes.io/ingress.class: nginx
+
+    # className: nginx
+
+    # You must override these in your own values file with the appropriate hostname
+    # and secret or it wont start.
+    hosts:
+      - host: spire-server.example.org
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - hosts:
+          - spire-server.example.org

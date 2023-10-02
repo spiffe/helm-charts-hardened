@@ -1,0 +1,61 @@
+{
+  "spire-server/values.yaml": [
+    {
+      "query": "tests.bash.image",
+      "filter": "LATESTSHA",
+      "sort-flags": []
+    }
+  ],
+  "spire-agent/values.yaml": [
+    {
+      "query": "waitForIt.image",
+      "filter": "LATESTSHA",
+      "sort-flags": []
+    },
+    {
+      "query": "fsGroupFix.image",
+      "filter": "LATESTSHA",
+      "sort-flags": []
+    }
+  ],
+  "spiffe-csi-driver/values.yaml": [
+    {
+      "query": "nodeDriverRegistrar.image",
+      "filter": "^v",
+      "sort-flags": []
+    }
+  ],
+  "spiffe-oidc-discovery-provider/values.yaml": [
+    {
+      "query": "insecureScheme.nginx.image",
+      "filter": "^[0-9]\\+\\.[0-9]\\+\\.[0-9]\\+-alpine$",
+      "sort-flags": []
+    }, {
+      "query": "telemetry.prometheus.nginxExporter.image",
+      "filter": "^[0-9]\\+\\.[0-9]\\+\\.[0-9]\\+$",
+      "sort-flags": ["-t", ".", "-k1,1n", "-k2,2n", "-k3,3n"]
+    },
+    {
+      "query": "tests.bash.image",
+      "filter": "LATESTSHA",
+      "sort-flags": []
+    },
+    {
+      "query": "tests.toolkit.image",
+      "filter": "LATESTSHA",
+      "sort-flags": []
+    },
+    {
+      "query": "tests.busybox.image",
+      "filter": "^[0-9]\\+\\.[0-9]\\+\\.[0-9]\\+-uclibc$",
+      "sort-flags": ["-t", ".", "-k1,1n", "-k2,2n", "-k3,3n"]
+    }
+  ],
+  "tornjak-frontend/values.yaml": [
+    {
+      "query": "tests.bash.image",
+      "filter": "LATESTSHA",
+      "sort-flags": []
+    }
+  ]
+}
