@@ -1,8 +1,33 @@
 # Frequently Asked Questions
 
+- [How does this repo relate to the helm-charts repo?](#how-does-this-repo-relate-to-the-helm-charts-repo)
+- [How do I migrate my changeset from the old helm-charts repo to this one?](#how-do-i-migrate-my-changeset-from-the-old-helm-charts-repo-to-this-one)
+- [How do I update my helm registry to point to this one?](#how-do-i-update-my-helm-registry-to-point-to-this-one)
 - [Pods are stuck terminating after uninstall. How do I fix it?](#pods-are-stuck-terminating-after-uninstall-how-do-i-fix-it)
 - [Uninstall is stuck. How do I fix it?](#uninstall-is-stuck-how-do-i-fix-it)
 - [The PSAT plugin is not working](#the-psat-plugin-is-not-working)
+
+## How does this repo relate to the helm-charts repo?
+
+The helm-charts repo has been archived. This repo has all the commit history and releases copied over from that repo and is continuing development to provide a SPIRE helm chart for the community to use and contribute to.
+
+## How do I migrate my changeset from the old helm-charts repo to this one?
+
+Run one of these commands to switch to the new repo:
+
+- If working off a branch (maintainers with write access): `git remote set-url origin git@github.com:spiffe/helm-charts-hardened.git`
+- If working off a fork:
+    1. Create a new fork of helm-charts-hardened
+    1. In your local clone of your fork of helm-charts: `git remote set-url origin https://github.com/<your fork>/helm-charts-hardened.git`
+
+Then just `git push` your branches. Git history has been migrated over so you can just push your existing branches without issues.
+
+## How do I update my helm registry to point to this one?
+
+``` bash
+helm repo remove spiffe
+helm repo add spiffe https://spiffe.github.io/helm-charts-hardened
+```
 
 ## Pods are stuck terminating after uninstall. How do I fix it?
 
