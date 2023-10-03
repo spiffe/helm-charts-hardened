@@ -378,7 +378,7 @@ experimental:
   cacheReloadInterval: 5s
   pruneEventsInterval: 10s
   featureFlags:
-    eventsBasedCache: true
+    - events_based_cache
 
 controllerManager:
   ## @param controllerManager.enabled Flag to enable controller manager
