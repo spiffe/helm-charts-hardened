@@ -18,7 +18,7 @@ Run one of these commands to switch to the new repo:
 - If working off a branch (maintainers with write access): `git remote set-url origin git@github.com:spiffe/helm-charts-hardened.git`
 - If working off a fork:
     1. Create a new fork of helm-charts-hardened
-    1. In your local clone of your fork of helm-charts: `git remote set-url origin https://github.com/<your fork>/helm-charts-hardened.git`
+    1. In your local clone of your old fork of helm-charts: `git remote set-url origin https://github.com/<your new fork>/helm-charts-hardened.git`
 
 Then just `git push` your branches. Git history has been migrated over so you can just push your existing branches without issues.
 
