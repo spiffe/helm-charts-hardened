@@ -24,6 +24,8 @@ Then just `git push` your branches. Git history has been migrated over so you ca
 
 ## How do I update my helm registry to point to this one?
 
+Assuming you named the repo `spiffe`:
+
 ``` bash
 helm repo remove spiffe
 helm repo add spiffe https://spiffe.github.io/helm-charts-hardened
