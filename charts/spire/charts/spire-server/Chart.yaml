@@ -19,3 +19,8 @@ maintainers:
     email: fymemon@yahoo.com
   - name: edwbuck
     email: edwbuck@gmail.com
+dependencies:
+  - name: spire-crds
+    condition: crds.enabled
+    repository: file://./charts/spire-crds
+    version: 0.1.0
