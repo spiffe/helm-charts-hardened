@@ -59,7 +59,7 @@ jobs:
           set -o pipefail
           # Look for image: definitions that are not templated. If we find none, exit is not 0 and we invert the error code to get the
           # test to pass. Ignore tests for now...
-          grep -r "image:" charts/spire  | grep "templates/" | grep -v 'image: {{ template "' > /tmp/findings
+          grep -r "image:" charts/spire  | grep "templates/" | grep -v 'image: {{ template "' | grep -v spire.spiffe.io_ > /tmp/findings
           res=$?
           if [ $res -eq 0 ]; then
             {
