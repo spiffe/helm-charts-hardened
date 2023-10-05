@@ -71,6 +71,7 @@ jobs:
           signoff: true
           add-paths: |
             .github/tests
+            charts
 
       - name: Check outputs
         if: ${{ steps.cpr.outputs.pull-request-number }}
