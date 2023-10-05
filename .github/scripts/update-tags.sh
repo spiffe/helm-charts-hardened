@@ -71,4 +71,4 @@ jq -r '. | keys[]' "$IMAGEJSON" | while read -r CHART; do
     fi
   done
 done
-"${SCRIPTPATH}/../../helm-docs.sh"
+"${SCRIPTPATH}/../../helm-docs.sh" || true
