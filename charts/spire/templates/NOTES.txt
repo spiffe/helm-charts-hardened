@@ -1,6 +1,8 @@
 Installed {{ .Chart.Name }}…
 {{- $up := (index .Values "spire-server").unsupportedBuiltInPlugins }}
 {{- $s := add (len $up.keyManager) (len $up.nodeAttestor) (len $up.upstreamAuthority) (len $up.notifier) }}
+{{- $up = (index .Values "spire-agent").unsupportedBuiltInPlugins }}
+{{- $s = add (len $up.keyManager) (len $up.nodeAttestor) (len $up.svidStore) (len $up.workloadAttestor) $s }}
 {{- if gt $s 0 }}
 
 Warning: You're using an unsupported plugin. Functionality of this release and future upgrades aren't guaranteed to work smoothly.

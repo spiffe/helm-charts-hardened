@@ -165,6 +165,8 @@ workloadAttestors:
     ## @param workloadAttestors.unix.enabled Enables the Unix workload attestor
     enabled: false
   k8s:
+    ## @param workloadAttestors.k8s.enabled Enables the Kubernetes workload attestor
+    enabled: true
     ## @param workloadAttestors.k8s.skipKubeletVerification If true, kubelet certificate verification is skipped
     skipKubeletVerification: true
     ## @param workloadAttestors.k8s.disableContainerSelectors Set to true if using holdApplicationUntilProxyStarts in Istio
@@ -215,3 +217,20 @@ extraContainers: []
 initContainers: []
 ## @param hostAliases [array] Customize /etc/hosts file as described here https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/
 hostAliases: []
+
+# NOTE: This is unsupported and only to configure currently supported spire built in plugins but plugins unsupported by the chart.
+# Upgrades wont be tested for anything under this config. If you need this, please let the chart developers know your needs so we
+# can prioritize proper support.
+## @skip unsupportedBuiltInPlugins
+unsupportedBuiltInPlugins:
+  keyManager: {}
+  nodeAttestor: {}
+  svidStore: {}
+  workloadAttestor: {}
+
+## @skip customPlugins
+customPlugins:
+  keyManager: {}
+  nodeAttestor: {}
+  svidStore: {}
+  workloadAttestor: {}
