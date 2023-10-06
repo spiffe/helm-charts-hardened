@@ -571,7 +571,6 @@ tornjak:
     enabled: false
     className: ""
     annotations: {}
-    servicePort: 10000
     hosts:
       - host: tornjak-backend.example.org
         paths:
