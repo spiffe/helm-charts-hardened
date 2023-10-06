@@ -103,4 +103,34 @@ spire-server:
 			Expect(notes).Should(ContainSubstring("\"aws_pca\": {"))
 		})
 	})
+	Describe("spire-agent.customPlugin.tpm", func() {
+		It("plugin set ok", func() {
+			objs, err := ValueStringRender(chart, `
+spire-agent:
+  customPlugins:
+    nodeAttestor:
+      tpm:
+        plugin_cmd: /bin/tpm_attestor_agent
+        plugin_checksum: bb7be714c27452231a6c7764b65912ce0cdeb66ff2a2c688d3e88bd0bd17d138
+        plugin_data: {}
+`)
+			Expect(err).Should(Succeed())
+			notes := objs["spire/charts/spire-agent/templates/configmap.yaml"]
+			Expect(notes).Should(ContainSubstring("tpm"))
+		})
+	})
+	Describe("spire-server.unsupportedBuiltInPlugins", func() {
+		It("plugin set ok", func() {
+			objs, err := ValueStringRender(chart, `
+spire-agent:
+  unsupportedBuiltInPlugins:
+    nodeAttestor:
+      join_token:
+        plugin_data: {}
+`)
+			Expect(err).Should(Succeed())
+			notes := objs["spire/charts/spire-agent/templates/configmap.yaml"]
+			Expect(notes).Should(ContainSubstring("join_token"))
+		})
+	})
 })

@@ -122,3 +122,60 @@ if strictMode is enabled and the boolean is true
 {{- end }}
 {{- end }}
 {{- end }}
+
+{{/*
+Take a copy of the config and merge in .Values.customPlugins and .Values.unsupportedBuiltInPlugins passed through as root.
+*/}}
+{{- define "spire-lib.config_merge" }}
+{{- $pluginsToMerge := dict "plugins" dict }}
+{{- range $type, $val := .root.Values.customPlugins }}
+{{-   if . }}
+{{-     if eq $type "svidstore" }}
+{{-       $_ := set $pluginsToMerge.plugins "SVIDStore" (deepCopy $val) }}
+{{-     else }}
+{{-       $nt := printf "%s%s" (substr 0 1 $type | upper) (substr 1 -1 $type) }}
+{{-       $_ := set $pluginsToMerge.plugins $nt (deepCopy $val) }}
+{{-     end }}
+{{-   end }}
+{{- end }}
+{{- range $type, $val := .root.Values.unsupportedBuiltInPlugins }}
+{{-   if . }}
+{{-     if eq $type "svidstore" }}
+{{-       $_ := set $pluginsToMerge.plugins "SVIDStore" (deepCopy $val) }}
+{{-     else }}
+{{-       $nt := printf "%s%s" (substr 0 1 $type | upper) (substr 1 -1 $type) }}
+{{-       $_ := set $pluginsToMerge.plugins $nt (deepCopy $val) }}
+{{-     end }}
+{{-   end }}
+{{- end }}
+{{- $newConfig := .config | fromYaml | mustMerge $pluginsToMerge }}
+{{- $newConfig | toYaml }}
+{{- end }}
+
+{{/*
+Take a copy of the plugin section and return a yaml string based version
+reformatted from a dict of dicts to a dict of lists of dicts
+*/}}
+{{- define "spire-lib.plugins_reformat" }}
+{{- range $type, $v := . }}
+{{ $type }}:
+{{-   range $name, $v2 := $v }}
+    - {{ $name }}: {{ $v2 | toYaml | nindent 8 }}
+{{-   end }}
+{{- end }}
+{{- end }}
+
+{{/*
+Take a copy of the config as a yaml config and root var.
+Merge in .root.Values.customPlugins and .Values.unsupportedBuiltInPlugins into config,
+Reformat the plugin section from a dict of dicts to a dict of lists of dicts,
+and export it back as as json string.
+This makes it much easier for users to merge in plugin configs, as dicts are easier
+to merge in values, but spire needs arrays.
+*/}}
+{{- define "spire-lib.reformat-and-yaml2json" -}}
+{{- $config := include "spire-lib.config_merge" . | fromYaml }}
+{{- $plugins := include "spire-lib.plugins_reformat" $config.plugins | fromYaml }}
+{{- $_ := set $config "plugins" $plugins }}
+{{- $config | toPrettyJson }}
+{{- end }}
