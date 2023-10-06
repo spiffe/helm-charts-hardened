@@ -309,7 +309,7 @@ upstreamAuthority:
       ## @param upstreamAuthority.certManager.ca.create Creates a Cert-Manager CA
       create: false
       ## @param upstreamAuthority.certManager.ca.duration Duration of the CA. Defaults to 10 years
-      duration:  87600h
+      duration: 87600h
       privateKey:
         ## @param upstreamAuthority.certManager.ca.privateKey.algorithm Algorithm to generate private key for CA
         algorithm: ECDSA
@@ -656,4 +656,4 @@ tests:
       repository: chainguard/bash
       pullPolicy: IfNotPresent
       version: ""
-      tag: latest@sha256:96ab1600d945b4a99c8610b5c8b31e346da63dc20573a26bb0777dd0190db5d4
+      tag: latest@sha256:5c943903c3f9159c58c4fdf9809f404ab9cfc39b7bfed12bac44563ce0fe7875
