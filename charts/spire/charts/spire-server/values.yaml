@@ -565,12 +565,13 @@ tornjak:
   ## @param tornjak.ingress.enabled Flag to enable ingress for Tornjak backend service
   ## @param tornjak.ingress.className Ingress class name for Tornjak backend service
   ## @param tornjak.ingress.annotations [object] Annotations for Tornjak backend service
-  ## @param tornjak.ingress.servicePort Service port value for Tornjak backend service
+  ## @param tornjak.ingress.tlsBackendPort Flag to enable TLS on the ingress Tornjak backend service
   ## @param tornjak.ingress.hosts [array] Host paths for ingress Tornjak backend service
   ingress:
     enabled: false
     className: ""
     annotations: {}
+    tlsBackendPort: false
     hosts:
       - host: tornjak-backend.example.org
         paths:
