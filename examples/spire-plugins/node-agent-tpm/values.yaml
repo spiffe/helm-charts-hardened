@@ -13,8 +13,8 @@ spire-server:
       name: spire-data
   image:
     registry: docker.io
-    repository: kfox1111/misc
-    version: tpm-server-test
+    repository: <your repo here>
+    tag: <your tag here>
   customPlugins:
     nodeAttestor:
       tpm:
@@ -27,8 +27,8 @@ spire-server:
 spire-agent:
   image:
     registry: docker.io
-    repository: kfox1111/misc
-    version: tpm-agent-test
+    repository: <your repo here>
+    tag: <your tag here>
   customPlugins:
     nodeAttestor:
       tpm:
