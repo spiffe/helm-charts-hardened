@@ -228,7 +228,10 @@ unsupportedBuiltInPlugins:
   svidStore: {}
   workloadAttestor: {}
 
-## @skip customPlugins
+## @param customPlugins.keyManager Custom plugins of type KeyManager are configured here
+## @param customPlugins.nodeAttestor Custom plugins of type NodeAttestor are configured here
+## @param customPlugins.svidStore Custom plugins of type SVIDStore are configured here
+## @param customPlugins.workloadAttestor Custom plugins of type WorkloadAttestor are configured here
 customPlugins:
   keyManager: {}
   nodeAttestor: {}

@@ -621,7 +621,10 @@ unsupportedBuiltInPlugins:
   upstreamAuthority: {}
   notifier: {}
 
-## @skip customPlugins
+## @param customPlugins.keyManager Custom plugins of type KeyManager are configured here
+## @param customPlugins.nodeAttestor Custom plugins of type NodeAttestor are configured here
+## @param customPlugins.upstreamAuthority Custom plugins of type upstreamAuthority are configured here
+## @param customPlugins.notifier Custom plugins of type notifier are configured here
 customPlugins:
   keyManager: {}
   nodeAttestor: {}
