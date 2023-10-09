@@ -237,3 +237,11 @@ customPlugins:
   nodeAttestor: {}
   svidStore: {}
   workloadAttestor: {}
+
+experimental:
+  ## @param experimental.enabled Allow configuration of experimental features
+  enabled: false
+  ## @param experimental.syncInterval Sync interval with SPIRE server with exponential backoff
+  syncInterval: 5s
+  ## @param experimental.featureFlags [array] List of developer feature flags
+  featureFlags: []

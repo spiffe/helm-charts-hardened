@@ -40,6 +40,19 @@ agent:
     disable_spiffe_cert_validation: {{ .Values.sds.disableSpiffeCertValidation }}
   {{- end }}
 
+  {{- with .Values.experimental }}
+  {{- if eq (.enabled | toString) "true" }}
+  experimental:
+  sync_interval: {{ .syncInterval | quote }}
+    {{- if gt (len .featureFlags) 0 }}
+    feature_flags:
+      {{- range .featureFlags }}
+        - {{ . | quote }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
+
 plugins:
   NodeAttestor:
     k8s_psat:
