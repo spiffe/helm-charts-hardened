@@ -215,3 +215,9 @@ extraContainers: []
 initContainers: []
 ## @param hostAliases [array] Customize /etc/hosts file as described here https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/
 hostAliases: []
+
+experimental:
+  ## @param experimental.enabled Allow configuration of experimental features
+  enabled: false
+  ## @param experimental.featureFlags [array] List of developer feature flags
+  featureFlags: []
