@@ -562,6 +562,27 @@ tornjak:
     ## @param tornjak.service.annotations [object] Annotations for the service
     annotations: {}
 
+  ## @param tornjak.ingress.enabled Flag to enable ingress for Tornjak backend service
+  ## @param tornjak.ingress.className Ingress class name for Tornjak backend service
+  ## @param tornjak.ingress.annotations [object] Annotations for Tornjak backend service
+  ## @param tornjak.ingress.tlsBackendPort Flag to enable TLS on the ingress Tornjak backend service
+  ## @param tornjak.ingress.hosts [array] Host paths for ingress Tornjak backend service
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    tlsBackendPort: false
+    hosts:
+      - host: tornjak-backend.example.org
+        paths:
+          - path: /
+            pathType: Prefix
+    ## @param tornjak.ingress.tls [array] Secrets containing TLS certs to enable https on ingress
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - tornjak-backend.example.org
+
   ## @param tornjak.startupProbe.failureThreshold Failure threshold count
   ## @param tornjak.startupProbe.initialDelaySeconds Initial delay seconds
   ## @param tornjak.startupProbe.periodSeconds Period seconds
