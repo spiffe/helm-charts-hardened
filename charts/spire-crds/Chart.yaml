@@ -1,24 +1,21 @@
-apiVersion: v2
 name: spire-crds
-description: A Helm chart for Kubernetes
-
-# A chart can be either an 'application' or a 'library' chart.
-#
-# Application charts are a collection of templates that can be packaged into versioned archives
-# to be deployed.
-#
-# Library charts provide useful utilities or functions for the chart developer. They're included as
-# a dependency of application charts to inject those utilities and functions into the rendering
-# pipeline. Library charts do not define any templates and therefore cannot be deployed.
+description: >
+  A Helm chart for deploying the Spire CRDS
 type: application
-
-# This is the chart version. This version number should be incremented each time you make changes
-# to the chart and its templates, including the app version.
-# Versions are expected to follow Semantic Versioning (https://semver.org/)
-version: 0.1.0
-
-# This is the version number of the application being deployed. This version number should be
-# incremented each time you make changes to the application. Versions are not expected to
-# follow Semantic Versioning. They should reflect the version the application is using.
-# It is recommended to use it with quotes.
-appVersion: "1.16.0"
+version: 0.0.1
+appVersion: "0.0.1"
+keywords: ["spire-crds"]
+home: https://github.com/spiffe/helm-charts/tree/main/charts/spire
+sources:
+  - https://github.com/spiffe/helm-charts/tree/main/charts/spire
+icon: https://spiffe.io/img/logos/spire/icon/color/spire-icon-color.png
+maintainers:
+  - name: marcofranssen
+    email: marco.franssen@gmail.com
+    url: https://marcofranssen.nl
+  - name: kfox1111
+    email: Kevin.Fox@pnnl.gov
+  - name: faisal-memon
+    email: fymemon@yahoo.com
+  - name: edwbuck
+    email: edwbuck@gmail.com
