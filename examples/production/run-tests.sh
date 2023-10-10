@@ -108,6 +108,8 @@ if [[ -n "$UPGRADE_ARGS" ]]; then
   # Any other upgrade steps go here. (Upgrade crds, delete statefulsets without cascade, etc.)
 fi
 
+helm upgrade --install -n spire-server spire-crds charts/spire-crds
+
 install_and_test charts/spire ""
 
 if helm get manifest -n spire-server spire | grep -i example; then

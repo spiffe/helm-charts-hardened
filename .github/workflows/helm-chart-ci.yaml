@@ -170,6 +170,7 @@ jobs:
 
       - name: Run chart-testing (install)
         run: |
+          helm install spire-crds charts/spire-crds
           ct install --config ct.yaml \
             --target-branch ${{ github.base_ref }}
 
@@ -238,7 +239,9 @@ jobs:
           verbosity: 1
 
       - name: Install and test example
-        run: ${{ matrix.example }}/run-tests.sh
+        run: |
+          helm install spire-crds charts/spire-crds
+          ${{ matrix.example }}/run-tests.sh
 
   upgrade-test:
     runs-on: ubuntu-22.04
