@@ -108,8 +108,8 @@ if [[ -n "$UPGRADE_ARGS" ]]; then
 
   # Any other upgrade steps go here. (Upgrade crds, delete statefulsets without cascade, etc.)
   kubectl label crd "clusterfederatedtrustdomains.spire.spiffe.io" "app.kubernetes.io/managed-by=Helm"
-  kubectl annotate crd "clusterfederatedtrustdomains.spire.spiffe.io" "meta.helm.sh/release-name" "spire-crds"
-  kubectl annotate crd "clusterfederatedtrustdomains.spire.spiffe.io" "meta.helm.sh/release-namespace" "spire-server"
+  kubectl annotate crd "clusterfederatedtrustdomains.spire.spiffe.io" "meta.helm.sh/release-name=spire-crds"
+  kubectl annotate crd "clusterfederatedtrustdomains.spire.spiffe.io" "meta.helm.sh/release-namespace=spire-server"
 fi
 
 helm upgrade --install -n spire-server spire-crds charts/spire-crds
