@@ -21,7 +21,7 @@ helm upgrade --install --namespace spire-server \
 helm test spire -n spire-server
 ```
 
-## Access tornjak
+## Access Tornjak
 
 To access Tornjak you will have to use port-forwarding for the time being *(until we add authentication and ingress)*.
 
@@ -40,3 +40,13 @@ kubectl -n spire-server port-forward service/spire-tornjak-frontend 3000:3000
 You can now access Tornjak at [localhost:3000](http://localhost:3000).
 
 See [values.yaml](./values.yaml) for more details on the chart configurations to achieve this setup.
+
+## Tornjak and Ingress
+
+Obtain the Ingress subdomain (this process is cloud provider specific) and assign it
+to `APP_SUBDOMAIN` env. variable, then run the deployment with your values files:
+
+```shell
+export APP_SUBDOMAIN=
+envsubst < examples/tornjak/values-ingress.yaml | helm upgrade --install --namespace spire-server spire charts/spire --values examples/production/values.yaml --values examples/production/example-your-values.yaml --values - --render-subchart-notes --debug
+```
