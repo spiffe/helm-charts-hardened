@@ -309,7 +309,7 @@ upstreamAuthority:
       ## @param upstreamAuthority.certManager.ca.create Creates a Cert-Manager CA
       create: false
       ## @param upstreamAuthority.certManager.ca.duration Duration of the CA. Defaults to 10 years
-      duration:  87600h
+      duration: 87600h
       privateKey:
         ## @param upstreamAuthority.certManager.ca.privateKey.algorithm Algorithm to generate private key for CA
         algorithm: ECDSA
@@ -562,6 +562,27 @@ tornjak:
     ## @param tornjak.service.annotations [object] Annotations for the service
     annotations: {}
 
+  ## @param tornjak.ingress.enabled Flag to enable ingress for Tornjak backend service
+  ## @param tornjak.ingress.className Ingress class name for Tornjak backend service
+  ## @param tornjak.ingress.annotations [object] Annotations for Tornjak backend service
+  ## @param tornjak.ingress.tlsBackendPort Flag to enable TLS on the ingress Tornjak backend service
+  ## @param tornjak.ingress.hosts [array] Host paths for ingress Tornjak backend service
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    tlsBackendPort: false
+    hosts:
+      - host: tornjak-backend.example.org
+        paths:
+          - path: /
+            pathType: Prefix
+    ## @param tornjak.ingress.tls [array] Secrets containing TLS certs to enable https on ingress
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - tornjak-backend.example.org
+
   ## @param tornjak.startupProbe.failureThreshold Failure threshold count
   ## @param tornjak.startupProbe.initialDelaySeconds Initial delay seconds
   ## @param tornjak.startupProbe.periodSeconds Period seconds
@@ -621,7 +642,10 @@ unsupportedBuiltInPlugins:
   upstreamAuthority: {}
   notifier: {}
 
-## @skip customPlugins
+## @param customPlugins.keyManager Custom plugins of type KeyManager are configured here
+## @param customPlugins.nodeAttestor Custom plugins of type NodeAttestor are configured here
+## @param customPlugins.upstreamAuthority Custom plugins of type upstreamAuthority are configured here
+## @param customPlugins.notifier Custom plugins of type notifier are configured here
 customPlugins:
   keyManager: {}
   nodeAttestor: {}
@@ -656,7 +680,7 @@ tests:
       repository: chainguard/bash
       pullPolicy: IfNotPresent
       version: ""
-      tag: latest@sha256:96ab1600d945b4a99c8610b5c8b31e346da63dc20573a26bb0777dd0190db5d4
+      tag: latest@sha256:5c943903c3f9159c58c4fdf9809f404ab9cfc39b7bfed12bac44563ce0fe7875
 
 crds:
   ## @param crds.enabled The crds will be managed by the helm chart

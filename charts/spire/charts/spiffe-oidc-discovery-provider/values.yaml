@@ -111,7 +111,7 @@ insecureScheme:
       repository: nginxinc/nginx-unprivileged
       pullPolicy: IfNotPresent
       version: ""
-      tag: 1.24.0-alpine
+      tag: 1.25.2-alpine
     ## @param insecureScheme.nginx.resources Resource requests and limits
     resources: {}
       # We usually recommend not to specify default resources and to leave this as a conscious
@@ -280,7 +280,7 @@ tests:
       repository: chainguard/bash
       pullPolicy: IfNotPresent
       version: ""
-      tag: latest@sha256:96ab1600d945b4a99c8610b5c8b31e346da63dc20573a26bb0777dd0190db5d4
+      tag: latest@sha256:5c943903c3f9159c58c4fdf9809f404ab9cfc39b7bfed12bac44563ce0fe7875
 
   toolkit:
     ## @param tests.toolkit.image.registry The OCI registry to pull the image from
@@ -294,7 +294,7 @@ tests:
       repository: chainguard/slim-toolkit-debug
       pullPolicy: IfNotPresent
       version: ""
-      tag: latest@sha256:d717d0a2c88518f8e36d9cfe1571639a40617e8c4291e34876d46bdeefb1ab5a
+      tag: latest@sha256:8e231266acc48b98934b1eaba7fd086bd13e7f22d69d3c4dff9c46040dbb29d8
 
   busybox:
     ## @param tests.busybox.image.registry The OCI registry to pull the image from
@@ -308,7 +308,7 @@ tests:
       repository: busybox
       pullPolicy: IfNotPresent
       version: ""
-      tag: uclibc@sha256:3e516f71d8801b0ce6c3f8f8e4f11093ec04e168177a90f1da4498014ee06b6b
+      tag: 1.36.1-uclibc
 
   agent:
     ## @param tests.agent.image.registry The OCI registry to pull the image from

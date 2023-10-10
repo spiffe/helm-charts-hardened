@@ -1,5 +1,23 @@
 {{- include "spire-lib.check-strict-mode" (list . "clusterName must be set" (eq (include "spire-lib.cluster-name" .) "example-cluster"))}}
 {{- include "spire-lib.check-strict-mode" (list . "trustDomain must be set" (eq (include "spire-lib.trust-domain" .) "example.org"))}}
+{{- range $type, $tvals := .Values.customPlugins }}
+{{-   if not (has $type (list "keyManager" "nodeAttestor" "svidStore" "workloadAttestor")) }}
+{{-     fail (printf "Unknown plugin type specified: %s" $type) }}
+{{-   end }}
+{{-   range $name, $nval := $tvals }}
+{{-     if not (hasKey $nval "plugin_cmd") }}
+{{-       fail (printf "plugin_cmd is a required field. %s" $name) }}
+{{-     end }}
+{{-     if not (hasKey $nval "plugin_checksum") }}
+{{-       fail (printf "plugin_checksum is a required field.") }}
+{{-     end }}
+{{-     range $sname, $svals := $nval }}
+{{-       if not (has $sname (list "plugin_cmd" "plugin_checksum" "plugin_data")) }}
+{{-         fail (printf "Unknown plugin setting specified: %s" $sname) }}
+{{-       end }}
+{{-     end }}
+{{-   end }}
+{{- end }}
 {{- define "spire-agent.yaml-config" -}}
 agent:
   data_dir: "/run/spire"
@@ -22,28 +40,43 @@ agent:
     disable_spiffe_cert_validation: {{ .Values.sds.disableSpiffeCertValidation }}
   {{- end }}
 
+  {{- with .Values.experimental }}
+  {{- if eq (.enabled | toString) "true" }}
+  experimental:
+  sync_interval: {{ .syncInterval | quote }}
+    {{- if gt (len .featureFlags) 0 }}
+    feature_flags:
+      {{- range .featureFlags }}
+        - {{ . | quote }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
+
 plugins:
   NodeAttestor:
-    - k8s_psat:
-        plugin_data:
-          cluster: {{ include "spire-lib.cluster-name" . | quote }}
+    k8s_psat:
+      plugin_data:
+        cluster: {{ include "spire-lib.cluster-name" . | quote }}
 
   KeyManager:
-    - memory:
-        plugin_data:
+    memory:
+      plugin_data:
 
   WorkloadAttestor:
-    - k8s:
-        plugin_data:
-          # Defaults to the secure kubelet port by default.
-          # Minikube does not have a cert in the cluster CA bundle that
-          # can authenticate the kubelet cert, so skip validation.
-          skip_kubelet_verification: {{ .Values.workloadAttestors.k8s.skipKubeletVerification }}
-          disable_container_selectors: {{ .Values.workloadAttestors.k8s.disableContainerSelectors }}
+  {{- if .Values.workloadAttestors.k8s.enabled }}
+    k8s:
+      plugin_data:
+        # Defaults to the secure kubelet port by default.
+        # Minikube does not have a cert in the cluster CA bundle that
+        # can authenticate the kubelet cert, so skip validation.
+        skip_kubelet_verification: {{ .Values.workloadAttestors.k8s.skipKubeletVerification }}
+        disable_container_selectors: {{ .Values.workloadAttestors.k8s.disableContainerSelectors }}
+  {{- end }}
 
   {{- if .Values.workloadAttestors.unix.enabled }}
-    - unix:
-        plugin_data:
+    unix:
+      plugin_data:
   {{- end }}
 
 health_checks:
@@ -71,4 +104,4 @@ metadata:
   {{- end }}
 data:
   agent.conf: |
-    {{- include "spire-agent.yaml-config" . | fromYaml | toPrettyJson | nindent 4 }}
+    {{- include "spire-lib.reformat-and-yaml2json" (dict "config" (include "spire-agent.yaml-config" .) "root" .) | nindent 4 }}
