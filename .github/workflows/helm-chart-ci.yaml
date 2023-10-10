@@ -171,7 +171,7 @@ jobs:
       - name: Run chart-testing (install)
         run: |
           helm install spire-crds charts/spire-crds
-          ct install --config ct.yaml \
+          ct install --config ct.yaml --excluded-charts spire-crds \
             --target-branch ${{ github.base_ref }}
 
       - name: Test summary
