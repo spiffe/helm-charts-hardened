@@ -83,6 +83,38 @@ Now you can interact with the Spire agent socket from your own application. The 
 | file://./charts/spire-server | spire-server | 0.1.0 |
 | file://./charts/tornjak-frontend | tornjak-frontend | 0.1.0 |
 
+## Install notes
+
+To do a quick non production install:
+
+kubectl create namespace spire-server
+helm install -n spire-server spire-crds charts/spire-crds
+helm install -n spire-server spire charts/spire
+
+For production installs, please see examples/production/
+
+## Upgrade notes
+
+0.14.X:
+
+If coming from a chart version before 0.14.0, you must relabel your crds to switch to using the new spire-crds chart. To migrate to the spire-crds chart
+run the following:
+
+```
+kubectl label crd "clusterfederatedtrustdomains.spire.spiffe.io" "app.kubernetes.io/managed-by=Helm"
+kubectl annotate crd "clusterfederatedtrustdomains.spire.spiffe.io" "meta.helm.sh/release-name=spire-crds"
+kubectl annotate crd "clusterfederatedtrustdomains.spire.spiffe.io" "meta.helm.sh/release-namespace=spire-server"
+kubectl label crd "clusterspiffeids.spire.spiffe.io" "app.kubernetes.io/managed-by=Helm"
+kubectl annotate crd "clusterspiffeids.spire.spiffe.io" "meta.helm.sh/release-name=spire-crds"
+kubectl annotate crd "clusterspiffeids.spire.spiffe.io" "meta.helm.sh/release-namespace=spire-server"
+kubectl label crd "controllermanagerconfigs.spire.spiffe.io" "app.kubernetes.io/managed-by=Helm"
+kubectl annotate crd "controllermanagerconfigs.spire.spiffe.io" "meta.helm.sh/release-name=spire-crds"
+kubectl annotate crd "controllermanagerconfigs.spire.spiffe.io" "meta.helm.sh/release-namespace=spire-server"
+
+#Update -n with the namespace your installing the spire chart into.
+helm install -n spire-server spire-crds charts/spire-crds
+```
+
 <!-- The parameters section is generated using helm-docs.sh and should not be edited by hand. -->
 
 ## Parameters

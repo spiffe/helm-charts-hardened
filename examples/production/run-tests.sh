@@ -107,11 +107,15 @@ if [[ -n "$UPGRADE_ARGS" ]]; then
   install_and_test spire "$UPGRADE_ARGS"
 
   # Any other upgrade steps go here. (Upgrade crds, delete statefulsets without cascade, etc.)
-  for CRD in clusterfederatedtrustdomains clusterspiffeids controllermanagerconfigs; do
-    kubectl label crd "${CRD}.spire.spiffe.io" "app.kubernetes.io/managed-by=Helm"
-    kubectl annotate crd "${CRD}.spire.spiffe.io" "meta.helm.sh/release-name=spire-crds"
-    kubectl annotate crd "${CRD}.spire.spiffe.io" "meta.helm.sh/release-namespace=spire-server"
-  done
+  kubectl label crd "clusterfederatedtrustdomains.spire.spiffe.io" "app.kubernetes.io/managed-by=Helm"
+  kubectl annotate crd "clusterfederatedtrustdomains.spire.spiffe.io" "meta.helm.sh/release-name=spire-crds"
+  kubectl annotate crd "clusterfederatedtrustdomains.spire.spiffe.io" "meta.helm.sh/release-namespace=spire-server"
+  kubectl label crd "clusterspiffeids.spire.spiffe.io" "app.kubernetes.io/managed-by=Helm"
+  kubectl annotate crd "clusterspiffeids.spire.spiffe.io" "meta.helm.sh/release-name=spire-crds"
+  kubectl annotate crd "clusterspiffeids.spire.spiffe.io" "meta.helm.sh/release-namespace=spire-server"
+  kubectl label crd "controllermanagerconfigs.spire.spiffe.io" "app.kubernetes.io/managed-by=Helm"
+  kubectl annotate crd "controllermanagerconfigs.spire.spiffe.io" "meta.helm.sh/release-name=spire-crds"
+  kubectl annotate crd "controllermanagerconfigs.spire.spiffe.io" "meta.helm.sh/release-namespace=spire-server"
 
   helm upgrade --install -n spire-server spire-crds charts/spire-crds
 fi
