@@ -60,11 +60,11 @@ jobs:
             if [ -z "${pkg:-}" ]; then
               break
             fi
-            helm push "${pkg}" oci://ghcr.io/"${GITHUB_REPOSITORY_OWNER}"/helm-charts |& tee .digest
+            helm push "${pkg}" oci://ghcr.io/"${GITHUB_REPOSITORY_OWNER}"/helm-charts-hardened |& tee .digest
             file="${pkg##*/}"       # extracts file name from full directory path
             name="${file%-*}"       # extracts chart name from filename
             digest="$(awk -F "[, ]+" '/Digest/{print $NF}' < .digest)"
-            cosign sign ghcr.io/"${GITHUB_REPOSITORY_OWNER}"/helm-charts/"${name}"@"${digest}"
+            cosign sign ghcr.io/"${GITHUB_REPOSITORY_OWNER}"/helm-charts-hardened/"${name}"@"${digest}"
           done
         env:
           COSIGN_YES: true
