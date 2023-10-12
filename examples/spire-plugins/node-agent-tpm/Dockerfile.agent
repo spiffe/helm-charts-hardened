@@ -1,0 +1,9 @@
+FROM alpine
+RUN \
+  cd /tmp && \
+  wget -O plugin.tar.gz https://github.com/boxboat/spire-tpm-plugin/releases/download/v1.3.3/spire_tpm_plugin_tpm_attestor_agent_linux_amd64_v1.3.3.tar.gz && \
+  tar -zxvf plugin.tar.gz && \
+  mv tpm_attestor_agent /
+
+FROM ghcr.io/spiffe/spire-server:1.5.4
+COPY --from=0 /tpm_attestor_agent /bin/tpm_attestor_agent

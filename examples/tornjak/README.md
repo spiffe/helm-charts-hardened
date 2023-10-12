@@ -15,7 +15,7 @@ helm upgrade --install --namespace spire-server \
   --values ../production/values.yaml \
   --values ./values.yaml \
   --render-subchart-notes \
-  spire charts/spire
+  spire ../../charts/spire
 
 # test the Tornjak deployment
 helm test spire -n spire-server
@@ -27,8 +27,13 @@ To access Tornjak you will have to use port-forwarding for the time being *(unti
 
 Run following commands from your shell, if you ran with different values your namespace might differ. Consult the install notes printed when running above `helm upgrade` command in that case.
 
+Since `port-forward` is a blocking command, execute them in two different consoles:
+
 ```shell
 kubectl -n spire-server port-forward service/spire-tornjak-backend 10000:10000
+```
+
+```shell
 kubectl -n spire-server port-forward service/spire-tornjak-frontend 3000:3000
 ```
 

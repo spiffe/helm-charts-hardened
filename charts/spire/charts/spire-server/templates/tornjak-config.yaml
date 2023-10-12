@@ -11,7 +11,7 @@ data:
       {{- if eq (include "spire-tornjak.connectionType" .) "http" }}
       http {
         enabled = true # if true, opens HTTP server
-        port = "10080" # if HTTP enabled, opens HTTP listen port at specified container port
+        port = "10000" # if HTTP enabled, opens HTTP listen port at specified container port
       }
       {{- end }}
       {{- if eq (include "spire-tornjak.connectionType" .) "tls" }}

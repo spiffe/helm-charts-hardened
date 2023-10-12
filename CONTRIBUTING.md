@@ -48,14 +48,14 @@ Another approach to testing the chart is by installing one of the examples in yo
 
 ## Generating documentation
 
-Any changes to Chart.yaml or values.yaml require an update of the README.md. This update can easily be generated using [helm-docs][].
+Any changes to Chart.yaml or values.yaml require an update of the README.md. This update can easily be generated using [readme-generator](https://github.com/bitnami-labs/readme-generator-for-helm).
 
 ```shell
-./helm-docs.sh charts/«chart-name»
+./helm-docs.sh
 ```
 
 ## Bumping Chart version
 
 In contrary to many other Helm repositories we do NOT require contributors to increate the Chart version. We have customized our release pipeline so we can bundle various PRs in a single release. Maintainers of the helm-charts in this repo will take care of the semantic versioning.
 
-[helm-docs]: https://github.com/norwoodj/helm-docs "Generate documentation for your Helm chart."
+[readme-generator]: https://github.com/bitnami-labs/readme-generator-for-helm "Auto generate READMEs for Helm Charts."

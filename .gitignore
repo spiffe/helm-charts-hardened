@@ -1,5 +1,6 @@
 bin/
 .idea/
+.vscode/
 *.swp
 charts/**/*.tgz
 .DS_Store

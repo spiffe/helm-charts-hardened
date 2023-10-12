@@ -2,7 +2,7 @@
 
 <!-- This README.md is generated. Please edit README.md.gotmpl -->
 
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.7.1](https://img.shields.io/badge/AppVersion-1.7.1-informational?style=flat-square)
+![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.7.2](https://img.shields.io/badge/AppVersion-1.7.2-informational?style=flat-square)
 
 A Helm chart to install the SPIRE agent.
 
@@ -25,68 +25,82 @@ A Helm chart to install the SPIRE agent.
 
 * <https://github.com/spiffe/helm-charts/tree/main/charts/spire>
 
-## Values
+## Parameters
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| bundleConfigMap | string | `"spire-bundle"` |  |
-| clusterName | string | `"example-cluster"` |  |
-| configMap.annotations | object | `{}` | Annotations to add to the SPIRE Agent ConfigMap |
-| extraContainers | list | `[]` |  |
-| extraVolumeMounts | list | `[]` |  |
-| extraVolumes | list | `[]` |  |
-| fsGroupFix.image.pullPolicy | string | `"Always"` | The image pull policy |
-| fsGroupFix.image.registry | string | `"cgr.dev"` | The OCI registry to pull the image from |
-| fsGroupFix.image.repository | string | `"chainguard/bash"` | The repository within the registry |
-| fsGroupFix.image.tag | string | `"5.2.15"` | Overrides the image tag |
-| fsGroupFix.image.version | string | `""` | This value is deprecated in favor of tag. (Will be removed in a future release) |
-| fsGroupFix.resources | object | `{}` | Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/ |
-| fullnameOverride | string | `""` |  |
-| healthChecks.port | int | `9980` | override the host port used for health checking |
-| image.pullPolicy | string | `"IfNotPresent"` | The image pull policy |
-| image.registry | string | `"ghcr.io"` | The OCI registry to pull the image from |
-| image.repository | string | `"spiffe/spire-agent"` | The repository within the registry |
-| image.tag | string | `""` | Overrides the image tag whose default is the chart appVersion. |
-| image.version | string | `""` | This value is deprecated in favor of tag. (Will be removed in a future release) |
-| imagePullSecrets | list | `[]` |  |
-| initContainers | list | `[]` |  |
-| livenessProbe.initialDelaySeconds | int | `15` | Initial delay seconds for livenessProbe |
-| livenessProbe.periodSeconds | int | `60` | Period seconds for livenessProbe |
-| logLevel | string | `"info"` | The log level, valid values are "debug", "info", "warn", and "error" |
-| nameOverride | string | `""` |  |
-| namespaceOverride | string | `""` |  |
-| nodeSelector | object | `{}` |  |
-| podAnnotations | object | `{}` |  |
-| podSecurityContext | object | `{}` |  |
-| priorityClassName | string | `""` | Priority class assigned to daemonset pods |
-| readinessProbe.initialDelaySeconds | int | `15` | Initial delay seconds for readinessProbe |
-| readinessProbe.periodSeconds | int | `60` | Period seconds for readinessProbe |
-| resources | object | `{}` |  |
-| securityContext | object | `{}` |  |
-| server.address | string | `""` |  |
-| server.namespaceOverride | string | `""` |  |
-| server.port | int | `8081` |  |
-| serviceAccount.annotations | object | `{}` | Annotations to add to the service account |
-| serviceAccount.create | bool | `true` | Specifies whether a service account should be created |
-| serviceAccount.name | string | `""` | The name of the service account to use. If not set and create is true, a name is generated using the fullname template |
-| socketPath | string | `"/run/spire/agent-sockets/spire-agent.sock"` | The unix socket path to the spire-agent |
-| telemetry.prometheus.enabled | bool | `false` |  |
-| telemetry.prometheus.podMonitor.enabled | bool | `false` |  |
-| telemetry.prometheus.podMonitor.labels | object | `{}` |  |
-| telemetry.prometheus.podMonitor.namespace | string | `""` | Override where to install the podMonitor, if not set will use the same namespace as the spire-agent |
-| telemetry.prometheus.port | int | `9988` |  |
-| tolerations | list | `[]` |  |
-| trustBundleFormat | string | `"pem"` | If using trustBundleURL, what format is the url. Choices are "pem" and "spiffe" |
-| trustBundleURL | string | `""` | If set, obtain trust bundle from url instead of Kubernetes ConfigMap |
-| trustDomain | string | `"example.org"` | The trust domain to be used for the SPIFFE identifiers |
-| waitForIt.image.pullPolicy | string | `"IfNotPresent"` | The image pull policy |
-| waitForIt.image.registry | string | `"cgr.dev"` | The OCI registry to pull the image from |
-| waitForIt.image.repository | string | `"chainguard/wait-for-it"` | The repository within the registry |
-| waitForIt.image.tag | string | `"latest-20230517"` | Overrides the image tag |
-| waitForIt.image.version | string | `""` | This value is deprecated in favor of tag. (Will be removed in a future release) |
-| waitForIt.resources | object | `{}` |  |
-| workloadAttestors.k8s.disableContainerSelectors | bool | `false` | Set to true if using holdApplicationUntilProxyStarts in Istio |
-| workloadAttestors.k8s.skipKubeletVerification | bool | `true` | If true, kubelet certificate verification is skipped |
-| workloadAttestors.unix.enabled | bool | `false` | enables the Unix workload attestor |
+### Chart parameters
 
-----------------------------------------------
+| Name                                              | Description                                                                                                         | Value                                                                            |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `image.registry`                                  | The OCI registry to pull the image from                                                                             | `ghcr.io`                                                                        |
+| `image.repository`                                | The repository within the registry                                                                                  | `spiffe/spire-agent`                                                             |
+| `image.pullPolicy`                                | The image pull policy                                                                                               | `IfNotPresent`                                                                   |
+| `image.version`                                   | This value is deprecated in favor of tag. (Will be removed in a future release)                                     | `""`                                                                             |
+| `image.tag`                                       | Overrides the image tag whose default is the chart appVersion                                                       | `""`                                                                             |
+| `imagePullSecrets`                                | Pull secrets for images                                                                                             | `[]`                                                                             |
+| `nameOverride`                                    | Name override                                                                                                       | `""`                                                                             |
+| `namespaceOverride`                               | Namespace override                                                                                                  | `""`                                                                             |
+| `fullnameOverride`                                | Fullname override                                                                                                   | `""`                                                                             |
+| `serviceAccount.create`                           | Specifies whether a service account should be created                                                               | `true`                                                                           |
+| `serviceAccount.annotations`                      | Annotations to add to the service account                                                                           | `{}`                                                                             |
+| `serviceAccount.name`                             | The name of the service account to use.                                                                             | `""`                                                                             |
+| `configMap.annotations`                           | Annotations to add to the SPIRE Agent ConfigMap                                                                     | `{}`                                                                             |
+| `podAnnotations`                                  | Annotations to add to pods                                                                                          | `{}`                                                                             |
+| `podSecurityContext`                              | Pod security context                                                                                                | `{}`                                                                             |
+| `securityContext`                                 | Security context                                                                                                    | `{}`                                                                             |
+| `resources`                                       | Resource requests and limits                                                                                        | `{}`                                                                             |
+| `nodeSelector`                                    | Node selector                                                                                                       | `{}`                                                                             |
+| `tolerations`                                     | List of tolerations                                                                                                 | `[]`                                                                             |
+| `logLevel`                                        | The log level, valid values are "debug", "info", "warn", and "error"                                                | `info`                                                                           |
+| `clusterName`                                     | The name of the Kubernetes cluster (`kubeadm init --service-dns-domain`)                                            | `example-cluster`                                                                |
+| `trustDomain`                                     | The trust domain to be used for the SPIFFE identifiers                                                              | `example.org`                                                                    |
+| `trustBundleURL`                                  | If set, obtain trust bundle from url instead of Kubernetes ConfigMap                                                | `""`                                                                             |
+| `trustBundleFormat`                               | If using trustBundleURL, what format is the url. Choices are "pem" and "spiffe"                                     | `pem`                                                                            |
+| `bundleConfigMap`                                 | Configmap name for Spire bundle                                                                                     | `spire-bundle`                                                                   |
+| `server.address`                                  | Address for Spire server                                                                                            | `""`                                                                             |
+| `server.port`                                     | Port number for Spire server                                                                                        | `8081`                                                                           |
+| `server.namespaceOverride`                        | Override the namespace for Spire server                                                                             | `""`                                                                             |
+| `healthChecks.port`                               | override the host port used for health checking                                                                     | `9980`                                                                           |
+| `livenessProbe.initialDelaySeconds`               | Initial delay seconds for probe                                                                                     | `15`                                                                             |
+| `livenessProbe.periodSeconds`                     | Period seconds for probe                                                                                            | `60`                                                                             |
+| `readinessProbe.initialDelaySeconds`              | Initial delay seconds for probe                                                                                     | `15`                                                                             |
+| `readinessProbe.periodSeconds`                    | Period seconds for probe                                                                                            | `60`                                                                             |
+| `waitForIt.image.registry`                        | The OCI registry to pull the image from                                                                             | `cgr.dev`                                                                        |
+| `waitForIt.image.repository`                      | The repository within the registry                                                                                  | `chainguard/wait-for-it`                                                         |
+| `waitForIt.image.pullPolicy`                      | The image pull policy                                                                                               | `IfNotPresent`                                                                   |
+| `waitForIt.image.version`                         | This value is deprecated in favor of tag. (Will be removed in a future release)                                     | `""`                                                                             |
+| `waitForIt.image.tag`                             | Overrides the image tag whose default is the chart appVersion                                                       | `latest@sha256:c1822a2d9c88431e5f87af378c377d26e622eaeaf44e84f375d07e283c85e567` |
+| `waitForIt.resources`                             | Resource requests and limits                                                                                        | `{}`                                                                             |
+| `fsGroupFix.image.registry`                       | The OCI registry to pull the image from                                                                             | `cgr.dev`                                                                        |
+| `fsGroupFix.image.repository`                     | The repository within the registry                                                                                  | `chainguard/bash`                                                                |
+| `fsGroupFix.image.pullPolicy`                     | The image pull policy                                                                                               | `Always`                                                                         |
+| `fsGroupFix.image.version`                        | This value is deprecated in favor of tag. (Will be removed in a future release)                                     | `""`                                                                             |
+| `fsGroupFix.image.tag`                            | Overrides the image tag whose default is the chart appVersion                                                       | `latest@sha256:5c943903c3f9159c58c4fdf9809f404ab9cfc39b7bfed12bac44563ce0fe7875` |
+| `fsGroupFix.resources`                            | Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/        | `{}`                                                                             |
+| `workloadAttestors.unix.enabled`                  | Enables the Unix workload attestor                                                                                  | `false`                                                                          |
+| `workloadAttestors.k8s.enabled`                   | Enables the Kubernetes workload attestor                                                                            | `true`                                                                           |
+| `workloadAttestors.k8s.skipKubeletVerification`   | If true, kubelet certificate verification is skipped                                                                | `true`                                                                           |
+| `workloadAttestors.k8s.disableContainerSelectors` | Set to true if using holdApplicationUntilProxyStarts in Istio                                                       | `false`                                                                          |
+| `sds.enabled`                                     | Enables Envoy SDS configuration                                                                                     | `false`                                                                          |
+| `sds.defaultSvidName`                             | The TLS Certificate resource name to use for the default X509-SVID with Envoy SDS                                   | `default`                                                                        |
+| `sds.defaultBundleName`                           | The Validation Context resource name to use for the default X.509 bundle with Envoy SDS                             | `ROOTCA`                                                                         |
+| `sds.defaultAllBundlesName`                       | The Validation Context resource name to use for all bundles (including federated) with Envoy SDS                    | `ALL`                                                                            |
+| `sds.disableSpiffeCertValidation`                 | Disable Envoy SDS custom validation                                                                                 | `false`                                                                          |
+| `telemetry.prometheus.enabled`                    | Flag to enable prometheus monitoring                                                                                | `false`                                                                          |
+| `telemetry.prometheus.port`                       | Port for prometheus metrics                                                                                         | `9988`                                                                           |
+| `telemetry.prometheus.podMonitor.enabled`         | Enable podMonitor for prometheus                                                                                    | `false`                                                                          |
+| `telemetry.prometheus.podMonitor.namespace`       | Override where to install the podMonitor, if not set will use the same namespace as the spire-agent                 | `""`                                                                             |
+| `telemetry.prometheus.podMonitor.labels`          | Pod labels to filter for prometheus monitoring                                                                      | `{}`                                                                             |
+| `socketPath`                                      | The unix socket path to the spire-agent                                                                             | `/run/spire/agent-sockets/spire-agent.sock`                                      |
+| `priorityClassName`                               | Priority class assigned to daemonset pods                                                                           | `""`                                                                             |
+| `extraVolumes`                                    | Extra volumes to be mounted on Spire Agent pods                                                                     | `[]`                                                                             |
+| `extraVolumeMounts`                               | Extra volume mounts for Spire Agent pods                                                                            | `[]`                                                                             |
+| `extraContainers`                                 | Additional containers to create with Spire Agent pods                                                               | `[]`                                                                             |
+| `initContainers`                                  | Additional init containers to create with Spire Agent pods                                                          | `[]`                                                                             |
+| `hostAliases`                                     | Customize /etc/hosts file as described here https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/ | `[]`                                                                             |
+| `customPlugins.keyManager`                        | Custom plugins of type KeyManager are configured here                                                               | `{}`                                                                             |
+| `customPlugins.nodeAttestor`                      | Custom plugins of type NodeAttestor are configured here                                                             | `{}`                                                                             |
+| `customPlugins.svidStore`                         | Custom plugins of type SVIDStore are configured here                                                                | `{}`                                                                             |
+| `customPlugins.workloadAttestor`                  | Custom plugins of type WorkloadAttestor are configured here                                                         | `{}`                                                                             |
+| `experimental.enabled`                            | Allow configuration of experimental features                                                                        | `false`                                                                          |
+| `experimental.syncInterval`                       | Sync interval with SPIRE server with exponential backoff                                                            | `5s`                                                                             |
+| `experimental.featureFlags`                       | List of developer feature flags                                                                                     | `[]`                                                                             |

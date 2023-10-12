@@ -1,4 +1,7 @@
 spire-server:
+  tests:
+    tls:
+      enabled: true
   federation:
     enabled: true
     ingress:

@@ -1,21 +1,38 @@
-# You can enable config/features that affect all services here.
+# Default configuration for Spire chart
+# SPDX-License-Identifier: APACHE-2.0
+
+## @section Global parameters
+## Note: the parameter values specified here will override the chart level values for these parameters.
+##
 global:
   k8s:
-    # -- This is the value of your clusters `kubeadm init --service-dns-domain` flag
+    ## @param global.k8s.clusterDomain Cluster domain name configured for Spire install
     clusterDomain: cluster.local
   spire:
-    # -- The name of the Kubernetes cluster (`kubeadm init --service-dns-domain`)
-    clusterName: example-cluster
-    # -- The trust domain to be used for the SPIFFE identifiers
-    trustDomain: example.org
-    # -- Set the jwt issuer
-    jwtIssuer: oidc-discovery.example.org
-    # -- Override all instances of bundleConfigMap
+    ## @param global.spire.bundleConfigMap A configmap containing the Spire bundle
     bundleConfigMap: ""
+    ## @param global.spire.clusterName The name of the k8s cluster for Spire install
+    clusterName: example-cluster
+    ## @param global.spire.jwtIssuer The issuer for Spire JWT tokens
+    jwtIssuer: oidc-discovery.example.org
+    ## @param global.spire.trustDomain The trust domain for Spire install
+    trustDomain: example.org
+    ## @param global.spire.upstreamServerAddress Set what address to use for the upstream server when using nested spire
+    upstreamServerAddress: ""
 
     image:
-      # -- Override all Spire image registries at once
+      ## @param global.spire.image.registry Override all Spire image registries at once
       registry: ""
+
+    ## @param global.spire.strictMode Check values, such as trustDomain, are overridden with a suitable value for production.
+    strictMode: false
+
+  installAndUpgradeHooks:
+    ## @param global.installAndUpgradeHooks.enabled Enable Helm hooks to autofix common install/upgrade issues (should be disabled when using `helm template`)
+    enabled: true
+  deleteHooks:
+    ## @param global.deleteHooks.enabled Enable Helm hooks to autofix common delete issues (should be disabled when using `helm template`)
+    enabled: true
 
 #  telemetry:
 #    prometheus:
@@ -26,29 +43,88 @@ global:
 #        namespace: "kube-prometheus-system"
 #        labels: {}
 
-# subcharts
-spire-server:
-  # -- Enables deployment of SPIRE Server
-  enabled: true
-  nameOverride: server
+## subcharts
 
+## @section Spire server parameters
+## Parameter values for Spire server
+##
+spire-server:
+  ## @param spire-server.enabled Flag to enable Spire server
+  enabled: true
+  ## @param spire-server.nameOverride Overrides the name of Spire server pods
+  nameOverride: server
   controllerManager:
-    # -- Enables deployment of Controller Manager
+    ## @param spire-server.controllerManager.enabled Enable controller manager and provision CRD's
     enabled: true
 
+## @section Spire agent parameters
+## Parameter values for Spire agent
+##
 spire-agent:
-  # -- Enables deployment of SPIRE Agent(s)
+  ## @param spire-agent.enabled Flag to enable Spire agent
   enabled: true
+  ## @param spire-agent.nameOverride Overrides the name of Spire agent pods
   nameOverride: agent
 
-spiffe-csi-driver:
-  # -- Enables deployment of CSI driver
-  enabled: true
-
-spiffe-oidc-discovery-provider:
-  # -- Enables deployment of OIDC discovery provider
+## @section Upstream Spire agent and CSI driver configuration
+## Parameter values enabling upstream spire agent and CSI driver
+##
+upstream:
+  ## @param upstream.enabled Enable upstream agent and driver for use with nested spire
   enabled: false
 
+## @section Upstream Spire agent parameters
+## Parameter values for upstream Spire agent
+##
+upstream-spire-agent:
+  ## @param upstream-spire-agent.upstream Flag for enabling upstream Spire agent
+  upstream: true
+  ## @param upstream-spire-agent.nameOverride Name override for upstream Spire agent
+  nameOverride: agent-upstream
+  ## @param upstream-spire-agent.bundleConfigMap The configmap name for upstream Spire agent bundle
+  bundleConfigMap: spire-bundle-upstream
+  ## @param upstream-spire-agent.socketPath Socket path where Spire agent socket is mounted
+  socketPath: /run/spire/agent-sockets-upstream/spire-agent.sock
+  serviceAccount:
+    ## @param upstream-spire-agent.serviceAccount.name Service account name for upstream Spire agent
+    name: spire-agent-upstream
+  healthChecks:
+    ## @param upstream-spire-agent.healthChecks.port Health check port number for upstream Spire agent
+    port: 9981
+  telemetry:
+    prometheus:
+      ## @param upstream-spire-agent.telemetry.prometheus.port The port where prometheus metrics are available
+      port: 9989
+
+## @section SPIFFE CSI Driver parameters
+## Parameter values for spiffe-csi-driver
+##
+spiffe-csi-driver:
+  ## @param spiffe-csi-driver.enabled Flag to enable spiffe-csi-driver for the cluster
+  enabled: true
+
+## @section Upstream SPIFFE CSI Driver parameters
+## Parameter values for upstream spiffe-csi-driver
+##
+upstream-spiffe-csi-driver:
+  ## @param upstream-spiffe-csi-driver.pluginName The plugin name for configuring upstream Spiffe CSI driver
+  pluginName: upstream.csi.spiffe.io
+  ## @param upstream-spiffe-csi-driver.agentSocketPath The socket path where Spiffe CSI driver mounts agent socket
+  agentSocketPath: /run/spire/agent-sockets-upstream/spire-agent.sock
+  healthChecks:
+    ## @param upstream-spiffe-csi-driver.healthChecks.port The port where Spiffe CSI driver health checks are exposed
+    port: 9810
+
+## @section SPIFFE oidc discovery provider parameters
+## Parameter values for spiffe-oidc-discovery-provider
+##
+spiffe-oidc-discovery-provider:
+  ## @param spiffe-oidc-discovery-provider.enabled Flag to enable spiffe-oidc-discovery-provider for the cluster
+  enabled: false
+
+## @section Tornjak frontend parameters
+## Parameter values for Tornjak frontend
+##
 tornjak-frontend:
-  # -- Enables deployment of Tornjak frontend/UI (Not for production)
+  ## @param tornjak-frontend.enabled Enables deployment of Tornjak frontend/UI (Not for production)
   enabled: false

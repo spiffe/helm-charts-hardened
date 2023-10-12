@@ -10,7 +10,11 @@ webhooks:
         name: {{ include "spire-controller-manager.fullname" . }}-webhook
         namespace: {{ include "spire-server.namespace" . }}
         path: /validate-spire-spiffe-io-v1alpha1-clusterfederatedtrustdomain
+    {{- if eq (.Values.controllerManager.installAndUpgradeHook.enabled | toString) "true" }}
     failurePolicy: Ignore # Actual value to be set by post install/upgrade hooks
+    {{- else }}
+    failurePolicy: {{ .Values.controllerManager.validatingWebhookConfiguration.failurePolicy }}
+    {{- end }}
     name: vclusterfederatedtrustdomain.kb.io
     rules:
       - apiGroups: ["spire.spiffe.io"]

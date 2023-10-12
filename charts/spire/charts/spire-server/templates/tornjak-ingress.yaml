@@ -1,0 +1,16 @@
+{{- if .Values.tornjak.ingress.enabled -}}
+{{- $fullName := include "spire-tornjak.fullname" . -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ include "spire-server.namespace" . }}
+  labels:
+    {{ include "spire-server.labels" . | nindent 4}}
+  {{- with .Values.tornjak.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{ include "spire-lib.ingress-spec" (dict "ingress" .Values.tornjak.ingress "svcName" (include "spire-tornjak.servicename" .) "port" .Values.tornjak.service.ports.http) | nindent 2 }}
+{{- end }}

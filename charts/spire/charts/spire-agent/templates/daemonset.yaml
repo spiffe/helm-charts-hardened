@@ -33,6 +33,10 @@ spec:
       {{- if .Values.priorityClassName }}
       priorityClassName: {{ .Values.priorityClassName }}
       {{- end }}
+      {{- if ne (len .Values.hostAliases) 0 }}
+      hostAliases:
+        {{- toYaml .Values.hostAliases | nindent 8 }}
+      {{- end }}
       initContainers:
         - name: init
           # This is a small image with wait-for-it, choose whatever image

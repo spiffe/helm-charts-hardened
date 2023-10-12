@@ -34,7 +34,7 @@ This chart requires access to Tornjak Backend (`tornjakFrontend.apiServerURL`).
 This URL needs to be reachable from your web browser and can therefore not be a cluster internal URL.
 
 Obtain the URL for Tornjak APIs. If deployed in the same cluster, locally,
-Tornjak APIs are typically available at `http://localhost:10080`.
+Tornjak APIs are typically available at `http://localhost:10000`.
 Review Tornjak documentation for more details.
 
 ## Usage
@@ -52,38 +52,49 @@ port forwarding. See the chart NOTES output for more details.
 
 * <https://github.com/spiffe/tornjak>
 
-## Values
+## Parameters
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| affinity | object | `{}` |  |
-| apiServerURL | string | `"http://localhost:10000/"` | URL of the Tornjak APIs (backend) Since Tornjak Frontend runs in the browser, this URL must be accessible from the machine running a browser. |
-| fullnameOverride | string | `""` |  |
-| image.pullPolicy | string | `"IfNotPresent"` |  |
-| image.registry | string | `"ghcr.io"` |  |
-| image.repository | string | `"spiffe/tornjak-frontend"` |  |
-| image.tag | string | `""` | Overrides the image tag whose default is the chart appVersion. |
-| image.version | string | `""` | This value is deprecated in favor of tag. (Will be removed in a future release) |
-| imagePullSecrets | list | `[]` |  |
-| labels | object | `{}` |  |
-| nameOverride | string | `""` |  |
-| namespaceOverride | string | `""` |  |
-| nodeSelector | object | `{"kubernetes.io/arch":"amd64"}` | Select specific nodes to run on (currently only amd64 is supported by Tornjak) |
-| podSecurityContext | object | `{}` |  |
-| securityContext | object | `{}` |  |
-| service.annotations | object | `{}` |  |
-| service.port | int | `3000` |  |
-| service.type | string | `"ClusterIP"` |  |
-| serviceAccount.annotations | object | `{}` | Annotations to add to the service account |
-| serviceAccount.create | bool | `true` | Specifies whether a service account should be created |
-| serviceAccount.name | string | `""` | The name of the service account to use. If not set and create is true, a name is generated using the fullname template |
-| spireHealthCheck.enabled | bool | `true` | Enables the SPIRE Healthchecker indicator |
-| startupProbe.enabled | bool | `true` | Enable startupProbe on Tornjak frontend container |
-| startupProbe.failureThreshold | int | `6` | Failure threshold count for startupProbe |
-| startupProbe.initialDelaySeconds | int | `5` | Initial delay seconds for startupProbe |
-| startupProbe.periodSeconds | int | `10` | Period seconds for startupProbe |
-| startupProbe.successThreshold | int | `1` | Success threshold count for startupProbe |
-| startupProbe.timeoutSeconds | int | `5` | Timeout seconds for startupProbe |
-| tolerations | list | `[]` |  |
-| topologySpreadConstraints | list | `[]` |  |
-----------------------------------------------
+### Chart parameters
+
+| Name                               | Description                                                                                                                                    | Value                                                                            |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `image.registry`                   | The OCI registry to pull the image from                                                                                                        | `ghcr.io`                                                                        |
+| `image.repository`                 | The repository within the registry                                                                                                             | `spiffe/tornjak-frontend`                                                        |
+| `image.pullPolicy`                 | The image pull policy                                                                                                                          | `IfNotPresent`                                                                   |
+| `image.version`                    | This value is deprecated in favor of tag. (Will be removed in a future release)                                                                | `""`                                                                             |
+| `image.tag`                        | Overrides the image tag whose default is the chart appVersion                                                                                  | `""`                                                                             |
+| `imagePullSecrets`                 | Pull secrets for images                                                                                                                        | `[]`                                                                             |
+| `nameOverride`                     | Name override                                                                                                                                  | `""`                                                                             |
+| `namespaceOverride`                | Namespace override                                                                                                                             | `""`                                                                             |
+| `fullnameOverride`                 | Fullname override                                                                                                                              | `""`                                                                             |
+| `serviceAccount.create`            | Specifies whether a service account should be created                                                                                          | `true`                                                                           |
+| `serviceAccount.annotations`       | Annotations to add to the service account                                                                                                      | `{}`                                                                             |
+| `serviceAccount.name`              | The name of the service account to use. If not set and create is true, a name is generated.                                                    | `""`                                                                             |
+| `labels`                           | Labels for tornjak frontend pods                                                                                                               | `{}`                                                                             |
+| `podSecurityContext`               | Pod security context                                                                                                                           | `{}`                                                                             |
+| `securityContext`                  | Security context                                                                                                                               | `{}`                                                                             |
+| `service.type`                     | Service type                                                                                                                                   | `ClusterIP`                                                                      |
+| `service.port`                     | Service port                                                                                                                                   | `3000`                                                                           |
+| `service.annotations`              | Annotations for service resource                                                                                                               | `{}`                                                                             |
+| `nodeSelector`                     | Select specific nodes to run on (currently only amd64 is supported by Tornjak)                                                                 |                                                                                  |
+| `affinity`                         | Affinity rules                                                                                                                                 | `{}`                                                                             |
+| `tolerations`                      | List of tolerations                                                                                                                            | `[]`                                                                             |
+| `topologySpreadConstraints`        | List of topology spread constraints for resilience                                                                                             | `[]`                                                                             |
+| `apiServerURL`                     | URL of the Tornjak APIs (backend). Since Tornjak Frontend runs in the browser, this URL must be accessible from the machine running a browser. | `http://localhost:10000/`                                                        |
+| `spireHealthCheck.enabled`         | Enables the SPIRE Healthchecker indicator                                                                                                      | `true`                                                                           |
+| `startupProbe.enabled`             | Enable startupProbe on Tornjak frontend container                                                                                              | `true`                                                                           |
+| `startupProbe.initialDelaySeconds` | Initial delay seconds for startupProbe                                                                                                         | `5`                                                                              |
+| `startupProbe.periodSeconds`       | Period seconds for startupProbe                                                                                                                | `10`                                                                             |
+| `startupProbe.timeoutSeconds`      | Timeout seconds for startupProbe                                                                                                               | `5`                                                                              |
+| `startupProbe.failureThreshold`    | Failure threshold count for startupProbe                                                                                                       | `6`                                                                              |
+| `startupProbe.successThreshold`    | Success threshold count for startupProbe                                                                                                       | `1`                                                                              |
+| `ingress.enabled`                  | Flag to enable ingress for Tornjak frontend service                                                                                            | `false`                                                                          |
+| `ingress.className`                | Ingress class name for Tornjak frontend service                                                                                                | `""`                                                                             |
+| `ingress.annotations`              | Annotations for Tornjak frontend service                                                                                                       | `{}`                                                                             |
+| `ingress.hosts`                    | Host paths for ingress Tornjak frontend service                                                                                                | `[]`                                                                             |
+| `ingress.tls`                      | Secrets containing TLS certs to enable https on ingress                                                                                        | `[]`                                                                             |
+| `tests.bash.image.registry`        | The OCI registry to pull the image from                                                                                                        | `cgr.dev`                                                                        |
+| `tests.bash.image.repository`      | The repository within the registry                                                                                                             | `chainguard/bash`                                                                |
+| `tests.bash.image.pullPolicy`      | The image pull policy                                                                                                                          | `IfNotPresent`                                                                   |
+| `tests.bash.image.version`         | This value is deprecated in favor of tag. (Will be removed in a future release)                                                                | `""`                                                                             |
+| `tests.bash.image.tag`             | Overrides the image tag whose default is the chart appVersion                                                                                  | `latest@sha256:5c943903c3f9159c58c4fdf9809f404ab9cfc39b7bfed12bac44563ce0fe7875` |

@@ -15,7 +15,7 @@ Tornjak runs without authentication and is therefore NOT suitable to run in prod
 Only use in test environments!
 
 Access Tornjak:
-   kubectl -n {{ include "spire-server.namespace" . }} port-forward service/{{ include "spire-tornjak.servicename" . }} {{ .Values.tornjak.service.ports.http }}:10080
+   kubectl -n {{ include "spire-server.namespace" . }} port-forward service/{{ include "spire-tornjak.servicename" . }} {{ .Values.tornjak.service.ports.http }}:10000
 {{- if eq (include "spire-tornjak.connectionType" .) "http" }}
   Open browser to: http://localhost:{{ .Values.tornjak.service.ports.http }}
 {{- else if eq (include "spire-tornjak.connectionType" .) "tls" }}

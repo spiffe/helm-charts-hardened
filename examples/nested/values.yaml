@@ -1,0 +1,22 @@
+global:
+  spire:
+    upstreamSpireAddress: spire-server.spire-root-server
+
+spire-server:
+  enabled: true
+  upstreamAuthority:
+    spire:
+      enabled: true
+      upstreamDriver: upstream.csi.spiffe.io
+  controllerManager:
+    enabled: true
+    identities:
+      spiffeIDTemplate: spiffe://{{ .TrustDomain }}/k8s/{{ .ClusterName }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
+
+spiffe-oidc-discovery-provider:
+  enabled: true
+  insecureScheme:
+    enabled: true
+
+upstream:
+  enabled: true

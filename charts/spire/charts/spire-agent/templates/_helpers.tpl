@@ -91,7 +91,9 @@ Create the name of the service account to use
 {{- end }}
 
 {{- define "spire-agent.server-address" }}
-{{- if .Values.server.address }}
+{{- if and (ne (len (dig "spire" "upstreamSpireAddress" "" .Values.global)) 0) .Values.upstream }}
+{{- print .Values.global.spire.upstreamSpireAddress }}
+{{- else if .Values.server.address }}
 {{- .Values.server.address }}
 {{- else }}
 {{ .Release.Name }}-server.{{ include "spire-agent.server.namespace" . }}

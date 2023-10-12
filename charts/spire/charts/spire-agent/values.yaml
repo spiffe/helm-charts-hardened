@@ -1,45 +1,57 @@
-# Default values for spire-agent.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
+# Default configuration for Spire Agent
+# SPDX-License-Identifier: APACHE-2.0
 
-# @ignored
+## @skip global
 global: {}
 
+## @section Chart parameters
+##
+## @param image.registry The OCI registry to pull the image from
+## @param image.repository The repository within the registry
+## @param image.pullPolicy The image pull policy
+## @param image.version This value is deprecated in favor of tag. (Will be removed in a future release)
+## @param image.tag Overrides the image tag whose default is the chart appVersion
+##
 image:
-  # -- The OCI registry to pull the image from
   registry: ghcr.io
-  # -- The repository within the registry
   repository: spiffe/spire-agent
-  # -- The image pull policy
   pullPolicy: IfNotPresent
-  # -- This value is deprecated in favor of tag. (Will be removed in a future release)
   version: ""
-  # -- Overrides the image tag whose default is the chart appVersion.
   tag: ""
 
+## @param imagePullSecrets [array] Pull secrets for images
 imagePullSecrets: []
+
+## @param nameOverride Name override 
 nameOverride: ""
+
+## @param namespaceOverride Namespace override 
 namespaceOverride: ""
+
+## @param fullnameOverride Fullname override 
 fullnameOverride: ""
 
 serviceAccount:
-  # -- Specifies whether a service account should be created
+  ## @param serviceAccount.create Specifies whether a service account should be created
   create: true
-  # -- Annotations to add to the service account
+  ## @param serviceAccount.annotations [object] Annotations to add to the service account
   annotations: {}
-  # -- The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
+  ## @param serviceAccount.name The name of the service account to use.
+  ## If not set and create is true, a name is generated using the fullname template
   name: ""
 
 configMap:
-  # -- Annotations to add to the SPIRE Agent ConfigMap
+  ## @param configMap.annotations [object] Annotations to add to the SPIRE Agent ConfigMap
   annotations: {}
 
+## @param podAnnotations [object] Annotations to add to pods
 podAnnotations: {}
 
+## @param podSecurityContext [object] Pod security context
 podSecurityContext: {}
   # fsGroup: 2000
 
+## @param securityContext [object] Security context
 securityContext: {}
   # capabilities:
   #   drop:
@@ -48,6 +60,7 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
+## @param resources [object] Resource requests and limits
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
@@ -60,104 +73,175 @@ resources: {}
   #   cpu: 100m
   #   memory: 128Mi
 
+## @param nodeSelector [object] Node selector
 nodeSelector: {}
 
+## @param tolerations [array] List of tolerations
 tolerations: []
 
-# -- The log level, valid values are "debug", "info", "warn", and "error"
+## @param logLevel The log level, valid values are "debug", "info", "warn", and "error"
 logLevel: info
-# -- The name of the Kubernetes cluster (`kubeadm init --service-dns-domain`)
+## @param clusterName The name of the Kubernetes cluster (`kubeadm init --service-dns-domain`)
 clusterName: example-cluster
-# -- The trust domain to be used for the SPIFFE identifiers
+## @param trustDomain The trust domain to be used for the SPIFFE identifiers
 trustDomain: example.org
-# -- If set, obtain trust bundle from url instead of Kubernetes ConfigMap
+## @param trustBundleURL If set, obtain trust bundle from url instead of Kubernetes ConfigMap
 trustBundleURL: ""
-# -- If using trustBundleURL, what format is the url. Choices are "pem" and "spiffe"
+## @param trustBundleFormat If using trustBundleURL, what format is the url. Choices are "pem" and "spiffe"
 trustBundleFormat: pem
+## @param bundleConfigMap Configmap name for Spire bundle
 bundleConfigMap: spire-bundle
 
+## @skip upstream
+upstream: false
+
+## @param server.address Address for Spire server
+## @param server.port Port number for Spire server
+## @param server.namespaceOverride Override the namespace for Spire server
+##
 server:
   address: ""
   port: 8081
   namespaceOverride: ""
 
 healthChecks:
-  # -- override the host port used for health checking
+  ## @param healthChecks.port override the host port used for health checking
   port: 9980
 
+## @param livenessProbe.initialDelaySeconds Initial delay seconds for probe
+## @param livenessProbe.periodSeconds Period seconds for probe
+##
 livenessProbe:
-  # -- Initial delay seconds for livenessProbe
   initialDelaySeconds: 15
-  # -- Period seconds for livenessProbe
   periodSeconds: 60
 
+## @param readinessProbe.initialDelaySeconds Initial delay seconds for probe
+## @param readinessProbe.periodSeconds Period seconds for probe
+##
 readinessProbe:
-  # -- Initial delay seconds for readinessProbe
   initialDelaySeconds: 15
-  # -- Period seconds for readinessProbe
   periodSeconds: 60
 
 waitForIt:
+  ## @param waitForIt.image.registry The OCI registry to pull the image from
+  ## @param waitForIt.image.repository The repository within the registry
+  ## @param waitForIt.image.pullPolicy The image pull policy
+  ## @param waitForIt.image.version This value is deprecated in favor of tag. (Will be removed in a future release)
+  ## @param waitForIt.image.tag Overrides the image tag whose default is the chart appVersion
+  ##
   image:
-    # -- The OCI registry to pull the image from
     registry: cgr.dev
-    # -- The repository within the registry
     repository: chainguard/wait-for-it
-    # -- The image pull policy
     pullPolicy: IfNotPresent
-    # -- This value is deprecated in favor of tag. (Will be removed in a future release)
     version: ""
-    # -- Overrides the image tag
-    tag: latest-20230517
+    tag: latest@sha256:c1822a2d9c88431e5f87af378c377d26e622eaeaf44e84f375d07e283c85e567
+
+  ## @param waitForIt.resources [object] Resource requests and limits
   resources: {}
 
 # When running as non root, needed to ensure the socket path has the correct permissions.
 # Set runAsUser to a non-zero value in podSecurityContext to run as non-root user.
 fsGroupFix:
+  ## @param fsGroupFix.image.registry The OCI registry to pull the image from
+  ## @param fsGroupFix.image.repository The repository within the registry
+  ## @param fsGroupFix.image.pullPolicy The image pull policy
+  ## @param fsGroupFix.image.version This value is deprecated in favor of tag. (Will be removed in a future release)
+  ## @param fsGroupFix.image.tag Overrides the image tag whose default is the chart appVersion
+  ##
   image:
-    # -- The OCI registry to pull the image from
     registry: cgr.dev
-    # -- The repository within the registry
     repository: chainguard/bash
-    # -- The image pull policy
     pullPolicy: Always
-    # -- This value is deprecated in favor of tag. (Will be removed in a future release)
     version: ""
-    # -- Overrides the image tag
-    tag: 5.2.15
-  # -- Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+    tag: latest@sha256:5c943903c3f9159c58c4fdf9809f404ab9cfc39b7bfed12bac44563ce0fe7875
+
+  ## @param fsGroupFix.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
 
 # workloadAttestors determine a workload's properties and then generate a set of selectors associated with it.
 workloadAttestors:
   # unix is a workload attestor which generates unix-based selectors like 'uid' and 'gid'.
   unix:
-    # -- enables the Unix workload attestor
+    ## @param workloadAttestors.unix.enabled Enables the Unix workload attestor
     enabled: false
   k8s:
-    # -- If true, kubelet certificate verification is skipped
+    ## @param workloadAttestors.k8s.enabled Enables the Kubernetes workload attestor
+    enabled: true
+    ## @param workloadAttestors.k8s.skipKubeletVerification If true, kubelet certificate verification is skipped
     skipKubeletVerification: true
-    # -- Set to true if using holdApplicationUntilProxyStarts in Istio
+    ## @param workloadAttestors.k8s.disableContainerSelectors Set to true if using holdApplicationUntilProxyStarts in Istio
     disableContainerSelectors: false
+
+sds:
+  ## @param sds.enabled Enables Envoy SDS configuration
+  enabled: false
+  ## @param sds.defaultSvidName The TLS Certificate resource name to use for the default X509-SVID with Envoy SDS
+  defaultSvidName: "default"
+  ## @param sds.defaultBundleName The Validation Context resource name to use for the default X.509 bundle with Envoy SDS
+  defaultBundleName: "ROOTCA"
+  ## @param sds.defaultAllBundlesName The Validation Context resource name to use for all bundles (including federated) with Envoy SDS
+  defaultAllBundlesName: "ALL"
+  ## @param sds.disableSpiffeCertValidation Disable Envoy SDS custom validation
+  disableSpiffeCertValidation: false
 
 telemetry:
   prometheus:
+    ## @param telemetry.prometheus.enabled Flag to enable prometheus monitoring
     enabled: false
+    ## @param telemetry.prometheus.port Port for prometheus metrics
     port: 9988
     podMonitor:
+      ## @param telemetry.prometheus.podMonitor.enabled Enable podMonitor for prometheus
       enabled: false
-      # -- Override where to install the podMonitor, if not set will use the same namespace as the spire-agent
+      ## @param telemetry.prometheus.podMonitor.namespace Override where to install the podMonitor, if not set will use the same namespace as the spire-agent
       namespace: ""
+      ## @param telemetry.prometheus.podMonitor.labels [object] Pod labels to filter for prometheus monitoring
       labels: {}
 
-# -- The unix socket path to the spire-agent
+## @param socketPath The unix socket path to the spire-agent
 socketPath: /run/spire/agent-sockets/spire-agent.sock
 
-# -- Priority class assigned to daemonset pods
+## @param priorityClassName Priority class assigned to daemonset pods
 priorityClassName: ""
 
+## @param extraVolumes [array] Extra volumes to be mounted on Spire Agent pods
 extraVolumes: []
+
+## @param extraVolumeMounts [array] Extra volume mounts for Spire Agent pods
 extraVolumeMounts: []
+
+## @param extraContainers [array] Additional containers to create with Spire Agent pods
 extraContainers: []
 
+## @param initContainers [array] Additional init containers to create with Spire Agent pods
 initContainers: []
+## @param hostAliases [array] Customize /etc/hosts file as described here https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/
+hostAliases: []
+
+# NOTE: This is unsupported and only to configure currently supported spire built in plugins but plugins unsupported by the chart.
+# Upgrades wont be tested for anything under this config. If you need this, please let the chart developers know your needs so we
+# can prioritize proper support.
+## @skip unsupportedBuiltInPlugins
+unsupportedBuiltInPlugins:
+  keyManager: {}
+  nodeAttestor: {}
+  svidStore: {}
+  workloadAttestor: {}
+
+## @param customPlugins.keyManager Custom plugins of type KeyManager are configured here
+## @param customPlugins.nodeAttestor Custom plugins of type NodeAttestor are configured here
+## @param customPlugins.svidStore Custom plugins of type SVIDStore are configured here
+## @param customPlugins.workloadAttestor Custom plugins of type WorkloadAttestor are configured here
+customPlugins:
+  keyManager: {}
+  nodeAttestor: {}
+  svidStore: {}
+  workloadAttestor: {}
+
+experimental:
+  ## @param experimental.enabled Allow configuration of experimental features
+  enabled: false
+  ## @param experimental.syncInterval Sync interval with SPIRE server with exponential backoff
+  syncInterval: 5s
+  ## @param experimental.featureFlags [array] List of developer feature flags
+  featureFlags: []

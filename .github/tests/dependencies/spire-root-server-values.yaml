@@ -1,0 +1,24 @@
+global:
+  spire:
+    clusterName: production
+    trustDomain: production.other
+    jwtIssuer: oidc-discovery.production.other
+
+spire-server:
+  controllerManager:
+    enabled: false
+  nodeAttestor:
+    k8sPsat:
+      serviceAccountAllowList:
+        - spire-system:spire-agent-upstream
+  bundleConfigMap: spire-bundle-upstream
+  notifier:
+    k8sbundle:
+      namespace: spire-system
+
+spire-agent:
+  enabled: false
+
+spiffe-csi-driver:
+  enabled: false
+

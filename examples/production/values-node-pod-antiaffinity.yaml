@@ -1,0 +1,11 @@
+spire-server:
+  affinity:
+    podAntiAffinity: 
+      requiredDuringSchedulingIgnoredDuringExecution: 
+      - labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/component
+            operator: In
+            values:
+            - server
+        topologyKey: kubernetes.io/hostname

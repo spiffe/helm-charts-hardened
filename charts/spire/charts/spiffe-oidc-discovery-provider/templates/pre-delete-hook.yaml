@@ -1,3 +1,4 @@
+{{- if eq ((dig "deleteHooks" "enabled" .Values.deleteHook.enabled .Values.global) | toString) "true" }}
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -71,3 +72,4 @@ spec:
           - deployment
           - {{ include "spiffe-oidc-discovery-provider.fullname" . }}
           - --wait
+{{- end }}

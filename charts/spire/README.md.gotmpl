@@ -25,29 +25,8 @@
 
 > **Note**: For Kubernetes, we will officially support the last 3 versions as described in [k8s versioning](https://kubernetes.io/releases/version-skew-policy/#supported-versions). Any version before the last 3 we will try to support as long it doesn't bring security issues or any big maintenance burden. 
 
-## Prerequisites
-
-Please note this chart requires `Projected Service Account Tokens` which has to be enabled on your k8s api server.
-
-To enable Projected Service Account Tokens on Docker for Mac/Windows run the following
-command to SSH into the Docker Desktop K8s VM.
-
-```bash
-docker run -it --privileged --pid=host debian nsenter -t 1 -m -u -n -i sh
-```
-
-Then add the following to `/etc/kubernetes/manifests/kube-apiserver.yaml`
-
-```yaml
-spec:
-  containers:
-    - command:
-        - kube-apiserver
-        - --api-audiences=api,spire-server
-        - --service-account-issuer=api,spire-agent
-        - --service-account-key-file=/run/config/pki/sa.pub
-        - --service-account-signing-key-file=/run/config/pki/sa.key
-```
+## FAQ
+For any issues see our [FAQ](../../FAQ.md)…
 
 ## Usage
 

@@ -1,3 +1,4 @@
+{{- if eq ((dig "installAndUpgradeHooks" "enabled" .Values.controllerManager.installAndUpgradeHook.enabled .Values.global) | toString) "true" }}
 {{- if eq (.Values.controllerManager.enabled | toString) "true" }}
 {{- if eq .Values.controllerManager.validatingWebhookConfiguration.failurePolicy "Fail" }}
 apiVersion: v1
@@ -83,5 +84,6 @@ spec:
                 }
               ]
             }
+{{- end }}
 {{- end }}
 {{- end }}

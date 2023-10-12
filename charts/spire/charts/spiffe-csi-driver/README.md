@@ -24,41 +24,41 @@ A Helm chart to install the SPIFFE CSI driver.
 
 * <https://github.com/spiffe/helm-charts/tree/main/charts/spire>
 
-## Values
+## Parameters
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| agentSocketPath | string | `"/run/spire/agent-sockets/spire-agent.sock"` | The unix socket path to the spire-agent |
-| fullnameOverride | string | `""` |  |
-| healthChecks.port | int | `9809` |  |
-| image.pullPolicy | string | `"IfNotPresent"` | The image pull policy |
-| image.registry | string | `"ghcr.io"` | The OCI registry to pull the image from |
-| image.repository | string | `"spiffe/spiffe-csi-driver"` | The repository within the registry |
-| image.tag | string | `""` | Overrides the image tag whose default is the chart appVersion |
-| image.version | string | `""` | This value is deprecated in favor of tag. (Will be removed in a future release) |
-| imagePullSecrets | list | `[]` |  |
-| kubeletPath | string | `"/var/lib/kubelet"` |  |
-| livenessProbe.initialDelaySeconds | int | `5` | Initial delay seconds for livenessProbe |
-| livenessProbe.timeoutSeconds | int | `5` | Timeout value in seconds for livenessProbe |
-| nameOverride | string | `""` |  |
-| namespaceOverride | string | `""` |  |
-| nodeDriverRegistrar.image.pullPolicy | string | `"IfNotPresent"` | The image pull policy |
-| nodeDriverRegistrar.image.registry | string | `"registry.k8s.io"` | The OCI registry to pull the image from |
-| nodeDriverRegistrar.image.repository | string | `"sig-storage/csi-node-driver-registrar"` | The repository within the registry |
-| nodeDriverRegistrar.image.tag | string | `"v2.8.0"` | Overrides the image tag |
-| nodeDriverRegistrar.image.version | string | `""` | This value is deprecated in favor of tag. (Will be removed in a future release) |
-| nodeDriverRegistrar.resources | object | `{}` |  |
-| nodeSelector | object | `{}` |  |
-| pluginName | string | `"csi.spiffe.io"` | Set the csi driver name deployed to Kubernetes. |
-| podAnnotations | object | `{}` |  |
-| podSecurityContext | object | `{}` |  |
-| priorityClassName | string | `""` | Priority class assigned to daemonset pods |
-| resources | object | `{}` |  |
-| securityContext.privileged | bool | `true` |  |
-| securityContext.readOnlyRootFilesystem | bool | `true` |  |
-| serviceAccount.annotations | object | `{}` | Annotations to add to the service account |
-| serviceAccount.create | bool | `true` | Specifies whether a service account should be created |
-| serviceAccount.name | string | `""` | The name of the service account to use. If not set and create is true, a name is generated using the fullname template |
-| tolerations | list | `[]` |  |
+### SPIFFE CSI Driver Chart parameters
 
-----------------------------------------------
+| Name                                     | Description                                                                                 | Value                                       |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| `pluginName`                             | Set the csi driver name deployed to Kubernetes.                                             | `csi.spiffe.io`                             |
+| `image.registry`                         | The OCI registry to pull the image from                                                     | `ghcr.io`                                   |
+| `image.repository`                       | The repository within the registry                                                          | `spiffe/spiffe-csi-driver`                  |
+| `image.pullPolicy`                       | The image pull policy                                                                       | `IfNotPresent`                              |
+| `image.version`                          | This value is deprecated in favor of tag. (Will be removed in a future release)             | `""`                                        |
+| `image.tag`                              | Overrides the image tag whose default is the chart appVersion                               | `""`                                        |
+| `resources`                              | Resource requests and limits for spiffe-csi-driver                                          | `{}`                                        |
+| `healthChecks.port`                      | The healthcheck port for spiffe-csi-driver                                                  | `9809`                                      |
+| `livenessProbe.initialDelaySeconds`      | Initial delay seconds for livenessProbe                                                     | `5`                                         |
+| `livenessProbe.timeoutSeconds`           | Timeout value in seconds for livenessProbe                                                  | `5`                                         |
+| `imagePullSecrets`                       | Image pull secret details for spiffe-csi-driver                                             | `[]`                                        |
+| `nameOverride`                           | Name override for spiffe-csi-driver                                                         | `""`                                        |
+| `namespaceOverride`                      | Namespace to install spiffe-csi-driver                                                      | `""`                                        |
+| `fullnameOverride`                       | Full name override for spiffe-csi-driver                                                    | `""`                                        |
+| `serviceAccount.create`                  | Specifies whether a service account should be created                                       | `true`                                      |
+| `serviceAccount.annotations`             | Annotations to add to the service account                                                   | `{}`                                        |
+| `serviceAccount.name`                    | The name of the service account to use. If not set and create is true, a name is generated. | `""`                                        |
+| `podAnnotations`                         | Pod annotations for spiffe-csi-driver                                                       | `{}`                                        |
+| `podSecurityContext`                     | Security context for CSI driver pods                                                        | `{}`                                        |
+| `securityContext.readOnlyRootFilesystem` | Flag for read only root filesystem                                                          | `true`                                      |
+| `securityContext.privileged`             | Flag for specifying privileged mode                                                         | `true`                                      |
+| `nodeSelector`                           | Node selector for CSI driver pods                                                           | `{}`                                        |
+| `tolerations`                            | Tolerations for CSI driver pods                                                             | `[]`                                        |
+| `nodeDriverRegistrar.image.registry`     | The OCI registry to pull the image from                                                     | `registry.k8s.io`                           |
+| `nodeDriverRegistrar.image.repository`   | The repository within the registry                                                          | `sig-storage/csi-node-driver-registrar`     |
+| `nodeDriverRegistrar.image.pullPolicy`   | The image pull policy                                                                       | `IfNotPresent`                              |
+| `nodeDriverRegistrar.image.version`      | This value is deprecated in favor of tag. (Will be removed in a future release)             | `""`                                        |
+| `nodeDriverRegistrar.image.tag`          | Overrides the image tag                                                                     | `v2.9.0`                                    |
+| `nodeDriverRegistrar.resources`          | Resource requests and limits for CSI driver pods                                            | `{}`                                        |
+| `agentSocketPath`                        | The unix socket path to the spire-agent                                                     | `/run/spire/agent-sockets/spire-agent.sock` |
+| `kubeletPath`                            | Path to kubelet file                                                                        | `/var/lib/kubelet`                          |
+| `priorityClassName`                      | Priority class assigned to daemonset pods                                                   | `""`                                        |

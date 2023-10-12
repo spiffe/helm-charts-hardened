@@ -1,9 +1,10 @@
 spire-server:
+  replicaCount: 2
   dataStore:
     sql:
       databaseType: mysql
       databaseName: spire-server
-      host: mysql.mysql
+      host: mysql
       port: 3306
       username: spire
       # password: CHANGE_ME

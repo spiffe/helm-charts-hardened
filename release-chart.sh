@@ -108,7 +108,7 @@ git pull
 git checkout --track -B "${branch_name}" main
 commits_since_previous_release="$(git log "${chart}-${current_version}..HEAD" --pretty=format:'* %h %s')"
 "${SED}" -i "s/version: ${current_version}/version: ${new_version}/" "charts/${chart}/Chart.yaml"
-./helm-docs.sh
+"${SED}" -i "s/${current_version}/${new_version}/" "charts/${chart}/README.md"
 git add "charts/${chart}/"{Chart.yaml,README.md}
 git commit -m "Bump ${chart} Helm Chart version from ${current_version} to ${new_version}" \
   -m "${commits_since_previous_release}" \

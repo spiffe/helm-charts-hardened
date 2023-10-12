@@ -1,0 +1,87 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "spiffe-oidc-discovery-provider.fullname" . }}-test-keys"
+  namespace: {{ include "spiffe-oidc-discovery-provider.namespace" . }}
+  labels:
+    {{- include "spiffe-oidc-discovery-provider.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  {{- with .Values.podSecurityContext }}
+  securityContext:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  serviceAccountName: {{ include "spiffe-oidc-discovery-provider.serviceAccountName" . }}
+  initContainers:
+    - name: static-busybox
+      image: {{ template "spire-lib.image" (dict "image" .Values.tests.busybox.image "global" .Values.global) }}
+      command:
+        - sh
+        - -c
+        - |
+          cp /bin/busybox /data/busybox
+          chmod +x /data/busybox
+      {{- with .Values.securityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumeMounts:
+        - name: data-volume
+          mountPath: /data
+    - name: gettoken
+      image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.tools.kubectl.image "global" .Values.global "KubeVersion" .Capabilities.KubeVersion.Version "image" .Values.tests.agent.image) }}
+      command:
+        - /data/busybox
+        - sh
+        - -c
+        - |
+          while true; do
+            /opt/spire/bin/spire-agent api fetch jwt -audience foo -format json -socketPath /spire-agent/spire-agent.sock -timeout 5s > /data/token.svid
+            [ $? -eq 0 ] && break
+            sleep 1
+          done
+      {{- with .Values.securityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumeMounts:
+        - name: data-volume
+          mountPath: /data
+        - name: spire-api
+          mountPath: /spire-agent
+          readOnly: true
+  containers:
+    - name: verify-keys
+      image: {{ template "spire-lib.image" (dict "image" .Values.tests.toolkit.image "global" .Values.global) }}
+      command:
+        - bash
+      env:
+      - name: TMPDIR
+        value: /data
+      args:
+        - -c
+        - |
+          URL=http://{{ include "spiffe-oidc-discovery-provider.fullname" . }}.{{ include "spiffe-oidc-discovery-provider.namespace" . }}.svc.{{ include "spire-lib.cluster-domain" . }}:{{ .Values.service.port }}
+          curl -k -s -f "${URL}"/keys
+          JWT=$(cat /data/token.svid | jq -r '.[].svids[0].svid' | xargs)
+          cat <<'EOF' >> /data/jwt-decode.sh
+          {{- (.Files.Get "files/test/jwt-decode.sh") | nindent 10 }}
+          EOF
+          bash /data/jwt-decode.sh "${URL}"/keys "${JWT}"
+      {{- with .Values.securityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumeMounts:
+      - mountPath: /data
+        name: data-volume
+  restartPolicy: Never
+  volumes:
+  - csi:
+      driver: csi.spiffe.io
+      readOnly: true
+    name: spire-api
+  - name: data-volume
+    emptyDir: {}
+---
