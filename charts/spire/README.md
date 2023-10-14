@@ -87,11 +87,12 @@ Now you can interact with the Spire agent socket from your own application. The 
 
 To do a quick non production install:
 
-kubectl create namespace spire-server
-helm install -n spire-server spire-crds charts/spire-crds
-helm install -n spire-server spire charts/spire
+```shell
+kubectl create namespace spire-system
+helm install -n spire-system spire-crds charts/spire-crds
+helm install -n spire-system spire charts/spire
 
-For production installs, please see examples/production/
+For production installs, please see [the production example](examples/production/).
 
 ## Upgrade notes
 
@@ -100,7 +101,7 @@ For production installs, please see examples/production/
 If coming from a chart version before 0.14.0, you must relabel your crds to switch to using the new spire-crds chart. To migrate to the spire-crds chart
 run the following:
 
-```
+```shell
 kubectl label crd "clusterfederatedtrustdomains.spire.spiffe.io" "app.kubernetes.io/managed-by=Helm"
 kubectl annotate crd "clusterfederatedtrustdomains.spire.spiffe.io" "meta.helm.sh/release-name=spire-crds"
 kubectl annotate crd "clusterfederatedtrustdomains.spire.spiffe.io" "meta.helm.sh/release-namespace=spire-server"
