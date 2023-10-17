@@ -102,7 +102,7 @@ If coming from a chart version before 0.14.0, you must relabel your crds to swit
 run the following:
 
 ```shell
-# replace the spire-server namespace in below commands with the namespace you have been using to install spire-server.
+# Replace the spire-server namespace in the commands below with the namespace you want to install the spire-crds chart in.
 
 kubectl label crd "clusterfederatedtrustdomains.spire.spiffe.io" "app.kubernetes.io/managed-by=Helm"
 kubectl annotate crd "clusterfederatedtrustdomains.spire.spiffe.io" "meta.helm.sh/release-name=spire-crds"
