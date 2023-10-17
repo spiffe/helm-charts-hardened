@@ -21,7 +21,7 @@ Unless otherwise noted in an application chart README, the following dependencie
 
 | Dependency | Supported Versions |
 |:-----------|:-------------------|
-| SPIRE      | `1.6.x`, `1.7.x`   |
+| SPIRE      | `1.8.2`            |
 | Helm       | `3.x`              |
 | Kubernetes | `1.22+`            |
 
