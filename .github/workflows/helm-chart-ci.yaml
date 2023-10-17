@@ -170,7 +170,8 @@ jobs:
 
       - name: Run chart-testing (install)
         run: |
-          ct install --config ct.yaml \
+          helm install -n spire-server spire-crds charts/spire-crds
+          ct install --config ct.yaml --excluded-charts spire-crds \
             --target-branch ${{ github.base_ref }}
 
       - name: Test summary
@@ -238,7 +239,10 @@ jobs:
           verbosity: 1
 
       - name: Install and test example
-        run: ${{ matrix.example }}/run-tests.sh
+        run: |
+          kubectl create namespace spire-server
+          helm install -n spire-server spire-crds charts/spire-crds
+          ${{ matrix.example }}/run-tests.sh
 
   upgrade-test:
     runs-on: ubuntu-22.04

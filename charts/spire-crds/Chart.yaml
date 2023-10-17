@@ -1,0 +1,22 @@
+apiVersion: v2
+name: spire-crds
+description: >
+  A Helm chart for deploying the Spire CRDS
+type: application
+version: 0.0.1
+appVersion: "0.0.1"
+keywords: ["spire-crds"]
+home: https://github.com/spiffe/helm-charts/tree/main/charts/spire
+sources:
+  - https://github.com/spiffe/helm-charts/tree/main/charts/spire
+icon: https://spiffe.io/img/logos/spire/icon/color/spire-icon-color.png
+maintainers:
+  - name: marcofranssen
+    email: marco.franssen@gmail.com
+    url: https://marcofranssen.nl
+  - name: kfox1111
+    email: Kevin.Fox@pnnl.gov
+  - name: faisal-memon
+    email: fymemon@yahoo.com
+  - name: edwbuck
+    email: edwbuck@gmail.com
