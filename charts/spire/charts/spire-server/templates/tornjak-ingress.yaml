@@ -12,9 +12,9 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  {{- if .Values.tornjak.ingress.tlsBackendPort -}}
-  {{ include "spire-lib.ingress-spec" (dict "ingress" .Values.tornjak.ingress "svcName" (include "spire-tornjak.servicename" .) "port" "tornjak-srv-https") | nindent 2 }}
-  {{- else -}}
+  {{- if eq (include "spire-tornjak.connectionType" .) "http" }}
   {{ include "spire-lib.ingress-spec" (dict "ingress" .Values.tornjak.ingress "svcName" (include "spire-tornjak.servicename" .) "port" "tornjak-srv-http") | nindent 2 }}
+  {{- else -}}
+  {{ include "spire-lib.ingress-spec" (dict "ingress" .Values.tornjak.ingress "svcName" (include "spire-tornjak.servicename" .) "port" "tornjak-srv-https") | nindent 2 }}
   {{- end -}}
 {{- end }}
