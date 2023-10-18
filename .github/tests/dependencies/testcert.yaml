@@ -43,8 +43,8 @@ metadata:
   name: oidc
 spec:
   dnsNames:
-    - oidc-discovery.example.org
-    - spire-server-federation.example.org
+    - oidc-discovery.production.other
+    - spire-server-federation.production.other
   secretName: tls-cert
   issuerRef:
     name: demo-ca

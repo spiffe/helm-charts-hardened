@@ -7,9 +7,13 @@ kubectl create namespace "spire-system"
 kubectl label namespace "spire-system" pod-security.kubernetes.io/enforce=privileged
 kubectl create namespace "spire-server"
 kubectl label namespace "spire-server" pod-security.kubernetes.io/enforce=restricted
+```
+
+Update the `example-your-values.yaml` file with your values, then:
 
 ```shell
-helm upgrade --install --namespace spire-server spire charts/spire -f values.yaml
+helm upgrade --install --namespace spire-server spire ../../charts/spire \
+  -f values.yaml -f example-your-values.yaml --render-subchart-notes
 ```
 
 If your using ingress-nginx and want to expose the spiffe oidc discovery provider outside the

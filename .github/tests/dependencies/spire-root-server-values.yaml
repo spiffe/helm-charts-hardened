@@ -1,3 +1,9 @@
+global:
+  spire:
+    clusterName: production
+    trustDomain: production.other
+    jwtIssuer: oidc-discovery.production.other
+
 spire-server:
   controllerManager:
     enabled: false

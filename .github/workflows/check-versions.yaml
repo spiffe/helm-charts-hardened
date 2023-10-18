@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.0.0
+        uses: actions/checkout@v4.1.0
 
       - name: Set up Helm
         uses: azure/setup-helm@v3.5
@@ -36,6 +36,7 @@ jobs:
         uses: actions/setup-go@v4.1.0
         with:
           go-version: '1.21'
+          cache: false
 
       - name: Setup crane
         uses: imjasonh/setup-crane@v0.3
@@ -70,6 +71,7 @@ jobs:
           signoff: true
           add-paths: |
             .github/tests
+            charts
 
       - name: Check outputs
         if: ${{ steps.cpr.outputs.pull-request-number }}

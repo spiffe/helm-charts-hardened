@@ -225,7 +225,7 @@ federation:
 
 ca_subject:
   ## @param ca_subject.country Country for Spire server CA
-  country: NL
+  country: ARPA
   ## @param ca_subject.organization Organization for Spire server CA
   organization: Example
   ## @param ca_subject.common_name Common Name for Spire server CA
@@ -309,7 +309,7 @@ upstreamAuthority:
       ## @param upstreamAuthority.certManager.ca.create Creates a Cert-Manager CA
       create: false
       ## @param upstreamAuthority.certManager.ca.duration Duration of the CA. Defaults to 10 years
-      duration:  87600h
+      duration: 87600h
       privateKey:
         ## @param upstreamAuthority.certManager.ca.privateKey.algorithm Algorithm to generate private key for CA
         algorithm: ECDSA
@@ -386,7 +386,7 @@ controllerManager:
     repository: spiffe/spire-controller-manager
     pullPolicy: IfNotPresent
     version: ""
-    tag: "0.2.3"
+    tag: "0.3.0"
 
   ## @param controllerManager.resources [object] Resource requests and limits for controller manager
   resources: {}
@@ -549,7 +549,7 @@ tornjak:
     repository: spiffe/tornjak-backend
     pullPolicy: IfNotPresent
     version: ""
-    tag: "v1.2.2"
+    tag: "v1.4.0"
 
   service:
     ## @param tornjak.service.type Type of service resource
@@ -561,6 +561,25 @@ tornjak:
       https: 10443
     ## @param tornjak.service.annotations [object] Annotations for the service
     annotations: {}
+
+  ## @param tornjak.ingress.enabled Flag to enable ingress for Tornjak backend service
+  ## @param tornjak.ingress.className Ingress class name for Tornjak backend service
+  ## @param tornjak.ingress.annotations [object] Annotations for Tornjak backend service
+  ## @param tornjak.ingress.hosts [array] Host paths for ingress Tornjak backend service
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    hosts:
+      - host: tornjak-backend.example.org
+        paths:
+          - path: /
+            pathType: Prefix
+    ## @param tornjak.ingress.tls [array] Secrets containing TLS certs to enable https on ingress
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - tornjak-backend.example.org
 
   ## @param tornjak.startupProbe.failureThreshold Failure threshold count
   ## @param tornjak.startupProbe.initialDelaySeconds Initial delay seconds
@@ -621,12 +640,23 @@ unsupportedBuiltInPlugins:
   upstreamAuthority: {}
   notifier: {}
 
-## @skip customPlugins
+## @param customPlugins.keyManager Custom plugins of type KeyManager are configured here
+## @param customPlugins.nodeAttestor Custom plugins of type NodeAttestor are configured here
+## @param customPlugins.upstreamAuthority Custom plugins of type upstreamAuthority are configured here
+## @param customPlugins.notifier Custom plugins of type notifier are configured here
 customPlugins:
   keyManager: {}
   nodeAttestor: {}
   upstreamAuthority: {}
   notifier: {}
+
+experimental:
+  ## @param experimental.enabled Allow configuration of experimental features
+  enabled: false
+  ## @param experimental.cacheReloadInterval The amount of time between two reloads of the in-memory entry cache.
+  cacheReloadInterval: 5s
+  ## @param experimental.featureFlags [array] List of developer feature flags
+  featureFlags: []
 
 tests:
   ## @param tests.hostAliases [array] List of host aliases for testing
@@ -648,4 +678,4 @@ tests:
       repository: chainguard/bash
       pullPolicy: IfNotPresent
       version: ""
-      tag: latest@sha256:96ab1600d945b4a99c8610b5c8b31e346da63dc20573a26bb0777dd0190db5d4
+      tag: latest@sha256:cdf09d9d48e2b78e4a31dbbeba03e34b9462a35fa55defe67d73c440dbacca2c

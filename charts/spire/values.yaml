@@ -24,6 +24,9 @@ global:
       ## @param global.spire.image.registry Override all Spire image registries at once
       registry: ""
 
+    ## @param global.spire.strictMode Check values, such as trustDomain, are overridden with a suitable value for production.
+    strictMode: false
+
   installAndUpgradeHooks:
     ## @param global.installAndUpgradeHooks.enabled Enable Helm hooks to autofix common install/upgrade issues (should be disabled when using `helm template`)
     enabled: true

@@ -22,13 +22,13 @@ image:
 ## @param imagePullSecrets [array] Pull secrets for images
 imagePullSecrets: []
 
-## @param nameOverride Name override 
+## @param nameOverride Name override
 nameOverride: ""
 
-## @param namespaceOverride Namespace override 
+## @param namespaceOverride Namespace override
 namespaceOverride: ""
 
-## @param fullnameOverride Fullname override 
+## @param fullnameOverride Fullname override
 fullnameOverride: ""
 
 ## @param serviceAccount.create Specifies whether a service account should be created
@@ -113,6 +113,25 @@ startupProbe:
   failureThreshold: 6
   successThreshold: 1
 
+## @param ingress.enabled Flag to enable ingress for Tornjak frontend service
+## @param ingress.className Ingress class name for Tornjak frontend service
+## @param ingress.annotations [object] Annotations for Tornjak frontend service
+## @param ingress.hosts [array] Host paths for ingress Tornjak frontend service
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: tornjak-frontend.example.org
+      paths:
+        - path: /
+          pathType: Prefix
+  ## @param ingress.tls [array] Secrets containing TLS certs to enable https on ingress
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - tornjak-frontend.example.org
+
 tests:
   bash:
     ## @param tests.bash.image.registry The OCI registry to pull the image from
@@ -126,4 +145,4 @@ tests:
       repository: chainguard/bash
       pullPolicy: IfNotPresent
       version: ""
-      tag: latest@sha256:96ab1600d945b4a99c8610b5c8b31e346da63dc20573a26bb0777dd0190db5d4
+      tag: latest@sha256:cdf09d9d48e2b78e4a31dbbeba03e34b9462a35fa55defe67d73c440dbacca2c

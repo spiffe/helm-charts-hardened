@@ -34,10 +34,10 @@ helm upgrade --install --create-namespace spire charts/spire \
   --wait
 
 kubectl get nodes -o go-template='{{range .items}}{{printf "%s\n" .metadata.uid}}{{end}}' | while read -r line; do
-  kubectl exec -t spire-server-0 -n "spire-root-server" -- spire-server entry create -spiffeID spiffe://example.org/example-cluster/nested-spire -parentID "spiffe://example.org/spire/agent/k8s_psat/example-cluster/$line" -selector k8s:pod-label:app.kubernetes.io/name:server -downstream
+  kubectl exec -t spire-server-0 -n "spire-root-server" -- spire-server entry create -spiffeID spiffe://production.other/production/nested-spire -parentID "spiffe://production.other/spire/agent/k8s_psat/production/$line" -selector k8s:pod-label:app.kubernetes.io/name:server -downstream
 done
 
-helm upgrade --install --create-namespace --namespace spire-server --values "${SCRIPTPATH}/values.yaml,${SCRIPTPATH}/../production/values.yaml" \
+helm upgrade --install --create-namespace --namespace spire-server --values "${SCRIPTPATH}/values.yaml,${SCRIPTPATH}/../production/values.yaml,${SCRIPTPATH}/../production/values-node-pod-antiaffinity.yaml,${SCRIPTPATH}/../production/example-your-values.yaml" \
   --wait spire charts/spire
 helm test --namespace spire-server spire
 
