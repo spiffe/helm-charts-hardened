@@ -19,7 +19,7 @@ helm_install=(helm upgrade --install --create-namespace)
 ns=spire-server
 
 UPGRADE_ARGS=""
-DONT_CLEANUP=0
+CLEANUP=1
 
 for i in "$@"; do
   case $i in
@@ -28,16 +28,14 @@ for i in "$@"; do
       shift # past argument=value
       ;;
     -c)
-      DONT_CLEANUP=1
+      CLEANUP=0
       shift # past argument=value
       ;;
   esac
 done
 
-export DONT_CLEANUP
-
 teardown() {
-  if [ "${DONT_CLEANUP}" -ne 1 ]; then
+  if [ "${CLEANUP}" -eq 1 ]; then
     helm uninstall --namespace "${ns}" spire 2>/dev/null || true
     kubectl delete ns "${ns}" 2>/dev/null || true
     kubectl delete ns spire-system 2>/dev/null || true
