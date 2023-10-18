@@ -74,7 +74,7 @@
 {{-     $type = .ingress.controllerType }}
 {{-   end }}
 {{-   if not (has $type (list "generic")) }}
-{{-     fail "Unsupported ingress controller type specified. Must be one of [generic]"
+{{-     fail "Unsupported ingress controller type specified. Must be one of [generic]" }}
 {{-   end }}
 {{- end }}
 
