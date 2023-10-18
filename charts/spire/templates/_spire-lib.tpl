@@ -61,13 +61,12 @@
 {{- end }}
 {{- end }}
 
-
 {{/* Takes in a dictionary with keys:
  * global - the standard global object
  * ingress - a standard format ingress config object
 */}}
 {{- define "spire-lib.ingress-controller-type" }}
-{{-   $type := ""
+{{-   $type := "" }}
 {{-   if ne (len (dig "spire" "ingressControllerType" "" .global)) 0 }}
 {{-     $type = .global.spire.ingressControllerType }}
 {{-   else }}
