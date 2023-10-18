@@ -89,14 +89,14 @@ install_and_test() {
   # shellcheck disable=SC2086
   "${helm_install[@]}" spire "$1" \
     --namespace "${ns}" \
-    --values "${SCRIPTPATH}/values.yaml" \
-    --values "${SCRIPTPATH}/values-export-spiffe-oidc-discovery-provider-ingress-nginx.yaml" \
-    --values "${SCRIPTPATH}/values-export-spire-server-ingress-nginx.yaml" \
-    --values "${SCRIPTPATH}/values-export-federation-https-web-ingress-nginx.yaml" \
+    --values "$3/values.yaml" \
+    --values "$3/values-export-spiffe-oidc-discovery-provider-ingress-nginx.yaml" \
+    --values "$3/values-export-spire-server-ingress-nginx.yaml" \
+    --values "$3/values-export-federation-https-web-ingress-nginx.yaml" \
     --values /tmp/dummydns \
     --set spiffe-oidc-discovery-provider.tests.tls.customCA=tls-cert,spire-server.tests.tls.customCA=tls-cert \
     --set spire-agent.server.address=spire-server.production.other,spire-agent.server.port=443 \
-    --values "${SCRIPTPATH}/example-your-values.yaml" \
+    --values "$3/example-your-values.yaml" \
     $2 \
     --wait
 
@@ -104,7 +104,11 @@ install_and_test() {
 }
 
 if [[ -n "$UPGRADE_ARGS" ]]; then
-  install_and_test spire "$UPGRADE_ARGS"
+  pushd "${SCRIPTPATH}"
+  git clone --tag "${UPGRADE_VERSION}" https://github.com/spiffe/helm-charts-hardened "${UPGRADE_VERSION}"
+  popd
+
+  install_and_test spire "$UPGRADE_ARGS" "${SCRIPTPATH}/${UPGRADE_VERSION}/examples/production"
 
   # Any other upgrade steps go here. (Upgrade crds, delete statefulsets without cascade, etc.)
   kubectl label crd "clusterfederatedtrustdomains.spire.spiffe.io" "app.kubernetes.io/managed-by=Helm"
@@ -117,7 +121,7 @@ if [[ -n "$UPGRADE_ARGS" ]]; then
   kubectl annotate crd "controllermanagerconfigs.spire.spiffe.io" "meta.helm.sh/release-name=spire-crds"
   kubectl annotate crd "controllermanagerconfigs.spire.spiffe.io" "meta.helm.sh/release-namespace=spire-server"
 
-  helm upgrade --install -n spire-server spire-crds charts/spire-crds
+  helm upgrade --install -n spire-server spire-crds charts/spire-crds "${SCRIPTPATH}"
 fi
 
 install_and_test charts/spire ""
