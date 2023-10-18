@@ -587,8 +587,8 @@ tornjak:
     #    hosts:
     #      - tornjak-backend.example.org
 
-  ## @param tornjak.ingress.controllerType Specify what type of ingress controller your using. If generic, no additional annotations will be added to your ingresses. Must be one of [gemeric].
-  controllerType: generic
+    ## @param tornjak.ingress.controllerType Specify what type of ingress controller your using. If generic, no additional annotations will be added to your ingresses. Must be one of [gemeric].
+    controllerType: generic
 
   ## @param tornjak.startupProbe.failureThreshold Failure threshold count
   ## @param tornjak.startupProbe.initialDelaySeconds Initial delay seconds
