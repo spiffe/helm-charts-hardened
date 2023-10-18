@@ -91,6 +91,7 @@ To do a quick non production install:
 kubectl create namespace spire-system
 helm install -n spire-system spire-crds charts/spire-crds
 helm install -n spire-system spire charts/spire
+```
 
 For production installs, please see [the production example](examples/production/).
 
