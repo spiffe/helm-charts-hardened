@@ -124,7 +124,7 @@ if [[ -n "$UPGRADE_ARGS" ]]; then
   helm upgrade --install -n spire-server spire-crds charts/spire-crds
 fi
 
-install_and_test charts/spire "${SCRIPTPATH}"
+install_and_test charts/spire "" "${SCRIPTPATH}"
 
 if helm get manifest -n spire-server spire | grep -i example; then
   echo Global settings did not work. Please fix.
