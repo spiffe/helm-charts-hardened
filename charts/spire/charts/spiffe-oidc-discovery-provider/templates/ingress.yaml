@@ -1,4 +1,5 @@
 {{- if .Values.ingress.enabled -}}
+{{- $ingressControllerType := include "spire-lib.ingress-controller-type" (dict "global" .Values.global "ingress ".Values.ingress) }}
 {{- $fullName := include "spiffe-oidc-discovery-provider.fullname" . }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress

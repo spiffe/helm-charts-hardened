@@ -223,6 +223,9 @@ federation:
     #    If Profile Type == https_web:
     #    secretName: spire-server-federation-tls
 
+    ## @param federation.ingress.controllerType Specify what type of ingress controller your using. If generic, no additional annotations will be added to your ingresses. Must be one of [gemeric].
+    controllerType: generic
+
 ca_subject:
   ## @param ca_subject.country Country for Spire server CA
   country: ARPA
@@ -506,6 +509,9 @@ ingress:
   #    hosts:
   #      - spire-server.example.org
 
+  ## @param ingress.controllerType Specify what type of ingress controller your using. If generic, no additional annotations will be added to your ingresses. Must be one of [gemeric].
+  controllerType: generic
+
 ## @param extraVolumes [array] Extra volumes to be mounted
 extraVolumes: []
 
@@ -580,6 +586,9 @@ tornjak:
     #  - secretName: chart-example-tls
     #    hosts:
     #      - tornjak-backend.example.org
+
+  ## @param tornjak.ingress.controllerType Specify what type of ingress controller your using. If generic, no additional annotations will be added to your ingresses. Must be one of [gemeric].
+  controllerType: generic
 
   ## @param tornjak.startupProbe.failureThreshold Failure threshold count
   ## @param tornjak.startupProbe.initialDelaySeconds Initial delay seconds
