@@ -72,9 +72,10 @@
 {{-   else }}
 {{-     $type = .ingress.controllerType }}
 {{-   end }}
-{{-   if not (has $type (list "generic")) }}
-{{-     fail "Unsupported ingress controller type specified. Must be one of [generic]" }}
+{{-   if not (has $type (list "generic" "ingress-nginx")) }}
+{{-     fail "Unsupported ingress controller type specified. Must be one of [generic, ingress-nginx]" }}
 {{-   end }}
+{{-   $type }}
 {{- end }}
 
 {{/* Takes in a dictionary with keys:

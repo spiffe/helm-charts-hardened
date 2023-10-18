@@ -2,6 +2,12 @@
 {{- if .Values.federation.ingress.enabled -}}
 {{- $ingressControllerType := include "spire-lib.ingress-controller-type" (dict "global" .Values.global "ingress" .Values.federation.ingress) }}
 {{- $svcName := include "spire-server.fullname" . }}
+{{- $annotations := deepCopy .Values.federation.ingress.annotations }}
+{{- if eq $ingressControllerType "ingress-nginx" }}
+{{-   $_ := set $annotations "nginx.ingress.kubernetes.io/ssl-redirect" "true" }}
+{{-   $_ := set $annotations "nginx.ingress.kubernetes.io/force-ssl-redirect" "true" }}
+{{-   $_ := set $annotations "nginx.ingress.kubernetes.io/backend-protocol" "HTTPS" }}
+{{- end }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -9,7 +15,7 @@ metadata:
   namespace: {{ include "spire-server.namespace" . }}
   labels:
     {{ include "spire-server.labels" . | nindent 4 }}
-  {{- with .Values.federation.ingress.annotations }}
+  {{- with $annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}

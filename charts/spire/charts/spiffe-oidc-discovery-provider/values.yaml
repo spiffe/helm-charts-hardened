@@ -260,7 +260,7 @@ ingress:
   #    hosts:
   #      - oidc-discovery.example.org
 
-  ## @param ingress.controllerType Specify what type of ingress controller your using. If generic, no additional annotations will be added to your ingresses. Must be one of [gemeric].
+  ## @param ingress.controllerType Specify what type of ingress controller your using. If generic, no additional annotations will be added to your ingresses. Must be one of [generic, ingress-nginx].
   controllerType: generic
 
 tests:
