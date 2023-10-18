@@ -105,7 +105,10 @@ install_and_test() {
 
 if [[ -n "$UPGRADE_ARGS" ]]; then
   pushd "${SCRIPTPATH}"
-  git clone --tag "${UPGRADE_VERSION}" https://github.com/spiffe/helm-charts-hardened "${UPGRADE_VERSION}"
+  git clone https://github.com/spiffe/helm-charts-hardened "${UPGRADE_VERSION}"
+  pushd "${UPGRADE_VERSION}"
+  git checkout $(echo "${UPGRADE_VERSION}" | sed 's/v/spire-/')
+  popd
   popd
 
   install_and_test spire "$UPGRADE_ARGS" "${SCRIPTPATH}/${UPGRADE_VERSION}/examples/production"
