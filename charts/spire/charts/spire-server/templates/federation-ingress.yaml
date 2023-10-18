@@ -1,6 +1,6 @@
 {{- if .Values.federation.enabled }}
 {{- if .Values.federation.ingress.enabled -}}
-{{- $ingressControllerType := include "spire-lib.ingress-controller-type" (dict "global" .Values.global "ingress ".Values.federation.ingress) }}
+{{- $ingressControllerType := include "spire-lib.ingress-controller-type" (dict "global" .Values.global "ingress" .Values.federation.ingress) }}
 {{- $svcName := include "spire-server.fullname" . }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
