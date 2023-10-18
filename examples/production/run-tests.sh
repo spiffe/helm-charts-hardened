@@ -19,6 +19,7 @@ helm_install=(helm upgrade --install --create-namespace)
 ns=spire-server
 
 UPGRADE_ARGS=""
+DONT_CLEANUP=0
 
 for i in "$@"; do
   case $i in
@@ -26,17 +27,25 @@ for i in "$@"; do
       UPGRADE_ARGS="--repo $UPGRADE_REPO --version $UPGRADE_VERSION"
       shift # past argument=value
       ;;
+    -c)
+      DONT_CLEANUP=1
+      shift # past argument=value
+      ;;
   esac
 done
 
+export DONT_CLEANUP
+
 teardown() {
-  helm uninstall --namespace "${ns}" spire 2>/dev/null || true
-  kubectl delete ns "${ns}" 2>/dev/null || true
-  kubectl delete ns spire-system 2>/dev/null || true
-  helm uninstall --namespace cert-manager cert-manager 2>/dev/null || true
-  kubectl delete ns cert-manager 2>/dev/null || true
-  helm uninstall --namespace ingress-nginx 2>/dev/null || true
-  kubectl delete ns ingress-nginx 2>/dev/null || true
+  if [ "${DONT_CLEANUP}" -ne 1 ]; then
+    helm uninstall --namespace "${ns}" spire 2>/dev/null || true
+    kubectl delete ns "${ns}" 2>/dev/null || true
+    kubectl delete ns spire-system 2>/dev/null || true
+    helm uninstall --namespace cert-manager cert-manager 2>/dev/null || true
+    kubectl delete ns cert-manager 2>/dev/null || true
+    helm uninstall --namespace ingress-nginx 2>/dev/null || true
+    kubectl delete ns ingress-nginx 2>/dev/null || true
+  fi
 }
 
 trap 'trap - SIGTERM && teardown' SIGINT SIGTERM EXIT
