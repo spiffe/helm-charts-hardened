@@ -260,4 +260,4 @@ metadata:
   {{- end }}
 data:
   server.conf: |
-    {{- include "spire-server.reformat-and-yaml2json" (dict "config" (include "spire-server.yaml-config" .) "root" .) | nindent 4 }}
+    {{- include "spire-lib.reformat-and-yaml2json" (dict "config" (include "spire-server.yaml-config" .) "root" .) | nindent 4 }}

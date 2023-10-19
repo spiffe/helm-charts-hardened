@@ -19,6 +19,7 @@ helm_install=(helm upgrade --install --create-namespace)
 ns=spire-server
 
 UPGRADE_ARGS=""
+CLEANUP=1
 
 for i in "$@"; do
   case $i in
@@ -26,17 +27,23 @@ for i in "$@"; do
       UPGRADE_ARGS="--repo $UPGRADE_REPO --version $UPGRADE_VERSION"
       shift # past argument=value
       ;;
+    -c)
+      CLEANUP=0
+      shift # past argument=value
+      ;;
   esac
 done
 
 teardown() {
-  helm uninstall --namespace "${ns}" spire 2>/dev/null || true
-  kubectl delete ns "${ns}" 2>/dev/null || true
-  kubectl delete ns spire-system 2>/dev/null || true
-  helm uninstall --namespace cert-manager cert-manager 2>/dev/null || true
-  kubectl delete ns cert-manager 2>/dev/null || true
-  helm uninstall --namespace ingress-nginx 2>/dev/null || true
-  kubectl delete ns ingress-nginx 2>/dev/null || true
+  if [ "${CLEANUP}" -eq 1 ]; then
+    helm uninstall --namespace "${ns}" spire 2>/dev/null || true
+    kubectl delete ns "${ns}" 2>/dev/null || true
+    kubectl delete ns spire-system 2>/dev/null || true
+    helm uninstall --namespace cert-manager cert-manager 2>/dev/null || true
+    kubectl delete ns cert-manager 2>/dev/null || true
+    helm uninstall --namespace ingress-nginx 2>/dev/null || true
+    kubectl delete ns ingress-nginx 2>/dev/null || true
+  fi
 }
 
 trap 'trap - SIGTERM && teardown' SIGINT SIGTERM EXIT
@@ -105,7 +112,19 @@ install_and_test() {
 
 if [[ -n "$UPGRADE_ARGS" ]]; then
   install_and_test spire "$UPGRADE_ARGS"
+
   # Any other upgrade steps go here. (Upgrade crds, delete statefulsets without cascade, etc.)
+  kubectl label crd "clusterfederatedtrustdomains.spire.spiffe.io" "app.kubernetes.io/managed-by=Helm"
+  kubectl annotate crd "clusterfederatedtrustdomains.spire.spiffe.io" "meta.helm.sh/release-name=spire-crds"
+  kubectl annotate crd "clusterfederatedtrustdomains.spire.spiffe.io" "meta.helm.sh/release-namespace=spire-server"
+  kubectl label crd "clusterspiffeids.spire.spiffe.io" "app.kubernetes.io/managed-by=Helm"
+  kubectl annotate crd "clusterspiffeids.spire.spiffe.io" "meta.helm.sh/release-name=spire-crds"
+  kubectl annotate crd "clusterspiffeids.spire.spiffe.io" "meta.helm.sh/release-namespace=spire-server"
+  kubectl label crd "controllermanagerconfigs.spire.spiffe.io" "app.kubernetes.io/managed-by=Helm"
+  kubectl annotate crd "controllermanagerconfigs.spire.spiffe.io" "meta.helm.sh/release-name=spire-crds"
+  kubectl annotate crd "controllermanagerconfigs.spire.spiffe.io" "meta.helm.sh/release-namespace=spire-server"
+
+  helm upgrade --install -n spire-server spire-crds charts/spire-crds
 fi
 
 install_and_test charts/spire ""

@@ -32,7 +32,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.0
+        uses: actions/checkout@v4.1.1
 
       - name: Verify Docs updated
         run: ./helm-docs.sh
@@ -94,7 +94,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.0
+        uses: actions/checkout@v4.1.1
         with:
           fetch-depth: 0
 
@@ -136,7 +136,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.0
+        uses: actions/checkout@v4.1.1
         with:
           fetch-depth: 0
 
@@ -170,7 +170,8 @@ jobs:
 
       - name: Run chart-testing (install)
         run: |
-          ct install --config ct.yaml \
+          helm install -n spire-server spire-crds charts/spire-crds
+          ct install --config ct.yaml --excluded-charts spire-crds \
             --target-branch ${{ github.base_ref }}
 
       - name: Test summary
@@ -184,7 +185,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.0
+        uses: actions/checkout@v4.1.1
 
       - id: set-matrix
         name: Collect all examples
@@ -216,7 +217,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.0
+        uses: actions/checkout@v4.1.1
 
       - name: Set up Helm
         uses: azure/setup-helm@v3.5
@@ -238,7 +239,10 @@ jobs:
           verbosity: 1
 
       - name: Install and test example
-        run: ${{ matrix.example }}/run-tests.sh
+        run: |
+          kubectl create namespace spire-server
+          helm install -n spire-server spire-crds charts/spire-crds
+          ${{ matrix.example }}/run-tests.sh
 
   upgrade-test:
     runs-on: ubuntu-22.04
@@ -257,7 +261,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.0
+        uses: actions/checkout@v4.1.1
 
       - name: Set up Helm
         uses: azure/setup-helm@v3.5

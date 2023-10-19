@@ -1,6 +1,6 @@
 # spire
 
-![Version: 0.13.0](https://img.shields.io/badge/Version-0.13.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.7.2](https://img.shields.io/badge/AppVersion-1.7.2-informational?style=flat-square)
+![Version: 0.14.0](https://img.shields.io/badge/Version-0.13.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.7.2](https://img.shields.io/badge/AppVersion-1.7.2-informational?style=flat-square)
 [![Development Phase](https://github.com/spiffe/spiffe/blob/main/.img/maturity/dev.svg)](https://github.com/spiffe/spiffe/blob/main/MATURITY.md#development)
 
 A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
@@ -82,6 +82,40 @@ Now you can interact with the Spire agent socket from your own application. The 
 | file://./charts/spire-agent | upstream-spire-agent(spire-agent) | 0.1.0 |
 | file://./charts/spire-server | spire-server | 0.1.0 |
 | file://./charts/tornjak-frontend | tornjak-frontend | 0.1.0 |
+
+## Install notes
+
+To do a quick non production install:
+
+```shell
+kubectl create namespace spire-system
+helm install -n spire-system spire-crds charts/spire-crds
+helm install -n spire-system spire charts/spire
+```
+
+For production installs, please see [the production example](examples/production/).
+
+## Upgrade notes
+
+0.14.X:
+
+If coming from a chart version before 0.14.0, you must relabel your crds to switch to using the new spire-crds chart. To migrate to the spire-crds chart
+run the following:
+
+```shell
+# Replace the spire-server namespace in the commands below with the namespace you want to install the spire-crds chart in.
+
+kubectl label crd "clusterfederatedtrustdomains.spire.spiffe.io" "app.kubernetes.io/managed-by=Helm"
+kubectl annotate crd "clusterfederatedtrustdomains.spire.spiffe.io" "meta.helm.sh/release-name=spire-crds"
+kubectl annotate crd "clusterfederatedtrustdomains.spire.spiffe.io" "meta.helm.sh/release-namespace=spire-server"
+kubectl label crd "clusterspiffeids.spire.spiffe.io" "app.kubernetes.io/managed-by=Helm"
+kubectl annotate crd "clusterspiffeids.spire.spiffe.io" "meta.helm.sh/release-name=spire-crds"
+kubectl annotate crd "clusterspiffeids.spire.spiffe.io" "meta.helm.sh/release-namespace=spire-server"
+kubectl label crd "controllermanagerconfigs.spire.spiffe.io" "app.kubernetes.io/managed-by=Helm"
+kubectl annotate crd "controllermanagerconfigs.spire.spiffe.io" "meta.helm.sh/release-name=spire-crds"
+kubectl annotate crd "controllermanagerconfigs.spire.spiffe.io" "meta.helm.sh/release-namespace=spire-server"
+helm install -n spire-server spire-crds charts/spire-crds
+```
 
 <!-- The parameters section is generated using helm-docs.sh and should not be edited by hand. -->
 
