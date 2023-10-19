@@ -120,6 +120,7 @@ workingDir: /usr/src/app
 ## @param ingress.className Ingress class name for Tornjak frontend service
 ## @param ingress.annotations [object] Annotations for Tornjak frontend service
 ## @param ingress.hosts [array] Host paths for ingress Tornjak frontend service
+##
 ingress:
   enabled: false
   className: ""
@@ -148,3 +149,4 @@ tests:
       repository: chainguard/bash
       pullPolicy: IfNotPresent
       version: ""
+      tag: latest@sha256:cdf09d9d48e2b78e4a31dbbeba03e34b9462a35fa55defe67d73c440dbacca2c
