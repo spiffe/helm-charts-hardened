@@ -53,6 +53,7 @@ if [[ -n "$UPGRADE_ARGS" ]]; then
   git clone https://github.com/spiffe/helm-charts-hardened "${UPGRADE_VERSION}"
   pushd "${UPGRADE_VERSION}"
   git checkout "${UPGRADE_VERSION/v/spire-}"
+  helm install --create-namespace -n spire-system spire-crds charts/spire-crds
   ./examples/production/run-tests.sh -c
   popd
   popd
