@@ -27,7 +27,7 @@ global:
     ## @param global.spire.strictMode Check values, such as trustDomain, are overridden with a suitable value for production.
     strictMode: false
 
-    ## @param global.spire.ingressControllerType Specify what type of ingress controller your using. If other, no additional annotations will be added to your ingresses. Must be one of [other, ingress-nginx].
+    ## @param global.spire.ingressControllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If other, none will be added. Must be one of [ingress-nginx, other].
     ingressControllerType: ""
 
   installAndUpgradeHooks:

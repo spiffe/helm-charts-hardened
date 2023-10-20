@@ -223,7 +223,7 @@ federation:
     #    If Profile Type == https_web:
     #    secretName: spire-server-federation-tls
 
-    ## @param federation.ingress.controllerType Specify what type of ingress controller your using. If other, no additional annotations will be added to your ingresses. Must be one of [other, ingress-nginx].
+    ## @param federation.ingress.controllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If other, none will be added. Must be one of [ingress-nginx, other].
     controllerType: other
 
 ca_subject:
@@ -509,7 +509,7 @@ ingress:
   #    hosts:
   #      - spire-server.example.org
 
-  ## @param ingress.controllerType Specify what type of ingress controller your using. If other, no additional annotations will be added to your ingresses. Must be one of [other, ingress-nginx].
+  ## @param ingress.controllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If other, none will be added. Must be one of [ingress-nginx, other].
   controllerType: other
 
 ## @param extraVolumes [array] Extra volumes to be mounted
@@ -570,7 +570,7 @@ tornjak:
 
   ## @param tornjak.ingress.enabled Flag to enable ingress for Tornjak backend service
   ## @param tornjak.ingress.className Ingress class name for Tornjak backend service
-  ## @param tornjak.ingress.controllerType Specify what type of ingress controller your using. If other, no additional annotations will be added to your ingresses. Must be one of [other, ingress-nginx].
+  ## @param tornjak.ingress.controllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If other, none will be added. Must be one of [ingress-nginx, other].
   ## @param tornjak.ingress.annotations [object] Annotations for Tornjak backend service
   ## @param tornjak.ingress.hosts [array] Host paths for ingress Tornjak backend service
   ingress:
