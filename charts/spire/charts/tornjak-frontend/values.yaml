@@ -115,11 +115,13 @@ startupProbe:
 
 ## @param ingress.enabled Flag to enable ingress for Tornjak frontend service
 ## @param ingress.className Ingress class name for Tornjak frontend service
+## @param ingress.controllerType Specify what type of ingress controller your using. If other, no additional annotations will be added to your ingresses. Must be one of [other, ingress-nginx].
 ## @param ingress.annotations [object] Annotations for Tornjak frontend service
 ## @param ingress.hosts [array] Host paths for ingress Tornjak frontend service
 ingress:
   enabled: false
   className: ""
+  controllerType: other
   annotations: {}
   hosts:
     - host: tornjak-frontend.example.org
@@ -131,9 +133,6 @@ ingress:
   #  - secretName: chart-example-tls
   #    hosts:
   #      - tornjak-frontend.example.org
-
-  ## @param ingress.controllerType Specify what type of ingress controller your using. If generic, no additional annotations will be added to your ingresses. Must be one of [generic, ingress-nginx].
-  controllerType: generic
 
 tests:
   bash:

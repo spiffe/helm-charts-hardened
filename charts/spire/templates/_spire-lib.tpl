@@ -72,8 +72,8 @@
 {{-   else }}
 {{-     $type = .ingress.controllerType }}
 {{-   end }}
-{{-   if not (has $type (list "generic" "ingress-nginx")) }}
-{{-     fail "Unsupported ingress controller type specified. Must be one of [generic, ingress-nginx]" }}
+{{-   if not (has $type (list "other" "ingress-nginx")) }}
+{{-     fail "Unsupported ingress controller type specified. Must be one of [other, ingress-nginx]" }}
 {{-   end }}
 {{-   $type }}
 {{- end }}

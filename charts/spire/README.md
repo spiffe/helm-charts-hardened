@@ -123,19 +123,19 @@ helm install -n spire-server spire-crds charts/spire-crds
 
 ### Global parameters
 
-| Name                                    | Description                                                                                                                                                         | Value                        |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
-| `global.k8s.clusterDomain`              | Cluster domain name configured for Spire install                                                                                                                    | `cluster.local`              |
-| `global.spire.bundleConfigMap`          | A configmap containing the Spire bundle                                                                                                                             | `""`                         |
-| `global.spire.clusterName`              | The name of the k8s cluster for Spire install                                                                                                                       | `example-cluster`            |
-| `global.spire.jwtIssuer`                | The issuer for Spire JWT tokens                                                                                                                                     | `oidc-discovery.example.org` |
-| `global.spire.trustDomain`              | The trust domain for Spire install                                                                                                                                  | `example.org`                |
-| `global.spire.upstreamServerAddress`    | Set what address to use for the upstream server when using nested spire                                                                                             | `""`                         |
-| `global.spire.image.registry`           | Override all Spire image registries at once                                                                                                                         | `""`                         |
-| `global.spire.strictMode`               | Check values, such as trustDomain, are overridden with a suitable value for production.                                                                             | `false`                      |
-| `global.spire.ingressControllerType`    | Specify what type of ingress controller your using. If generic, no additional annotations will be added to your ingresses. Must be one of [generic, ingress-nginx]. | `""`                         |
-| `global.installAndUpgradeHooks.enabled` | Enable Helm hooks to autofix common install/upgrade issues (should be disabled when using `helm template`)                                                          | `true`                       |
-| `global.deleteHooks.enabled`            | Enable Helm hooks to autofix common delete issues (should be disabled when using `helm template`)                                                                   | `true`                       |
+| Name                                    | Description                                                                                                                                                     | Value                        |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| `global.k8s.clusterDomain`              | Cluster domain name configured for Spire install                                                                                                                | `cluster.local`              |
+| `global.spire.bundleConfigMap`          | A configmap containing the Spire bundle                                                                                                                         | `""`                         |
+| `global.spire.clusterName`              | The name of the k8s cluster for Spire install                                                                                                                   | `example-cluster`            |
+| `global.spire.jwtIssuer`                | The issuer for Spire JWT tokens                                                                                                                                 | `oidc-discovery.example.org` |
+| `global.spire.trustDomain`              | The trust domain for Spire install                                                                                                                              | `example.org`                |
+| `global.spire.upstreamServerAddress`    | Set what address to use for the upstream server when using nested spire                                                                                         | `""`                         |
+| `global.spire.image.registry`           | Override all Spire image registries at once                                                                                                                     | `""`                         |
+| `global.spire.strictMode`               | Check values, such as trustDomain, are overridden with a suitable value for production.                                                                         | `false`                      |
+| `global.spire.ingressControllerType`    | Specify what type of ingress controller your using. If other, no additional annotations will be added to your ingresses. Must be one of [other, ingress-nginx]. | `""`                         |
+| `global.installAndUpgradeHooks.enabled` | Enable Helm hooks to autofix common install/upgrade issues (should be disabled when using `helm template`)                                                      | `true`                       |
+| `global.deleteHooks.enabled`            | Enable Helm hooks to autofix common delete issues (should be disabled when using `helm template`)                                                               | `true`                       |
 
 ### Spire server parameters
 

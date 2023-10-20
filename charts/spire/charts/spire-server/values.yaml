@@ -223,8 +223,8 @@ federation:
     #    If Profile Type == https_web:
     #    secretName: spire-server-federation-tls
 
-    ## @param federation.ingress.controllerType Specify what type of ingress controller your using. If generic, no additional annotations will be added to your ingresses. Must be one of [generic, ingress-nginx].
-    controllerType: generic
+    ## @param federation.ingress.controllerType Specify what type of ingress controller your using. If other, no additional annotations will be added to your ingresses. Must be one of [other, ingress-nginx].
+    controllerType: other
 
 ca_subject:
   ## @param ca_subject.country Country for Spire server CA
@@ -509,8 +509,8 @@ ingress:
   #    hosts:
   #      - spire-server.example.org
 
-  ## @param ingress.controllerType Specify what type of ingress controller your using. If generic, no additional annotations will be added to your ingresses. Must be one of [generic, ingress-nginx].
-  controllerType: generic
+  ## @param ingress.controllerType Specify what type of ingress controller your using. If other, no additional annotations will be added to your ingresses. Must be one of [other, ingress-nginx].
+  controllerType: other
 
 ## @param extraVolumes [array] Extra volumes to be mounted
 extraVolumes: []
@@ -570,11 +570,13 @@ tornjak:
 
   ## @param tornjak.ingress.enabled Flag to enable ingress for Tornjak backend service
   ## @param tornjak.ingress.className Ingress class name for Tornjak backend service
+  ## @param tornjak.ingress.controllerType Specify what type of ingress controller your using. If other, no additional annotations will be added to your ingresses. Must be one of [other, ingress-nginx].
   ## @param tornjak.ingress.annotations [object] Annotations for Tornjak backend service
   ## @param tornjak.ingress.hosts [array] Host paths for ingress Tornjak backend service
   ingress:
     enabled: false
     className: ""
+    controllerType: other
     annotations: {}
     hosts:
       - host: tornjak-backend.example.org
@@ -586,9 +588,6 @@ tornjak:
     #  - secretName: chart-example-tls
     #    hosts:
     #      - tornjak-backend.example.org
-
-    ## @param tornjak.ingress.controllerType Specify what type of ingress controller your using. If generic, no additional annotations will be added to your ingresses. Must be one of [generic, ingress-nginx].
-    controllerType: generic
 
   ## @param tornjak.startupProbe.failureThreshold Failure threshold count
   ## @param tornjak.startupProbe.initialDelaySeconds Initial delay seconds
