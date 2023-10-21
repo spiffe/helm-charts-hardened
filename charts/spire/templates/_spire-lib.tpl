@@ -71,11 +71,13 @@
 {{-     $type = .global.spire.ingressControllerType }}
 {{-   else if ne .ingress.controllerType "" }}
 {{-     $type = .ingress.controllerType }}
+{{-   else if (dig "openshift" false .global) }}
+{{-     $type = "openshift" }}
 {{-   else }}
 {{-     $type = "other" }}
 {{-   end }}
-{{-   if not (has $type (list "other" "ingress-nginx")) }}
-{{-     fail "Unsupported ingress controller type specified. Must be one of [other, ingress-nginx]" }}
+{{-   if not (has $type (list "other" "ingress-nginx" "openshift")) }}
+{{-     fail "Unsupported ingress controller type specified. Must be one of [other, ingress-nginx, openshift]" }}
 {{-   end }}
 {{-   $type }}
 {{- end }}
