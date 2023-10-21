@@ -69,8 +69,10 @@
 {{-   $type := "" }}
 {{-   if ne (len (dig "spire" "ingressControllerType" "" .global)) 0 }}
 {{-     $type = .global.spire.ingressControllerType }}
-{{-   else }}
+{{-   else if ne .ingress.controllerType "" }}
 {{-     $type = .ingress.controllerType }}
+{{-   else }}
+{{-     $type = "other" }}
 {{-   end }}
 {{-   if not (has $type (list "other" "ingress-nginx")) }}
 {{-     fail "Unsupported ingress controller type specified. Must be one of [other, ingress-nginx]" }}
