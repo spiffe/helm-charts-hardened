@@ -76,8 +76,8 @@
 {{-   else }}
 {{-     $type = "other" }}
 {{-   end }}
-{{-   if not (has $type (list "other" "ingress-nginx" "openshift")) }}
-{{-     fail "Unsupported ingress controller type specified. Must be one of [other, ingress-nginx, openshift]" }}
+{{-   if not (has $type (list "ingress-nginx" "openshift" "other")) }}
+{{-     fail "Unsupported ingress controller type specified. Must be one of [ingress-nginx, openshift, other]" }}
 {{-   end }}
 {{-   $type }}
 {{- end }}

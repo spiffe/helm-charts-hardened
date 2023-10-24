@@ -7,7 +7,6 @@
 {{-   $_ := set $annotations "nginx.ingress.kubernetes.io/force-ssl-redirect" "true" }}
 {{- else if eq $ingressControllerType "openshift" }}
 {{-   $_ := set $annotations "route.openshift.io/termination" "edge" }}
-{{-   $_ := set $annotations "route.openshift.io/insecureEdgeTerminationPolicy" "Redirect" }}
 {{- end }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress

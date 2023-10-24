@@ -10,7 +10,6 @@
 {{-     $_ := set $annotations "nginx.ingress.kubernetes.io/ssl-passthrough" "true" }}
 {{-   end }}
 {{- else if eq $ingressControllerType "openshift" }}
-{{-   $_ := set $annotations "route.openshift.io/insecureEdgeTerminationPolicy" "Redirect" }}
 {{-   if ne (include "spire-tornjak.connectionType" .) "http" }}
 {{-     $_ := set $annotations "route.openshift.io/termination" "passthrough" }}
 {{-   else }}
