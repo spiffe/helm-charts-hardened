@@ -27,6 +27,9 @@ global:
     ## @param global.spire.strictMode Check values, such as trustDomain, are overridden with a suitable value for production.
     strictMode: false
 
+    ## @param global.spire.ingressControllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, other is assumed. If other, no annotations will be added. Must be one of [ingress-nginx, other, ""].
+    ingressControllerType: ""
+
   installAndUpgradeHooks:
     ## @param global.installAndUpgradeHooks.enabled Enable Helm hooks to autofix common install/upgrade issues (should be disabled when using `helm template`)
     enabled: true

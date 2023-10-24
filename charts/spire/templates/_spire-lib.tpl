@@ -62,6 +62,25 @@
 {{- end }}
 
 {{/* Takes in a dictionary with keys:
+ * global - the standard global object
+ * ingress - a standard format ingress config object
+*/}}
+{{- define "spire-lib.ingress-controller-type" }}
+{{-   $type := "" }}
+{{-   if ne (len (dig "spire" "ingressControllerType" "" .global)) 0 }}
+{{-     $type = .global.spire.ingressControllerType }}
+{{-   else if ne .ingress.controllerType "" }}
+{{-     $type = .ingress.controllerType }}
+{{-   else }}
+{{-     $type = "other" }}
+{{-   end }}
+{{-   if not (has $type (list "other" "ingress-nginx")) }}
+{{-     fail "Unsupported ingress controller type specified. Must be one of [other, ingress-nginx]" }}
+{{-   end }}
+{{-   $type }}
+{{- end }}
+
+{{/* Takes in a dictionary with keys:
  * ingress - the standardized ingress object
  * Values - Chart values
 */}}
