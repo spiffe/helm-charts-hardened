@@ -202,6 +202,8 @@ federation:
     enabled: false
     ## @param federation.ingress.className Ingress class name for federation
     className: ""
+    ## @param federation.ingress.controllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, other is assumed. If other, no annotations will be added. Must be one of [ingress-nginx, other, ""].
+    controllerType: ""
     ## @param federation.ingress.annotations [object] Annotations for the ingress object
     annotations: {}
       # kubernetes.io/ingress.class: nginx
@@ -487,6 +489,8 @@ ingress:
   enabled: false
   ## @param ingress.className Ingress class name
   className: ""
+  ## @param ingress.controllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, other is assumed. If other, no annotations will be added. Must be one of [ingress-nginx, other, ""].
+  controllerType: ""
   ## @param ingress.annotations [object] Annotations for the ingress object
   annotations: {}
     # kubernetes.io/ingress.class: nginx
@@ -564,11 +568,13 @@ tornjak:
 
   ## @param tornjak.ingress.enabled Flag to enable ingress for Tornjak backend service
   ## @param tornjak.ingress.className Ingress class name for Tornjak backend service
+  ## @param tornjak.ingress.controllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, other is assumed. If other, no annotations will be added. Must be one of [ingress-nginx, other, ""].
   ## @param tornjak.ingress.annotations [object] Annotations for Tornjak backend service
   ## @param tornjak.ingress.hosts [array] Host paths for ingress Tornjak backend service
   ingress:
     enabled: false
     className: ""
+    controllerType: ""
     annotations: {}
     hosts:
       - host: tornjak-backend.example.org

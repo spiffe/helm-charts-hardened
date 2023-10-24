@@ -241,6 +241,8 @@ ingress:
   enabled: false
   ## @param ingress.className Ingress class name
   className: ""
+  ## @param ingress.controllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, other is assumed. If other, no annotations will be added. Must be one of [ingress-nginx, other, ""].
+  controllerType: ""
   ## @param ingress.annotations [object] Annotations for ingress object
   annotations: {}
     # kubernetes.io/ingress.class: nginx
