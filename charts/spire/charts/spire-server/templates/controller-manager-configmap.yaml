@@ -33,4 +33,6 @@ data:
       {{- toYaml . | nindent 6 }}
       {{- end }}
     spireServerSocketPath: "/tmp/spire-server/private/api.sock"
+    className: {{ include "spire-server.controller-manager-class-name" . | quote}}
+    watchClassless: {{ .Values.controllerManager.watchClassless | toYaml }}
 {{- end }}

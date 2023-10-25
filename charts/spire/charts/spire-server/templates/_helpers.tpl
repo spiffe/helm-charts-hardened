@@ -217,3 +217,11 @@ The code below determines what connection type should be used.
 {{-   end }}
 {{ $args | toYaml }}
 {{- end -}}
+
+{{- define "spire-server.controller-manager-class-name" -}}
+{{-   if .Values.controllerManager.className }}
+{{-     .Values.controllerManager.className }}
+{{-   else if .Values.controllerManager.autoClassName }}
+{{-     .Release.Namespace }}-{{ .Release.Name }}
+{{-   end -}}
+{{- end -}}
