@@ -375,7 +375,7 @@ controllerManager:
   autoClassName: true
   ## @param controllerManager.className specify to use an explicit class name
   className: ""
-  ## @param controllerManager.className specify to process custom resources without class name specified. Useful to migrate to class names from classless installs
+  ## @param controllerManager.watchClassless specify to process custom resources without class name specified. Useful to migrate to class names from classless installs
   watchClassless: false
 
   installAndUpgradeHook:
@@ -460,6 +460,8 @@ controllerManager:
     federatesWith: []
     # - example.io
     # - example.ai
+    ## @param controllerManager.identities.downstream set if this is a root server
+    downstream: false
 
   validatingWebhookConfiguration:
     ## @param controllerManager.validatingWebhookConfiguration.failurePolicy Action when identity is not issued
