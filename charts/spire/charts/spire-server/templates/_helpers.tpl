@@ -221,7 +221,7 @@ The code below determines what connection type should be used.
 {{- define "spire-server.controller-manager-class-name" -}}
 {{-   if .Values.controllerManager.className }}
 {{-     .Values.controllerManager.className }}
-{{-   else if .Values.controllerManager.autoClassName }}
+{{-   else }}
 {{-     .Release.Namespace }}-{{ .Release.Name }}
 {{-   end -}}
 {{- end -}}

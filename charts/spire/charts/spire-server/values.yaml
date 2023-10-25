@@ -371,11 +371,9 @@ controllerManager:
   ## @param controllerManager.enabled Flag to enable controller manager
   enabled: false
 
-  ## @param controllerManager.autoClassName if true, the controller class name will be Release.Namespace-Release.Name to automatically not conflict with other installs, allowing parallel installs.
-  autoClassName: true
-  ## @param controllerManager.className specify to use an explicit class name
+  ## @param controllerManager.className specify to use an explicit class name. If empty, it will be automatically set to Release.Namespace-Release.Name to not conflict with other installs, enabling parallel installs.
   className: ""
-  ## @param controllerManager.watchClassless specify to process custom resources without class name specified. Useful to migrate to class names from classless installs
+  ## @param controllerManager.watchClassless specify to process custom resources without class name specified. Useful to slowly migrate to class names from classless installs. Do not have two installs on the same k8s cluster both set to true.
   watchClassless: false
 
   installAndUpgradeHook:
