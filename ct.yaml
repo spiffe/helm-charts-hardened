@@ -3,7 +3,7 @@ target-branch: main
 chart-dirs:
   - charts
 chart-repos:
-  - spiffe=https://spiffe.github.io/helm-charts/
+  - spiffe=https://spiffe.github.io/helm-charts-hardened/
   - bitnami=https://charts.bitnami.com/bitnami
   - ingress-nginx=https://kubernetes.github.io/ingress-nginx
 exclude-deprecated: true
