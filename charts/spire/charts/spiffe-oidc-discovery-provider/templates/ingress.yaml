@@ -1,5 +1,11 @@
 {{- if .Values.ingress.enabled -}}
+{{- $ingressControllerType := include "spire-lib.ingress-controller-type" (dict "global" .Values.global "ingress" .Values.ingress) }}
 {{- $fullName := include "spiffe-oidc-discovery-provider.fullname" . }}
+{{- $annotations := deepCopy .Values.ingress.annotations }}
+{{- if eq $ingressControllerType "ingress-nginx" }}
+{{-   $_ := set $annotations "nginx.ingress.kubernetes.io/ssl-redirect" "true" }}
+{{-   $_ := set $annotations "nginx.ingress.kubernetes.io/force-ssl-redirect" "true" }}
+{{- end }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -7,7 +13,7 @@ metadata:
   namespace: {{ include "spiffe-oidc-discovery-provider.namespace" . }}
   labels:
     {{ include "spiffe-oidc-discovery-provider.labels" . | nindent 4 }}
-  {{- with .Values.ingress.annotations }}
+  {{- with $annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
