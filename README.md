@@ -11,7 +11,7 @@ A suite of [Helm Charts](https://helm.sh/docs) for standardized installations of
 ## Add Helm repository
 
 ```bash
-helm repo add spiffe https://spiffe.github.io/helm-charts/
+helm repo add spiffe https://spiffe.github.io/helm-charts-hardened/
 helm repo update
 ```
 
