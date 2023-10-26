@@ -16,11 +16,15 @@ kubectl create namespace spire-system
 helm install -n spire-system spire-crds --repo https://spiffe.github.io/helm-charts-hardened/
 helm install -n spire-system spire --repo https://spiffe.github.io/helm-charts-hardened/
 ```
+
 To customize, start with a base values file and edit as needed:
+
 ```shell
 curl -o your-values.yaml https://raw.githubusercontent.com/spiffe/helm-charts-hardened/main/examples/production/example-your-values.yaml
 ```
+
 Then:
+
 ```shell
 helm install -n spire-system spire --repo https://spiffe.github.io/helm-charts-hardened/ -f your-values.yaml
 ```
@@ -29,14 +33,14 @@ For production installs, please see [the production example](https://github.com/
 
 ## Upgrade notes
 
-0.14.X:
+### 0.14.X
 
 If coming from a chart version before 0.14.0, you must relabel your crds to switch to using the new spire-crds chart. To migrate to the spire-crds chart
 run the following:
 
-```shell
-# Replace the spire-server namespace in the commands below with the namespace you want to install the spire-crds chart in.
+Replace the spire-server namespace in the commands below with the namespace you want to install the spire-crds chart in.
 
+```shell
 kubectl label crd "clusterfederatedtrustdomains.spire.spiffe.io" "app.kubernetes.io/managed-by=Helm"
 kubectl annotate crd "clusterfederatedtrustdomains.spire.spiffe.io" "meta.helm.sh/release-name=spire-crds"
 kubectl annotate crd "clusterfederatedtrustdomains.spire.spiffe.io" "meta.helm.sh/release-namespace=spire-server"
