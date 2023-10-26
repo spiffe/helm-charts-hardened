@@ -204,6 +204,9 @@ socketPath: /run/spire/agent-sockets/spire-agent.sock
 ## @param priorityClassName Priority class assigned to daemonset pods
 priorityClassName: ""
 
+## @param extraEnvVars [array] Extra environment variables to be added to the Spire Agent container
+extraEnvVars: []
+
 ## @param extraVolumes [array] Extra volumes to be mounted on Spire Agent pods
 extraVolumes: []
 
