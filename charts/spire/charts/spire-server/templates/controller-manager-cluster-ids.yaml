@@ -4,7 +4,7 @@
 apiVersion: spire.spiffe.io/v1alpha1
 kind: ClusterSPIFFEID
 metadata:
-  name: {{ include "spire-controller-manager.fullname" $root }}-service-account-based
+  name: {{ .Release.Namespae }}-{{ include "spire-controller-manager.fullname" $root }}-service-account-based
   namespace: {{ include "spire-server.namespace" $root }}
 spec:
   spiffeIDTemplate: {{ .identities.spiffeIDTemplate | quote }}
