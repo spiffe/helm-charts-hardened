@@ -66,4 +66,4 @@ A Helm chart to install the SPIFFE CSI driver.
 | `priorityClassName`                      | Priority class assigned to daemonset pods                                                               | `""`                                        |
 | `restrictedScc.enabled`                  | Enables the creation of a SecurityContextConstraint based on the restricted SCC with CSI volume support | `false`                                     |
 | `restrictedScc.name`                     | Set the name of the restricted SCC with CSI support                                                     | `""`                                        |
-| `restrictedScc.v2`                       | Based up on v2 version of the restricted SCC                                                            | `true`                                      |
+| `restrictedScc.version`                  | Version of the restricted SCC                                                                           | `2`                                         |

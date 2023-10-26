@@ -1,12 +1,12 @@
 {{- if and .Values.global.openshift .Values.restrictedScc.enabled }}
-{{- $name := default (printf "restricted-%scsi" (.Values.restrictedScc.v2 | ternary "v2-" "")) .Values.restrictedScc.name -}}
+{{- $name := default (printf "restricted-%scsi" (eq (.Values.restrictedScc.version | toString) "2" | ternary "v2-" "")) .Values.restrictedScc.name -}}
 {{- $v2Description := "This is the most restrictive SCC and it is used by default for authenticated users. On top of the legacy 'restricted' SCC, it also requires to drop ALL capabilities and does not allow privilege escalation binaries. It will also default the seccomp profile to runtime/default if unset, otherwise this seccomp profile is required." -}}
 apiVersion: security.openshift.io/v1
 kind: SecurityContextConstraints
 allowHostPorts: false
 priority: null
 requiredDropCapabilities:
-{{- if .Values.restrictedScc.v2 }}
+{{- if eq (.Values.restrictedScc.version | toString) "2" }}
   - ALL
 {{- else }}
   - KILL
@@ -19,7 +19,7 @@ runAsUser:
   type: MustRunAsRange
 users: []
 allowHostDirVolumePlugin: false
-{{- if .Values.restrictedScc.v2 }}
+{{- if eq (.Values.restrictedScc.version | toString) "2" }}
 seccompProfiles:
   - runtime/default
 {{- end }}
@@ -33,7 +33,7 @@ metadata:
     kubernetes.io/description: >-
       {{ $name }} denies access to all host features and requires pods to be
       run with a UID, and SELinux context that are allocated to the namespace.
-      {{ .Values.restrictedScc.v2 | ternary $v2Description "" }}
+      {{ eq (.Values.restrictedScc.version | toString) "2" | ternary $v2Description "" }}
 fsGroup:
   type: MustRunAs
 groups: []
@@ -51,8 +51,8 @@ volumes:
   - secret
 allowHostPID: false
 allowHostNetwork: false
-allowPrivilegeEscalation: {{ .Values.restrictedScc.v2 | ternary false true }}
-{{- if .Values.restrictedScc.v2 }}
+allowPrivilegeEscalation: {{ eq (.Values.restrictedScc.version | toString) "2" | ternary false true }}
+{{- if eq (.Values.restrictedScc.version | toString) "2" }}
 allowedCapabilities:
   - NET_BIND_SERVICE
 {{ else}}

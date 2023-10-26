@@ -139,5 +139,5 @@ restrictedScc:
 
   ## @param restrictedScc.name Set the name of the restricted SCC with CSI support
   name: ""
-  ## @param restrictedScc.v2 Based up on v2 version of the restricted SCC
-  v2: true
+  ## @param restrictedScc.version Version of the restricted SCC
+  version: 2
