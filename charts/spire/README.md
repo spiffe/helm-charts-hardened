@@ -36,11 +36,12 @@ For production installs, please see [the production example](https://github.com/
 
 The spire-crds chart has been updated. Please ensure you have upgraded spire-crds before upgrading the spire chart.
 
-The chart now includes support for multiple parallel installs of the spire-controller-manager. To facilitate this change, all custom resources now take
-a className property. Out of the box the chart now uses and requires it to be set. If you have not loaded any yourself, the upgrade process will be transparent.
+The chart now includes support for multiple parallel installs of the spire-controller-manager. To facilitate this change, all spire custom resources now take
+a className property. Out of the box the chart now uses and requires it to be set. If you have not loaded any spire custom resources yourself, the upgrade
+process will be transparent.
 
-If you have loaded your own custom resources, set spire-server.controllerManager.watchClassless=true until you can update your custom resources to have the
-className for the instance specified.
+If you have loaded your own spire custom resources, set spire-server.controllerManager.watchClassless=true until you can update your spire custom resources to
+have the className for the instance specified.
 
 ### 0.14.X
 
