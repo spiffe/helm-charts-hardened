@@ -25,8 +25,6 @@ spec:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   className: {{ include "spire-server.controller-manager-class-name" $root | quote}}
-  {{- if .identities.downstream }}
-  downstream: true
-  {{- end }}
+  downstream: {{ .identities.downstream }}
 {{- end }}
 {{- end }}
