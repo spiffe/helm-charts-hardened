@@ -12,18 +12,42 @@ kubectl label namespace "spire-system" pod-security.kubernetes.io/enforce=privil
 kubectl label namespace "spire-server" pod-security.kubernetes.io/enforce=privileged
 ```
 
-Update the `example-your-values.yaml` file with your values
+Update the `example-your-values.yaml` file with your values.
+
+Obtain you ingress subdomain:
+
+```shell
+echo "apps.$(kubectl get dns cluster -o jsonpath='{ .spec.baseDomain }')"
+```
+
+And update the examples/openshift/openshift-values.yaml file accordingly, replacing the APP_SUBDOMAIN value.
+
+_Note: The location of the apps subdomain may be different in certain environments_
 
 ## Standard Deployment
 
+Deploy the charts:
+
 ```shell
-APP_SUBDOMAIN=apps.$(kubectl get dns cluster -o jsonpath='{ .spec.baseDomain }') envsubst < examples/openshift/openshift-values.yaml | helm upgrade --install --namespace spire-server spire charts/spire --values examples/production/values.yaml --values examples/tornjak/values.yaml --values - --render-subchart-notes --debug
+helm upgrade --install --namespace spire-server spire charts/spire \
+--values examples/production/values.yaml \
+--values examples/production/example-your-values.yaml \
+--values examples/tornjak/values.yaml \
+--values examples/openshift/openshift-values.yaml \
+--render-subchart-notes --debug
 ```
 
 ## IBM Cloud Deployment
 
-```shell
-APP_SUBDOMAIN=$(kubectl get dns cluster -o jsonpath='{ .spec.baseDomain }') envsubst < examples/openshift/openshift-values.yaml | helm upgrade --install --namespace spire-server spire charts/spire --values examples/production/values.yaml --values examples/tornjak/values.yaml --values examples/production/example-your-values.yaml --values - --set spiffe-csi-driver.kubeletPath=/var/data/kubelet --set spiffe-csi-driver.restrictedScc.enabled=true  --render-subchart-notes --debug
-```
+Openshift on IBM Cloud requires additional configuration:
 
-_Note: The location of the apps subdomain may be different in certain environments_
+```shell
+helm upgrade --install --namespace spire-server spire charts/spire \
+--values examples/production/values.yaml \
+--values examples/production/example-your-values.yaml \
+--values examples/tornjak/values.yaml \
+--values examples/openshift/openshift-values.yaml \
+--set spiffe-csi-driver.kubeletPath=/var/data/kubelet \
+--set spiffe-csi-driver.restrictedScc.enabled=true \
+--render-subchart-notes --debug
+```
