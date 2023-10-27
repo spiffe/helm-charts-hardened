@@ -42,12 +42,16 @@ spire-server:
           - path: ''
             pathType: ImplementationSpecific
 
-
 spire-agent:
   podSecurityContext:
     runAsUser: null
     runAsGroup: null
     fsGroup: null
+  extraEnvVars:
+    - name: MY_NODE_NAME
+      valueFrom:
+        fieldRef:
+          fieldPath: spec.nodeName
 
 upstream-spire-agent:
   podSecurityContext:
