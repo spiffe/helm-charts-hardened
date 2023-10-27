@@ -1,7 +1,5 @@
 global:
   openshift: true
-  spire:
-    jwtIssuer: https://oidc-discovery.$APP_SUBDOMAIN
   telemetry:
     prometheus:
       enabled: true
@@ -13,14 +11,9 @@ spire-server:
       repository: spiffe/tornjak-backend
       tag: ubi-v1.4.1
     ingress:
-      enabled: true
       annotations:
         route.openshift.io/termination: "edge"
-      hosts:
-        - host: spire-tornjak-backend.$APP_SUBDOMAIN
-          paths:
-            - path: /
-              pathType: Prefix
+
   nodeAttestor:
     k8sPsat:
       serviceAccountAllowList: ["spire-system:spire-agent"]
@@ -28,25 +21,20 @@ spire-server:
     k8sbundle:
       namespace: spire-system
   podSecurityContext:
+    # These are unset so that openshift can automatically assign its own restricted uids to the pods
     runAsUser: null
     runAsGroup: null
     fsGroup: null
-
   ingress:
-    enabled: true
     annotations:
       route.openshift.io/termination: "passthrough"
-    hosts:
-      - host: spire-server.$APP_SUBDOMAIN
-        paths:
-          - path: ''
-            pathType: ImplementationSpecific
 
 spire-agent:
   podSecurityContext:
     runAsUser: null
     runAsGroup: null
     fsGroup: null
+  # Talk from the agent to kubelet based on hostname instead of localhost
   extraEnvVars:
     - name: MY_NODE_NAME
       valueFrom:
@@ -60,7 +48,6 @@ upstream-spire-agent:
     fsGroup: null
 
 spiffe-oidc-discovery-provider:
-
   podSecurityContext:
     runAsUser: null
     runAsGroup: null
@@ -70,31 +57,18 @@ spiffe-oidc-discovery-provider:
     runAsNonRoot: false
     privileged: true
   ingress:
-    enabled: true
     annotations:
       route.openshift.io/termination: "edge"
-    hosts:
-      - host: oidc-discovery.$APP_SUBDOMAIN
-        paths:
-          - path: /
-            pathType: Prefix
 
 tornjak-frontend:
-  apiServerURL: https://spire-tornjak-backend.$APP_SUBDOMAIN/
   workingDir: /opt/app-root/src
   image:
     registry: ghcr.io
     repository: spiffe/tornjak-frontend
     tag: ubi-v1.4.1
   ingress:
-    enabled: true
     annotations:
       route.openshift.io/termination: "edge"
-    hosts:
-      - host: spire-tornjak.$APP_SUBDOMAIN
-        paths:
-          - path: /
-            pathType: Prefix
   podSecurityContext:
     runAsUser: null
     runAsGroup: null

@@ -1,5 +1,7 @@
 # Recommended setup for installing Spire on Openshift
 
+> **Note**: This functionality is under development. It works but has no automated testing and will have security tightened in the figure.
+
 This deployment works only with Openshift version 4.13 or higher. Get the Openshift platform here: [try.openshift.com](try.openshift.com)
 
 To be consistent with the rest of the Spire helm-charts,
@@ -20,8 +22,6 @@ Obtain you ingress subdomain:
 echo "apps.$(kubectl get dns cluster -o jsonpath='{ .spec.baseDomain }')"
 ```
 
-And update the examples/openshift/openshift-values.yaml file accordingly, replacing the APP_SUBDOMAIN value.
-
 _Note: The location of the apps subdomain may be different in certain environments_
 
 ## Standard Deployment
@@ -31,9 +31,9 @@ Deploy the charts:
 ```shell
 helm upgrade --install --namespace spire-server spire charts/spire \
 --values examples/production/values.yaml \
---values examples/production/example-your-values.yaml \
---values examples/tornjak/values.yaml \
 --values examples/openshift/openshift-values.yaml \
+--values examples/tornjak/values.yaml \
+--values examples/production/example-your-values.yaml \
 --render-subchart-notes --debug
 ```
 
@@ -44,10 +44,10 @@ Openshift on IBM Cloud requires additional configuration:
 ```shell
 helm upgrade --install --namespace spire-server spire charts/spire \
 --values examples/production/values.yaml \
---values examples/production/example-your-values.yaml \
---values examples/tornjak/values.yaml \
 --values examples/openshift/openshift-values.yaml \
+--values examples/tornjak/values.yaml \
 --set spiffe-csi-driver.kubeletPath=/var/data/kubelet \
 --set spiffe-csi-driver.restrictedScc.enabled=true \
+--values examples/production/example-your-values.yaml \
 --render-subchart-notes --debug
 ```
