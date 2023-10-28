@@ -40,9 +40,6 @@ spire-agent:
       valueFrom:
         fieldRef:
           fieldPath: spec.nodeName
- healthChecks:
-   # crc etcd has the default port
-   port: 9982
 
 upstream-spire-agent:
   podSecurityContext:
