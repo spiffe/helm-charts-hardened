@@ -17,7 +17,7 @@ metadata:
   namespace: {{ include "spire-server.namespace" . }}
   labels:
     {{ include "spire-server.labels" . | nindent 4}}
-  {{- with .Values.tornjak.ingress.annotations }}
+  {{- with $annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
