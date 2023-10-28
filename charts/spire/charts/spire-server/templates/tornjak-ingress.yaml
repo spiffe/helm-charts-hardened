@@ -2,7 +2,7 @@
 {{- $ingressControllerType := include "spire-lib.ingress-controller-type" (dict "global" .Values.global "ingress" .Values.tornjak.ingress) }}
 {{- $fullName := include "spire-tornjak.fullname" . -}}
 {{- $path := "/" }}
-{{- $pathType := "Path" }}
+{{- $pathType := "Prefix" }}
 {{- $tlsSection := true }}
 {{- $annotations := deepCopy .Values.ingress.annotations }}
 {{- if eq $ingressControllerType "ingress-nginx" }}
