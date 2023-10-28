@@ -39,9 +39,8 @@ _Note: The location of the apps subdomain may be different in certain environmen
 helm upgrade --install --namespace spire-server spire charts/spire \
 --values examples/production/values.yaml \
 --values examples/openshift/openshift-values.yaml \
---values examples/tornjak/values.yaml \
 --values examples/production/example-your-values.yaml \
---render-subchart-notes --debug
+--render-subchart-notes
 ```
 
 ## IBM Cloud Deployment
@@ -52,11 +51,21 @@ Openshift on IBM Cloud requires additional configuration:
 helm upgrade --install --namespace spire-server spire charts/spire \
 --values examples/production/values.yaml \
 --values examples/openshift/openshift-values.yaml \
---values examples/tornjak/values.yaml \
 --set spiffe-csi-driver.kubeletPath=/var/data/kubelet \
 --set spiffe-csi-driver.restrictedScc.enabled=true \
 --values examples/production/example-your-values.yaml \
---render-subchart-notes --debug
+--render-subchart-notes
+```
+
+## Feature Customization
+
+Additional features such as tornjak can be enabled by including their example values files before --values examples/production/example-your-values.yaml
+
+For example:
+```
+--values examples/openshift/openshift-values.yaml \
+--values examples/tornjak/values.yaml \
+--values examples/production/example-your-values.yaml \
 ```
 
 ## Finish install
