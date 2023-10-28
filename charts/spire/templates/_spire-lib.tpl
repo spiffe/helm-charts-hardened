@@ -98,6 +98,9 @@
  * ingress - the standardized ingress object
  * svcName - The service to route to
  * port - which port on the service to use
+ * path - optional path to set on the rules
+ * pathType - typical ingress path type
+ * tlsSection - bool specifying to add by default the tls section to the ingress. Ingress-nginx needs true, openshift needs false.
  * Values - Chart values
 */}}
 {{ define "spire-lib.ingress-spec" }}
@@ -108,7 +111,7 @@
 ingressClassName: {{ . | quote }}
 {{- end }}
 {{- if eq (add (len .ingress.tls) (len .ingress.hosts)) 0 }}
-{{ if .tlsSection }}
+{{ if or .tlsSection .ingress.tlsSecret }}
 tls:
   - hosts:
       - {{ $host | quote }}
