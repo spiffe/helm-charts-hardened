@@ -108,18 +108,22 @@
 ingressClassName: {{ . | quote }}
 {{- end }}
 {{- if eq (add (len .ingress.tls) (len .ingress.hosts)) 0 }}
+{{ if .tlsSection }}
 tls:
   - hosts:
       - {{ $host | quote }}
 {{- with .ingress.tlsSecret }}
     secretName: {{ . | quote }}
 {{- end }}
+{{- end }}
 rules:
   - host: {{ $host | quote }}
     http:
       paths:
-        - path: "/"
-          pathType: Prefix
+        - pathType: {{ .pathType }}
+          {{- with .path }}
+          path: {{ . }}
+          {{- end }}
           backend:
             service:
               name: {{ $svcName | quote }}

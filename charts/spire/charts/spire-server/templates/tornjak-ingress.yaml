@@ -1,6 +1,9 @@
 {{- if .Values.tornjak.ingress.enabled -}}
 {{- $ingressControllerType := include "spire-lib.ingress-controller-type" (dict "global" .Values.global "ingress" .Values.tornjak.ingress) }}
 {{- $fullName := include "spire-tornjak.fullname" . -}}
+{{- $path := "/" }}
+{{- $pathType := "Path" }}
+{{- $tlsSection := true }}
 {{- $annotations := deepCopy .Values.ingress.annotations }}
 {{- if eq $ingressControllerType "ingress-nginx" }}
 {{-   $_ := set $annotations "nginx.ingress.kubernetes.io/ssl-redirect" "true" }}
@@ -12,6 +15,9 @@
 {{- else if eq $ingressControllerType "openshift" }}
 {{-   if ne (include "spire-tornjak.connectionType" .) "http" }}
 {{-     $_ := set $annotations "route.openshift.io/termination" "passthrough" }}
+{{-     $path = "" }}
+{{-     $pathType = "ImplementationSpecific" }}
+{{-     $tlsSection = false }}
 {{-   else }}
 {{-     $_ := set $annotations "route.openshift.io/termination" "edge" }}
 {{-   end }}
@@ -29,8 +35,8 @@ metadata:
   {{- end }}
 spec:
   {{- if eq (include "spire-tornjak.connectionType" .) "http" }}
-  {{ include "spire-lib.ingress-spec" (dict "ingress" .Values.tornjak.ingress "svcName" (include "spire-tornjak.servicename" .) "port" "tornjak-srv-http" "Values" .Values) | nindent 2 }}
+  {{ include "spire-lib.ingress-spec" (dict "ingress" .Values.tornjak.ingress "svcName" (include "spire-tornjak.servicename" .) "port" .Values.tornjak.service.ports.http "path" $path "pathType" $pathType "tlsSection" $tlsSection "Values" .Values) | nindent 2 }}
   {{- else -}}
-  {{ include "spire-lib.ingress-spec" (dict "ingress" .Values.tornjak.ingress "svcName" (include "spire-tornjak.servicename" .) "port" "tornjak-srv-https" "Values" .Values) | nindent 2 }}
+  {{ include "spire-lib.ingress-spec" (dict "ingress" .Values.tornjak.ingress "svcName" (include "spire-tornjak.servicename" .) "port" .Values.tornjak.service.ports.https "path" $path "pathType" $pathType "tlsSection" $tlsSection "Values" .Values) | nindent 2 }}
   {{- end -}}
 {{- end }}
