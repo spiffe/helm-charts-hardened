@@ -23,14 +23,14 @@ metadata:
   namespace: {{ include "spire-server.namespace" . }}
   labels:
     {{ include "spire-server.labels" . | nindent 4}}
-  {{- with .Values.tornjak.ingress.annotations }}
+  {{- with $annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
   {{- if eq (include "spire-tornjak.connectionType" .) "http" }}
-  {{ include "spire-lib.ingress-spec" (dict "ingress" .Values.tornjak.ingress "svcName" (include "spire-tornjak.servicename" .) "port" "tornjak-srv-http") | nindent 2 }}
+  {{ include "spire-lib.ingress-spec" (dict "ingress" .Values.tornjak.ingress "svcName" (include "spire-tornjak.servicename" .) "port" "tornjak-srv-http" "Values" .Values) | nindent 2 }}
   {{- else -}}
-  {{ include "spire-lib.ingress-spec" (dict "ingress" .Values.tornjak.ingress "svcName" (include "spire-tornjak.servicename" .) "port" "tornjak-srv-https") | nindent 2 }}
+  {{ include "spire-lib.ingress-spec" (dict "ingress" .Values.tornjak.ingress "svcName" (include "spire-tornjak.servicename" .) "port" "tornjak-srv-https" "Values" .Values) | nindent 2 }}
   {{- end -}}
 {{- end }}

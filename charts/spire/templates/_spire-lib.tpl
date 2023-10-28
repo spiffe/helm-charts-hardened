@@ -84,15 +84,48 @@
 
 {{/* Takes in a dictionary with keys:
  * ingress - the standardized ingress object
+ * Values - Chart values
+*/}}
+{{ define "spire-lib.ingress-calculated-name" }}
+{{- $host := .ingress.host }}
+{{- if not (contains $host ".") }}
+{{-   $host = printf "%s.%s" $host (include "spire-lib.trust-domain" .) }}
+{{- end }}
+{{- $host }}
+{{- end }}
+
+{{/* Takes in a dictionary with keys:
+ * ingress - the standardized ingress object
  * svcName - The service to route to
  * port - which port on the service to use
+ * Values - Chart values
 */}}
 {{ define "spire-lib.ingress-spec" }}
+{{- $host := include "spire-lib.ingress-calculated-name" . }}
 {{- $svcName := .svcName }}
 {{- $port := .port }}
 {{- with .ingress.className }}
 ingressClassName: {{ . | quote }}
 {{- end }}
+{{- if eq (add (len .ingress.tls) (len .ingress.hosts)) 0 }}
+tls:
+  - hosts:
+      - {{ $host | quote }}
+{{- with .ingress.tlsSecret }}
+    secretName: {{ . | quote }}
+{{- end }}
+rules:
+  - host: {{ $host | quote }}
+    http:
+      paths:
+        - path: "/"
+          pathType: Prefix
+          backend:
+            service:
+              name: {{ $svcName | quote }}
+              port:
+                number: {{ $port }}
+{{- else }}
 {{- if .ingress.tls }}
 tls:
   {{- range .ingress.tls }}
@@ -118,6 +151,7 @@ rules:
                 number: {{ $port }}
         {{- end }}
   {{- end }}
+{{- end }}
 {{- end }}
 
 {{- define "spire-lib.kubectl-image" }}
