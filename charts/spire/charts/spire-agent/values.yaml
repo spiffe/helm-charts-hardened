@@ -106,7 +106,7 @@ server:
 
 healthChecks:
   ## @param healthChecks.port override the host port used for health checking
-  port: 9982
+  port: 9980
 
 ## @param livenessProbe.initialDelaySeconds Initial delay seconds for probe
 ## @param livenessProbe.periodSeconds Period seconds for probe

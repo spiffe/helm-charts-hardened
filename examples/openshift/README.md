@@ -10,23 +10,30 @@ we deploy Spire across 2 namespaces.
 ```shell
 kubectl create namespace "spire-system"
 kubectl create namespace "spire-server"
-kubectl label namespace "spire-system" pod-security.kubernetes.io/enforce=privileged
-kubectl label namespace "spire-server" pod-security.kubernetes.io/enforce=privileged
-```
 
-Update the `example-your-values.yaml` file with your values.
+#Note, the first install requires privilege due to helm ordering issue. After install it can be safely tightened back up.
+kubectl label namespace "spire-server" pod-security.kubernetes.io/enforce=privileged
+
+kubectl label namespace "spire-system" security.openshift.io/scc.podSecurityLabelSync=false
+kubectl label namespace "spire-system" pod-security.kubernetes.io/enforce=privileged
+kubectl label namespace "spire-system" pod-security.kubernetes.io/warn=privileged --overwrite
+kubectl label namespace "spire-system" pod-security.kubernetes.io/audit=privileged --overwrite
+
+helm upgrade --install --namespace spire-server spire-crds charts/spire-crds
+```
 
 Obtain you ingress subdomain:
 
 ```shell
-echo "apps.$(kubectl get dns cluster -o jsonpath='{ .spec.baseDomain }')"
+appdomain=$(oc get cm -n openshift-config-managed  console-public -o go-template="{{ .data.consoleURL }}" | sed 's@https://@@; s/^[^.]*\.//')
+echo "$appdomain"
 ```
+
+Update the `example-your-values.yaml` file with your subdomain.
 
 _Note: The location of the apps subdomain may be different in certain environments_
 
 ## Standard Deployment
-
-Deploy the charts:
 
 ```shell
 helm upgrade --install --namespace spire-server spire charts/spire \
@@ -50,4 +57,11 @@ helm upgrade --install --namespace spire-server spire charts/spire \
 --set spiffe-csi-driver.restrictedScc.enabled=true \
 --values examples/production/example-your-values.yaml \
 --render-subchart-notes --debug
+```
+
+## Finish install
+
+Once installed, the namespace security can be tightened back up.
+```shell
+kubectl label namespace "spire-server" pod-security.kubernetes.io/enforce=restricted --overwrite
 ```
