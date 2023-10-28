@@ -1,6 +1,6 @@
 # Recommended setup for installing Spire on Openshift
 
-> **Note**: This functionality is under development. It works but has no automated testing and will have security tightened in the figure.
+> **Note**: This functionality is under development. It works but has no automated testing and will have security tightened in the future.
 
 This deployment works only with Openshift version 4.13 or higher. Get the Openshift platform here: [try.openshift.com](try.openshift.com)
 
