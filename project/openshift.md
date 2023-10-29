@@ -30,5 +30,8 @@ When the ingress is annotated:
   "route.openshift.io/termination": "passthrough" 
 ```
 
-The ingress object can not have a tls section, a path specified, and the pathType needs to be ImplementationSpecific
+The ingress object can not have a path specified and the pathType needs to be ImplementationSpecific
+
+
+Also, unless a secretName is specified, it can not have a tls section.
 
