@@ -44,5 +44,5 @@ spiffe-oidc-discovery-provider:
           - oidc-discovery.production.other
 
 tornjak-frontend:
-  apiServerURL: https://spire-tornjak-backend.production.other/
+  apiServerURL: https://tornjak-backend.production.other/
 
