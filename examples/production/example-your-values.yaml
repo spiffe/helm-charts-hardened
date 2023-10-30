@@ -43,3 +43,6 @@ spiffe-oidc-discovery-provider:
         hosts:
           - oidc-discovery.production.other
 
+tornjak-frontend:
+  apiServerURL: https://tornjak-backend.production.other/
+
