@@ -4,14 +4,3 @@ spire-server:
     controllerType: ingress-nginx
 
     # className: nginx
-
-    # You must override these in your own values file with the appropriate hostname
-    # and secret or it wont start.
-    hosts:
-      - host: spire-server.example.org
-        paths:
-          - path: /
-            pathType: Prefix
-    tls:
-      - hosts:
-          - spire-server.example.org
