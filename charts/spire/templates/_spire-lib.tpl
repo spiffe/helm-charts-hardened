@@ -127,8 +127,6 @@ rules:
           {{- with .path }}
           path: {{ . }}
           {{- end }}
-        - path: "/"
-          pathType: Prefix
           backend:
             service:
               name: {{ $svcName | quote }}
