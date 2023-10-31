@@ -22,3 +22,6 @@ spire-server:
 #     host: oidc-discovery
 #     tlsSecret: tls-cert
 
+tornjak-frontend:
+  apiServerURL: https://tornjak-backend.production.other/
+
