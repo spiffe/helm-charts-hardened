@@ -10,9 +10,6 @@ spire-server:
       registry: ghcr.io
       repository: spiffe/tornjak-backend
       tag: ubi-v1.4.1
-    ingress:
-      annotations:
-        route.openshift.io/termination: "edge"
 
   nodeAttestor:
     k8sPsat:
