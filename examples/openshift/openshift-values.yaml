@@ -22,9 +22,6 @@ spire-server:
     runAsUser: null
     runAsGroup: null
     fsGroup: null
-  ingress:
-    annotations:
-      route.openshift.io/termination: "passthrough"
 
 spire-agent:
   podSecurityContext:
