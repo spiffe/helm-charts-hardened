@@ -53,9 +53,6 @@ tornjak-frontend:
     registry: ghcr.io
     repository: spiffe/tornjak-frontend
     tag: ubi-v1.4.1
-  ingress:
-    annotations:
-      route.openshift.io/termination: "edge"
   podSecurityContext:
     runAsUser: null
     runAsGroup: null
