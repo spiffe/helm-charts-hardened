@@ -46,9 +46,6 @@ spiffe-oidc-discovery-provider:
     runAsUser: null
     runAsGroup: null
     fsGroup: null
-  ingress:
-    annotations:
-      route.openshift.io/termination: "edge"
 
 tornjak-frontend:
   workingDir: /opt/app-root/src
