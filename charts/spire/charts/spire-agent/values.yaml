@@ -106,7 +106,7 @@ server:
 
 healthChecks:
   ## @param healthChecks.port override the host port used for health checking
-  port: 9980
+  port: 9982
 
 ## @param livenessProbe.initialDelaySeconds Initial delay seconds for probe
 ## @param livenessProbe.periodSeconds Period seconds for probe
@@ -134,7 +134,7 @@ waitForIt:
     repository: chainguard/wait-for-it
     pullPolicy: IfNotPresent
     version: ""
-    tag: latest@sha256:5b836d1a4c652ec1c56bdd4a05a43349e2eeff50cf7fdb45a356f0ddc578573b
+    tag: latest@sha256:b76360b5316b33f89c3edc15967cfedf323c21766a8ce29750bff2b38178455f
 
   ## @param waitForIt.resources [object] Resource requests and limits
   resources: {}
@@ -153,7 +153,7 @@ fsGroupFix:
     repository: chainguard/bash
     pullPolicy: Always
     version: ""
-    tag: latest@sha256:985a0c0ab82bd243bab1827fb48f8e11c8ec331391aad95d1a2f42b3810c1ec2
+    tag: latest@sha256:28d175c9578c85d09fc9242f211324e9c3cc4d073db5bff349e986df76ab0d4c
 
   ## @param fsGroupFix.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}

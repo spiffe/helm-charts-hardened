@@ -10,36 +10,18 @@ spire-server:
     organization: Production
     common_name: production.other
 
-  ingress:
-    hosts:
-      - host: spire-server.production.other
-        paths:
-          - path: /
-            pathType: Prefix
-    tls:
-      - hosts:
-          - spire-server.production.other
-  federation:
-    ingress:
-      hosts:
-        - host: spire-server-federation.production.other
-          paths:
-            - path: /
-              pathType: Prefix
-      tls:
-        - hosts:
-            - spire-server-federation.production.other
-          secretName: tls-cert
+#  ingress:
+#    host: spire-server
+#  federation:
+#     ingress:
+#       host: spire-server-federation
+#       tlsSecret: tls-cert
 
-spiffe-oidc-discovery-provider:
-  ingress:
-    hosts:
-      - host: oidc-discovery.production.other
-        paths:
-          - path: /
-            pathType: Prefix
-    tls:
-      - secretName: tls-cert
-        hosts:
-          - oidc-discovery.production.other
+# spiffe-oidc-discovery-provider:
+#   ingress:
+#     host: oidc-discovery
+#     tlsSecret: tls-cert
+
+tornjak-frontend:
+  apiServerURL: https://tornjak-backend.production.other/
 

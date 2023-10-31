@@ -8,12 +8,3 @@ spire-server:
         nginx.ingress.kubernetes.io/ssl-passthrough: "true"
 
       # className: nginx
- 
-      hosts:
-        - host: spire-server-federation.example.org
-          paths:
-            - path: /
-              pathType: Prefix
-      tls:
-        - hosts:
-            - spire-server-federation.example.org

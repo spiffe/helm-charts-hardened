@@ -118,6 +118,7 @@ install_and_test() {
     --values /tmp/dummydns \
     --set spiffe-oidc-discovery-provider.tests.tls.customCA=tls-cert,spire-server.tests.tls.customCA=tls-cert \
     --set spire-agent.server.address=spire-server.production.other,spire-agent.server.port=443 \
+    --set spire-server.federation.ingress.tlsSecret=tls-cert,spiffe-oidc-discovery-provider.ingress.tlsSecret=tls-cert \
     --values "${SCRIPTPATH}/example-your-values.yaml" \
     $2 \
     --wait

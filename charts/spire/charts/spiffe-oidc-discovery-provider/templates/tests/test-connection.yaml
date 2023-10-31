@@ -1,4 +1,8 @@
-{{ $values := merge .Values }}
+{{- $values := merge .Values }}
+{{- $host := include "spire-lib.ingress-calculated-name" (dict "Values" .Values "ingress" .Values.ingress) }}
+{{- if gt (len .Values.ingress.hosts) 0 }}
+{{-   $host = (index .Values.ingress.hosts 0).host }}
+{{- end }}
 apiVersion: v1
 kind: Pod
 metadata:
@@ -36,9 +40,9 @@ spec:
       command: ['curl']
       {{- if dig "tests" "tls" "enabled" false $values }}
       {{- if ne (len (dig "tests" "tls" "customCA" "" $values)) 0 }}
-      args: ['-s', '-f', '--cacert', '/ca/ca.crt', 'https://{{ (index .Values.ingress.hosts 0).host }}/.well-known/openid-configuration']
+      args: ['-s', '-f', '--cacert', '/ca/ca.crt', 'https://{{ $host }}/.well-known/openid-configuration']
       {{- else }}
-      args: ['-s', '-f', 'https://{{ (index .Values.ingress.hosts 0).host }}/.well-known/openid-configuration']
+      args: ['-s', '-f', 'https://{{ $host }}/.well-known/openid-configuration']
       {{- end }}
       {{- if ne (len (dig "tests" "tls" "customCA" "" $values)) 0 }}
       volumeMounts:
@@ -46,7 +50,7 @@ spec:
           mountPath: /ca
       {{- end }}
       {{- else }}
-      args: ['-s', '-f', 'http://{{ (index .Values.ingress.hosts 0).host }}/.well-known/openid-configuration']
+      args: ['-s', '-f', 'http://{{ $host }}/.well-known/openid-configuration']
       {{- end }}
       securityContext:
         {{- toYaml .Values.securityContext | nindent 8 }}
