@@ -23,8 +23,8 @@ metadata:
   {{- end }}
 spec:
   {{- if eq (include "spire-tornjak.connectionType" .) "http" }}
-  {{ include "spire-lib.ingress-spec" (dict "ingress" .Values.tornjak.ingress "svcName" (include "spire-tornjak.servicename" .) "port" .Values.tornjak.service.ports.http) | nindent 2 }}
+  {{ include "spire-lib.ingress-spec" (dict "ingress" .Values.tornjak.ingress "svcName" (include "spire-tornjak.servicename" .) "port" .Values.tornjak.service.ports.http  "Values" .Values) | nindent 2 }}
   {{- else -}}
-  {{ include "spire-lib.ingress-spec" (dict "ingress" .Values.tornjak.ingress "svcName" (include "spire-tornjak.servicename" .) "port" .Values.tornjak.service.ports.https) | nindent 2 }}
+  {{ include "spire-lib.ingress-spec" (dict "ingress" .Values.tornjak.ingress "svcName" (include "spire-tornjak.servicename" .) "port" .Values.tornjak.service.ports.https "Values" .Values) | nindent 2 }}
   {{- end -}}
 {{- end }}
