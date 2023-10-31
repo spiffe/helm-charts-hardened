@@ -7,6 +7,7 @@ OpenShift automatically generates uid/gid's for pods. They should not be set to 
 ## CSIDriver issues
 
 A workload in a restricted namespace can not access a csidriver that isn't labeled:
+
 ```yaml
 security.openshift.io/csi-ephemeral-volume-profile: restricted
 ```
@@ -26,12 +27,12 @@ Ingress objects automatically create Role objects in the same namespace, when th
 Some things to watch out for.
 
 When the ingress is annotated:
+
 ```yaml
   "route.openshift.io/termination": "passthrough" 
 ```
 
 The ingress object can not have a path specified and the pathType needs to be ImplementationSpecific
-
 
 Also, unless a secretName is specified, it can not have a tls section.
 
