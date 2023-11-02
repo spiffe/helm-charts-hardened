@@ -26,5 +26,6 @@ spec:
   {{- end }}
   className: {{ include "spire-server.controller-manager-class-name" $root | quote}}
   downstream: {{ .identities.downstream }}
+  autoPopulateDNSNames: {{ .identities.autoPopulateDNSNames }}
 {{- end }}
 {{- end }}

@@ -465,8 +465,10 @@ controllerManager:
     federatesWith: []
     # - example.io
     # - example.ai
-    ## @param controllerManager.identities.downstream set if this is a root server
+    ## @param controllerManager.identities.downstream Set if this is a root server and the workloads are downstream servers
     downstream: false
+    ## @param controllerManager.identities.autoPopulateDNSNames Auto populate DNS names from services attached to pods
+    autoPopulateDNSNames: false
 
   validatingWebhookConfiguration:
     ## @param controllerManager.validatingWebhookConfiguration.failurePolicy Action when identity is not issued
