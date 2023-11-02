@@ -1,7 +1,7 @@
 {{- if .Values.tornjak.ingress.enabled -}}
 {{- $ingressControllerType := include "spire-lib.ingress-controller-type" (dict "global" .Values.global "ingress" .Values.tornjak.ingress) }}
 {{- $fullName := include "spire-tornjak.fullname" . -}}
-{{- $annotations := deepCopy .Values.tornjak.ingress.annotations }}
+{{- $annotations := deepCopy .Values.ingress.annotations }}
 {{- if eq $ingressControllerType "ingress-nginx" }}
 {{-   $_ := set $annotations "nginx.ingress.kubernetes.io/ssl-redirect" "true" }}
 {{-   $_ := set $annotations "nginx.ingress.kubernetes.io/force-ssl-redirect" "true" }}
