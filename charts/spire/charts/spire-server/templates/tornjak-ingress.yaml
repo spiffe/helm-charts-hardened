@@ -4,7 +4,7 @@
 {{- $path := "/" }}
 {{- $pathType := "Prefix" }}
 {{- $tlsSection := true }}
-{{- $annotations := deepCopy .Values.ingress.annotations }}
+{{- $annotations := deepCopy .Values.tornjak.ingress.annotations }}
 {{- if eq $ingressControllerType "ingress-nginx" }}
 {{-   $_ := set $annotations "nginx.ingress.kubernetes.io/ssl-redirect" "true" }}
 {{-   $_ := set $annotations "nginx.ingress.kubernetes.io/force-ssl-redirect" "true" }}
