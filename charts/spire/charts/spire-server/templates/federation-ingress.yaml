@@ -2,11 +2,15 @@
 {{- if .Values.federation.ingress.enabled -}}
 {{- $ingressControllerType := include "spire-lib.ingress-controller-type" (dict "global" .Values.global "ingress" .Values.federation.ingress) }}
 {{- $svcName := include "spire-server.fullname" . }}
+{{- $tlsSection := true }}
 {{- $annotations := deepCopy .Values.federation.ingress.annotations }}
 {{- if eq $ingressControllerType "ingress-nginx" }}
 {{-   $_ := set $annotations "nginx.ingress.kubernetes.io/ssl-redirect" "true" }}
 {{-   $_ := set $annotations "nginx.ingress.kubernetes.io/force-ssl-redirect" "true" }}
 {{-   $_ := set $annotations "nginx.ingress.kubernetes.io/backend-protocol" "HTTPS" }}
+{{- else if eq $ingressControllerType "openshift" }}
+{{-   $_ := set $annotations "route.openshift.io/termination" "edge" }}
+{{-   $tlsSection = false }}
 {{- end }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -20,6 +24,6 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  {{ include "spire-lib.ingress-spec" (dict "ingress" .Values.federation.ingress "svcName" $svcName "port" .Values.federation.bundleEndpoint.port "Values" .Values) | nindent 2 }}
+  {{ include "spire-lib.ingress-spec" (dict "ingress" .Values.federation.ingress "svcName" $svcName "port" .Values.federation.bundleEndpoint.port "path" "/" "pathType" "Prefix" "tlsSection" $tlsSection "Values" .Values) | nindent 2 }}
 {{- end }}
 {{- end }}
