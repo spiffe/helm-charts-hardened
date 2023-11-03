@@ -1,38 +1,28 @@
 global:
   spire:
     jwtIssuer: https://oidc-discovery.$APP_SUBDOMAIN
-  telemetry:
-    prometheus:
-      enabled: true
 
 spire-server:
+  ingress:
+    enabled: true
+    hosts:
+      - host: spire-server.$APP_SUBDOMAIN
+        paths:
+          - path: ''
+            pathType: ImplementationSpecific
   tornjak:
     enabled: true
     ingress:
       enabled: true
-      annotations:
-        route.openshift.io/termination: "edge"
       hosts:
         - host: spire-tornjak-backend.$APP_SUBDOMAIN
           paths:
             - path: /
               pathType: Prefix
 
-  ingress:
-    enabled: true
-    annotations:
-      route.openshift.io/termination: "passthrough"
-    hosts:
-      - host: spire-server.$APP_SUBDOMAIN
-        paths:
-          - path: ''
-            pathType: ImplementationSpecific
-
 spiffe-oidc-discovery-provider:
   ingress:
     enabled: true
-    annotations:
-      route.openshift.io/termination: "edge"
     hosts:
       - host: oidc-discovery.$APP_SUBDOMAIN
         paths:
@@ -42,21 +32,8 @@ spiffe-oidc-discovery-provider:
 tornjak-frontend:
   enabled: true
   apiServerURL: https://spire-tornjak-backend.$APP_SUBDOMAIN/
-  workingDir: /opt/app-root/src
-  service:
-    type: ClusterIP
-    port: 3000
-  resources:
-    requests:
-      cpu: 50m
-      memory: 128Mi
-    limits:
-      cpu: 100m
-      memory: 512Mi
   ingress:
     enabled: true
-    annotations:
-      route.openshift.io/termination: "edge"
     hosts:
       - host: spire-tornjak.$APP_SUBDOMAIN
         paths:

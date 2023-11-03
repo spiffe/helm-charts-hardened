@@ -47,6 +47,32 @@ Obtain the Ingress subdomain (this process is cloud provider specific) and assig
 to the `APP_SUBDOMAIN` env. variable, then run the deployment with your values files:
 
 ```shell
-export APP_SUBDOMAIN=
-envsubst < examples/tornjak/values-ingress.yaml | helm upgrade --install --namespace spire-server spire charts/spire --values examples/production/values.yaml --values examples/production/example-your-values.yaml --values - --render-subchart-notes --debug
+export APP_SUBDOMAIN=$(kubectl get dns cluster -o jsonpath='{ .spec.baseDomain }')
+```
+
+Update the `values-ingress.yaml` file with your subdomain.
+
+_Note: The location of the apps subdomain may be different in certain environments_
+
+Then run the deployment with your values files:
+
+```shell
+helm upgrade --install --namespace spire-server spire charts/spire \
+--values examples/production/values.yaml \
+--values examples/tornjak/values.yaml \
+--set spiffe-csi-driver.kubeletPath=/var/data/kubelet \
+--set spiffe-csi-driver.restrictedScc.enabled=true \
+--values examples/production/example-your-values.yaml \
+--values examples/tornjak/values-ingress.yaml \
+--render-subchart-notes --debug
+```
+
+## Tornjak and Ingress on Openshift
+
+When deploying on Openshift, follow the deployment setup as described in
+[Openshift README](../openshift/README.md)
+
+Then just add Openshift specific configuration to the above command:
+```shell
+--values examples/openshift/openshift-values.yaml
 ```
