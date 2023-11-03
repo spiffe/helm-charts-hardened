@@ -44,7 +44,7 @@ See [values.yaml](./values.yaml) for more details on the chart configurations to
 ## Tornjak and Ingress
 
 Obtain the Ingress subdomain (this process is cloud provider specific) and assign it
-to `APP_SUBDOMAIN` env. variable, then run the deployment with your values files:
+to the `APP_SUBDOMAIN` env. variable, then run the deployment with your values files:
 
 ```shell
 export APP_SUBDOMAIN=
