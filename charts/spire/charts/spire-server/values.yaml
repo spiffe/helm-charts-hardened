@@ -459,6 +459,14 @@ controllerManager:
     federatesWith: []
     # - example.io
     # - example.ai
+    ## @param controllerManager.identities.workloadSelectorTemplates [array] Templates to produce selectors that apply to a given workload before it will receive an ID
+    workloadSelectorTemplates: []
+    ## @param controllerManager.identities.ttl Indicates an upper-bound time-to-live for X509 SVIDs. If unset, the cluster default will be chosen.
+    ttl: ""
+    ## @param controllerManager.identities.jwtTTL Indicates an upper-bound time-to-live for JWT SVIDs. If unset, the cluster default will be chosen.
+    jwtTTL: ""
+    ## @param controllerManager.identities.admin Indicates any pod matched by this identity will be an admin. Use this with extreme care.
+    admin: false
 
   validatingWebhookConfiguration:
     ## @param controllerManager.validatingWebhookConfiguration.failurePolicy Action when identity is not issued
