@@ -35,5 +35,6 @@ spec:
   jwtTtl: {{ . | quote }}
   {{- end }}
   admin: {{ .identities.admin }}
+  downstream: {{ .identities.downstream }}
 {{- end }}
 {{- end }}
