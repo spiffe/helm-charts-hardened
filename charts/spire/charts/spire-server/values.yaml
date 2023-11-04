@@ -467,7 +467,7 @@ controllerManager:
     jwtTTL: ""
     ## @param controllerManager.identities.admin Indicates any pod matched by this identity will be an admin. Use this with extreme care.
     admin: false
-    ## @param controllerManager.identities.downstream | Set if this spire instance is a root server and the workloads are downstream servers.
+    ## @param controllerManager.identities.downstream Set if this spire instance is a root server and the workloads are downstream servers.
     downstream: false
 
   validatingWebhookConfiguration:
