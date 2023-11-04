@@ -12,9 +12,22 @@ source "${TESTDIR}/common.sh"
 helm_install=(helm upgrade --install --create-namespace)
 ns=spire-system
 
+CLEANUP=1
+
+for i in "$@"; do
+  case $i in
+    -c)
+      CLEANUP=0
+      shift # past argument=value
+      ;;
+  esac
+done
+
 teardown() {
-  helm uninstall --namespace "${ns}" spire 2>/dev/null || true
-  kubectl delete ns "${ns}" 2>/dev/null || true
+  if [ "${CLEANUP}" -eq 1 ]; then
+    helm uninstall --namespace "${ns}" spire 2>/dev/null || true
+    kubectl delete ns "${ns}" 2>/dev/null || true
+  fi
 }
 
 trap 'trap - SIGTERM && teardown' SIGINT SIGTERM EXIT
