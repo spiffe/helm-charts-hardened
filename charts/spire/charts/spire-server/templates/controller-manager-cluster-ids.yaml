@@ -5,7 +5,6 @@ apiVersion: spire.spiffe.io/v1alpha1
 kind: ClusterSPIFFEID
 metadata:
   name: {{ include "spire-controller-manager.fullname" $root }}-service-account-based
-  namespace: {{ include "spire-server.namespace" $root }}
 spec:
   spiffeIDTemplate: {{ .identities.spiffeIDTemplate | quote }}
   {{- with .identities.federatesWith }}
@@ -36,5 +35,24 @@ spec:
   {{- end }}
   admin: {{ .identities.admin }}
   downstream: {{ .identities.downstream }}
+{{- end }}
+{{- range $key, $value := .extraCRs.clusterSPIFFEIDs }}
+---
+apiVersion: spire.spiffe.io/v1alpha1
+kind: ClusterSPIFFEID
+metadata:
+  {{- if ($value.metadata).name }}
+  name: {{ $value.metadata.name }}
+  {{- else }}
+  name: {{ $root.Release.Namespace }}-{{ include "spire-controller-manager.fullname" $root }}-{{ $key }}
+  {{- end }}
+  {{- with $value.metadata }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+spec:
+  {{/* FIXME, automatcially add className here if not set. */}}
+  {{- with $value.spec }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
 {{- end }}
 {{- end }}

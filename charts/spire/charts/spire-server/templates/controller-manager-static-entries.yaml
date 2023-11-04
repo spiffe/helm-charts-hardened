@@ -1,0 +1,22 @@
+{{- $root := . }}
+{{- with .Values.controllerManager }}
+{{- range $key, $value := .extraCRs.clusterStaticEntries }}
+---
+apiVersion: spire.spiffe.io/v1alpha1
+kind: ClusterStaticEntry
+metadata:
+  {{- if ($value.metadata).name }}
+  name: {{ $value.metadata.name }}
+  {{- else }}
+  name: {{ $root.Release.Namespace }}-{{ include "spire-controller-manager.fullname" $root }}-{{ $key }}
+  {{- end }}
+  {{- with $value.metadata }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+spec:
+  {{/* FIXME, automatcially add className here if not set. */}}
+  {{- with $value.spec }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+{{- end }}
+{{- end }}

@@ -469,7 +469,41 @@ controllerManager:
     admin: false
     ## @param controllerManager.identities.downstream Set if this spire instance is a root server and the workloads are downstream servers.
     downstream: false
-
+  extraCRs:
+    ## @param controllerManager.extraCRs.clusterSPIFFEIDs Specify additional ClusterSPIFFEID objects.
+    clusterSPIFFEIDs: {}
+    # foo:
+    #   metadata:
+    #     labels:
+    #       foo: bar
+    #   spec:
+    #     spiffeIDTemplate: spiffe://{{ .TrustDomain }}/foo
+    #     namespaceSelector:
+    #       matchLabels:
+    #         foo: bar
+    ## @param controllerManager.extraCRs.clusterStaticEntries Specify additional ClusterStaticEntry objects.
+    clusterStaticEntries: {}
+    # foo:
+    #   metadata:
+    #     labels:
+    #       foo: bar
+    #   spec:
+    #     parentID: spiffe://example.com/bar
+    #     spiffeID: spiffe://example.com/foo
+    #     selectors:
+    #     - k8s:pod-label:app.kubernetes.io/name:server
+    ## @param controllerManager.extraCRs.clusterFederatedTrustDomains Specify additional ClusterFederatedTrustDomain objects.
+    clusterFederatedTrustDomains: {}
+    # foo:
+    #   metadata:
+    #     labels:
+    #       foo: bar
+    #   spec:
+    #     bundleEndpointProfile:
+    #       endpointSPIFFEID: spiffe://example.com/foo
+    #       type: https_spiffe
+    #     bundleEndpointURL: https://rootserver.example.com:1234
+    #     trustDomain: example.com
   validatingWebhookConfiguration:
     ## @param controllerManager.validatingWebhookConfiguration.failurePolicy Action when identity is not issued
     failurePolicy: Fail
