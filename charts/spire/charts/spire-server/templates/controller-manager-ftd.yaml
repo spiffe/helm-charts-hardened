@@ -1,6 +1,21 @@
 {{- $root := . }}
 {{- with .Values.controllerManager }}
 {{- range $key, $value := .extraCRs.clusterFederatedTrustDomains }}
+{{-   range $mkey, $mvalue := $value.metadata }}
+{{-     if not (has $mkey (list "labels" "annotations")) }}
+{{-       fail (printf "Unsupported metadata property specified: %s" $mkey) }}
+{{-     end }}
+{{-   end }}
+{{-   range $skey, $svalue := $value.spec }}
+{{-     if not (has $skey (list "bundleEndpointProfile" "bundleEndpointURL" "trustDomain" "trustDomainBundle")) }}
+{{-       fail (printf "Unsupported metadata property specified: %s" $skey) }}
+{{-     end }}
+{{-   end }}
+{{-   range $rprop := list "bundleEndpointProfile" "bundleEndpointURL" "trustDomain" }}
+{{-     if not (hasKey $value.spec $rprop) }}
+{{-       fail (printf "Required property %s was not specified" $rprop) }}
+{{-     end }}
+{{-   end }}
 ---
 apiVersion: spire.spiffe.io/v1alpha1
 kind: ClusterFederatedTrustDomain
