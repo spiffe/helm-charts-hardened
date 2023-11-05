@@ -12,11 +12,24 @@ source "${SCRIPTPATH}/../../.github/scripts/parse-versions.sh"
 # shellcheck source=/dev/null
 source "${TESTDIR}/common.sh"
 
+CLEANUP=1
+
+for i in "$@"; do
+  case $i in
+    -c)
+      CLEANUP=0
+      shift # past argument=value
+      ;;
+  esac
+done
+
 teardown() {
-  helm uninstall --namespace "spire-server" spire 2>/dev/null || true
-  helm uninstall --namespace "spire-server" postgresql 2>/dev/null || true
-  kubectl delete ns spire-server 2>/dev/null || true
-  kubectl delete ns spire-system 2>/dev/null || true
+  if [ "${CLEANUP}" -eq 1 ]; then
+    helm uninstall --namespace "spire-server" spire 2>/dev/null || true
+    helm uninstall --namespace "spire-server" postgresql 2>/dev/null || true
+    kubectl delete ns spire-server 2>/dev/null || true
+    kubectl delete ns spire-system 2>/dev/null || true
+  fi
 }
 
 trap 'trap - SIGTERM && teardown' SIGINT SIGTERM EXIT
