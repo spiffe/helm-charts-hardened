@@ -58,6 +58,7 @@ if [[ -n "$UPGRADE_ARGS" ]]; then
   popd
   popd
   # Any other upgrade steps go here. (Upgrade crds, delete statefulsets without cascade, etc.)
+  helm upgrade -n spire-system spire-crds charts/spire-crds --wait
 else
 
   kubectl create namespace spire-system 2>/dev/null || true

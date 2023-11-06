@@ -1,4 +1,9 @@
 {{- if eq ((dig "installAndUpgradeHooks" "enabled" .Values.controllerManager.installAndUpgradeHook.enabled .Values.global) | toString) "true" }}
+{{- $webhookname := printf "%s-%s-webhook" .Release.Namespace (include "spire-controller-manager.fullname" .) }}
+{{- $oldwebhookname := printf "%s-webhook" (include "spire-controller-manager.fullname" .) }}
+{{- if not (lookup "admissionregistration.k8s.io/v1" "ValidatingWebhookConfiguration" "" $webhookname) }}
+{{- $webhookname = $oldwebhookname }}
+{{- end }}
 {{- if eq (.Values.controllerManager.enabled | toString) "true" }}
 {{- if eq .Values.controllerManager.validatingWebhookConfiguration.failurePolicy "Fail" }}
 apiVersion: v1
@@ -22,7 +27,7 @@ metadata:
 rules:
   - apiGroups: ["admissionregistration.k8s.io"]
     resources: ["validatingwebhookconfigurations"]
-    resourceNames: [{{ printf "%s-webhook"  (include "spire-controller-manager.fullname" .) | quote }}]
+    resourceNames: [{{ $webhookname | quote }}]
     verbs: ["get", "patch"]
 ---
 kind: ClusterRoleBinding
@@ -68,7 +73,7 @@ spec:
         args:
           - patch
           - validatingwebhookconfiguration
-          - {{ include "spire-controller-manager.fullname" . }}-webhook
+          - {{ $webhookname }}
           - --type=strategic
           - -p
           - |
