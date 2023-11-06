@@ -7,7 +7,7 @@
   {
     "name": "cert-manager",
     "repo": "https://charts.jetstack.io",
-    "version": "v1.13.1"
+    "version": "v1.13.2"
   },
   {
     "name": "ingress-nginx",
@@ -22,6 +22,6 @@
   {
     "name": "postgresql",
     "repo": "https://charts.bitnami.com/bitnami",
-    "version": "13.1.5"
+    "version": "13.2.1"
   }
 ]
