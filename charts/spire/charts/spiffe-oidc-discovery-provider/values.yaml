@@ -289,7 +289,7 @@ tests:
       repository: chainguard/bash
       pullPolicy: IfNotPresent
       version: ""
-      tag: latest@sha256:28d175c9578c85d09fc9242f211324e9c3cc4d073db5bff349e986df76ab0d4c
+      tag: latest@sha256:3d077aae77eb552abd85a015d087047a7a7353d974e5f7fc6a402180c1501214
 
   toolkit:
     ## @param tests.toolkit.image.registry The OCI registry to pull the image from
@@ -303,7 +303,7 @@ tests:
       repository: chainguard/slim-toolkit-debug
       pullPolicy: IfNotPresent
       version: ""
-      tag: latest@sha256:c3bb333d1d8a0e6262aa6e0b1e01e2833822ab0a9812d2668a23869888ebf0be
+      tag: latest@sha256:d1fc4d296994f28d7e0264c933a12ba75c9a80478ff1eb4b6f692bb91a073a4c
 
   busybox:
     ## @param tests.busybox.image.registry The OCI registry to pull the image from
