@@ -504,6 +504,7 @@ controllerManager:
     #       type: https_spiffe
     #     bundleEndpointURL: https://rootserver.example.com:1234
     #     trustDomain: example.com
+
   validatingWebhookConfiguration:
     ## @param controllerManager.validatingWebhookConfiguration.failurePolicy Action when identity is not issued
     failurePolicy: Fail
