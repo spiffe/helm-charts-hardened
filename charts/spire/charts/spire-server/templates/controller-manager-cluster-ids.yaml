@@ -24,5 +24,17 @@ spec:
   dnsNameTemplates:
     {{- toYaml . | nindent 4 }}
   {{- end }}
+  {{- with .identities.workloadSelectorTemplates }}
+  workloadTSelectoremplates:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .identities.ttl }}
+  ttl: {{ . | quote }}
+  {{- end }}
+  {{- with .identities.jwtTTL }}
+  jwtTtl: {{ . | quote }}
+  {{- end }}
+  admin: {{ .identities.admin }}
+  downstream: {{ .identities.downstream }}
 {{- end }}
 {{- end }}
