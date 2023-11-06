@@ -29,7 +29,7 @@ metadata:
   {{- toYaml . | nindent 2 }}
   {{- end }}
 spec:
-  {{/* FIXME, automatcially add className here if not set. */}}
+  className: {{ include "spire-server.controller-manager-class-name" $root | quote }}
   {{- with $value.spec }}
   {{- toYaml . | nindent 2 }}
   {{- end }}
