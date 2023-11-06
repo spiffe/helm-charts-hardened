@@ -48,6 +48,7 @@ to the `APP_SUBDOMAIN` env. variable, then run the deployment with your values f
 
 ```shell
 export APP_SUBDOMAIN=$(kubectl get dns cluster -o jsonpath='{ .spec.baseDomain }')
+echo $APP_SUBDOMAIN
 ```
 
 Update the `values-ingress.yaml` file with your subdomain.
@@ -60,8 +61,6 @@ Then run the deployment with your values files:
 helm upgrade --install --namespace spire-server spire charts/spire \
 --values examples/production/values.yaml \
 --values examples/tornjak/values.yaml \
---set spiffe-csi-driver.kubeletPath=/var/data/kubelet \
---set spiffe-csi-driver.restrictedScc.enabled=true \
 --values examples/production/example-your-values.yaml \
 --values examples/tornjak/values-ingress.yaml \
 --render-subchart-notes --debug
@@ -75,4 +74,12 @@ When deploying on Openshift, follow the deployment setup as described in
 Then just add Openshift specific configuration to the above command:
 ```shell
 --values examples/openshift/openshift-values.yaml
+```
+
+When running on Openshift in some environments like IBM Cloud,
+you might need to add the following configurations:
+
+```shell
+--set spiffe-csi-driver.kubeletPath=/var/data/kubelet \
+--set spiffe-csi-driver.restrictedScc.enabled=true \
 ```
