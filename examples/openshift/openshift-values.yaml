@@ -45,10 +45,6 @@ spiffe-oidc-discovery-provider:
     runAsUser: null
     runAsGroup: null
     fsGroup: null
-  securityContext:
-    allowPrivilegeEscalation: true
-    runAsNonRoot: false
-    privileged: true
 
 tornjak-frontend:
   workingDir: /opt/app-root/src
