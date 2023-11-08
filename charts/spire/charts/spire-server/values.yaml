@@ -174,8 +174,8 @@ dataStore:
 
 ## @param logLevel The log level, valid values are "debug", "info", "warn", and "error"
 logLevel: info
-## @param jwtIssuer The JWT issuer domain
-jwtIssuer: https://oidc-discovery.example.org
+## @param jwtIssuer The JWT issuer domain. Defaults to oidc-discovery.$trustDomain
+jwtIssuer: ""
 
 ## @param clusterName Set the name of the Kubernetes cluster. (`kubeadm init --service-dns-domain`)
 clusterName: example-cluster
