@@ -3,7 +3,7 @@
 set -euo pipefail
 
 SCRIPTPATH=$(dirname "$0")
-README_GENERATOR_VERSION="2.5.1"
+README_GENERATOR_VERSION="2.6.0"
 README_GENERATOR_EXE="readme-generator"
 
 if ! hash "${README_GENERATOR_EXE}" 2>/dev/null; then
