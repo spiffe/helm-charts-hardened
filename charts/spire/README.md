@@ -36,7 +36,7 @@ For production installs, please see [the production example](https://github.com/
 
 The spire-crds chart has been updated. Please ensure you have upgraded spire-crds before upgrading the spire chart.
 
-The chart now supports multiple parallel installs of spire-controller-manager. Each install will handle all custom resources with a matching `className` field.  By default this is set to `Release.Namespace-Release.Name` and the controller manager will only pick up custom resources with this `className`. 
+The chart now supports multiple parallel installs of spire-controller-manager. Each install will handle all custom resources with a matching `className` field.  By default this is set to `Release.Namespace-Release.Name` and the controller manager will only pick up custom resources with this `className`.
 
 If you have not loaded any SPIRE custom resources yourself, the upgrade process will be transparent. If you have loaded your own SPIRE custom resources, set `spire-server.controllerManager.watchClassless=true` until you can update your SPIRE custom resources to have the `className` for the instance specified.
 
@@ -62,7 +62,8 @@ helm install -n spire-server spire-crds charts/spire-crds
 
 ## Version support
 
-> **Note**: This Chart is still in development and still subject to change the API (`values.yaml`).
+> [!Warning]
+> This Chart is still in development and still subject to change the API (`values.yaml`).
 > Until we reach a `1.0.0` version of the chart we can't guarantee backwards compatibility although
 > we do aim for as much stability as possible.
 
@@ -71,9 +72,11 @@ helm install -n spire-server spire-crds charts/spire-crds
 | Helm       | `3.x`              |
 | Kubernetes | `1.22+`            |
 
-> **Note**: For Kubernetes, we will officially support the last 3 versions as described in [k8s versioning](https://kubernetes.io/releases/version-skew-policy/#supported-versions). Any version before the last 3 we will try to support as long it doesn't bring security issues or any big maintenance burden.
+> [!Note]
+> For Kubernetes, we will officially support the last 3 versions as described in [k8s versioning](https://kubernetes.io/releases/version-skew-policy/#supported-versions). Any version before the last 3 we will try to support as long it doesn't bring security issues or any big maintenance burden.
 
 ## FAQ
+
 For any issues see our [FAQ](../../FAQ.md)…
 
 ## Usage

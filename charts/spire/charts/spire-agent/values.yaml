@@ -22,13 +22,13 @@ image:
 ## @param imagePullSecrets [array] Pull secrets for images
 imagePullSecrets: []
 
-## @param nameOverride Name override 
+## @param nameOverride Name override
 nameOverride: ""
 
-## @param namespaceOverride Namespace override 
+## @param namespaceOverride Namespace override
 namespaceOverride: ""
 
-## @param fullnameOverride Fullname override 
+## @param fullnameOverride Fullname override
 fullnameOverride: ""
 
 serviceAccount:
