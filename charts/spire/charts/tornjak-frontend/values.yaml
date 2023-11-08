@@ -89,7 +89,8 @@ topologySpreadConstraints: []
 #     memory: 512Mi
 
 ## @param apiServerURL URL of the Tornjak APIs (backend). Since Tornjak Frontend runs in the browser, this URL must be accessible from the machine running a browser.
-apiServerURL: "http://localhost:10000/"  # 👈 Use it for minikube or kind
+# If port forwarding instead of ingress, use soething like: "http://localhost:10000/"
+apiServerURL: ""
 
 # SPIRE Healthchecker indicator
 spireHealthCheck:

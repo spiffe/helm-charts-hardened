@@ -79,7 +79,6 @@ Create URL for accessing Tornjak APIs
 {{- if .Values.apiServerURL -}}
 {{- .Values.apiServerURL -}}
 {{- else }}
-{{- $feurl := print "http://localhost:" .Values.service.port }}
-{{- $feurl }}
+{{- printf "https://tornjak-backend.%s" (include "spire-lib.trust-domain" .) }}
 {{- end }}
 {{- end }}
