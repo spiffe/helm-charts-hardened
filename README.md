@@ -14,7 +14,7 @@ A suite of [Helm Charts](https://helm.sh/docs) for standardized installations of
 ## How to install or upgrade
 
 You most likely want to do an integrated setup based on the spire chart.
-[Instructions](https://artifacthub.io/packages/helm/spiffe/spire)
+See the [Instructions](https://artifacthub.io/packages/helm/spiffe/spire).
 
 ## Contributing
 
