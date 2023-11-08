@@ -1,7 +1,5 @@
 # tornjak-frontend
 
-<!-- This README.md is generated. Please edit README.md.gotmpl -->
-
 ![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v1.2.2](https://img.shields.io/badge/AppVersion-v1.2.2-informational?style=flat-square)
 [![Development Phase](https://github.com/spiffe/spiffe/blob/main/.img/maturity/dev.svg)](https://github.com/spiffe/spiffe/blob/main/MATURITY.md#development)
 
@@ -11,7 +9,8 @@ A Helm chart to deploy Tornjak frontend
 
 ## Version support
 
-> **Note**: This Chart is still in development and still subject to change the API (`values.yaml`).
+> [!Note]
+> This Chart is still in development and still subject to change the API (`values.yaml`).
 > Until we reach a `1.0.0` version of the chart we can't guarantee backwards compatibility although
 > we do aim for as much stability as possible.
 
@@ -51,6 +50,8 @@ port forwarding. See the chart NOTES output for more details.
 ## Source Code
 
 * <https://github.com/spiffe/tornjak>
+
+<!-- The parameters section is generated using helm-docs.sh and should not be edited by hand. -->
 
 ## Parameters
 

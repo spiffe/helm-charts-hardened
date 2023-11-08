@@ -1,6 +1,7 @@
 # Recommended setup for installing Spire on Openshift
 
-> **Note**: This functionality is under development. It works but has no automated testing and will have security tightened in the future.
+> [!Note]
+> This functionality is under development. It works but has no automated testing and will have security tightened in the future.
 
 This deployment works only with Openshift version 4.13 or higher. Get the Openshift platform here: [try.openshift.com](try.openshift.com)
 
@@ -31,7 +32,8 @@ echo "$appdomain"
 
 Update the `example-your-values.yaml` file with your subdomain.
 
-_Note: The location of the apps subdomain may be different in certain environments_
+> [!Note]
+> The location of the apps subdomain may be different in certain environments_
 
 ## Standard Deployment
 
@@ -62,7 +64,8 @@ helm upgrade --install --namespace spire-server spire charts/spire \
 Additional features such as tornjak can be enabled by including their example values files before --values examples/production/example-your-values.yaml
 
 For example:
-```
+
+```shell
 --values examples/openshift/openshift-values.yaml \
 --values examples/tornjak/values.yaml \
 --values examples/production/example-your-values.yaml \
@@ -71,6 +74,7 @@ For example:
 ## Finish install
 
 Once installed, the namespace security can be tightened back up.
+
 ```shell
 kubectl label namespace "spire-server" pod-security.kubernetes.io/enforce=restricted --overwrite
 ```
