@@ -1,41 +1,8 @@
-global:
-  spire:
-    jwtIssuer: https://oidc-discovery.$APP_SUBDOMAIN
-
 spire-server:
-  ingress:
-    enabled: true
-    hosts:
-      - host: spire-server.$APP_SUBDOMAIN
-        paths:
-          - path: ''
-            pathType: ImplementationSpecific
   tornjak:
-    enabled: true
     ingress:
       enabled: true
-      hosts:
-        - host: spire-tornjak-backend.$APP_SUBDOMAIN
-          paths:
-            - path: /
-              pathType: Prefix
-
-spiffe-oidc-discovery-provider:
-  ingress:
-    enabled: true
-    hosts:
-      - host: oidc-discovery.$APP_SUBDOMAIN
-        paths:
-          - path: /
-            pathType: Prefix
 
 tornjak-frontend:
-  enabled: true
-  apiServerURL: https://spire-tornjak-backend.$APP_SUBDOMAIN/
   ingress:
     enabled: true
-    hosts:
-      - host: spire-tornjak.$APP_SUBDOMAIN
-        paths:
-          - path: /
-            pathType: Prefix
