@@ -117,7 +117,8 @@ git push -u origin --force-with-lease
 cat <<EOF | gh pr create --base main --body-file - "${dry_run}"
 Please review the below changelog to ensure this matches up with the semantic version being applied.
 
-> **Note**: **Maintainers** ensure to run following after merging this PR to trigger the release workflow:
+> [!Note]
+> **Maintainers** ensure to run following after merging this PR to trigger the release workflow:
 >
 > \`\`\`shell
 > git checkout main

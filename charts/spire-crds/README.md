@@ -7,6 +7,7 @@ A Helm chart to install the SPIRE CRDS.
 **Homepage:** <https://github.com/spiffe/helm-charts/tree/main/charts/spire>
 
 ## Maintainers
+
 | Name | Email | Url |
 | ---- | ------ | --- |
 | marcofranssen | <marco.franssen@gmail.com> | <https://marcofranssen.nl> |
@@ -16,8 +17,8 @@ A Helm chart to install the SPIRE CRDS.
 
 ## Source Code
 
-* <https://github.com/spiffe/helm-charts/tree/main/charts/spire>
+* <https://github.com/spiffe/helm-charts/tree/main/charts/spire-crds>
 
-<!-- The Parameters section is generated using helm-docs.sh -->
+<!-- The parameters section is generated using helm-docs.sh and should not be edited by hand. -->
 
 ## Parameters
