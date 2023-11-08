@@ -377,6 +377,12 @@ notifier:
 controllerManager:
   ## @param controllerManager.enabled Flag to enable controller manager
   enabled: false
+
+  ## @param controllerManager.className specify to use an explicit class name. If empty, it will be automatically set to Release.Namespace-Release.Name to not conflict with other installs, enabling parallel installs.
+  className: ""
+  ## @param controllerManager.watchClassless specify to process custom resources without class name specified. Useful to slowly migrate to class names from classless installs. Do not have two installs on the same k8s cluster both set to true.
+  watchClassless: false
+
   installAndUpgradeHook:
     ## @param controllerManager.installAndUpgradeHook.enabled Enable Helm hook to autofix common install/upgrade issues (should be disabled when using `helm template`)
     enabled: true
@@ -395,7 +401,7 @@ controllerManager:
     repository: spiffe/spire-controller-manager
     pullPolicy: IfNotPresent
     version: ""
-    tag: "0.3.0"
+    tag: "0.4.0"
 
   ## @param controllerManager.resources [object] Resource requests and limits for controller manager
   resources: {}
@@ -469,6 +475,8 @@ controllerManager:
     admin: false
     ## @param controllerManager.identities.downstream Set if this spire instance is a root server and the workloads are downstream servers.
     downstream: false
+    ## @param controllerManager.identities.autoPopulateDNSNames Auto populate DNS names from services attached to pods
+    autoPopulateDNSNames: false
 
   validatingWebhookConfiguration:
     ## @param controllerManager.validatingWebhookConfiguration.failurePolicy Action when identity is not issued

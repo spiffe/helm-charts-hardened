@@ -6,7 +6,14 @@ global:
 
 spire-server:
   controllerManager:
-    enabled: false
+    identities:
+      namespaceSelector:
+        kubernetes.io/metadata.name: spire-server
+      podSelector:
+        app.kubernetes.io/component: server
+        app.kubernetes.io/instance: spire
+        app.kubernetes.io/name: server
+      downstream: true
   nodeAttestor:
     k8sPsat:
       serviceAccountAllowList:

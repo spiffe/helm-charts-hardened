@@ -39,6 +39,9 @@ spec:
             properties:
               admin:
                 type: boolean
+              className:
+                description: Set the class of controller to handle this object.
+                type: string
               dnsNames:
                 items:
                   type: string
@@ -90,3 +93,9 @@ spec:
     storage: true
     subresources:
       status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

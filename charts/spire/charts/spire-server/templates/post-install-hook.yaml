@@ -22,7 +22,7 @@ metadata:
 rules:
   - apiGroups: ["admissionregistration.k8s.io"]
     resources: ["validatingwebhookconfigurations"]
-    resourceNames: [{{ printf "%s-webhook"  (include "spire-controller-manager.fullname" .) | quote }}]
+    resourceNames: [{{ printf "%s-%s-webhook" .Release.Namespace (include "spire-controller-manager.fullname" .) | quote }}]
     verbs: ["get", "patch"]
 ---
 kind: ClusterRoleBinding
@@ -68,7 +68,7 @@ spec:
         args:
           - patch
           - validatingwebhookconfiguration
-          - {{ include "spire-controller-manager.fullname" . }}-webhook
+          - {{ .Release.Namespace }}-{{ include "spire-controller-manager.fullname" . }}-webhook
           - --type=strategic
           - -p
           - |
