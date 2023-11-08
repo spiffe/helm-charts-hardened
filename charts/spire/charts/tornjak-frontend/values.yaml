@@ -88,8 +88,7 @@ topologySpreadConstraints: []
 #     cpu: 100m
 #     memory: 512Mi
 
-## @param apiServerURL URL of the Tornjak APIs (backend). Since Tornjak Frontend runs in the browser, this URL must be accessible from the machine running a browser.
-# If port forwarding instead of ingress, use soething like: "http://localhost:10000/"
+## @param apiServerURL URL of the Tornjak APIs (backend). Since Tornjak Frontend runs in the browser, this URL must be accessible from the machine running a browser. If unset, autodetection is atempted.
 apiServerURL: ""
 
 # SPIRE Healthchecker indicator
