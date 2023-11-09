@@ -42,7 +42,7 @@ You can now access Tornjak at [localhost:3000](http://localhost:3000).
 
 See [values.yaml](./values.yaml) for more details on the chart configurations to achieve this setup.
 
-## Tornjak and Ingress
+## Tornjak and Ingress with ingress-nginx
 
 Obtain the Ingress subdomain (this process is cloud provider specific) and assign it
 to the `APP_SUBDOMAIN` env. variable, then run the deployment with your values files:
