@@ -13,7 +13,7 @@ global:
     bundleConfigMap: ""
     ## @param global.spire.clusterName The name of the k8s cluster for Spire install
     clusterName: example-cluster
-    ## @param global.spire.jwtIssuer The issuer for Spire JWT tokens. Defaults to oidc-discovery.$trustDomain
+    ## @param global.spire.jwtIssuer The issuer for Spire JWT tokens. Defaults to oidc-discovery.$trustDomain if unset
     jwtIssuer: ""
     ## @param global.spire.trustDomain The trust domain for Spire install
     trustDomain: example.org
