@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+GITHUB_STEP_SUMMARY="${GITHUB_STEP_SUMMARY:-/tmp/summary}"
+
 get_namespace_details () {
 cat <<EOF >>"$GITHUB_STEP_SUMMARY"
 ### Namespace $1

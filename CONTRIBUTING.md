@@ -38,7 +38,8 @@ git rebase main
 
 Our CI pipeline takes care of the majority of the testing of this Chart. Other ways for you to test are by running `make test` locally using:
 
-> **Warning**: Ensure to run the test on a dedicated k8s cluster that does not have Spire installed yet.
+> [!Warning]
+> Ensure to run the test on a dedicated k8s cluster that does not have Spire installed yet.
 
 ```shell
 make test
@@ -48,7 +49,7 @@ Another approach to testing the chart is by installing one of the examples in yo
 
 ## Generating documentation
 
-Any changes to Chart.yaml or values.yaml require an update of the README.md. This update can easily be generated using [readme-generator](https://github.com/bitnami-labs/readme-generator-for-helm).
+Any changes to Chart.yaml or values.yaml require an update of the README.md. This update can easily be generated using [readme-generator][].
 
 ```shell
 ./helm-docs.sh

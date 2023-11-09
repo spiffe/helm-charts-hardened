@@ -1,4 +1,7 @@
-> **Note**: All the helm charts in this repo are beta. We encourage you to try them out and contribute. The API may change as we move towards a production ready release.
+> [!Note]
+> Things to consider:
+> 1. We do not support running out of the git main branch. This is where development happens. Please use released versions via the published repo or git tags.
+> 2. All the helm charts in this repo are beta. We encourage you to try them out and contribute. The API may change as we move towards a production ready release.
 
 # SPIFFE Helm Charts
 
@@ -8,24 +11,10 @@
 
 A suite of [Helm Charts](https://helm.sh/docs) for standardized installations of SPIRE components in Kubernetes environments.
 
-## Add Helm repository
+## How to install or upgrade
 
-```bash
-helm repo add spiffe https://spiffe.github.io/helm-charts/
-helm repo update
-```
-
-## Dependencies and Version Compatibility
-
-Unless otherwise noted in an application chart README, the following dependencies will follow these prescribed version compatibility rules.
-
-| Dependency | Supported Versions |
-|:-----------|:-------------------|
-| SPIRE      | `1.8.2`            |
-| Helm       | `3.x`              |
-| Kubernetes | `1.22+`            |
-
-> **Note**: For Kubernetes, we will officially support the last 3 versions as described in [k8s versioning](https://kubernetes.io/releases/version-skew-policy/#supported-versions). Any version before the last 3 we will try to support as long it doesn't bring security issues or any big maintenance burden. *The first version we tested this chart with is `1.22`.*
+You most likely want to do an integrated setup based on the spire chart.
+See the [Instructions](https://artifacthub.io/packages/helm/spiffe/spire).
 
 ## Contributing
 

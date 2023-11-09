@@ -2,7 +2,7 @@
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
-  name: {{ include "spire-controller-manager.fullname" . }}-webhook
+  name: {{ .Release.Namespace }}-{{ include "spire-controller-manager.fullname" . }}-webhook
 webhooks:
   - admissionReviewVersions: ["v1"]
     clientConfig:

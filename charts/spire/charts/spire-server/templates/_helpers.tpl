@@ -205,7 +205,10 @@ The code below determines what connection type should be used.
 
 {{- define "spire-server.test.federation-ingress-args" }}
 {{-   $args := list }}
-{{-   $host := index (index (index .Values.federation.ingress.tls 0) "hosts") 0 }}
+{{-   $host := include "spire-lib.ingress-calculated-name" (dict "Values" .Values "ingress" .Values.federation.ingress) }}
+{{-   if gt (len .Values.federation.ingress.tls) 0 }}
+{{-     $host = index (index (index .Values.federation.ingress.tls 0) "hosts") 0 }}
+{{-   end }}
 {{-   if dig "tests" "tls" "enabled" false .Values }}
 {{-     if ne (len (dig "tests" "tls" "customCA" "" .Values)) 0 }}
 {{-       $args = append $args "--cacert" }}
@@ -216,4 +219,12 @@ The code below determines what connection type should be used.
 {{-     $args = append $args (printf "http://%s/" $host) }}
 {{-   end }}
 {{ $args | toYaml }}
+{{- end -}}
+
+{{- define "spire-server.controller-manager-class-name" -}}
+{{-   if .Values.controllerManager.className }}
+{{-     .Values.controllerManager.className }}
+{{-   else }}
+{{-     .Release.Namespace }}-{{ .Release.Name }}
+{{-   end -}}
 {{- end -}}

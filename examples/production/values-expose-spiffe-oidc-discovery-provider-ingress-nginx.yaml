@@ -1,0 +1,12 @@
+spiffe-oidc-discovery-provider:
+  tests:
+    tls:
+      enabled: true
+  ingress:
+    enabled: true
+    controllerType: ingress-nginx
+      
+    # className: nginx
+
+    # You must override these in your own values file with the appropriate secret or it wont start.
+    tlsSecret: tls-cert

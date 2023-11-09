@@ -1,14 +1,13 @@
 # spire-agent
 
-<!-- This README.md is generated. Please edit README.md.gotmpl -->
-
 ![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.7.2](https://img.shields.io/badge/AppVersion-1.7.2-informational?style=flat-square)
 
 A Helm chart to install the SPIRE agent.
 
 **Homepage:** <https://github.com/spiffe/helm-charts/tree/main/charts/spire>
 
-> **Note**: Minimum Spire version is `1.5.3`.
+> [!Note]
+> Minimum Spire version is `1.5.3`.
 > The recommended version is `1.6.0` to support arm64 nodes. If running with any
 > prior version to `1.6.0` you have to use a `nodeSelector` to limit to `kubernetes.io/arch: amd64`.
 
@@ -24,6 +23,8 @@ A Helm chart to install the SPIRE agent.
 ## Source Code
 
 * <https://github.com/spiffe/helm-charts/tree/main/charts/spire>
+
+<!-- The parameters section is generated using helm-docs.sh and should not be edited by hand. -->
 
 ## Parameters
 
@@ -59,7 +60,7 @@ A Helm chart to install the SPIRE agent.
 | `server.address`                                  | Address for Spire server                                                                                            | `""`                                                                             |
 | `server.port`                                     | Port number for Spire server                                                                                        | `8081`                                                                           |
 | `server.namespaceOverride`                        | Override the namespace for Spire server                                                                             | `""`                                                                             |
-| `healthChecks.port`                               | override the host port used for health checking                                                                     | `9980`                                                                           |
+| `healthChecks.port`                               | override the host port used for health checking                                                                     | `9982`                                                                           |
 | `livenessProbe.initialDelaySeconds`               | Initial delay seconds for probe                                                                                     | `15`                                                                             |
 | `livenessProbe.periodSeconds`                     | Period seconds for probe                                                                                            | `60`                                                                             |
 | `readinessProbe.initialDelaySeconds`              | Initial delay seconds for probe                                                                                     | `15`                                                                             |
@@ -68,13 +69,13 @@ A Helm chart to install the SPIRE agent.
 | `waitForIt.image.repository`                      | The repository within the registry                                                                                  | `chainguard/wait-for-it`                                                         |
 | `waitForIt.image.pullPolicy`                      | The image pull policy                                                                                               | `IfNotPresent`                                                                   |
 | `waitForIt.image.version`                         | This value is deprecated in favor of tag. (Will be removed in a future release)                                     | `""`                                                                             |
-| `waitForIt.image.tag`                             | Overrides the image tag whose default is the chart appVersion                                                       | `latest@sha256:5b836d1a4c652ec1c56bdd4a05a43349e2eeff50cf7fdb45a356f0ddc578573b` |
+| `waitForIt.image.tag`                             | Overrides the image tag whose default is the chart appVersion                                                       | `latest@sha256:c58a76f9241187615ab081ec73db6aeea6939369fba995206343bd9fb1975378` |
 | `waitForIt.resources`                             | Resource requests and limits                                                                                        | `{}`                                                                             |
 | `fsGroupFix.image.registry`                       | The OCI registry to pull the image from                                                                             | `cgr.dev`                                                                        |
 | `fsGroupFix.image.repository`                     | The repository within the registry                                                                                  | `chainguard/bash`                                                                |
 | `fsGroupFix.image.pullPolicy`                     | The image pull policy                                                                                               | `Always`                                                                         |
 | `fsGroupFix.image.version`                        | This value is deprecated in favor of tag. (Will be removed in a future release)                                     | `""`                                                                             |
-| `fsGroupFix.image.tag`                            | Overrides the image tag whose default is the chart appVersion                                                       | `latest@sha256:cdf09d9d48e2b78e4a31dbbeba03e34b9462a35fa55defe67d73c440dbacca2c` |
+| `fsGroupFix.image.tag`                            | Overrides the image tag whose default is the chart appVersion                                                       | `latest@sha256:3d077aae77eb552abd85a015d087047a7a7353d974e5f7fc6a402180c1501214` |
 | `fsGroupFix.resources`                            | Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/        | `{}`                                                                             |
 | `workloadAttestors.unix.enabled`                  | Enables the Unix workload attestor                                                                                  | `false`                                                                          |
 | `workloadAttestors.k8s.enabled`                   | Enables the Kubernetes workload attestor                                                                            | `true`                                                                           |
@@ -92,6 +93,7 @@ A Helm chart to install the SPIRE agent.
 | `telemetry.prometheus.podMonitor.labels`          | Pod labels to filter for prometheus monitoring                                                                      | `{}`                                                                             |
 | `socketPath`                                      | The unix socket path to the spire-agent                                                                             | `/run/spire/agent-sockets/spire-agent.sock`                                      |
 | `priorityClassName`                               | Priority class assigned to daemonset pods                                                                           | `""`                                                                             |
+| `extraEnvVars`                                    | Extra environment variables to be added to the Spire Agent container                                                | `[]`                                                                             |
 | `extraVolumes`                                    | Extra volumes to be mounted on Spire Agent pods                                                                     | `[]`                                                                             |
 | `extraVolumeMounts`                               | Extra volume mounts for Spire Agent pods                                                                            | `[]`                                                                             |
 | `extraContainers`                                 | Additional containers to create with Spire Agent pods                                                               | `[]`                                                                             |

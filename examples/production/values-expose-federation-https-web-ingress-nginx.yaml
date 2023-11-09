@@ -1,0 +1,13 @@
+spire-server:
+  tests:
+    tls:
+      enabled: true
+  federation:
+    enabled: true
+    ingress:
+      enabled: true
+      controllerType: ingress-nginx
+
+      # className: nginx
+ 
+      tlsSecret: spire-server-federation-tls

@@ -1,0 +1,6 @@
+spire-server:
+  ingress:
+    enabled: true
+    controllerType: ingress-nginx
+
+    # className: nginx

@@ -4,7 +4,7 @@
 apiVersion: spire.spiffe.io/v1alpha1
 kind: ClusterSPIFFEID
 metadata:
-  name: {{ include "spire-controller-manager.fullname" $root }}-service-account-based
+  name: {{ $root.Release.Namespace }}-{{ include "spire-controller-manager.fullname" $root }}-service-account-based
   namespace: {{ include "spire-server.namespace" $root }}
 spec:
   spiffeIDTemplate: {{ .identities.spiffeIDTemplate | quote }}
@@ -24,5 +24,19 @@ spec:
   dnsNameTemplates:
     {{- toYaml . | nindent 4 }}
   {{- end }}
+  {{- with .identities.workloadSelectorTemplates }}
+  workloadTSelectoremplates:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .identities.ttl }}
+  ttl: {{ . | quote }}
+  {{- end }}
+  {{- with .identities.jwtTTL }}
+  jwtTtl: {{ . | quote }}
+  {{- end }}
+  admin: {{ .identities.admin }}
+  downstream: {{ .identities.downstream }}
+  autoPopulateDNSNames: {{ .identities.autoPopulateDNSNames }}
+  className: {{ include "spire-server.controller-manager-class-name" $root | quote}}
 {{- end }}
 {{- end }}

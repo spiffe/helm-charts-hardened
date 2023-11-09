@@ -20,7 +20,7 @@ If your using ingress-nginx and want to expose the spiffe oidc discovery provide
 cluster, add the following to the end of the helm upgrade example:
 
 ```shell
--f values-export-spiffe-oidc-discovery-provider-ingress-nginx.yaml
+-f values-expose-spiffe-oidc-discovery-provider-ingress-nginx.yaml
 ```
 
 If you want to expose your spire-server outside of Kubernetes and are using ingress-nginx, add following values file when running `helm template/install/upgrade`.
@@ -28,21 +28,25 @@ If you want to expose your spire-server outside of Kubernetes and are using ingr
 ```shell
 -f values-expose-spire-server-ingress-nginx.yaml
 ```
+
 For example:
+
 ```shell
 helm upgrade --install --namespace spire-server spire charts/spire -f values.yaml -f values-expose-spire-server-ingress-nginx.yaml
 ```
 
 If you want to expose your federation endpoint outside of Kubernetes and are using ingress-nginx
 you have two options as described here:
-https://github.com/spiffe/spiffe/blob/main/standards/SPIFFE_Federation.md#52-endpoint-profiles
+[github.com/spiffe/spiffe/blob/main/standards/SPIFFE_Federation.md#52-endpoint-profiles](https://github.com/spiffe/spiffe/blob/main/standards/SPIFFE_Federation.md#52-endpoint-profiles)
 
 If you chose profile https_web, use:
 
 ```shell
 -f values-expose-federation-https-web-ingress-nginx.yaml
 ```
+
 For example:
+
 ```shell
 helm upgrade --install --namespace spire-server spire charts/spire -f values.yaml -f values-expose-federation-https-web-ingress-nginx.yaml
 ```
@@ -52,10 +56,11 @@ If you chose profile https_spiffe, use:
 ```shell
 -f values-expose-federation-https-spiffe-ingress-nginx.yaml
 ```
+
 For example:
+
 ```shell
 helm upgrade --install --namespace spire-server spire charts/spire -f values.yaml -f values-expose-federation-https-spiffe-ingress-nginx.yaml
 ```
 
 See [values.yaml](./values.yaml) for more details on the chart configurations to achieve this setup.
-
