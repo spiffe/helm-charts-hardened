@@ -1,6 +1,7 @@
 # Recommended setup to deploy Tornjak
 
-> **Warning**: The current version of Tornjak in this chart is deployed without authentication. Therefore it is not suitable to run this version in production.
+> [!Warning]
+> The current version of Tornjak in this chart is deployed without authentication. Therefore it is not suitable to run this version in production.
 
 To install Spire with the least privileges possible we deploy spire across 2 namespaces.
 

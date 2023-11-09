@@ -58,6 +58,7 @@ if [[ -n "$UPGRADE_ARGS" ]]; then
   popd
   popd
   # Any other upgrade steps go here. (Upgrade crds, delete statefulsets without cascade, etc.)
+  helm upgrade -n spire-system spire-crds charts/spire-crds --wait
 else
 
   kubectl create namespace spire-system 2>/dev/null || true
@@ -111,9 +112,9 @@ install_and_test() {
   "${helm_install[@]}" spire "$1" \
     --namespace "${ns}" \
     --values "${SCRIPTPATH}/values.yaml" \
-    --values "${SCRIPTPATH}/values-export-spiffe-oidc-discovery-provider-ingress-nginx.yaml" \
-    --values "${SCRIPTPATH}/values-export-spire-server-ingress-nginx.yaml" \
-    --values "${SCRIPTPATH}/values-export-federation-https-web-ingress-nginx.yaml" \
+    --values "${SCRIPTPATH}/values-expose-spiffe-oidc-discovery-provider-ingress-nginx.yaml" \
+    --values "${SCRIPTPATH}/values-expose-spire-server-ingress-nginx.yaml" \
+    --values "${SCRIPTPATH}/values-expose-federation-https-web-ingress-nginx.yaml" \
     --values /tmp/dummydns \
     --set spiffe-oidc-discovery-provider.tests.tls.customCA=tls-cert,spire-server.tests.tls.customCA=tls-cert \
     --set spire-agent.server.address=spire-server.production.other,spire-agent.server.port=443 \
