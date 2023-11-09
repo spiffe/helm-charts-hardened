@@ -125,8 +125,8 @@ insecureScheme:
       #   cpu: 100m
       #   memory: 64Mi
 
-## @param jwtIssuer Path to JWT issuer
-jwtIssuer: https://oidc-discovery.example.org
+## @param jwtIssuer Path to JWT issuer. Defaults to oidc-discovery.$trustDomain if unset
+jwtIssuer: ""
 
 config:
   ## @param config.logLevel The log level, valid values are "debug", "info", "warn", and "error"
