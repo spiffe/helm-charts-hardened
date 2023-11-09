@@ -44,12 +44,7 @@ See [values.yaml](./values.yaml) for more details on the chart configurations to
 
 ## Tornjak and Ingress with ingress-nginx
 
-
-Update the `values-ingress.yaml` file with your subdomain.
-
-_Note: The location of the apps subdomain may be different in certain environments_
-
-Then run the deployment with your values files:
+Update examples/production/example-your-values.yaml with your information, most importantly, trustDomain.
 
 ```shell
 helm upgrade --install --namespace spire-server spire charts/spire \
