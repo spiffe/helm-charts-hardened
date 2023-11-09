@@ -125,7 +125,7 @@ insecureScheme:
       #   cpu: 100m
       #   memory: 64Mi
 
-## @param jwtIssuer Path to JWT issuer. Defaults to oidc-discovery.$trustDomain
+## @param jwtIssuer Path to JWT issuer. Defaults to oidc-discovery.$trustDomain if unset
 jwtIssuer: ""
 
 config:
