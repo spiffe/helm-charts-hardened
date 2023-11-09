@@ -1,6 +1,6 @@
 # spire
 
-![Version: 0.14.0](https://img.shields.io/badge/Version-0.13.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.7.2](https://img.shields.io/badge/AppVersion-1.7.2-informational?style=flat-square)
+![Version: 0.15.0](https://img.shields.io/badge/Version-0.13.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.7.2](https://img.shields.io/badge/AppVersion-1.7.2-informational?style=flat-square)
 [![Development Phase](https://github.com/spiffe/spiffe/blob/main/.img/maturity/dev.svg)](https://github.com/spiffe/spiffe/blob/main/MATURITY.md#development)
 
 A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
@@ -42,7 +42,7 @@ If you have not loaded any SPIRE custom resources yourself, the upgrade process 
 
 ### 0.14.X
 
-If coming from a chart version before 0.14.0, you must relabel your crds to switch to using the new spire-crds chart. To migrate to the spire-crds chart
+If coming from a chart version before 0.15.0, you must relabel your crds to switch to using the new spire-crds chart. To migrate to the spire-crds chart
 run the following:
 
 Replace the spire-server namespace in the commands below with the namespace you want to install the spire-crds chart in.
