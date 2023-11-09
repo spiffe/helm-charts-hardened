@@ -20,7 +20,7 @@ If your using ingress-nginx and want to expose the spiffe oidc discovery provide
 cluster, add the following to the end of the helm upgrade example:
 
 ```shell
--f values-export-spiffe-oidc-discovery-provider-ingress-nginx.yaml
+-f values-expose-spiffe-oidc-discovery-provider-ingress-nginx.yaml
 ```
 
 If you want to expose your spire-server outside of Kubernetes and are using ingress-nginx, add following values file when running `helm template/install/upgrade`.
