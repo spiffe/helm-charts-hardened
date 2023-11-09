@@ -50,8 +50,9 @@ Update examples/production/example-your-values.yaml with your information, most 
 helm upgrade --install --namespace spire-server spire charts/spire \
 --values examples/production/values.yaml \
 --values examples/tornjak/values.yaml \
---values examples/production/example-your-values.yaml \
 --values examples/tornjak/values-ingress.yaml \
+--set global.spire.ingressControllerType=ingress-nginx \
+--values examples/production/example-your-values.yaml \
 --render-subchart-notes --debug
 ```
 
