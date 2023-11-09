@@ -17,8 +17,10 @@
 {{- define "spire-lib.jwt-issuer" }}
 {{- if ne (len (dig "spire" "jwtIssuer" "" .Values.global)) 0 }}
 {{- .Values.global.spire.jwtIssuer }}
-{{- else }}
+{{- else if ne (len .Values.jwtIssuer) 0 }}
 {{- .Values.jwtIssuer }}
+{{- else }}
+{{- printf "oidc-discovery.%s" (include "spire-lib.trust-domain" .) }}
 {{- end }}
 {{- end }}
 
