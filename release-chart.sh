@@ -6,12 +6,12 @@
 ##
 ## Usage example(s):
 ##
-##   ./__PROG__ --chart spire --current-version 0.15.1 --new-version 0.16.0
+##   ./__PROG__ --chart spire --new-version 0.16.0
+##   ./__PROG__ --chart spire-crds --new-version 0.3.0
 ##
 ## Options:
 ##    --help                  Show this help message
 ##    --chart                 The chart to release
-##    --current-version       The current version number
 ##    --new-version           The new version number
 ##    --dry-run               Will not actually submit the PR
 ##
@@ -39,6 +39,24 @@ function print_error_and_exit {
   exit 1
 }
 
+function unreleased_changes_other_charts {
+  for chart in "${1[@]}" ; do
+    latest_tag="$(git tag --list "${chart}-[0-9]*.[0-9]*.[0-9]*" | sort -V | tail -n 1)"
+    changes="$(git log "${latest_tag}..HEAD" --pretty=format:'* %h %s' "charts/${chart}")"
+    if [ -n "${changes}" ] ; then
+      echo "### Unreleased changes ${chart}"
+      echo
+      echo "${changes}"
+      echo
+      echo Please ensure you bump above charts as well before merging main into the release branch.
+      echo
+      echo '```shell'
+      echo ./release-chart.sh --chart "${chart}" --new-version ………
+      echo '```'
+    fi
+  done
+}
+
 while (("$#")); do
   case "$1" in
   --help)
@@ -47,10 +65,6 @@ while (("$#")); do
     ;;
   --chart)
     chart=$2
-    shift 2
-    ;;
-  --current-version)
-    current_version=$2
     shift 2
     ;;
   --new-version)
@@ -86,11 +100,6 @@ if [ -z "$chart" ]; then
   print_error_and_exit 'chart option is missing'
 fi
 
-if [ -z "$current_version" ]; then
-  usage
-  print_error_and_exit 'current-version option is missing'
-fi
-
 if [ -z "$new_version" ]; then
   usage
   print_error_and_exit 'new-version option is missing'
@@ -102,9 +111,12 @@ fi
 
 branch_name="bump-${chart}-version"
 
+git fetch --tags
 git checkout main
 git pull
 git checkout --track -B "${branch_name}" main
+
+current_version="$(grep '^version:' "charts/${chart}/Chart.yaml" | awk '{print $2}')"
 commits_since_previous_release="$(git log "${chart}-${current_version}..HEAD" --pretty=format:'* %h %s' "charts/${chart}")"
 "${SED}" -i "s/version: ${current_version}/version: ${new_version}/" "charts/${chart}/Chart.yaml"
 "${SED}" -i "s/${current_version}/${new_version}/" "charts/${chart}/README.md"
@@ -114,8 +126,21 @@ git commit -m "Bump ${chart} Helm Chart version from ${current_version} to ${new
   -s
 git push -u origin --force-with-lease
 
+other_charts=()
+for chart_dir in charts/*/; do
+  chart_name=$(basename "$chart_dir")
+  if [[ "$chart_name" != "$chart" ]]; then
+    other_charts+=("$chart_name")
+  fi
+done
+
 cat <<EOF | gh pr create --base main --body-file - "${dry_run}"
 Please review the below changelog to ensure this matches up with the semantic version being applied.
+
+> [!Important]
+> Before merging to the release branch, ensure all other changed charts also have their version number bumped.
+
+$(unreleased_changes_other_charts "${other_charts[@]}")
 
 > [!Note]
 > **Maintainers** ensure to run following after merging this PR to trigger the release workflow:
