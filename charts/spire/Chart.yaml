@@ -3,7 +3,7 @@ name: spire
 description: >
   A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
 type: application
-version: 0.15.0
+version: 0.15.1
 appVersion: "1.8.4"
 keywords: ["spiffe", "spire", "spire-server", "spire-agent", "oidc", "spire-controller-manager"]
 home: https://github.com/spiffe/helm-charts/tree/main/charts/spire
