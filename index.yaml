@@ -1322,6 +1322,32 @@ entries:
   spire-crds:
   - apiVersion: v2
     appVersion: 0.0.1
+    created: "2023-11-10T00:54:15.47457289Z"
+    description: 'A Helm chart for deploying the Spire CRDS '
+    digest: 406564f7d86f98ca3f5960c170959fe2bcfe060daa69d7c813ba0e298281aecf
+    home: https://github.com/spiffe/helm-charts/tree/main/charts/spire
+    icon: https://spiffe.io/img/logos/spire/icon/color/spire-icon-color.png
+    keywords:
+    - spire-crds
+    maintainers:
+    - email: marco.franssen@gmail.com
+      name: marcofranssen
+      url: https://marcofranssen.nl
+    - email: Kevin.Fox@pnnl.gov
+      name: kfox1111
+    - email: fymemon@yahoo.com
+      name: faisal-memon
+    - email: edwbuck@gmail.com
+      name: edwbuck
+    name: spire-crds
+    sources:
+    - https://github.com/spiffe/helm-charts/tree/main/charts/spire
+    type: application
+    urls:
+    - https://github.com/spiffe/helm-charts-hardened/releases/download/spire-crds-0.2.0/spire-crds-0.2.0.tgz
+    version: 0.2.0
+  - apiVersion: v2
+    appVersion: 0.0.1
     created: "2023-10-18T20:53:22.017742341Z"
     description: 'A Helm chart for deploying the Spire CRDS '
     digest: 8d02674379d14a3245023fe99c9736e3e369da4f229d2520defecdfa20eac9f6
@@ -1346,4 +1372,4 @@ entries:
     urls:
     - https://github.com/spiffe/helm-charts-hardened/releases/download/spire-crds-0.0.1/spire-crds-0.0.1.tgz
     version: 0.0.1
-generated: "2023-10-18T20:53:22.017935242Z"
+generated: "2023-11-10T00:54:15.474628191Z"
