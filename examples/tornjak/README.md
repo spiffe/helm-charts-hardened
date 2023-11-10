@@ -22,7 +22,7 @@ helm upgrade --install --namespace spire-server \
 helm test spire -n spire-server
 ```
 
-## Access tornjak
+## Access Tornjak
 
 To access Tornjak you will have to use port-forwarding for the time being *(until we add authentication and ingress)*.
 
@@ -41,3 +41,36 @@ kubectl -n spire-server port-forward service/spire-tornjak-frontend 3000:3000
 You can now access Tornjak at [localhost:3000](http://localhost:3000).
 
 See [values.yaml](./values.yaml) for more details on the chart configurations to achieve this setup.
+
+## Tornjak and Ingress with ingress-nginx
+
+Update examples/production/example-your-values.yaml with your information, most importantly, trustDomain.
+
+```shell
+helm upgrade --install --namespace spire-server spire charts/spire \
+--values examples/production/values.yaml \
+--values examples/tornjak/values.yaml \
+--values examples/tornjak/values-ingress.yaml \
+--set global.spire.ingressControllerType=ingress-nginx \
+--values examples/production/example-your-values.yaml \
+--render-subchart-notes --debug
+```
+
+## Tornjak and Ingress on Openshift
+
+When deploying on Openshift, follow the deployment setup as described in
+[Openshift README](../openshift/README.md)
+
+Then just add Openshift specific configuration to the above command:
+
+```shell
+--values examples/openshift/openshift-values.yaml
+```
+
+When running on Openshift in some environments like IBM Cloud,
+you might need to add the following configurations:
+
+```shell
+--set spiffe-csi-driver.kubeletPath=/var/data/kubelet \
+--set spiffe-csi-driver.restrictedScc.enabled=true \
+```
