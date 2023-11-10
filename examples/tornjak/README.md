@@ -62,6 +62,7 @@ When deploying on Openshift, follow the deployment setup as described in
 [Openshift README](../openshift/README.md)
 
 Then just add Openshift specific configuration to the above command:
+
 ```shell
 --values examples/openshift/openshift-values.yaml
 ```
