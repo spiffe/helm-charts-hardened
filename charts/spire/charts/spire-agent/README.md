@@ -4,12 +4,7 @@
 
 A Helm chart to install the SPIRE agent.
 
-**Homepage:** <https://github.com/spiffe/helm-charts/tree/main/charts/spire>
-
-> [!Note]
-> Minimum Spire version is `1.5.3`.
-> The recommended version is `1.6.0` to support arm64 nodes. If running with any
-> prior version to `1.6.0` you have to use a `nodeSelector` to limit to `kubernetes.io/arch: amd64`.
+**Homepage:** <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire>
 
 ## Maintainers
 
@@ -22,7 +17,7 @@ A Helm chart to install the SPIRE agent.
 
 ## Source Code
 
-* <https://github.com/spiffe/helm-charts/tree/main/charts/spire>
+* <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire>
 
 <!-- The parameters section is generated using helm-docs.sh and should not be edited by hand. -->
 
