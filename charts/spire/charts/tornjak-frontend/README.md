@@ -5,7 +5,7 @@
 
 A Helm chart to deploy Tornjak frontend
 
-**Homepage:** <https://github.com/spiffe/helm-charts/tree/main/charts/spire>
+**Homepage:** <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire>
 
 ## Version support
 
@@ -16,8 +16,6 @@ A Helm chart to deploy Tornjak frontend
 
 | Dependency | Supported Versions |
 |:-----------|:-------------------|
-| SPIRE      | `1.5.3+`, `1.6.x`  |
-| Tornjak    | `1.0.x`            |
 | Helm       | `3.x`              |
 
 ## Tornjak
