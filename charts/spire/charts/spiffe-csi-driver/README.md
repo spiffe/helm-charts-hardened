@@ -4,11 +4,7 @@
 
 A Helm chart to install the SPIFFE CSI driver.
 
-**Homepage:** <https://github.com/spiffe/helm-charts/tree/main/charts/spire>
-
-> [!Note]
-> The recommended version is `0.2.3` to support arm64 nodes. If running with any
-> prior version to `0.2.3` you have to use a `nodeSelector` to limit to `kubernetes.io/arch: amd64`.
+**Homepage:** <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire>
 
 ## Maintainers
 
@@ -21,7 +17,7 @@ A Helm chart to install the SPIFFE CSI driver.
 
 ## Source Code
 
-* <https://github.com/spiffe/helm-charts/tree/main/charts/spire>
+* <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire>
 
 <!-- The parameters section is generated using helm-docs.sh and should not be edited by hand. -->
 
