@@ -4,12 +4,7 @@
 
 A Helm chart to install the SPIRE agent.
 
-**Homepage:** <https://github.com/spiffe/helm-charts/tree/main/charts/spire>
-
-> [!Note]
-> Minimum Spire version is `1.5.3`.
-> The recommended version is `1.6.0` to support arm64 nodes. If running with any
-> prior version to `1.6.0` you have to use a `nodeSelector` to limit to `kubernetes.io/arch: amd64`.
+**Homepage:** <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire>
 
 ## Maintainers
 
@@ -22,7 +17,7 @@ A Helm chart to install the SPIRE agent.
 
 ## Source Code
 
-* <https://github.com/spiffe/helm-charts/tree/main/charts/spire>
+* <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire>
 
 <!-- The parameters section is generated using helm-docs.sh and should not be edited by hand. -->
 
@@ -69,13 +64,13 @@ A Helm chart to install the SPIRE agent.
 | `waitForIt.image.repository`                      | The repository within the registry                                                                                  | `chainguard/wait-for-it`                                                         |
 | `waitForIt.image.pullPolicy`                      | The image pull policy                                                                                               | `IfNotPresent`                                                                   |
 | `waitForIt.image.version`                         | This value is deprecated in favor of tag. (Will be removed in a future release)                                     | `""`                                                                             |
-| `waitForIt.image.tag`                             | Overrides the image tag whose default is the chart appVersion                                                       | `latest@sha256:c58a76f9241187615ab081ec73db6aeea6939369fba995206343bd9fb1975378` |
+| `waitForIt.image.tag`                             | Overrides the image tag whose default is the chart appVersion                                                       | `latest@sha256:9118ef59ae1daf6cea53ce1c536d99f58018247c364d06e2abdb845877061c3e` |
 | `waitForIt.resources`                             | Resource requests and limits                                                                                        | `{}`                                                                             |
 | `fsGroupFix.image.registry`                       | The OCI registry to pull the image from                                                                             | `cgr.dev`                                                                        |
 | `fsGroupFix.image.repository`                     | The repository within the registry                                                                                  | `chainguard/bash`                                                                |
 | `fsGroupFix.image.pullPolicy`                     | The image pull policy                                                                                               | `Always`                                                                         |
 | `fsGroupFix.image.version`                        | This value is deprecated in favor of tag. (Will be removed in a future release)                                     | `""`                                                                             |
-| `fsGroupFix.image.tag`                            | Overrides the image tag whose default is the chart appVersion                                                       | `latest@sha256:3d077aae77eb552abd85a015d087047a7a7353d974e5f7fc6a402180c1501214` |
+| `fsGroupFix.image.tag`                            | Overrides the image tag whose default is the chart appVersion                                                       | `latest@sha256:60ccbc708bc17803b8253a1c4fdf61e9a68b55e6d0a8ae5735cc276ad4afa2d2` |
 | `fsGroupFix.resources`                            | Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/        | `{}`                                                                             |
 | `workloadAttestors.unix.enabled`                  | Enables the Unix workload attestor                                                                                  | `false`                                                                          |
 | `workloadAttestors.k8s.enabled`                   | Enables the Kubernetes workload attestor                                                                            | `true`                                                                           |

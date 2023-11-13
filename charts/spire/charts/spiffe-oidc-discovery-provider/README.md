@@ -4,12 +4,7 @@
 
 A Helm chart to install the SPIFFE OIDC discovery provider.
 
-**Homepage:** <https://github.com/spiffe/helm-charts/tree/main/charts/spire>
-
-> [!Note]
-> Minimum Spire version is `1.5.3`.
-> The recommended version is `1.6.0` to support arm64 nodes. If running with any
-> prior version to `1.6.0` you have to use a `nodeSelector` to limit to `kubernetes.io/arch: amd64`.
+**Homepage:** <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire>
 
 ## Maintainers
 
@@ -22,7 +17,7 @@ A Helm chart to install the SPIFFE OIDC discovery provider.
 
 ## Source Code
 
-* <https://github.com/spiffe/helm-charts/tree/main/charts/spire>
+* <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire>
 
 <!-- The parameters section is generated using helm-docs.sh and should not be edited by hand. -->
 
@@ -110,12 +105,12 @@ A Helm chart to install the SPIFFE OIDC discovery provider.
 | `tests.bash.image.repository`                         | The repository within the registry                                                                                                                                                                                                     | `chainguard/bash`                                                                |
 | `tests.bash.image.pullPolicy`                         | The image pull policy                                                                                                                                                                                                                  | `IfNotPresent`                                                                   |
 | `tests.bash.image.version`                            | This value is deprecated in favor of tag. (Will be removed in a future release)                                                                                                                                                        | `""`                                                                             |
-| `tests.bash.image.tag`                                | Overrides the image tag whose default is the chart appVersion                                                                                                                                                                          | `latest@sha256:3d077aae77eb552abd85a015d087047a7a7353d974e5f7fc6a402180c1501214` |
+| `tests.bash.image.tag`                                | Overrides the image tag whose default is the chart appVersion                                                                                                                                                                          | `latest@sha256:60ccbc708bc17803b8253a1c4fdf61e9a68b55e6d0a8ae5735cc276ad4afa2d2` |
 | `tests.toolkit.image.registry`                        | The OCI registry to pull the image from                                                                                                                                                                                                | `cgr.dev`                                                                        |
 | `tests.toolkit.image.repository`                      | The repository within the registry                                                                                                                                                                                                     | `chainguard/slim-toolkit-debug`                                                  |
 | `tests.toolkit.image.pullPolicy`                      | The image pull policy                                                                                                                                                                                                                  | `IfNotPresent`                                                                   |
 | `tests.toolkit.image.version`                         | This value is deprecated in favor of tag. (Will be removed in a future release)                                                                                                                                                        | `""`                                                                             |
-| `tests.toolkit.image.tag`                             | Overrides the image tag whose default is the chart appVersion                                                                                                                                                                          | `latest@sha256:d1fc4d296994f28d7e0264c933a12ba75c9a80478ff1eb4b6f692bb91a073a4c` |
+| `tests.toolkit.image.tag`                             | Overrides the image tag whose default is the chart appVersion                                                                                                                                                                          | `latest@sha256:4a924b13ecb3ad270ed47687d8ea36d39a9a4fe660bac0db31bd0fee00fbc803` |
 | `tests.busybox.image.registry`                        | The OCI registry to pull the image from                                                                                                                                                                                                | `""`                                                                             |
 | `tests.busybox.image.repository`                      | The repository within the registry                                                                                                                                                                                                     | `busybox`                                                                        |
 | `tests.busybox.image.pullPolicy`                      | The image pull policy                                                                                                                                                                                                                  | `IfNotPresent`                                                                   |

@@ -6,7 +6,7 @@
 ##
 ## Usage example(s):
 ##
-##   ./__PROG__ --chart spire --current-version 0.3.0 --new-version 0.4.0
+##   ./__PROG__ --chart spire --current-version 0.15.1 --new-version 0.16.0
 ##
 ## Options:
 ##    --help                  Show this help message
@@ -105,7 +105,7 @@ branch_name="bump-${chart}-version"
 git checkout main
 git pull
 git checkout --track -B "${branch_name}" main
-commits_since_previous_release="$(git log "${chart}-${current_version}..HEAD" --pretty=format:'* %h %s')"
+commits_since_previous_release="$(git log "${chart}-${current_version}..HEAD" --pretty=format:'* %h %s' "charts/${chart}")"
 "${SED}" -i "s/version: ${current_version}/version: ${new_version}/" "charts/${chart}/Chart.yaml"
 "${SED}" -i "s/${current_version}/${new_version}/" "charts/${chart}/README.md"
 git add "charts/${chart}/"{Chart.yaml,README.md}
@@ -129,7 +129,7 @@ Please review the below changelog to ensure this matches up with the semantic ve
 > git push
 > \`\`\`
 
-**Changes in this release**
+## Changes in this release
 
 ${commits_since_previous_release}
 EOF

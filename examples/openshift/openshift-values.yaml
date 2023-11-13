@@ -10,7 +10,6 @@ spire-server:
       registry: ghcr.io
       repository: spiffe/tornjak-backend
       tag: ubi-v1.4.1
-
   nodeAttestor:
     k8sPsat:
       serviceAccountAllowList: ["spire-system:spire-agent"]
