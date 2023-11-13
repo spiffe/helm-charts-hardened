@@ -2,7 +2,7 @@ digraph G {
   subgraph cluster_baremetal {
      label="(Bare Metal|Virtual) Node"
     spireDownstreamAgent3 [label="Downstream Spire Agent"];
-    userWorkload3 [label="Externalr User Workload"];
+    userWorkload3 [label="External User Workload"];
   }
   subgraph cluster_k8s {
     label="Cluster: K8S";
