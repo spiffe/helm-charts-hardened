@@ -63,3 +63,8 @@ test-example-%:
 
 .PHONY: test-examples
 test-examples: $(patsubst examples/%/values.yaml,test-example-%,$(wildcard examples/*/values.yaml)) ## Run `helm install` and `helm test` for all the examples containing `run-tests.sh`
+
+.PHONY: diagrams
+diagrams: ## Builds diagrams
+	@dot -Tpng examples/nested/singlehardened.dot > examples/nested/singlehardened.png
+	@dot -Tpng examples/nested/multicluster.dot > examples/nested/multicluster.png
