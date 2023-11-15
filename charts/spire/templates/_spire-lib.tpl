@@ -243,3 +243,55 @@ to merge in values, but spire needs arrays.
 {{- $_ := set $config "plugins" $plugins }}
 {{- $config | toPrettyJson }}
 {{- end }}
+
+{{- define "spire-lib.default_node_priority_class_name" }}
+{{- if .Values.priorityClassName }}
+priorityClassName: {{ .Values.priorityClassName }}
+{{- else if (dig "spire" "useRecommended" "priorityClasses" false .Values.global) }}
+priorityClassName: system-node-critical
+{{- end }}
+{{- end }}
+
+{{- define "spire-lib.default_cluster_priority_class_name" }}
+{{- if .Values.priorityClassName }}
+priorityClassName: {{ .Values.priorityClassName }}
+{{- else if (dig "spire" "useRecommended" "priorityClasses" false .Values.global) }}
+priorityClassName: system-cluster-critical
+{{- end }}
+{{- end }}
+
+{{- define "spire-lib.default_securitycontext_values" }}
+allowPrivilegeEscalation: false
+runAsNonRoot: true
+readOnlyRootFilesystem: true
+capabilities:
+  drop: [ALL]
+seccompProfile:
+  type: RuntimeDefault
+{{- end }}
+
+{{- define "spire-lib.securitycontext" }}
+{{- if (dig "spire" "useRecommended" "securityContexts" false .Values.global) }}
+{{- $vals := deepCopy (include "spire-lib.default_securitycontext_values" . | fromYaml) }}
+{{- $vals = mergeOverwrite $vals .Values.securityContext }}
+{{- toYaml $vals }}
+{{- else }}
+{{- toYaml .Values.securityContext }}
+{{- end }}
+{{- end }}
+
+{{/*
+Note: Values not needed on openshift due to it autoassigning restricted users
+*/}}
+{{- define "spire-lib.podsecuritycontext" }}
+{{- $vals := dict "fsGroupChangePolicy" "OnRootMismatch" }}
+{{- if not (dig "openshift" false .Values.global) }}
+{{- $_ := set $vals "runAsUser" "1000" }}
+{{- $_ := set $vals "runAsGroup" "1000" }}
+{{- $_ := set $vals "fsGroup" "1000" }}
+{{- $vals = mergeOverwrite $vals .Values.podSecurityContext }}
+{{- toYaml $vals }}
+{{- else }}
+{{- toYaml .Values.podSecurityContext }}
+{{- end }}
+{{- end }}

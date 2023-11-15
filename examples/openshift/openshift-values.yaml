@@ -16,17 +16,8 @@ spire-server:
   notifier:
     k8sbundle:
       namespace: spire-system
-  podSecurityContext:
-    # These are unset so that openshift can automatically assign its own restricted uids to the pods
-    runAsUser: null
-    runAsGroup: null
-    fsGroup: null
 
 spire-agent:
-  podSecurityContext:
-    runAsUser: null
-    runAsGroup: null
-    fsGroup: null
   # Talk from the agent to kubelet based on hostname instead of localhost
   extraEnvVars:
     - name: MY_NODE_NAME
@@ -34,28 +25,12 @@ spire-agent:
         fieldRef:
           fieldPath: spec.nodeName
 
-upstream-spire-agent:
-  podSecurityContext:
-    runAsUser: null
-    runAsGroup: null
-    fsGroup: null
-
-spiffe-oidc-discovery-provider:
-  podSecurityContext:
-    runAsUser: null
-    runAsGroup: null
-    fsGroup: null
-
 tornjak-frontend:
   workingDir: /opt/app-root/src
   image:
     registry: ghcr.io
     repository: spiffe/tornjak-frontend
     tag: ubi-v1.4.1
-  podSecurityContext:
-    runAsUser: null
-    runAsGroup: null
-    fsGroup: null
 
 spiffe-csi-driver:
   csiDriverLabels:
