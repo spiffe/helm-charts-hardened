@@ -286,9 +286,9 @@ Note: Values not needed on openshift due to it autoassigning restricted users
 {{- define "spire-lib.podsecuritycontext" }}
 {{- $vals := dict "fsGroupChangePolicy" "OnRootMismatch" }}
 {{- if not (dig "openshift" false .Values.global) }}
-{{- $_ := set $vals "runAsUser" "1000" }}
-{{- $_ := set $vals "runAsGroup" "1000" }}
-{{- $_ := set $vals "fsGroup" "1000" }}
+{{- $_ := set $vals "runAsUser" 1000 }}
+{{- $_ := set $vals "runAsGroup" 1000 }}
+{{- $_ := set $vals "fsGroup" 1000 }}
 {{- $vals = mergeOverwrite $vals .Values.podSecurityContext }}
 {{- toYaml $vals }}
 {{- else }}
