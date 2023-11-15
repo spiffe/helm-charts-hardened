@@ -15,13 +15,13 @@ users:
   - system:serviceaccount:{{ include "spiffe-oidc-discovery-provider.namespace" . }}:{{ include "spiffe-oidc-discovery-provider.serviceAccountName" . }}-pre-delete
 volumes:
   - configMap
+  - csi
+  - downwardAPI
+  - emptyDir
+  - ephemeral
   - hostPath
   - projected
   - secret
-  - ephemeral
-  - downwardAPI
-  - csi
-  - emptyDir
 allowHostDirVolumePlugin: true
 allowHostIPC: true
 allowHostNetwork: true
