@@ -1,76 +1,72 @@
 {{- $root := . }}
-{{- with .Values.controllerManager }}
-{{- if and (eq (.enabled | toString) "true") (eq (.identities.enabled | toString) "true") }}
-apiVersion: spire.spiffe.io/v1alpha1
-kind: ClusterSPIFFEID
-metadata:
-  name: {{ $root.Release.Namespace }}-{{ include "spire-controller-manager.fullname" $root }}-service-account-based
-  namespace: {{ include "spire-server.namespace" $root }}
-spec:
-  spiffeIDTemplate: {{ .identities.spiffeIDTemplate | quote }}
-  {{- with .identities.federatesWith }}
-  federatesWith:
-  {{- toYaml . | nindent 4 }}
-  {{- end }}
-  {{- with .identities.podSelector }}
-  podSelector:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-  {{- with .identities.namespaceSelector }}
-  namespaceSelector:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-  {{- with .identities.dnsNameTemplates }}
-  dnsNameTemplates:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-  {{- with .identities.workloadSelectorTemplates }}
-  workloadTSelectoremplates:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-  {{- with .identities.ttl }}
-  ttl: {{ . | quote }}
-  {{- end }}
-  {{- with .identities.jwtTTL }}
-  jwtTtl: {{ . | quote }}
-  {{- end }}
-  admin: {{ .identities.admin }}
-  downstream: {{ .identities.downstream }}
-  autoPopulateDNSNames: {{ .identities.autoPopulateDNSNames }}
-  className: {{ include "spire-server.controller-manager-class-name" $root | quote}}
-{{- end }}
-{{- range $key, $value := .extraCRs.clusterSPIFFEIDs }}
-{{-   range $mkey, $mvalue := $value.metadata }}
-{{-     if not (has $mkey (list "labels" "annotations")) }}
-{{-       fail (printf "Unsupported metadata property specified: %s" $mkey) }}
-{{-     end }}
-{{-   end }}
-{{-   range $skey, $svalue := $value.spec }}
-{{-     if not (has $skey (list "admin" "dnsNameTemplates" "downstream" "federatesWith" "jwtTtl" "namespaceSelector" "podSelector" "spiffeIDTemplate" "ttl" "workloadSelectorTemplates")) }}
-{{-       fail (printf "Unsupported metadata property specified: %s" $skey) }}
+{{- range $key, $value := .Values.controllerManager.identities.clusterSPIFFEIDs }}
+{{-   range $skey, $svalue := $value }}
+{{-     if not (has $skey (list "name" "annotations" "labels" "enabled" "admin" "dnsNameTemplates" "downstream" "federatesWith" "jwtTTL" "namespaceSelector" "podSelector" "spiffeIDTemplate" "ttl" "workloadSelectorTemplates" "autoPopulateDNSNames")) }}
+{{-       fail (printf "Unsupported property specified: %s" $skey) }}
 {{-     end }}
 {{-   end }}
 {{-   range $rprop := list "spiffeIDTemplate" }}
-{{-     if not (hasKey $value.spec $rprop) }}
+{{-     if not (hasKey $value $rprop) }}
 {{-       fail (printf "Required property %s was not specified" $rprop) }}
 {{-     end }}
 {{-   end }}
+{{-   if eq ($root.Values.controllerManager.enabled | toString) "true" }}
+{{-     if or (not (hasKey $value "enabled")) (eq ($value.enabled | toString) "true") }}
 ---
 apiVersion: spire.spiffe.io/v1alpha1
 kind: ClusterSPIFFEID
 metadata:
-  {{- if ($value.metadata).name }}
-  name: {{ $value.metadata.name }}
+  {{- if $value.name }}
+  name: {{ $value.name }}
   {{- else }}
-  name: {{ $root.Release.Namespace }}-{{ include "spire-controller-manager.fullname" $root }}-{{ $key }}
+  name: {{ $root.Release.Namespace }}-{{ $root.Release.Name }}-{{ $key }}
   {{- end }}
-  {{- with $value.metadata }}
-  {{- toYaml . | nindent 2 }}
+  {{- with $value.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $value.labels }}
+  labels:
+    {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
   className: {{ include "spire-server.controller-manager-class-name" $root | quote }}
-  {{- with $value.spec }}
-  {{- toYaml . | nindent 2 }}
+  spiffeIDTemplate: {{ $value.spiffeIDTemplate | quote }}
+  {{- with $value.federatesWith }}
+  federatesWith:
+  {{- toYaml . | nindent 4 }}
   {{- end }}
-{{- end }}
+  {{- with $value.podSelector }}
+  podSelector:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $value.namespaceSelector }}
+  namespaceSelector:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $value.dnsNameTemplates }}
+  dnsNameTemplates:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $value.workloadSelectorTemplates }}
+  workloadTSelectoremplates:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $value.ttl }}
+  ttl: {{ . | quote }}
+  {{- end }}
+  {{- with $value.jwtTTL }}
+  jwtTtl: {{ . | quote }}
+  {{- end }}
+  {{- with $value.admin }}
+  admin: {{ . }}
+  {{- end }}
+  {{- with $value.downstream }}
+  downstream: {{ . }}
+  {{- end }}
+  {{- with $value.autoPopulateDNSNames }}
+  autoPopulateDNSNames: {{ . }}
+  {{- end }}
+{{-     end }}
+{{-   end }}
 {{- end }}

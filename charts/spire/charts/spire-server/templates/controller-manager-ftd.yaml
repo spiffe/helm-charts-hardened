@@ -1,37 +1,49 @@
 {{- $root := . }}
-{{- with .Values.controllerManager }}
-{{- range $key, $value := .extraCRs.clusterFederatedTrustDomains }}
-{{-   range $mkey, $mvalue := $value.metadata }}
-{{-     if not (has $mkey (list "labels" "annotations")) }}
-{{-       fail (printf "Unsupported metadata property specified: %s" $mkey) }}
-{{-     end }}
-{{-   end }}
-{{-   range $skey, $svalue := $value.spec }}
-{{-     if not (has $skey (list "bundleEndpointProfile" "bundleEndpointURL" "trustDomain" "trustDomainBundle")) }}
-{{-       fail (printf "Unsupported metadata property specified: %s" $skey) }}
+{{- range $key, $value := .Values.controllerManager.identities.clusterFederatedTrustDomains }}
+{{-   range $skey, $svalue := $value }}
+{{-     if not (has $skey (list "name" "annotations" "labels" "enabled" "bundleEndpointProfile" "bundleEndpointURL" "trustDomain" "trustDomainBundle")) }}
+{{-       fail (printf "Unsupported property specified: %s" $skey) }}
 {{-     end }}
 {{-   end }}
 {{-   range $rprop := list "bundleEndpointProfile" "bundleEndpointURL" "trustDomain" }}
-{{-     if not (hasKey $value.spec $rprop) }}
+{{-     if not (hasKey $value $rprop) }}
 {{-       fail (printf "Required property %s was not specified" $rprop) }}
 {{-     end }}
 {{-   end }}
+{{-   if eq ($root.Values.controllerManager.enabled | toString) "true" }}
+{{-     if or (not (hasKey $value "enabled")) (eq ($value.enabled | toString) "true") }}
 ---
 apiVersion: spire.spiffe.io/v1alpha1
 kind: ClusterFederatedTrustDomain
 metadata:
-  {{- if ($value.metadata).name }}
-  name: {{ $value.metadata.name }}
+  {{- if $value.name }}
+  name: {{ $value.name }}
   {{- else }}
-  name: {{ $root.Release.Namespace }}-{{ include "spire-controller-manager.fullname" $root }}-{{ $key }}
+  name: {{ $root.Release.Namespace }}-{{ $root.Release.Name }}-{{ $key }}
   {{- end }}
-  {{- with $value.metadata }}
-  {{- toYaml . | nindent 2 }}
+  {{- with $value.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $value.labels }}
+  labels:
+    {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
   className: {{ include "spire-server.controller-manager-class-name" $root | quote }}
-  {{- with $value.spec }}
-  {{- toYaml . | nindent 2 }}
+  {{- with $value.bundleEndpointProfile }}
+  bundleEndpointProfile:
+    {{- toYaml . | nindent 4 }}
   {{- end }}
-{{- end }}
+  {{- with $value.bundleEndpointURL }}
+  bundleEndpointURL: {{ . | quote }}
+  {{- end }}
+  {{- with $value.trustDomain }}
+  trustDomain: {{ . | quote }}
+  {{- end }}
+  {{- with $value.trustDomainBundle }}
+  trustDomainBundle: {{ . | quote }}
+  {{- end }}
+{{-     end }}
+{{-   end }}
 {{- end }}
