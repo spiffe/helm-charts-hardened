@@ -49,8 +49,3 @@ spiffe-oidc-discovery-provider:
     additionalDomains: []
   insecureScheme:
     enabled: true
-
-tornjak-frontend:
-  securityContext:
-    #FIXME this should work with true...
-    readOnlyRootFilesystem: false
