@@ -271,12 +271,20 @@ seccompProfile:
 {{- end }}
 
 {{- define "spire-lib.securitycontext" }}
-{{- if (dig "spire" "useRecommended" "securityContexts" false .Values.global) }}
-{{- $vals := deepCopy (include "spire-lib.default_securitycontext_values" . | fromYaml) }}
-{{- $vals = mergeOverwrite $vals .Values.securityContext }}
+{{ include "spire-lib.securitycontext-extended" (dict "root" . "securityContext" .Values.securityContext) }}
+{{- end }}
+
+{{/* Same as securitycontext but takes in:
+root - global . context for the chart
+securityContext - the subbranch of values that contains the securityContext to merge
+*/}}
+{{- define "spire-lib.securitycontext-extended" }}
+{{- if (dig "spire" "useRecommended" "securityContexts" false .root.Values.global) }}
+{{- $vals := deepCopy (include "spire-lib.default_securitycontext_values" .root | fromYaml) }}
+{{- $vals = mergeOverwrite $vals .securityContext }}
 {{- toYaml $vals }}
 {{- else }}
-{{- toYaml .Values.securityContext }}
+{{- toYaml .securityContext }}
 {{- end }}
 {{- end }}
 

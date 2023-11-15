@@ -187,7 +187,7 @@ spec:
         {{- if eq (.Values.controllerManager.enabled | toString) "true" }}
         - name: spire-controller-manager
           securityContext:
-            {{- toYaml .Values.controllerManager.securityContext | nindent 12 }}
+            {{- include "spire-lib.securitycontext-extended" (dict "root" . "securityContext" .Values.controllerManager.securityContext) | nindent 12 }}
           image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.controllerManager.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.controllerManager.image.pullPolicy }}
           args:
@@ -228,7 +228,7 @@ spec:
         {{- if eq (.Values.tornjak.enabled | toString) "true" }}
         - name: tornjak
           securityContext:
-            {{- toYaml .Values.controllerManager.securityContext | nindent 12 }}
+            {{- include "spire-lib.securitycontext-extended" (dict "root" . "securityContext" .Values.tornjak.securityContext) | nindent 12 }}
           image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.tornjak.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.tornjak.image.pullPolicy }}
           {{- if eq (include "spire-tornjak.connectionType" .) "http" }}
