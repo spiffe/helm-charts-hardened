@@ -10,13 +10,10 @@ global:
       namespaces: true
 
 spire-server:
-  #FIXME auto namespace serviceAccountAllowList and k8sbundle too
+  #FIXME auto namespace serviceAccountAllowList
   nodeAttestor:
     k8sPsat:
       serviceAccountAllowList: ["spire-system:spire-agent"]
-  notifier:
-    k8sbundle:
-      namespace: spire-system
   logLevel: info
 
   controllerManager:
