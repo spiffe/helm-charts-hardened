@@ -40,6 +40,20 @@ Allow the release namespace to be overridden for multi-namespace deployments in 
   {{- end -}}
 {{- end -}}
 
+{{- define "spire-server.agent-namespace" -}}
+  {{- if .Values.namespaceOverride -}}
+    {{- .Values.namespaceOverride -}}
+  {{- else if (dig "spire" "useRecommended" "namespaces" false .Values.global) }}
+    {{- if ne (len (dig "spire" "namespaces" "system" "name" "" .Values.global)) 0 }}
+      {{- .Values.global.spire.namespaces.system.name }}
+    {{- else }}
+      {{- printf "spire-system" }}
+    {{- end }}
+  {{- else -}}
+    {{- .Release.Namespace -}}
+  {{- end -}}
+{{- end -}}
+
 {{- define "spire-server.bundle-namespace" -}}
   {{- if .Values.notifier.k8sbundle.namespace }}
     {{- .Values.notifier.k8sbundle.namespace }}
@@ -123,7 +137,7 @@ Create the name of the service account to use
 {{- if ne (len .Values.nodeAttestor.k8sPsat.serviceAccountAllowList) 0 }}
 {{- .Values.nodeAttestor.k8sPsat.serviceAccountAllowList | toJson }}
 {{- else }}
-[{{ printf "%s:%s-agent" .Release.Namespace .Release.Name | quote }}]
+[{{ printf "%s:%s-agent" (include "spire-server.agent-namespace" .) .Release.Name | quote }}]
 {{- end }}
 {{- end }}
 

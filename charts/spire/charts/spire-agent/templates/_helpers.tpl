@@ -95,11 +95,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Create the name of the service account to use
 */}}
 {{- define "spire-agent.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "spire-agent.fullname" .) .Values.serviceAccount.name }}
-{{- else }}
-{{- default "default" .Values.serviceAccount.name }}
-{{- end }}
+{{- default (printf "%s-agent" .Release.Name) .Values.serviceAccount.name }}
 {{- end }}
 
 {{- define "spire-agent.server-address" }}

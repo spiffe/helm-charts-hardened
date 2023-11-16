@@ -10,10 +10,6 @@ global:
       namespaces: true
 
 spire-server:
-  #FIXME auto namespace serviceAccountAllowList
-  nodeAttestor:
-    k8sPsat:
-      serviceAccountAllowList: ["spire-system:spire-agent"]
   logLevel: info
 
   controllerManager:
@@ -27,9 +23,6 @@ spiffe-csi-driver:
 
 spire-agent:
   enabled: true
-  #FIXME auto name serviceAccount name too when using recommended namespaces?
-  serviceAccount:
-    name: spire-agent
   logLevel: info
 
 upstream-spire-agent:
