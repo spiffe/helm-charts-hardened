@@ -25,7 +25,7 @@ spec:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   {{- with .identities.workloadSelectorTemplates }}
-  workloadTSelectoremplates:
+  workloadSelectorTemplates:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   {{- with .identities.ttl }}
