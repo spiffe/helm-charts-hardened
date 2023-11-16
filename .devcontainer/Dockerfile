@@ -63,6 +63,7 @@ RUN \
   git clone https://github.com/devcontainers/features && \
   cd features/src/docker-in-docker && \
   export MOBY=true && \
+  export INSTALLDOCKERBUILDX=false && \
   ./install.sh && \
   cd ../../../ && \
   rm -rf features
