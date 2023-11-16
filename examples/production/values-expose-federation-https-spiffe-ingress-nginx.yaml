@@ -1,0 +1,10 @@
+spire-server:
+  federation:
+    enabled: true
+    ingress:
+      enabled: true
+      controllerType: ingress-nginx
+      annotations:
+        nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+
+      # className: nginx

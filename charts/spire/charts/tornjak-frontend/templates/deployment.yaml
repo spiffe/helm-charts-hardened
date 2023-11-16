@@ -53,9 +53,9 @@ spec:
           {{- end }}
           volumeMounts:
             - name: cache
-              mountPath: /usr/src/app/node_modules/.cache
+              mountPath: {{ .Values.workingDir }}/node_modules/.cache
             - name: env
-              mountPath: /usr/src/app/build/tmp
+              mountPath: {{ .Values.workingDir }}/build/tmp
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

@@ -1,0 +1,8 @@
+spire-server:
+  tornjak:
+    ingress:
+      enabled: true
+
+tornjak-frontend:
+  ingress:
+    enabled: true

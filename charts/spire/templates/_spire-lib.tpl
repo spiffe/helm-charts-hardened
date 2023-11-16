@@ -17,8 +17,10 @@
 {{- define "spire-lib.jwt-issuer" }}
 {{- if ne (len (dig "spire" "jwtIssuer" "" .Values.global)) 0 }}
 {{- .Values.global.spire.jwtIssuer }}
-{{- else }}
+{{- else if ne (len .Values.jwtIssuer) 0 }}
 {{- .Values.jwtIssuer }}
+{{- else }}
+{{- printf "oidc-discovery.%s" (include "spire-lib.trust-domain" .) }}
 {{- end }}
 {{- end }}
 
@@ -62,16 +64,77 @@
 {{- end }}
 
 {{/* Takes in a dictionary with keys:
+ * global - the standard global object
+ * ingress - a standard format ingress config object
+*/}}
+{{- define "spire-lib.ingress-controller-type" }}
+{{-   $type := "" }}
+{{-   if ne (len (dig "spire" "ingressControllerType" "" .global)) 0 }}
+{{-     $type = .global.spire.ingressControllerType }}
+{{-   else if ne .ingress.controllerType "" }}
+{{-     $type = .ingress.controllerType }}
+{{-   else if (dig "openshift" false .global) }}
+{{-     $type = "openshift" }}
+{{-   else }}
+{{-     $type = "other" }}
+{{-   end }}
+{{-   if not (has $type (list "ingress-nginx" "openshift" "other")) }}
+{{-     fail "Unsupported ingress controller type specified. Must be one of [ingress-nginx, openshift, other]" }}
+{{-   end }}
+{{-   $type }}
+{{- end }}
+
+{{/* Takes in a dictionary with keys:
+ * ingress - the standardized ingress object
+ * Values - Chart values
+*/}}
+{{ define "spire-lib.ingress-calculated-name" }}
+{{- $host := .ingress.host }}
+{{- if not (contains $host ".") }}
+{{-   $host = printf "%s.%s" $host (include "spire-lib.trust-domain" .) }}
+{{- end }}
+{{- $host }}
+{{- end }}
+
+{{/* Takes in a dictionary with keys:
  * ingress - the standardized ingress object
  * svcName - The service to route to
  * port - which port on the service to use
+ * path - optional path to set on the rules
+ * pathType - typical ingress path type
+ * tlsSection - bool specifying to add by default the tls section to the ingress. Ingress-nginx needs true, openshift needs false.
+ * Values - Chart values
 */}}
 {{ define "spire-lib.ingress-spec" }}
+{{- $host := include "spire-lib.ingress-calculated-name" . }}
 {{- $svcName := .svcName }}
 {{- $port := .port }}
 {{- with .ingress.className }}
 ingressClassName: {{ . | quote }}
 {{- end }}
+{{- if eq (add (len .ingress.tls) (len .ingress.hosts)) 0 }}
+{{ if or .tlsSection .ingress.tlsSecret }}
+tls:
+  - hosts:
+      - {{ $host | quote }}
+{{- with .ingress.tlsSecret }}
+    secretName: {{ . | quote }}
+{{- end }}
+{{- end }}
+rules:
+  - host: {{ $host | quote }}
+    http:
+      paths:
+        - pathType: {{ .pathType }}
+          {{- with .path }}
+          path: {{ . }}
+          {{- end }}
+          backend:
+            service:
+              name: {{ $svcName | quote }}
+              port:
+                number: {{ $port }}
+{{- else }}
 {{- if .ingress.tls }}
 tls:
   {{- range .ingress.tls }}
@@ -97,6 +160,7 @@ rules:
                 number: {{ $port }}
         {{- end }}
   {{- end }}
+{{- end }}
 {{- end }}
 
 {{- define "spire-lib.kubectl-image" }}

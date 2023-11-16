@@ -41,6 +41,10 @@ spec:
                   access the SPIRE administrative APIs. Extra care should be taken
                   to only apply this SPIFFE ID to admin workloads.
                 type: boolean
+              autoPopulateDNSNames:
+                description: AutoPopulateDNSNames indicates whether or not to auto
+                  populate service DNS names.
+                type: boolean
               dnsNameTemplates:
                 description: DNSNameTemplate represents templates for extra DNS names
                   that are applicable to SVIDs minted for this ClusterSPIFFEID. The
@@ -53,6 +57,9 @@ spec:
                 description: Downstream indicates that the entry describes a downstream
                   SPIRE server.
                 type: boolean
+              className:
+                description: Set the class of controller to handle this object.
+                type: string
               federatesWith:
                 description: FederatesWith is a list of trust domain names that workloads
                   that obtain this SPIFFE ID will federate with.
@@ -224,3 +231,9 @@ spec:
     storage: true
     subresources:
       status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
