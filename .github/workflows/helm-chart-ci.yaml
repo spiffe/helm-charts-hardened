@@ -284,3 +284,36 @@ jobs:
 
       - name: Install and test example
         run: examples/production/run-tests.sh -u
+
+#FIXME known wrong place. but testing...
+  publish-images:
+    runs-on: ubuntu-20.04
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
+
+    env:
+      COSIGN_EXPERIMENTAL: 1
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - name: Install cosign
+        uses: sigstore/cosign-installer@1fc5bd396d372bee37d608f955b336615edf79c8 # v3.2.0
+        with:
+          cosign-release: v1.13.1
+      - name: Install regctl
+        uses: regclient/actions/regctl-installer@b6614f5f56245066b533343a85f4109bdc38c8cc # main
+      - name: Log in to GHCR
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build / Push images
+        run: |
+          set -e
+          cd .devcontainer/
+          docker build -t ghcr.io/spiffe/helm-charts-hardened-devcontainer:latest .
+          docker push ghcr.io/spiffe/helm-charts-hardened-devcontainer:latest
