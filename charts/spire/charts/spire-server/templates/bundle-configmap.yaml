@@ -1,9 +1,9 @@
-{{- $namespace := include "spire-server.namespace" . }}
+{{- $namespace := include "spire-server.bundle-namespace" . }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ include "spire-lib.bundle-configmap" . }}
-  namespace: {{ .Values.notifier.k8sbundle.namespace | default $namespace }}
+  namespace: {{ $namespace }}
   {{- with .Values.configMap.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}

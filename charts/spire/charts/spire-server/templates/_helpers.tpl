@@ -40,6 +40,22 @@ Allow the release namespace to be overridden for multi-namespace deployments in 
   {{- end -}}
 {{- end -}}
 
+{{- define "spire-server.bundle-namespace" -}}
+  {{- if .Values.notifier.k8sbundle.namespace }}
+    {{- .Values.notifier.k8sbundle.namespace }}
+  {{- else if .Values.namespaceOverride -}}
+    {{- .Values.namespaceOverride -}}
+  {{- else if (dig "spire" "useRecommended" "namespaces" false .Values.global) }}
+    {{- if ne (len (dig "spire" "namespaces" "system" "name" "" .Values.global)) 0 }}
+      {{- .Values.global.spire.namespaces.system.name }}
+    {{- else }}
+      {{- printf "spire-system" }}
+    {{- end }}
+  {{- else -}}
+    {{- .Release.Namespace -}}
+  {{- end -}}
+{{- end -}}
+
 {{- define "spire-server.podMonitor.namespace" -}}
   {{- if ne (len .Values.telemetry.prometheus.podMonitor.namespace) 0 }}
     {{- .Values.telemetry.prometheus.podMonitor.namespace }}
