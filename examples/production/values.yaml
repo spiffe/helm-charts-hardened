@@ -124,7 +124,7 @@ tornjak-frontend:
   securityContext:
     allowPrivilegeEscalation: false
     runAsNonRoot: true
-    readOnlyRootFilesystem: false
+    readOnlyRootFilesystem: true 
     capabilities:
       drop: [ALL]
     seccompProfile:
