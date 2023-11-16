@@ -15,7 +15,7 @@ Next, edit values.yaml with your settings. Check it into your git repo if using 
 Then, deploy the chart pointing at your postgresql instance like so:
 
 ```shell
-helm upgrade --install --namespace spire-server spire charts/spire -f values.yaml --set "spire-server.dataStore.sql.password=${DBPW}"
+helm upgrade --install --namespace spire-server spire charts/spire -f examples/external-postgresql/values.yaml --set "spire-server.dataStore.sql.password=${DBPW}"
 
 ```
 
