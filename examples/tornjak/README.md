@@ -12,11 +12,11 @@ kubectl create namespace "spire-server"
 kubectl label namespace "spire-server" pod-security.kubernetes.io/enforce=restricted
 
 # deploy SPIRE with Tornjak enabled
-helm upgrade --install --namespace spire-server \
-  --values ../production/values.yaml \
-  --values ./values.yaml \
-  --render-subchart-notes \
-  spire ../../charts/spire
+helm upgrade --install --namespace spire-server spire charts/spire \
+--values examples/production/values.yaml \
+--values examples/tornjak/values.yaml \
+--render-subchart-notes
+
 
 # test the Tornjak deployment
 helm test spire -n spire-server
