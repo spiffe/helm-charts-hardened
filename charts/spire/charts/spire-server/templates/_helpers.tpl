@@ -29,6 +29,12 @@ Allow the release namespace to be overridden for multi-namespace deployments in 
 {{- define "spire-server.namespace" -}}
   {{- if .Values.namespaceOverride -}}
     {{- .Values.namespaceOverride -}}
+  {{- else if (dig "spire" "useRecommended" "namespaces" false .Values.global) }}
+    {{- if ne (len (dig "spire" "namespaces" "server" "name" "" .Values.global)) 0 }}
+      {{- .Values.global.spire.namespaces.server.name }}
+    {{- else }}
+      {{- printf "spire-server" }}
+    {{- end }}
   {{- else -}}
     {{- .Release.Namespace -}}
   {{- end -}}

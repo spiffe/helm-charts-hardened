@@ -29,6 +29,12 @@ Allow the release namespace to be overridden for multi-namespace deployments in 
 {{- define "spiffe-csi-driver.namespace" -}}
   {{- if .Values.namespaceOverride -}}
     {{- .Values.namespaceOverride -}}
+  {{- else if (dig "spire" "useRecommended" "namespaces" false .Values.global) }}
+    {{- if ne (len (dig "spire" "namespaces" "system" "name" "" .Values.global)) 0 }}
+      {{- .Values.global.spire.namespaces.system.name }}
+    {{- else }}
+      {{- printf "spire-system" }}
+    {{- end }}
   {{- else -}}
     {{- .Release.Namespace -}}
   {{- end -}}

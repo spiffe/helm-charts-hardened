@@ -7,8 +7,10 @@ global:
     useRecommended:
       securityContexts: true
       priorityClasses: true
+      namespaces: true
 
 spire-server:
+  #FIXME auto namespace serviceAccountAllowList and k8sbundle too
   nodeAttestor:
     k8sPsat:
       serviceAccountAllowList: ["spire-system:spire-agent"]
@@ -25,22 +27,15 @@ spire-server:
 
 spiffe-csi-driver:
   enabled: true
-  namespaceOverride: spire-system
-
-upstream-spiffe-csi-driver:
-  namespaceOverride: spire-system
 
 spire-agent:
   enabled: true
-  namespaceOverride: spire-system
+  #FIXME auto name serviceAccount name too when using recommended namespaces?
   serviceAccount:
     name: spire-agent
-  server:
-    namespaceOverride: spire-server
   logLevel: info
 
 upstream-spire-agent:
-  namespaceOverride: spire-system
   logLevel: info
 
 spiffe-oidc-discovery-provider:
