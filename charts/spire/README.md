@@ -34,7 +34,7 @@ For production installs, please see [the production example](https://github.com/
 
 ### 0.16.X
 
-The settings under "spire-server.controllerManager.identities" have all been moved under "spire-server.controllerManager.identities.clusterSPIFFEIDs.default". If you have changed any from the defaults, please update them to the new location during upgradey.
+The settings under "spire-server.controllerManager.identities" have all been moved under "spire-server.controllerManager.identities.clusterSPIFFEIDs.default". If you have changed any from the defaults, please update them to the new location during upgrade.
 
 ### 0.15.X
 
