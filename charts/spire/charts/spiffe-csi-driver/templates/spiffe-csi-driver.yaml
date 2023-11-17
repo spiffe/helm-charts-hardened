@@ -1,8 +1,13 @@
+{{- $labels := dict }}
+{{- if (dig "openshift" false .Values.global) }}
+{{- $_ := set $labels "security.openshift.io/csi-ephemeral-volume-profile" "restricted" }}
+{{- end }}
+{{- $labels = mergeOverwrite $labels .Values.csiDriverLabels }}
 apiVersion: storage.k8s.io/v1
 kind: CSIDriver
 metadata:
   name: {{ .Values.pluginName | quote }}
-  {{- with .Values.csiDriverLabels }}
+  {{- with $labels }}
   labels:
     {{- toYaml . | nindent 4 }}
   {{- end }}
