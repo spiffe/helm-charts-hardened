@@ -27,12 +27,6 @@ spire-agent:
     runAsUser: null
     runAsGroup: null
     fsGroup: null
-  # Talk from the agent to kubelet based on hostname instead of localhost
-  extraEnvVars:
-    - name: MY_NODE_NAME
-      valueFrom:
-        fieldRef:
-          fieldPath: spec.nodeName
 
 upstream-spire-agent:
   podSecurityContext:

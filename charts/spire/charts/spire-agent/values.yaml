@@ -198,6 +198,9 @@ telemetry:
       ## @param telemetry.prometheus.podMonitor.labels [object] Pod labels to filter for prometheus monitoring
       labels: {}
 
+## @param kubeletConnectByHostname If true, connect to kubelet using the nodes hostname. If false, uses localhost. If unset, defaults to true on OpenShift and false otherwise.
+kubeletConnectByHostname: ""
+
 ## @param socketPath The unix socket path to the spire-agent
 socketPath: /run/spire/agent-sockets/spire-agent.sock
 
