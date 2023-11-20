@@ -1,5 +1,5 @@
 {{- $configSum := (include (print $.Template.BasePath "/configmap.yaml") . | sha256sum) }}
-{{- $cbh := eq (include "spire-agent.connect_by_hostname" .) "true" }}
+{{- $cbh := eq (include "spire-agent.connect-by-hostname" .) "true" }}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
