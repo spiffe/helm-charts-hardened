@@ -52,8 +52,6 @@ tornjak-frontend:
     fsGroup: null
 
 spiffe-csi-driver:
-  csiDriverLabels:
-    security.openshift.io/csi-ephemeral-volume-profile: restricted
   initContainers:
     - terminationMessagePath: /dev/termination-log
       name: set-context
