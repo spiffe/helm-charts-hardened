@@ -134,7 +134,7 @@ waitForIt:
     repository: chainguard/wait-for-it
     pullPolicy: IfNotPresent
     version: ""
-    tag: latest@sha256:9118ef59ae1daf6cea53ce1c536d99f58018247c364d06e2abdb845877061c3e
+    tag: latest@sha256:ffab5a8d7b7da2d04f433d0321cc5c34d8aa53bd15dd54eb2e4cd9c0d3d3cf5e
 
   ## @param waitForIt.resources [object] Resource requests and limits
   resources: {}
@@ -153,7 +153,7 @@ fsGroupFix:
     repository: chainguard/bash
     pullPolicy: Always
     version: ""
-    tag: latest@sha256:60ccbc708bc17803b8253a1c4fdf61e9a68b55e6d0a8ae5735cc276ad4afa2d2
+    tag: latest@sha256:d8e08cda119684ca08dcfcebdd63cbf3d3ff7c4f8a8effca80b962dddd42438e
 
   ## @param fsGroupFix.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
@@ -197,6 +197,9 @@ telemetry:
       namespace: ""
       ## @param telemetry.prometheus.podMonitor.labels [object] Pod labels to filter for prometheus monitoring
       labels: {}
+
+## @param kubeletConnectByHostname If true, connect to kubelet using the nodes hostname. If false, uses localhost. If unset, defaults to true on OpenShift and false otherwise.
+kubeletConnectByHostname: ""
 
 ## @param socketPath The unix socket path to the spire-agent
 socketPath: /run/spire/agent-sockets/spire-agent.sock
