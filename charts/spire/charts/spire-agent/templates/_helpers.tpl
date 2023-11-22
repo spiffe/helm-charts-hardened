@@ -112,3 +112,16 @@ Create the name of the service account to use
 {{- print .Values.socketPath }}
 {{- end }}
 
+{{- define "spire-agent.connect-by-hostname" -}}
+{{-   if ne .Values.kubeletConnectByHostname "" }}
+{{-     if eq (.Values.kubeletConnectByHostname | toString) "true" }}
+{{-       printf "true" }}
+{{-     else }}
+{{-       printf "false" }}
+{{-     end }}
+{{-   else if (dig "openshift" false .Values.global) }}
+{{-     printf "true" }}
+{{-   else }}
+{{-     printf "false" }}
+{{-   end }}
+{{- end }}

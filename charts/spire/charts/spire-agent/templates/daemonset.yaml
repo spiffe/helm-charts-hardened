@@ -1,5 +1,6 @@
 {{- $configSum := (include (print $.Template.BasePath "/configmap.yaml") . | sha256sum) }}
 {{- $podSecurityContext := fromYaml (include "spire-lib.podsecuritycontext" .) }}
+{{- $cbh := eq (include "spire-agent.connect-by-hostname" .) "true" }}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -70,9 +71,17 @@ spec:
           image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args: ["-config", "/run/spire/config/agent.conf"]
-          {{- if gt (len .Values.extraEnvVars) 0 }}
+          {{- if or (gt (len .Values.extraEnvVars) 0) $cbh }}
           env:
-          {{- toYaml .Values.extraEnvVars | nindent 12 }}
+          {{- if $cbh }}
+            - name: MY_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          {{- end }}
+          {{- with .Values.extraEnvVars }}
+          {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- end }}
           ports:
             - containerPort: {{ .Values.healthChecks.port }}
