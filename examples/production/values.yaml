@@ -6,6 +6,3 @@ global:
     useRecommended:
       enabled: true
 
-spiffe-oidc-discovery-provider:
-  config:
-    additionalDomains: []
