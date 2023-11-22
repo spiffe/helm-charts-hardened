@@ -1,8 +1,5 @@
 global:
   openshift: true
-  telemetry:
-    prometheus:
-      enabled: true
 
 spire-server:
   tornjak:

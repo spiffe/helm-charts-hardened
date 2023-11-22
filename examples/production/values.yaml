@@ -3,30 +3,8 @@ global:
     prometheus:
       enabled: true
   spire:
-    strictMode: true
     useRecommended:
-      securityContexts: true
-      priorityClasses: true
-      namespaces: true
-
-spire-server:
-  logLevel: info
-
-  controllerManager:
-    ignoreNamespaces:
-      - kube-system
-      - kube-public
-      - local-path-storage
-
-spiffe-csi-driver:
-  enabled: true
-
-spire-agent:
-  enabled: true
-  logLevel: info
-
-upstream-spire-agent:
-  logLevel: info
+      enabled: true
 
 spiffe-oidc-discovery-provider:
   enabled: true

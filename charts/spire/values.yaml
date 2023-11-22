@@ -20,20 +20,21 @@ global:
     ## @param global.spire.upstreamServerAddress Set what address to use for the upstream server when using nested spire
     upstreamServerAddress: ""
 
+    ## @param global.spire.useRecommended.enabled Enable usage of the recommendations. Default is off.
     ## @param global.spire.useRecommended.securityContexts Set to true to use our recommendations for pod and container securityContexts
     ## @param global.spire.useRecommended.priorityClasses Set to true to use our recommendations for pod priority classes
     ## @param global.spire.useRecommended.namespaces Set to true to use our recommendations for installing across namespaces
+    ## @param global.spire.useRecommended.strictMode Check values, such as trustDomain, are overridden with a suitable value for production.
     useRecommended:
-      securityContexts: false
-      priorityClasses: false
-      namespaces: false
+      enabled: false
+      securityContexts: true
+      priorityClasses: true
+      namespaces: true
+      strictMode: true
 
     image:
       ## @param global.spire.image.registry Override all Spire image registries at once
       registry: ""
-
-    ## @param global.spire.strictMode Check values, such as trustDomain, are overridden with a suitable value for production.
-    strictMode: false
 
     ## @param global.spire.ingressControllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, autodetection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""].
     ingressControllerType: ""

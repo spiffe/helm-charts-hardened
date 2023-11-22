@@ -29,7 +29,7 @@ Allow the release namespace to be overridden for multi-namespace deployments in 
 {{- define "spire-agent.namespace" -}}
   {{- if .Values.namespaceOverride -}}
     {{- .Values.namespaceOverride -}}
-  {{- else if (dig "spire" "useRecommended" "namespaces" false .Values.global) }}
+  {{- else if and (dig "spire" "useRecommended" "enabled" false .Values.global) (dig "spire" "useRecommended" "namespaces" true .Values.global) }}
     {{- if ne (len (dig "spire" "namespaces" "system" "name" "" .Values.global)) 0 }}
       {{- .Values.global.spire.namespaces.system.name }}
     {{- else }}
@@ -43,7 +43,7 @@ Allow the release namespace to be overridden for multi-namespace deployments in 
 {{- define "spire-agent.server.namespace" -}}
   {{- if .Values.server.namespaceOverride -}}
     {{- .Values.server.namespaceOverride -}}
-  {{- else if (dig "spire" "useRecommended" "namespaces" false .Values.global) }}
+  {{- else if and (dig "spire" "useRecommended" "enabled" false .Values.global) (dig "spire" "useRecommended" "namespaces" true .Values.global) }}
     {{- if ne (len (dig "spire" "namespaces" "server" "name" "" .Values.global)) 0 }}
       {{- .Values.global.spire.namespaces.server.name }}
     {{- else }}
