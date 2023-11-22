@@ -17,14 +17,6 @@ spire-server:
     k8sbundle:
       namespace: spire-system
 
-spire-agent:
-  # Talk from the agent to kubelet based on hostname instead of localhost
-  extraEnvVars:
-    - name: MY_NODE_NAME
-      valueFrom:
-        fieldRef:
-          fieldPath: spec.nodeName
-
 tornjak-frontend:
   workingDir: /opt/app-root/src
   image:
@@ -33,8 +25,6 @@ tornjak-frontend:
     tag: ubi-v1.4.1
 
 spiffe-csi-driver:
-  csiDriverLabels:
-    security.openshift.io/csi-ephemeral-volume-profile: restricted
   initContainers:
     - terminationMessagePath: /dev/termination-log
       name: set-context
