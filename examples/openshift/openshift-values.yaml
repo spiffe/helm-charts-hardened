@@ -4,15 +4,11 @@ global:
 spire-server:
   tornjak:
     image:
-      registry: ghcr.io
-      repository: spiffe/tornjak-backend
       tag: ubi-v1.4.1
 
 tornjak-frontend:
   workingDir: /opt/app-root/src
   image:
-    registry: ghcr.io
-    repository: spiffe/tornjak-frontend
     tag: ubi-v1.4.1
 
 spiffe-csi-driver:
