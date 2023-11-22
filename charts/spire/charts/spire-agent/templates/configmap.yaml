@@ -86,7 +86,7 @@ health_checks:
   live_path: "/live"
   ready_path: "/ready"
 
-{{- if (dig "telemetry" "prometheus" "enabled" .Values.telemetry.prometheus.enabled .Values.global) }}
+{{- if or .Values.telemetry.prometheus.enabled (and (dig "spire" "useRecommended" "enabled" false .Values.global) (dig "spire" "useRecommended" "prometheus" true .Values.global)) }}
 telemetry:
   - Prometheus:
       - host: "0.0.0.0"

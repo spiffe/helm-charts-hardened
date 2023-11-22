@@ -25,12 +25,14 @@ global:
     ## @param global.spire.useRecommended.priorityClasses Set to true to use our recommendations for pod priority classes
     ## @param global.spire.useRecommended.namespaces Set to true to use our recommendations for installing across namespaces
     ## @param global.spire.useRecommended.strictMode Check values, such as trustDomain, are overridden with a suitable value for production.
+    ## @param global.spire.useRecommended.prometheus Enable prometheus exporters for monitoring
     useRecommended:
       enabled: false
       securityContexts: true
       priorityClasses: true
       namespaces: true
       strictMode: true
+      prometheus: true
 
     image:
       ## @param global.spire.image.registry Override all Spire image registries at once
@@ -48,7 +50,6 @@ global:
 
 #  telemetry:
 #    prometheus:
-#      enabled: true
 #      podMonitor:
 #        enabled: true
 #        # -- Allows to install the PodMonitor in another namespace then the spire components are installed into.

@@ -86,7 +86,7 @@ spec:
           ports:
             - containerPort: {{ .Values.healthChecks.port }}
               name: healthz
-            {{- if (dig "telemetry" "prometheus" "enabled" .Values.telemetry.prometheus.enabled .Values.global) }}
+            {{- if or .Values.telemetry.prometheus.enabled (and (dig "spire" "useRecommended" "enabled" false .Values.global) (dig "spire" "useRecommended" "prometheus" true .Values.global)) }}
             - containerPort: {{ .Values.telemetry.prometheus.port }}
               name: prom
             {{- end }}

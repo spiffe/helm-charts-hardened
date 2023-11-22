@@ -125,7 +125,7 @@ spec:
               protocol: TCP
             {{- end }}
             {{- end }}
-            {{- if (dig "telemetry" "prometheus" "enabled" .Values.telemetry.prometheus.enabled .Values.global) }}
+            {{- if or .Values.telemetry.prometheus.enabled (and (dig "spire" "useRecommended" "enabled" false .Values.global) (dig "spire" "useRecommended" "prometheus" true .Values.global)) }}
             - containerPort: 9988
               name: prom
             {{- end }}
@@ -198,7 +198,7 @@ spec:
               protocol: TCP
             - containerPort: 8083
               name: healthz
-            {{- if (dig "telemetry" "prometheus" "enabled" .Values.telemetry.prometheus.enabled .Values.global) }}
+            {{- if or .Values.telemetry.prometheus.enabled (and (dig "spire" "useRecommended" "enabled" false .Values.global) (dig "spire" "useRecommended" "prometheus" true .Values.global)) }}
             - containerPort: 8082
               name: prom2
             {{- end }}
