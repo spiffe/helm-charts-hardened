@@ -22,6 +22,9 @@ spire-server:
     k8sbundle:
       namespace: spire-system
 
+spiffe-oidc-discovery-provider:
+  enabled: false
+
 spire-agent:
   enabled: false
 

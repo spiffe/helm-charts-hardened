@@ -90,7 +90,7 @@ podAnnotations: {}
 
 insecureScheme:
   ## @param insecureScheme.enabled Flag to enable insecure schema
-  enabled: false
+  enabled: true
 
   nginx:
     ## @param insecureScheme.nginx.image.registry The OCI registry to pull the image from

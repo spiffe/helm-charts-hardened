@@ -211,9 +211,9 @@ Now you can interact with the Spire agent socket from your own application. The 
 
 ### SPIFFE oidc discovery provider parameters
 
-| Name                                     | Description                                                   | Value   |
-| ---------------------------------------- | ------------------------------------------------------------- | ------- |
-| `spiffe-oidc-discovery-provider.enabled` | Flag to enable spiffe-oidc-discovery-provider for the cluster | `false` |
+| Name                                     | Description                                                   | Value  |
+| ---------------------------------------- | ------------------------------------------------------------- | ------ |
+| `spiffe-oidc-discovery-provider.enabled` | Flag to enable spiffe-oidc-discovery-provider for the cluster | `true` |
 
 ### Tornjak frontend parameters
 
