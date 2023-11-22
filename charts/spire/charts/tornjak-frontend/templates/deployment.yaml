@@ -24,7 +24,7 @@ spec:
         {{- include "spire-lib.podsecuritycontext" . | nindent 8 }}
       containers:
         - name:  {{ include "tornjak-frontend.fullname" . }}
-          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.image "global" .Values.global) }}
+          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.image "global" .Values.global "ubi" true) }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           securityContext:
             {{- include "spire-lib.securitycontext" . | nindent 12 }}
@@ -53,9 +53,9 @@ spec:
           {{- end }}
           volumeMounts:
             - name: cache
-              mountPath: {{ .Values.workingDir }}/node_modules/.cache
+              mountPath: {{ include "tornjak-frontend.workingDir" . }}/node_modules/.cache
             - name: env
-              mountPath: {{ .Values.workingDir }}/build/tmp
+              mountPath: {{ include "tornjak-frontend.workingDir" . }}/build/tmp
             - name: logs
               mountPath: /opt/app-root/src/.npm/
       {{- with .Values.nodeSelector }}

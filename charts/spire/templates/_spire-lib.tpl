@@ -55,7 +55,11 @@
 {{- if eq (substr 0 7 $tag) "sha256:" }}
 {{- printf "%s/%s@%s" $registry $repo $tag }}
 {{- else if .appVersion }}
-{{- printf "%s%s:%s" $registry $repo (default .appVersion $tag) }}
+{{- $appVersion := .appVersion }}
+{{- if and (hasKey . "ubi") (dig "openshift" false .global) }}
+{{- $appVersion = printf "ubi-%s" $appVersion }}
+{{- end }}
+{{- printf "%s%s:%s" $registry $repo (default $appVersion $tag) }}
 {{- else if $tag }}
 {{- printf "%s%s:%s" $registry $repo $tag }}
 {{- else }}

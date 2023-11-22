@@ -1,16 +1,6 @@
 global:
   openshift: true
 
-spire-server:
-  tornjak:
-    image:
-      tag: ubi-v1.4.1
-
-tornjak-frontend:
-  workingDir: /opt/app-root/src
-  image:
-    tag: ubi-v1.4.1
-
 spiffe-csi-driver:
   initContainers:
     - terminationMessagePath: /dev/termination-log
