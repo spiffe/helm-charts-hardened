@@ -2,4 +2,3 @@ global:
   spire:
     useRecommended:
       enabled: true
-

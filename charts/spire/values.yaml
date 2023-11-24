@@ -23,14 +23,14 @@ global:
     ## @param global.spire.useRecommended.enabled Enable usage of the recommendations. Default is off.
     ## @param global.spire.useRecommended.securityContexts Set to true to use our recommendations for pod and container securityContexts
     ## @param global.spire.useRecommended.priorityClasses Set to true to use our recommendations for pod priority classes
-    ## @param global.spire.useRecommended.namespaces Set to true to use our recommendations for installing across namespaces
+    ## @param global.spire.useRecommended.namespaceLayout Set to true to use our recommendations for installing across namespaces
     ## @param global.spire.useRecommended.strictMode Check values, such as trustDomain, are overridden with a suitable value for production.
     ## @param global.spire.useRecommended.prometheus Enable prometheus exporters for monitoring
     useRecommended:
       enabled: false
       securityContexts: true
       priorityClasses: true
-      namespaces: true
+      namespaceLayout: true
       strictMode: true
       prometheus: true
 

@@ -29,7 +29,7 @@ Allow the release namespace to be overridden for multi-namespace deployments in 
 {{- define "tornjak-frontend.namespace" -}}
   {{- if .Values.namespaceOverride -}}
     {{- .Values.namespaceOverride -}}
-  l{{- else if and (dig "spire" "useRecommended" "enabled" false .Values.global) (dig "spire" "useRecommended" "namespaces" true .Values.global) }}
+  {{- else if and (dig "spire" "useRecommended" "enabled" false .Values.global) (dig "spire" "useRecommended" "namespaceLayout" true .Values.global) }}
     {{- if ne (len (dig "spire" "namespaces" "server" "name" "" .Values.global)) 0 }}
       {{- .Values.global.spire.namespaces.server.name }}
     {{- else }}
