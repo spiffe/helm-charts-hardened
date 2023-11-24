@@ -279,7 +279,7 @@ root - global . context for the chart
 securityContext - the subbranch of values that contains the securityContext to merge
 */}}
 {{- define "spire-lib.securitycontext-extended" }}
-{{- if and (dig "spire" "useRecommended" "enabled" false .Values.global) (dig "spire" "useRecommended" "securityContexts" true .root.Values.global) }}
+{{- if and (dig "spire" "useRecommended" "enabled" false .root.Values.global) (dig "spire" "useRecommended" "securityContexts" true .root.Values.global) }}
 {{- $vals := deepCopy (include "spire-lib.default_securitycontext_values" .root | fromYaml) }}
 {{- $vals = mergeOverwrite $vals .securityContext }}
 {{- toYaml $vals }}
