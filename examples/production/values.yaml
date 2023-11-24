@@ -5,8 +5,7 @@ global:
   spire:
     strictMode: true
     useRecommended:
-      securityContexts: true
-      priorityClasses: true
+      enabled: true
 
 spire-server:
   nodeAttestor:
