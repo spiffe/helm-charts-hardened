@@ -5,9 +5,9 @@ global:
   spire:
     strictMode: true
     useRecommended:
+      enabled: true
       securityContexts: true
       priorityClasses: true
-      namespaces: true
 
 spire-server:
   logLevel: info
