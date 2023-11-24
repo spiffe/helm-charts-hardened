@@ -26,8 +26,8 @@ global:
     ## @param global.spire.useRecommended.namespaceLayout Set to true to use our recommendations for installing across namespaces
     useRecommended:
       enabled: false
-      securityContexts: false
-      priorityClasses: false
+      securityContexts: true
+      priorityClasses: true
       namespaceLayout: true
 
     image:

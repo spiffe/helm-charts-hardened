@@ -6,8 +6,6 @@ global:
     strictMode: true
     useRecommended:
       enabled: true
-      securityContexts: true
-      priorityClasses: true
 
 spire-server:
   logLevel: info

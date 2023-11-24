@@ -247,7 +247,7 @@ to merge in values, but spire needs arrays.
 {{- define "spire-lib.default_node_priority_class_name" }}
 {{- if .Values.priorityClassName }}
 priorityClassName: {{ .Values.priorityClassName }}
-{{- else if (dig "spire" "useRecommended" "priorityClasses" false .Values.global) }}
+{{- else if and (dig "spire" "useRecommended" "enabled" false .Values.global) (dig "spire" "useRecommended" "priorityClasses" true .Values.global) }}
 priorityClassName: system-node-critical
 {{- end }}
 {{- end }}
@@ -255,7 +255,7 @@ priorityClassName: system-node-critical
 {{- define "spire-lib.default_cluster_priority_class_name" }}
 {{- if .Values.priorityClassName }}
 priorityClassName: {{ .Values.priorityClassName }}
-{{- else if (dig "spire" "useRecommended" "priorityClasses" false .Values.global) }}
+{{- else if and (dig "spire" "useRecommended" "enabled" false .Values.global) (dig "spire" "useRecommended" "priorityClasses" true .Values.global) }}
 priorityClassName: system-cluster-critical
 {{- end }}
 {{- end }}
@@ -279,7 +279,7 @@ root - global . context for the chart
 securityContext - the subbranch of values that contains the securityContext to merge
 */}}
 {{- define "spire-lib.securitycontext-extended" }}
-{{- if (dig "spire" "useRecommended" "securityContexts" false .root.Values.global) }}
+{{- if and (dig "spire" "useRecommended" "enabled" false .root.Values.global) (dig "spire" "useRecommended" "securityContexts" true .root.Values.global) }}
 {{- $vals := deepCopy (include "spire-lib.default_securitycontext_values" .root | fromYaml) }}
 {{- $vals = mergeOverwrite $vals .securityContext }}
 {{- toYaml $vals }}
