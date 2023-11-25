@@ -7,28 +7,56 @@ A Helm chart for deploying the complete Spire stack including: spire-server, spi
 
 **Homepage:** <https://github.com/spiffe/helm-charts/tree/main/charts/spire>
 
-## Install notes
+## Install Instructions
 
+### Non Production
 To do a quick non production install suitable for quick testing in something like minikube:
 
 ```shell
-helm install -n spire-server spire-crds --repo https://spiffe.github.io/helm-charts-hardened/ --create-namespace
-helm install -n spire-server spire --repo https://spiffe.github.io/helm-charts-hardened/
+helm upgrade --install -n spire-server spire-crds spire-crds --repo https://spiffe.github.io/helm-charts-hardened/ --create-namespace
+helm upgrade --install -n spire-server spire spire --repo https://spiffe.github.io/helm-charts-hardened/
 ```
 
-To customize, start with a base values file and edit as needed:
+### Production
+
+Preparing a production deployment requires a few steps.
+
+Step 1: Save the following to your-values.yaml, ideally your git repo.
+```yaml
+global:
+  openshift: false # If running on openshift, set to true
+  spire:
+    useRecommended:
+      enabled: true
+    namespaces:
+      create: true
+    ingressControllerType: "" # If not openshift, and want to expose services, set to a supported option [ingress-nginx]
+    # Update these
+    clusterName: example-cluster
+    trustDomain: example.org
+spire-server:
+  ca_subject:
+    # Update these
+    country: ARPA
+    organization: Example
+    common_name: example.org
+```
+
+Step 2:  If your Kubernetes cluster is OpenShift based, use the output of the following command for your trustDomain:
+```shell
+oc get cm -n openshift-config-managed  console-public -o go-template="{{ .data.consoleURL }}" | sed 's@https://@@; s/^[^.]*\.//'
+```
+Step 3: Find any additional values you might want to set based on the documentation below or the examples at: 
+https://github.com/spiffe/helm-charts-hardened/tree/main/examples
+
+Step 4: Edit your-values.yaml with the appropriate values.
+
+Step 5: Deployment
 
 ```shell
-curl -o your-values.yaml https://raw.githubusercontent.com/spiffe/helm-charts-hardened/main/examples/production/example-your-values.yaml
+helm upgrade --install -n spire-mgmt spire-crds spire-crds --repo https://spiffe.github.io/helm-charts-hardened/ --create-namespace
+helm upgrade --install -n spire-mgmt spire spire --repo https://spiffe.github.io/helm-charts-hardened/ -f your-values.yaml
 ```
-
-Then:
-
-```shell
-helm install -n spire-server spire --repo https://spiffe.github.io/helm-charts-hardened/ -f your-values.yaml
-```
-
-For production installs, please see [the production example](https://github.com/spiffe/helm-charts-hardened/tree/main/examples/production).
 
 ## Upgrade notes
 
