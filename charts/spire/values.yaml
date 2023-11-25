@@ -8,6 +8,7 @@ global:
   k8s:
     ## @param global.k8s.clusterDomain Cluster domain name configured for Spire install
     clusterDomain: cluster.local
+
   spire:
     ## @param global.spire.bundleConfigMap A configmap containing the Spire bundle
     bundleConfigMap: ""
@@ -24,6 +25,7 @@ global:
     ## @param global.spire.useRecommended.securityContexts Set to true to use our recommendations for pod and container securityContexts
     ## @param global.spire.useRecommended.priorityClasses Set to true to use our recommendations for pod priority classes
     ## @param global.spire.useRecommended.namespaceLayout Set to true to use our recommendations for installing across namespaces
+    ## @param global.spire.useRecommended.namespacePSS When chart namespace creation is enabled, label them with preffered Pod Security Standard labels
     ## @param global.spire.useRecommended.strictMode Check values, such as trustDomain, are overridden with a suitable value for production.
     ## @param global.spire.useRecommended.prometheus Enable prometheus exporters for monitoring
     useRecommended:
@@ -31,12 +33,35 @@ global:
       securityContexts: true
       priorityClasses: true
       namespaceLayout: true
+      namespacePSS: true
       strictMode: true
       prometheus: true
 
     image:
       ## @param global.spire.image.registry Override all Spire image registries at once
       registry: ""
+
+    namespaces:
+      ## @param global.spire.namespaces.create Set to true to Create all namespaces.
+      create: false
+      system:
+        ## @param global.spire.namespaces.system.name Name of the Spire system Namespace.
+        name: "spire-system"
+        ## @param global.spire.namespaces.system.create Create a Namespace for Spire system resources.
+        create: false
+        ## @param global.spire.namespaces.system.annotations [object] Annotations to apply to the Spire system Namespace.
+        annotations: {}
+        ## @param global.spire.namespaces.system.labels [object] Labels to apply to the Spire system Namespace.
+        labels: {}
+      server:
+        ## @param global.spire.namespaces.server.name Name of the Spire server Namespace.
+        name: "spire-server"
+        ## @param global.spire.namespaces.server.create Create a Namespace for Spire server resources.
+        create: false
+        ## @param global.spire.namespaces.server.annotations [object] Annotations to apply to the Spire server Namespace.
+        annotations: {}
+        ## @param global.spire.namespaces.server.labels [object] Labels to apply to the Spire server Namespace.
+        labels: {}
 
     ## @param global.spire.ingressControllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, autodetection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""].
     ingressControllerType: ""
