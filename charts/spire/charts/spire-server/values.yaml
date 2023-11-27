@@ -446,8 +446,9 @@ controllerManager:
 
   identities:
     clusterSPIFFEIDs:
+      # NOTE you can add multiple uniquely named entries to create multiple ClusterSPIFFEID objects. See example below.
       default:
-        ## @param controllerManager.identities.clusterSPIFFEIDs.default.enabled Flag to enable default identities for controller manager
+        ## @param controllerManager.identities.clusterSPIFFEIDs.default.enabled Enable this identity for controller manager
         enabled: true
 
         ## @param controllerManager.identities.clusterSPIFFEIDs.default.spiffeIDTemplate Spiffe ID template for identities
@@ -479,6 +480,7 @@ controllerManager:
         downstream: false
         ## @param controllerManager.identities.clusterSPIFFEIDs.default.autoPopulateDNSNames Auto populate DNS names from services attached to pods
         autoPopulateDNSNames: false
+      # You can specific additional ClusterSPIFFEIDs following this example.
       # foo:
       #   labels:
       #     foo: bar
