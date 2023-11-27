@@ -1,5 +1,5 @@
 {{- $root := . }}
-{{- range $key, $value := .Values.controllerManager.identities.clusterSPIFFEIDs }}
+{{- range $key, $value := .Values.controllerManager.clusterSPIFFEIDs }}
 {{-   range $skey, $svalue := $value }}
 {{-     if not (has $skey (list "name" "annotations" "labels" "enabled" "admin" "dnsNameTemplates" "downstream" "federatesWith" "jwtTTL" "namespaceSelector" "podSelector" "spiffeIDTemplate" "ttl" "workloadSelectorTemplates" "autoPopulateDNSNames")) }}
 {{-       fail (printf "Unsupported property specified: %s" $skey) }}

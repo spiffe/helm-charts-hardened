@@ -10,10 +10,9 @@ spire-server:
       upstreamDriver: upstream.csi.spiffe.io
   controllerManager:
     enabled: true
-    identities:
-      clusterSPIFFEIDs:
-        default:
-          spiffeIDTemplate: spiffe://{{ .TrustDomain }}/k8s/{{ .ClusterName }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
+    clusterSPIFFEIDs:
+      default:
+        spiffeIDTemplate: spiffe://{{ .TrustDomain }}/k8s/{{ .ClusterName }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
 
 spiffe-oidc-discovery-provider:
   enabled: true

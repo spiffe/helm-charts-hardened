@@ -5,16 +5,15 @@ global:
 
 spire-server:
   controllerManager:
-    identities:
-      clusterSPIFFEIDs:
-        default:
-          namespaceSelector:
-            kubernetes.io/metadata.name: spire-server
-          podSelector:
-            app.kubernetes.io/component: server
-            app.kubernetes.io/instance: spire
-            app.kubernetes.io/name: server
-          downstream: true
+    clusterSPIFFEIDs:
+      default:
+        namespaceSelector:
+          kubernetes.io/metadata.name: spire-server
+        podSelector:
+          app.kubernetes.io/component: server
+          app.kubernetes.io/instance: spire
+          app.kubernetes.io/name: server
+        downstream: true
   nodeAttestor:
     k8sPsat:
       serviceAccountAllowList:

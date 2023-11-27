@@ -1,5 +1,5 @@
 {{- $root := . }}
-{{- range $key, $value := .Values.controllerManager.identities.clusterFederatedTrustDomains }}
+{{- range $key, $value := .Values.controllerManager.clusterFederatedTrustDomains }}
 {{-   range $skey, $svalue := $value }}
 {{-     if not (has $skey (list "name" "annotations" "labels" "enabled" "bundleEndpointProfile" "bundleEndpointURL" "trustDomain" "trustDomainBundle")) }}
 {{-       fail (printf "Unsupported property specified: %s" $skey) }}

@@ -1,5 +1,5 @@
 {{- $root := . }}
-{{- range $key, $value := .Values.controllerManager.identities.clusterStaticEntries }}
+{{- range $key, $value := .Values.controllerManager.clusterStaticEntries }}
 {{-   range $skey, $svalue := $value }}
 {{-     if not (has $skey (list "name" "annotations" "labels" "enabled" "admin" "dnsNames" "downstream" "federatesWith" "hint" "jwtSVIDTTL" "parentID" "selectors" "spiffeID" "x509SVIDTTL")) }}
 {{-       fail (printf "Unsupported property specified: %s" $skey) }}
