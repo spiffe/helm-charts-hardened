@@ -49,6 +49,8 @@ oc get cm -n openshift-config-managed  console-public -o go-template="{{ .data.c
 Step 3: Find any additional values you might want to set based on the documentation below or the examples at: 
 https://github.com/spiffe/helm-charts-hardened/tree/main/examples
 
+In particular, consider using an external database.
+
 Step 4: Edit your-values.yaml with the appropriate values.
 
 Step 5: Deployment
@@ -59,6 +61,12 @@ helm upgrade --install -n spire-mgmt spire spire --repo https://spiffe.github.io
 ```
 
 ## Upgrade notes
+
+### 0.16.X
+
+A few options were renamed. If you have changed any of these from the defaults, please update them:
+* global.telemetry.prometheus.enabled=true -> global.spire.useRecommended.enabled=true
+* global.spire.strictMode=true -> global.spire.useRecommended.enabled=true
 
 ### 0.15.X
 
