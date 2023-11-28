@@ -12,8 +12,8 @@ A Helm chart for deploying the complete Spire stack including: spire-server, spi
 To do a quick non production install suitable for quick testing in something like minikube:
 
 ```shell
-helm install -n spire-server spire-crds --repo https://spiffe.github.io/helm-charts-hardened/ --create-namespace
-helm install -n spire-server spire --repo https://spiffe.github.io/helm-charts-hardened/
+helm install -n spire-server spire-crds spire-crds --repo https://spiffe.github.io/helm-charts-hardened/ --create-namespace
+helm install -n spire-server spire spire --repo https://spiffe.github.io/helm-charts-hardened/
 ```
 
 To customize, start with a base values file and edit as needed:
