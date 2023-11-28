@@ -450,7 +450,6 @@ controllerManager:
       default:
         ## @param controllerManager.identities.clusterSPIFFEIDs.default.enabled Enable this identity for controller manager
         enabled: true
-
         ## @param controllerManager.identities.clusterSPIFFEIDs.default.spiffeIDTemplate Spiffe ID template for identities
         spiffeIDTemplate: spiffe://{{ .TrustDomain }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
         ## @param controllerManager.identities.clusterSPIFFEIDs.default.podSelector [object] Selector for pods to issue identity
