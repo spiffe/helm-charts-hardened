@@ -32,6 +32,10 @@ For production installs, please see [the production example](https://github.com/
 
 ## Upgrade notes
 
+### 0.16.X
+
+The settings under "spire-server.controllerManager.identities" have all been moved under "spire-server.controllerManager.identities.clusterSPIFFEIDs.default". If you have changed any from the defaults, please update them to the new location during upgrade.
+
 ### 0.15.X
 
 The spire-crds chart has been updated. Please ensure you have upgraded spire-crds before upgrading the spire chart.

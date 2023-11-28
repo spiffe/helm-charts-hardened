@@ -11,7 +11,9 @@ spire-server:
   controllerManager:
     enabled: true
     identities:
-      spiffeIDTemplate: spiffe://{{ .TrustDomain }}/k8s/{{ .ClusterName }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
+      clusterSPIFFEIDs:
+        default:
+          spiffeIDTemplate: spiffe://{{ .TrustDomain }}/k8s/{{ .ClusterName }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
 
 spiffe-oidc-discovery-provider:
   enabled: true
