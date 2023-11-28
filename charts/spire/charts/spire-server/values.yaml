@@ -490,7 +490,7 @@ controllerManager:
       #     matchLabels:
       #       foo: bar
     
-    ## @param controllerManager.identities.clusterStaticEntries Specify additional ClusterStaticEntry objects.
+    ## @param controllerManager.identities.clusterStaticEntries Specify ClusterStaticEntry objects.
     clusterStaticEntries: {}
     # foo:
     #   labels:
@@ -500,7 +500,7 @@ controllerManager:
     #   selectors:
     #   - k8s:pod-label:app.kubernetes.io/name:server
     
-    ## @param controllerManager.identities.clusterFederatedTrustDomains Specify additional ClusterFederatedTrustDomain objects.
+    ## @param controllerManager.identities.clusterFederatedTrustDomains Specify ClusterFederatedTrustDomain objects.
     clusterFederatedTrustDomains: {}
     # foo:
     #   labels:
