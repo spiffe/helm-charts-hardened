@@ -62,9 +62,6 @@ spec:
   {{- with $value.downstream }}
   downstream: {{ . }}
   {{- end }}
-  {{- with $value.autoPopulateDNSNames }}
-  autoPopulateDNSNames: {{ . }}
-  {{- end }}
 {{-     end }}
 {{-   end }}
 {{- end }}
