@@ -32,6 +32,8 @@ For production installs, please see [the production example](https://github.com/
 
 ## Upgrade notes
 
+We only support upgrading one major version at a time. Version skipping isn't supported.
+
 ### 0.16.X
 
 The settings under "spire-server.controllerManager.identities" have all been moved under "spire-server.controllerManager.identities.clusterSPIFFEIDs.default". If you have changed any from the defaults, please update them to the new location during upgrade.
