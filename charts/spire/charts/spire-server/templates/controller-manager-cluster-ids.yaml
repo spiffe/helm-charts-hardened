@@ -16,11 +16,7 @@
 apiVersion: spire.spiffe.io/v1alpha1
 kind: ClusterSPIFFEID
 metadata:
-  {{- if $value.name }}
-  name: {{ $value.name }}
-  {{- else }}
   name: {{ $root.Release.Namespace }}-{{ $root.Release.Name }}-{{ $key }}
-  {{- end }}
   {{- with $value.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
