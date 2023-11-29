@@ -2,7 +2,7 @@
 
 set -xe
 
-UPGRADE_VERSION=v0.14.0
+UPGRADE_VERSION=v0.15.1
 UPGRADE_REPO=https://spiffe.github.io/helm-charts-hardened
 
 SCRIPT="$(readlink -f "$0")"
