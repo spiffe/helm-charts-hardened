@@ -5,11 +5,6 @@ global:
       enabled: true
 
 spire-server:
-  tornjak:
-    image:
-      registry: ghcr.io
-      repository: spiffe/tornjak-backend
-      tag: ubi-v1.4.1
   nodeAttestor:
     k8sPsat:
       serviceAccountAllowList: ["spire-system:spire-agent"]
@@ -42,10 +37,6 @@ spiffe-oidc-discovery-provider:
 
 tornjak-frontend:
   workingDir: /opt/app-root/src
-  image:
-    registry: ghcr.io
-    repository: spiffe/tornjak-frontend
-    tag: ubi-v1.4.1
   podSecurityContext:
     runAsUser: null
     runAsGroup: null
