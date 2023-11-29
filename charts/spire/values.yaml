@@ -21,8 +21,10 @@ global:
     upstreamServerAddress: ""
 
     ## @param global.spire.useRecommended.enabled Enable usage of the recommendations. Default is off.
+    ## @param global.spire.useRecommended.priorityClasses Set to true to use our recommendations for pod priority classes
     useRecommended:
       enabled: false
+      priorityClasses: true
 
     image:
       ## @param global.spire.image.registry Override all Spire image registries at once
