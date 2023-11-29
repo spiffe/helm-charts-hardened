@@ -12,8 +12,8 @@ A Helm chart for deploying the complete Spire stack including: spire-server, spi
 To do a quick non production install suitable for quick testing in something like minikube:
 
 ```shell
-helm install -n spire-server spire-crds --repo https://spiffe.github.io/helm-charts-hardened/ --create-namespace
-helm install -n spire-server spire --repo https://spiffe.github.io/helm-charts-hardened/
+helm install -n spire-server spire-crds spire-crds --repo https://spiffe.github.io/helm-charts-hardened/ --create-namespace
+helm install -n spire-server spire spire --repo https://spiffe.github.io/helm-charts-hardened/
 ```
 
 To customize, start with a base values file and edit as needed:
@@ -31,6 +31,12 @@ helm install -n spire-server spire --repo https://spiffe.github.io/helm-charts-h
 For production installs, please see [the production example](https://github.com/spiffe/helm-charts-hardened/tree/main/examples/production).
 
 ## Upgrade notes
+
+We only support upgrading one major version at a time. Version skipping isn't supported.
+
+### 0.16.X
+
+The settings under "spire-server.controllerManager.identities" have all been moved under "spire-server.controllerManager.identities.clusterSPIFFEIDs.default". If you have changed any from the defaults, please update them to the new location during upgrade.
 
 ### 0.15.X
 
