@@ -4,6 +4,8 @@ global:
       enabled: true
   spire:
     strictMode: true
+    useRecommended:
+      enabled: true
 
 spire-server:
   nodeAttestor:

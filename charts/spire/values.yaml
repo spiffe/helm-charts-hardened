@@ -20,6 +20,10 @@ global:
     ## @param global.spire.upstreamServerAddress Set what address to use for the upstream server when using nested spire
     upstreamServerAddress: ""
 
+    ## @param global.spire.useRecommended.enabled Enable usage of the recommendations. Default is off.
+    useRecommended:
+      enabled: false
+
     image:
       ## @param global.spire.image.registry Override all Spire image registries at once
       registry: ""
