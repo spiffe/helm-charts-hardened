@@ -707,6 +707,8 @@ tornjak:
     # requests:
     #   cpu: 100m
     #   memory: 128Mi
+  ## @param tornjak.securityContext [object] Security Context to use
+  securityContext: {}
 
 # NOTE: This is unsupported and only to configure currently supported spire built in plugins but plugins unsupported by the chart.
 # Upgrades wont be tested for anything under this config. If you need this, please let the chart developers know your needs so we

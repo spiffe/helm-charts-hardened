@@ -12,20 +12,20 @@ metadata:
     "helm.sh/hook": test
 spec:
   securityContext:
-    {{- toYaml .Values.podSecurityContext | nindent 4 }}
+    {{- include "spire-lib.podsecuritycontext" . | nindent 4 }}
   containers:
     - name: curl-tornjak-backend
       image: {{ template "spire-lib.image" (dict "image" .Values.tests.bash.image "global" .Values.global) }}
       command: ['curl']
       args: ['-k', '-s', '-f', 'http://{{ include "spire-tornjak.servicename" . }}.{{ include "spire-server.namespace" . }}.svc.{{ include "spire-lib.cluster-domain" . }}:{{ .Values.tornjak.service.ports.http }}/api/tornjak/serverinfo']
       securityContext:
-        {{- toYaml .Values.securityContext | nindent 8 }}
+        {{- include "spire-lib.securitycontext" . | nindent 8 }}
     - name: curl-tornjak-backend-and-spire
       image: {{ template "spire-lib.image" (dict "image" .Values.tests.bash.image "global" .Values.global) }}
       command: ['curl']
       args: ['-k', '-s', '-f', 'http://{{ include "spire-tornjak.servicename" . }}.{{ include "spire-server.namespace" . }}.svc.{{ include "spire-lib.cluster-domain" . }}:{{ .Values.tornjak.service.ports.http }}/api/healthcheck']
       securityContext:
-        {{- toYaml .Values.securityContext | nindent 8 }}
+        {{- include "spire-lib.securitycontext" . | nindent 8 }}
   restartPolicy: Never
 {{- end }}
 {{- end }}

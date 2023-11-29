@@ -14,33 +14,11 @@ spire-server:
   notifier:
     k8sbundle:
       namespace: spire-system
-  podSecurityContext:
-    runAsUser: 1000
-    runAsGroup: 1000
-    fsGroup: 1000
-    fsGroupChangePolicy: OnRootMismatch
-  securityContext:
-    allowPrivilegeEscalation: false
-    runAsNonRoot: true
-    readOnlyRootFilesystem: true
-    capabilities:
-      drop: [ALL]
-    seccompProfile:
-      type: RuntimeDefault
   priorityClassName: system-cluster-critical
 
   logLevel: info
 
   controllerManager:
-    securityContext:
-      allowPrivilegeEscalation: false
-      runAsNonRoot: true
-      readOnlyRootFilesystem: true
-      capabilities:
-        drop: [ALL]
-      seccompProfile:
-        type: RuntimeDefault
-
     ignoreNamespaces:
       - kube-system
       - kube-public
@@ -64,36 +42,12 @@ spire-agent:
   server:
     namespaceOverride: spire-server
   priorityClassName: system-node-critical
-  podSecurityContext:
-    runAsUser: 1000
-    runAsGroup: 1000
-    fsGroup: 1000
-  securityContext:
-    allowPrivilegeEscalation: false
-    runAsNonRoot: true
-    readOnlyRootFilesystem: true
-    capabilities:
-      drop: [ALL]
-    seccompProfile:
-      type: RuntimeDefault
 
   logLevel: info
 
 upstream-spire-agent:
   namespaceOverride: spire-system
   priorityClassName: system-node-critical
-  podSecurityContext:
-    runAsUser: 1000
-    runAsGroup: 1000
-    fsGroup: 1000
-  securityContext:
-    allowPrivilegeEscalation: false
-    runAsNonRoot: true
-    readOnlyRootFilesystem: true
-    capabilities:
-      drop: [ALL]
-    seccompProfile:
-      type: RuntimeDefault
 
   logLevel: info
 
@@ -103,31 +57,3 @@ spiffe-oidc-discovery-provider:
     additionalDomains: []
   insecureScheme:
     enabled: true
-  podSecurityContext:
-    runAsUser: 1000
-    runAsGroup: 1000
-    fsGroup: 1000
-    fsGroupChangePolicy: OnRootMismatch
-  securityContext:
-    allowPrivilegeEscalation: false
-    runAsNonRoot: true
-    readOnlyRootFilesystem: true
-    capabilities:
-      drop: [ALL]
-    seccompProfile:
-      type: RuntimeDefault
-
-tornjak-frontend:
-  podSecurityContext:
-    runAsUser: 1000
-    runAsGroup: 1000
-    fsGroup: 1000
-    fsGroupChangePolicy: OnRootMismatch
-  securityContext:
-    allowPrivilegeEscalation: false
-    runAsNonRoot: true
-    readOnlyRootFilesystem: true 
-    capabilities:
-      drop: [ALL]
-    seccompProfile:
-      type: RuntimeDefault

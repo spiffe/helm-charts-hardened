@@ -243,3 +243,47 @@ to merge in values, but spire needs arrays.
 {{- $_ := set $config "plugins" $plugins }}
 {{- $config | toPrettyJson }}
 {{- end }}
+
+{{- define "spire-lib.default_securitycontext_values" }}
+allowPrivilegeEscalation: false
+runAsNonRoot: true
+readOnlyRootFilesystem: true
+capabilities:
+  drop: [ALL]
+seccompProfile:
+  type: RuntimeDefault
+{{- end }}
+
+{{- define "spire-lib.securitycontext" }}
+{{ include "spire-lib.securitycontext-extended" (dict "root" . "securityContext" .Values.securityContext) }}
+{{- end }}
+
+{{/* Same as securitycontext but takes in:
+root - global . context for the chart
+securityContext - the subbranch of values that contains the securityContext to merge
+*/}}
+{{- define "spire-lib.securitycontext-extended" }}
+{{- if and (dig "spire" "useRecommended" "enabled" false .root.Values.global) (dig "spire" "useRecommended" "securityContexts" true .root.Values.global) }}
+{{- $vals := deepCopy (include "spire-lib.default_securitycontext_values" .root | fromYaml) }}
+{{- $vals = mergeOverwrite $vals .securityContext }}
+{{- toYaml $vals }}
+{{- else }}
+{{- toYaml .securityContext }}
+{{- end }}
+{{- end }}
+
+{{/*
+Note: Values not needed on openshift due to it autoassigning restricted users
+*/}}
+{{- define "spire-lib.podsecuritycontext" }}
+{{- $vals := dict "fsGroupChangePolicy" "OnRootMismatch" }}
+{{- if not (dig "openshift" false .Values.global) }}
+{{- $_ := set $vals "runAsUser" 1000 }}
+{{- $_ := set $vals "runAsGroup" 1000 }}
+{{- $_ := set $vals "fsGroup" 1000 }}
+{{- $vals = mergeOverwrite $vals .Values.podSecurityContext }}
+{{- toYaml $vals }}
+{{- else }}
+{{- toYaml .Values.podSecurityContext }}
+{{- end }}
+{{- end }}
