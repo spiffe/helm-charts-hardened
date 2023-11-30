@@ -8,12 +8,6 @@ global:
       enabled: true
 
 spire-server:
-  nodeAttestor:
-    k8sPsat:
-      serviceAccountAllowList: ["spire-system:spire-agent"]
-  notifier:
-    k8sbundle:
-      namespace: spire-system
   podSecurityContext:
     runAsUser: 1000
     runAsGroup: 1000
@@ -48,21 +42,14 @@ spire-server:
 
 spiffe-csi-driver:
   enabled: true
-  namespaceOverride: spire-system
   priorityClassName: system-node-critical
 
 
 upstream-spiffe-csi-driver:
-  namespaceOverride: spire-system
   priorityClassName: system-node-critical
 
 spire-agent:
   enabled: true
-  namespaceOverride: spire-system
-  serviceAccount:
-    name: spire-agent
-  server:
-    namespaceOverride: spire-server
   priorityClassName: system-node-critical
   podSecurityContext:
     runAsUser: 1000
@@ -80,7 +67,6 @@ spire-agent:
   logLevel: info
 
 upstream-spire-agent:
-  namespaceOverride: spire-system
   priorityClassName: system-node-critical
   podSecurityContext:
     runAsUser: 1000
