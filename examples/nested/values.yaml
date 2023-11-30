@@ -9,7 +9,9 @@ spire-server:
       upstreamDriver: upstream.csi.spiffe.io
   controllerManager:
     identities:
-      spiffeIDTemplate: spiffe://{{ .TrustDomain }}/k8s/{{ .ClusterName }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
+      clusterSPIFFEIDs:
+        default:
+          spiffeIDTemplate: spiffe://{{ .TrustDomain }}/k8s/{{ .ClusterName }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
 
 upstream:
   enabled: true

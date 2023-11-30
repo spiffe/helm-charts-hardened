@@ -62,11 +62,17 @@ helm upgrade --install -n spire-mgmt spire spire --repo https://spiffe.github.io
 
 ## Upgrade notes
 
-### 0.16.X
+We only support upgrading one major version at a time. Version skipping isn't supported.
+
+### 0.17.X
 
 A few options were renamed. If you have changed any of these from the defaults, please update them:
 * global.telemetry.prometheus.enabled=true -> global.spire.useRecommended.enabled=true
 * global.spire.strictMode=true -> global.spire.useRecommended.enabled=true
+
+### 0.16.X
+
+The settings under "spire-server.controllerManager.identities" have all been moved under "spire-server.controllerManager.identities.clusterSPIFFEIDs.default". If you have changed any from the defaults, please update them to the new location during upgrade.
 
 ### 0.15.X
 
