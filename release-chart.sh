@@ -40,9 +40,9 @@ function print_error_and_exit {
 }
 
 function unreleased_changes_other_charts {
-  for chart in "${1[@]}" ; do
-    latest_tag="$(git tag --list "${chart}-[0-9]*.[0-9]*.[0-9]*" | sort -V | tail -n 1)"
-    changes="$(git log "${latest_tag}..HEAD" --pretty=format:'* %h %s' "charts/${chart}")"
+  for chart in "$@" ; do
+    latest_tag="$(git --no-pager tag --list "${chart}-[0-9]*.[0-9]*.[0-9]*" | sort -V | tail -n 1)"
+    changes="$(git --no-pager log "${latest_tag}..HEAD" --pretty=format:'* %h %s' "charts/${chart}")"
     if [ -n "${changes}" ] ; then
       echo "### Unreleased changes ${chart}"
       echo
@@ -119,7 +119,7 @@ git checkout --track -B "${branch_name}" main
 current_version="$(grep '^version:' "charts/${chart}/Chart.yaml" | awk '{print $2}')"
 commits_since_previous_release="$(git log "${chart}-${current_version}..HEAD" --pretty=format:'* %h %s' "charts/${chart}")"
 "${SED}" -i "s/version: ${current_version}/version: ${new_version}/" "charts/${chart}/Chart.yaml"
-"${SED}" -i "s/${current_version}/${new_version}/" "charts/${chart}/README.md"
+"${SED}" -i "s/${current_version}/${new_version}/g" "charts/${chart}/README.md"
 git add "charts/${chart}/"{Chart.yaml,README.md}
 git commit -m "Bump ${chart} Helm Chart version from ${current_version} to ${new_version}" \
   -m "${commits_since_previous_release}" \
