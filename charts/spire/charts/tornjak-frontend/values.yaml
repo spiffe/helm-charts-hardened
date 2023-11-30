@@ -113,8 +113,8 @@ startupProbe:
   failureThreshold: 6
   successThreshold: 1
 
-## @param workingDir Path containing the Tornjak frontend within the image
-workingDir: /usr/src/app
+## @param workingDir Set to override the default path containing the Tornjak frontend within the image
+workingDir: ""
 
 ## @param ingress.enabled Flag to enable ingress for Tornjak frontend service
 ## @param ingress.className Ingress class name for Tornjak frontend service
