@@ -206,7 +206,7 @@ plugins:
         {{- fail "You can only enable a single authentication mechanism to an upstream Vault." }}
         {{- end }}
   {{- end }}
-  {{- end }}  
+  {{- end }}
 
   {{- with .Values.upstreamAuthority.awsPCA }}
   {{- if eq (.enabled | toString) "true" }}
@@ -219,18 +219,18 @@ plugins:
         ca_signing_template_arn: {{ .caSigningTemplateARN | default "arn:aws:acm-pca:::template/SubordinateCACertificate_PathLen0/V1" | quote }}
         {{- if ne .signingAlgorithm "" }}
         signing_algorithm: {{ .signingAlgorithm | quote }}
-        {{- end }}          
+        {{- end }}
         {{- if ne .assumeRoleARN "" }}
         assume_role_arn: {{ .assumeRoleARN | quote }}
-        {{- end }}          
+        {{- end }}
         {{- if ne .endpoint "" }}
         endpoint: {{ .endpoint | quote }}
-        {{- end }}          
+        {{- end }}
         {{- if ne .supplementalBundlePath "" }}
         supplemental_bundle_path: {{ .supplementalBundlePath  | quote }}
-        {{- end }}          
+        {{- end }}
   {{- end }}
-  {{- end }}  
+  {{- end }}
 {{- if gt $upstreamAuthorityUsed 1 }}
 {{- fail "You can only enable a single Upstream Authority." }}
 {{- end }}

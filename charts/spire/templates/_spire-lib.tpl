@@ -20,7 +20,7 @@
 {{- else if ne (len .Values.jwtIssuer) 0 }}
 {{- .Values.jwtIssuer }}
 {{- else }}
-{{- printf "oidc-discovery.%s" (include "spire-lib.trust-domain" .) }}
+{{- printf "https://oidc-discovery.%s" (include "spire-lib.trust-domain" .) }}
 {{- end }}
 {{- end }}
 
