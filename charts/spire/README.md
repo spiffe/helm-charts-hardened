@@ -1,6 +1,6 @@
 # spire
 
-![Version: 0.15.1](https://img.shields.io/badge/Version-0.15.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.8.5](https://img.shields.io/badge/AppVersion-1.7.2-informational?style=flat-square)
+![Version: 0.16.0](https://img.shields.io/badge/Version-0.16.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.8.5](https://img.shields.io/badge/AppVersion-1.8.5-informational?style=flat-square)
 [![Development Phase](https://github.com/spiffe/spiffe/blob/main/.img/maturity/dev.svg)](https://github.com/spiffe/spiffe/blob/main/MATURITY.md#development)
 
 A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
@@ -62,11 +62,18 @@ helm upgrade --install -n spire-mgmt spire spire --repo https://spiffe.github.io
 
 ## Upgrade notes
 
-### 0.16.X
+We only support upgrading one major version at a time. Version skipping isn't supported.
+
+### 0.17.X
 
 A few options were renamed. If you have changed any of these from the defaults, please update them:
 * global.telemetry.prometheus.enabled=true -> global.spire.useRecommended.enabled=true
 * global.spire.strictMode=true -> global.spire.useRecommended.enabled=true
+
+### 0.16.X
+
+The settings under "spire-server.controllerManager.identities" have all been moved under "spire-server.controllerManager.identities.clusterSPIFFEIDs.default". If you have changed any from the defaults, please update them to the new location during upgrade.
+>>>>>>> main
 
 ### 0.15.X
 
