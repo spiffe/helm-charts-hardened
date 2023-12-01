@@ -8,6 +8,7 @@ global:
   k8s:
     ## @param global.k8s.clusterDomain Cluster domain name configured for Spire install
     clusterDomain: cluster.local
+
   spire:
     ## @param global.spire.bundleConfigMap A configmap containing the Spire bundle
     bundleConfigMap: ""
@@ -23,6 +24,26 @@ global:
     image:
       ## @param global.spire.image.registry Override all Spire image registries at once
       registry: ""
+
+    namespaces:
+      system:
+        ## @param global.spire.namespaces.system.name Name of the Spire system Namespace.
+        name: "spire-system"
+        ## @param global.spire.namespaces.system.create Create a Namespace for Spire system resources.
+        create: false
+        ## @param global.spire.namespaces.system.annotations [object] Annotations to apply to the Spire system Namespace.
+        annotations: {}
+        ## @param global.spire.namespaces.system.labels [object] Labels to apply to the Spire system Namespace.
+        labels: {}
+      server:
+        ## @param global.spire.namespaces.server.name Name of the Spire server Namespace.
+        name: "spire-server"
+        ## @param global.spire.namespaces.server.create Create a Namespace for Spire server resources.
+        create: false
+        ## @param global.spire.namespaces.server.annotations [object] Annotations to apply to the Spire server Namespace.
+        annotations: {}
+        ## @param global.spire.namespaces.server.labels [object] Labels to apply to the Spire server Namespace.
+        labels: {}
 
     ## @param global.spire.strictMode Check values, such as trustDomain, are overridden with a suitable value for production.
     strictMode: false
