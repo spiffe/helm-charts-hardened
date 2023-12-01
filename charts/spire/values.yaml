@@ -21,8 +21,8 @@ global:
     ## @param global.spire.upstreamServerAddress Set what address to use for the upstream server when using nested spire
     upstreamServerAddress: ""
 
-    ## @param global.spire.useRecommended.enabled Enable usage of the recommendations. Default is off.
-    useRecommended:
+    ## @param global.spire.recommendations.enabled Enable usage of the recommendations. Default is off.
+    recommendations:
       enabled: false
 
     image:

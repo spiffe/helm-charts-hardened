@@ -4,7 +4,7 @@ global:
       enabled: true
   spire:
     strictMode: true
-    useRecommended:
+    recommendations:
       enabled: true
 
 spire-server:
