@@ -1,6 +1,6 @@
 # spire
 
-![Version: 0.15.1](https://img.shields.io/badge/Version-0.13.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.7.2](https://img.shields.io/badge/AppVersion-1.7.2-informational?style=flat-square)
+![Version: 0.16.0](https://img.shields.io/badge/Version-0.16.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.8.5](https://img.shields.io/badge/AppVersion-1.8.5-informational?style=flat-square)
 [![Development Phase](https://github.com/spiffe/spiffe/blob/main/.img/maturity/dev.svg)](https://github.com/spiffe/spiffe/blob/main/MATURITY.md#development)
 
 A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
@@ -12,8 +12,8 @@ A Helm chart for deploying the complete Spire stack including: spire-server, spi
 To do a quick non production install suitable for quick testing in something like minikube:
 
 ```shell
-helm install -n spire-server spire-crds --repo https://spiffe.github.io/helm-charts-hardened/ --create-namespace
-helm install -n spire-server spire --repo https://spiffe.github.io/helm-charts-hardened/
+helm install -n spire-server spire-crds spire-crds --repo https://spiffe.github.io/helm-charts-hardened/ --create-namespace
+helm install -n spire-server spire spire --repo https://spiffe.github.io/helm-charts-hardened/
 ```
 
 To customize, start with a base values file and edit as needed:
@@ -28,9 +28,15 @@ Then:
 helm install -n spire-server spire --repo https://spiffe.github.io/helm-charts-hardened/ -f your-values.yaml
 ```
 
-For production installs, please see [the production example](https://github.com/spiffe/helm-charts-hardened/tree/main/examples/production).
+For production installs, please see [the production example](https://github.com/spiffe/helm-charts-hardened/tree/spire-0.16.0/examples/production).
 
 ## Upgrade notes
+
+We only support upgrading one major version at a time. Version skipping isn't supported.
+
+### 0.16.X
+
+The settings under "spire-server.controllerManager.identities" have all been moved under "spire-server.controllerManager.identities.clusterSPIFFEIDs.default". If you have changed any from the defaults, please update them to the new location during upgrade.
 
 ### 0.15.X
 

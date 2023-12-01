@@ -4,11 +4,7 @@
 
 A Helm chart to install the SPIFFE CSI driver.
 
-**Homepage:** <https://github.com/spiffe/helm-charts/tree/main/charts/spire>
-
-> [!Note]
-> The recommended version is `0.2.3` to support arm64 nodes. If running with any
-> prior version to `0.2.3` you have to use a `nodeSelector` to limit to `kubernetes.io/arch: amd64`.
+**Homepage:** <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire>
 
 ## Maintainers
 
@@ -21,7 +17,7 @@ A Helm chart to install the SPIFFE CSI driver.
 
 ## Source Code
 
-* <https://github.com/spiffe/helm-charts/tree/main/charts/spire>
+* <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire>
 
 <!-- The parameters section is generated using helm-docs.sh and should not be edited by hand. -->
 
@@ -60,7 +56,7 @@ A Helm chart to install the SPIFFE CSI driver.
 | `nodeDriverRegistrar.image.repository`   | The repository within the registry                                                                      | `sig-storage/csi-node-driver-registrar`     |
 | `nodeDriverRegistrar.image.pullPolicy`   | The image pull policy                                                                                   | `IfNotPresent`                              |
 | `nodeDriverRegistrar.image.version`      | This value is deprecated in favor of tag. (Will be removed in a future release)                         | `""`                                        |
-| `nodeDriverRegistrar.image.tag`          | Overrides the image tag                                                                                 | `v2.9.0`                                    |
+| `nodeDriverRegistrar.image.tag`          | Overrides the image tag                                                                                 | `v2.9.1`                                    |
 | `nodeDriverRegistrar.resources`          | Resource requests and limits for CSI driver pods                                                        | `{}`                                        |
 | `agentSocketPath`                        | The unix socket path to the spire-agent                                                                 | `/run/spire/agent-sockets/spire-agent.sock` |
 | `kubeletPath`                            | Path to kubelet file                                                                                    | `/var/lib/kubelet`                          |

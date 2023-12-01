@@ -445,38 +445,70 @@ controllerManager:
     - local-path-storage
 
   identities:
-    ## @param controllerManager.identities.enabled Flag to enable default identities for controller manager
-    enabled: true
-
-    ## @param controllerManager.identities.spiffeIDTemplate Spiffe ID template for identities
-    spiffeIDTemplate: spiffe://{{ .TrustDomain }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
-    ## @param controllerManager.identities.podSelector [object] Selector for pods to issue identity
-    podSelector: {}
-      # matchLabels:
-      #   spiffe.io/spiffe-id: "true"
-    ## @param controllerManager.identities.namespaceSelector [object] Selector for namespacs to issue identity
-    namespaceSelector: {}
-      # matchLabels:
-      #   spiffe.io/spiffe-id: "true"
-    ## @param controllerManager.identities.dnsNameTemplates [array] DNS name template for issued identities
-    dnsNameTemplates: []
-      # - '{{ index .PodMeta.Labels "app.kubernetes.io/name" }}.{{ .PodMeta.Namespace }}.svc.cluster.local'
-    ## @param controllerManager.identities.federatesWith [array] Other Spire server URLs for identity federation
-    federatesWith: []
-    # - example.io
-    # - example.ai
-    ## @param controllerManager.identities.workloadSelectorTemplates [array] Templates to produce selectors that apply to a given workload before it will receive an ID
-    workloadSelectorTemplates: []
-    ## @param controllerManager.identities.ttl Indicates an upper-bound time-to-live for X509 SVIDs. If unset, the cluster default will be chosen.
-    ttl: ""
-    ## @param controllerManager.identities.jwtTTL Indicates an upper-bound time-to-live for JWT SVIDs. If unset, the cluster default will be chosen.
-    jwtTTL: ""
-    ## @param controllerManager.identities.admin Indicates any pod matched by this identity will be an admin. Use this with extreme care.
-    admin: false
-    ## @param controllerManager.identities.downstream Set if this spire instance is a root server and the workloads are downstream servers.
-    downstream: false
-    ## @param controllerManager.identities.autoPopulateDNSNames Auto populate DNS names from services attached to pods
-    autoPopulateDNSNames: false
+    clusterSPIFFEIDs:
+      # NOTE you can add multiple uniquely named entries to create multiple ClusterSPIFFEID objects. See example below.
+      default:
+        ## @param controllerManager.identities.clusterSPIFFEIDs.default.enabled Enable this identity for controller manager
+        enabled: true
+        ## @param controllerManager.identities.clusterSPIFFEIDs.default.spiffeIDTemplate Spiffe ID template for identities
+        spiffeIDTemplate: spiffe://{{ .TrustDomain }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
+        ## @param controllerManager.identities.clusterSPIFFEIDs.default.podSelector [object] Selector for pods to issue identity
+        podSelector: {}
+          # matchLabels:
+          #   spiffe.io/spiffe-id: "true"
+        ## @param controllerManager.identities.clusterSPIFFEIDs.default.namespaceSelector [object] Selector for namespacs to issue identity
+        namespaceSelector: {}
+          # matchLabels:
+          #   spiffe.io/spiffe-id: "true"
+        ## @param controllerManager.identities.clusterSPIFFEIDs.default.dnsNameTemplates [array] DNS name template for issued identities
+        dnsNameTemplates: []
+          # - '{{ index .PodMeta.Labels "app.kubernetes.io/name" }}.{{ .PodMeta.Namespace }}.svc.cluster.local'
+        ## @param controllerManager.identities.clusterSPIFFEIDs.default.federatesWith [array] Other Spire server URLs for identity federation
+        federatesWith: []
+        # - example.io
+        # - example.ai
+        ## @param controllerManager.identities.clusterSPIFFEIDs.default.workloadSelectorTemplates [array] Templates to produce selectors that apply to a given workload before it will receive an ID
+        workloadSelectorTemplates: []
+        ## @param controllerManager.identities.clusterSPIFFEIDs.default.ttl Indicates an upper-bound time-to-live for X509 SVIDs. If unset, the cluster default will be chosen.
+        ttl: ""
+        ## @param controllerManager.identities.clusterSPIFFEIDs.default.jwtTTL Indicates an upper-bound time-to-live for JWT SVIDs. If unset, the cluster default will be chosen.
+        jwtTTL: ""
+        ## @param controllerManager.identities.clusterSPIFFEIDs.default.admin Indicates any pod matched by this identity will be an admin. Use this with extreme care.
+        admin: false
+        ## @param controllerManager.identities.clusterSPIFFEIDs.default.downstream Set if this spire instance is a root server and the workloads are downstream servers.
+        downstream: false
+        ## @param controllerManager.identities.clusterSPIFFEIDs.default.autoPopulateDNSNames Auto populate DNS names from services attached to pods
+        autoPopulateDNSNames: false
+      
+      # You can specify additional ClusterSPIFFEIDs following this example:
+      # foo:
+      #   labels:
+      #     foo: bar
+      #   spiffeIDTemplate: spiffe://{{ .TrustDomain }}/foo
+      #   namespaceSelector:
+      #     matchLabels:
+      #       foo: bar
+    
+    ## @param controllerManager.identities.clusterStaticEntries Specify ClusterStaticEntry objects.
+    clusterStaticEntries: {}
+    # foo:
+    #   labels:
+    #     foo: bar
+    #   parentID: spiffe://example.com/bar
+    #   spiffeID: spiffe://example.com/foo
+    #   selectors:
+    #   - k8s:pod-label:app.kubernetes.io/name:server
+    
+    ## @param controllerManager.identities.clusterFederatedTrustDomains Specify ClusterFederatedTrustDomain objects.
+    clusterFederatedTrustDomains: {}
+    # foo:
+    #   labels:
+    #     foo: bar
+    #   bundleEndpointProfile:
+    #     endpointSPIFFEID: spiffe://example.com/foo
+    #     type: https_spiffe
+    #   bundleEndpointURL: https://rootserver.example.com:1234
+    #   trustDomain: example.com
 
   validatingWebhookConfiguration:
     ## @param controllerManager.validatingWebhookConfiguration.failurePolicy Action when identity is not issued
@@ -724,4 +756,4 @@ tests:
       repository: chainguard/bash
       pullPolicy: IfNotPresent
       version: ""
-      tag: latest@sha256:3d077aae77eb552abd85a015d087047a7a7353d974e5f7fc6a402180c1501214
+      tag: latest@sha256:d8e08cda119684ca08dcfcebdd63cbf3d3ff7c4f8a8effca80b962dddd42438e

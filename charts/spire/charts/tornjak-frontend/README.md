@@ -5,7 +5,7 @@
 
 A Helm chart to deploy Tornjak frontend
 
-**Homepage:** <https://github.com/spiffe/helm-charts/tree/main/charts/spire>
+**Homepage:** <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire>
 
 ## Version support
 
@@ -16,8 +16,6 @@ A Helm chart to deploy Tornjak frontend
 
 | Dependency | Supported Versions |
 |:-----------|:-------------------|
-| SPIRE      | `1.5.3+`, `1.6.x`  |
-| Tornjak    | `1.0.x`            |
 | Helm       | `3.x`              |
 
 ## Tornjak
@@ -102,4 +100,4 @@ port forwarding. See the chart NOTES output for more details.
 | `tests.bash.image.repository`      | The repository within the registry                                                                                                                                                                                                     | `chainguard/bash`                                                                |
 | `tests.bash.image.pullPolicy`      | The image pull policy                                                                                                                                                                                                                  | `IfNotPresent`                                                                   |
 | `tests.bash.image.version`         | This value is deprecated in favor of tag. (Will be removed in a future release)                                                                                                                                                        | `""`                                                                             |
-| `tests.bash.image.tag`             | Overrides the image tag whose default is the chart appVersion                                                                                                                                                                          | `latest@sha256:3d077aae77eb552abd85a015d087047a7a7353d974e5f7fc6a402180c1501214` |
+| `tests.bash.image.tag`             | Overrides the image tag whose default is the chart appVersion                                                                                                                                                                          | `latest@sha256:d8e08cda119684ca08dcfcebdd63cbf3d3ff7c4f8a8effca80b962dddd42438e` |
