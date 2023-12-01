@@ -3,15 +3,12 @@
 {{-   if and (dig "spire" "useRecommended" "enabled" false .Values.global) (dig "spire" "useRecommended" "namespacePSS" true .Values.global) }}
 {{-     $_ := set $labels "pod-security.kubernetes.io/warn" "restricted" }}
 {{-     $_ := set $labels "pod-security.kubernetes.io/audit" "restricted" }}
+{{-     $_ := set $labels "pod-security.kubernetes.io/enforce" "restricted" }}
 {{-     if (dig "openshift" false .Values.global) }}
 {{-       $_ := set $labels "security.openshift.io/scc.podSecurityLabelSync" "false" }}
-{{-       if .Values.spiffe-oidc-discovery-provider.enabled }}
+{{-       if (index .Values "spiffe-oidc-discovery-provider").enabled }}
 {{-         $_ := set $labels "pod-security.kubernetes.io/enforce" "privileged" }}
-{{-       else }}
-{{-         $_ := set $labels "pod-security.kubernetes.io/enforce" "restricted" }}
 {{-       end }}
-{{-     else }}
-{{-       $_ := set $labels "pod-security.kubernetes.io/enforce" "restricted" }}
 {{-     end }}
 {{-   end }}
 {{-   $labels = mergeOverwrite $labels .Values.global.spire.namespaces.server.labels }}
