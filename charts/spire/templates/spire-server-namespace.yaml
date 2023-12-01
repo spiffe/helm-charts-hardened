@@ -5,7 +5,11 @@
 {{-     $_ := set $labels "pod-security.kubernetes.io/audit" "restricted" }}
 {{-     if (dig "openshift" false .Values.global) }}
 {{-       $_ := set $labels "security.openshift.io/scc.podSecurityLabelSync" "false" }}
-{{-       $_ := set $labels "pod-security.kubernetes.io/enforce" "privileged" }}
+{{-       if .Values.spiffe-oidc-discovery-provider.enabled }}
+{{-         $_ := set $labels "pod-security.kubernetes.io/enforce" "privileged" }}
+{{-       else }}
+{{-         $_ := set $labels "pod-security.kubernetes.io/enforce" "restricted" }}
+{{-       end }}
 {{-     else }}
 {{-       $_ := set $labels "pod-security.kubernetes.io/enforce" "restricted" }}
 {{-     end }}
