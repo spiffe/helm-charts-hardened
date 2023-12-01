@@ -73,7 +73,6 @@ A few options were renamed. If you have changed any of these from the defaults, 
 ### 0.16.X
 
 The settings under "spire-server.controllerManager.identities" have all been moved under "spire-server.controllerManager.identities.clusterSPIFFEIDs.default". If you have changed any from the defaults, please update them to the new location during upgrade.
->>>>>>> main
 
 ### 0.15.X
 
