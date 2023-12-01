@@ -22,14 +22,18 @@ global:
     upstreamServerAddress: ""
 
     ## @param global.spire.useRecommended.enabled Enable usage of the recommendations. Default is off.
+    ## @param global.spire.useRecommended.namespacePSS When chart namespace creation is enabled, label them with preffered Pod Security Standard labels
     useRecommended:
       enabled: false
+      namespacePSS: true
 
     image:
       ## @param global.spire.image.registry Override all Spire image registries at once
       registry: ""
 
     namespaces:
+      ## @param global.spire.namespaces.create Set to true to Create all namespaces.
+      create: false
       system:
         ## @param global.spire.namespaces.system.name Name of the Spire system Namespace.
         name: "spire-system"
