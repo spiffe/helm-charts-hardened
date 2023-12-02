@@ -21,14 +21,14 @@ global:
     ## @param global.spire.upstreamServerAddress Set what address to use for the upstream server when using nested spire
     upstreamServerAddress: ""
 
-    ## @param global.spire.useRecommended.enabled Enable usage of the recommendations. Default is off.
-    ## @param global.spire.useRecommended.securityContexts Set to true to use our recommendations for pod and container securityContexts
-    ## @param global.spire.useRecommended.priorityClasses Set to true to use our recommendations for pod priority classes
-    ## @param global.spire.useRecommended.namespaceLayout Set to true to use our recommendations for installing across namespaces
-    ## @param global.spire.useRecommended.namespacePSS When chart namespace creation is enabled, label them with preffered Pod Security Standard labels
-    ## @param global.spire.useRecommended.strictMode Check values, such as trustDomain, are overridden with a suitable value for production.
-    ## @param global.spire.useRecommended.prometheus Enable prometheus exporters for monitoring
-    useRecommended:
+    ## @param global.spire.recommendations.enabled Use recommended settings for production deployments. Default is off.
+    ## @param global.spire.recommendations.securityContexts Set to true to use our recommendations for pod and container securityContexts
+    ## @param global.spire.recommendations.priorityClasses Set to true to use our recommendations for pod priority classes
+    ## @param global.spire.recommendations.namespaceLayout Set to true to use our recommendations for installing across namespaces
+    ## @param global.spire.recommendations.namespacePSS When chart namespace creation is enabled, label them with preffered Pod Security Standard labels
+    ## @param global.spire.recommendations.strictMode Check values, such as trustDomain, are overridden with a suitable value for production.
+    ## @param global.spire.recommendations.prometheus Enable prometheus exporters for monitoring
+    recommendations:
       enabled: false
       securityContexts: true
       priorityClasses: true
