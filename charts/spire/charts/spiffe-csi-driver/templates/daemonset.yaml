@@ -36,9 +36,9 @@ spec:
       {{- if .Values.priorityClassName }}
       priorityClassName: {{ .Values.priorityClassName }}
       {{- end }}
-      {{- if or (gt (len .Values.initContainers) 0) (dig "openshift" false .Values.global) (dig "selinux" false .Values.global)}}
+      {{- if or (gt (len .Values.initContainers) 0) (dig "openshift" false .Values.global) (dig "selinux" false .Values.global) .Values.selinux.enabled }}
       initContainers:
-      {{- if or (dig "openshift" false .Values.global) (dig "selinux" false .Values.global) }}
+      {{- if or (dig "openshift" false .Values.global) (dig "selinux" false .Values.global) .Values.selinux.enabled }}
         - name: set-context
           command:
             - chcon
