@@ -22,8 +22,10 @@ global:
     upstreamServerAddress: ""
 
     ## @param global.spire.recommendations.enabled Use recommended settings for production deployments. Default is off.
+    ## @param global.spire.recommendations.securityContexts Set to true to use our recommendations for pod and container securityContexts
     recommendations:
       enabled: false
+      securityContexts: true
 
     image:
       ## @param global.spire.image.registry Override all Spire image registries at once
