@@ -6,19 +6,14 @@
 This deployment works only with Openshift version 4.13 or higher. Get the Openshift platform here: [try.openshift.com](try.openshift.com)
 
 To be consistent with the rest of the Spire helm-charts,
-we deploy Spire across 2 namespaces.
+we deploy Spire across 2 namespaces, then install CRDs. 
+
+> [!Note]
+> Openshift install requires privilege due to helm ordering issue. This work is already done in [openshift-values.yaml](./openshift-values.yaml). After install it can be safely tightened back up.
 
 ```shell
 kubectl create namespace "spire-system"
 kubectl create namespace "spire-server"
-
-#Note, the first install requires privilege due to helm ordering issue. After install it can be safely tightened back up.
-kubectl label namespace "spire-server" pod-security.kubernetes.io/enforce=privileged
-
-kubectl label namespace "spire-system" security.openshift.io/scc.podSecurityLabelSync=false
-kubectl label namespace "spire-system" pod-security.kubernetes.io/enforce=privileged
-kubectl label namespace "spire-system" pod-security.kubernetes.io/warn=privileged --overwrite
-kubectl label namespace "spire-system" pod-security.kubernetes.io/audit=privileged --overwrite
 
 helm upgrade --install --namespace spire-server spire-crds charts/spire-crds
 ```
