@@ -1,6 +1,6 @@
 {{- if or .Values.global.spire.namespaces.create .Values.global.spire.namespaces.server.create }}
 {{-   $labels := dict }}
-{{-   if and (dig "spire" "useRecommended" "enabled" false .Values.global) (dig "spire" "useRecommended" "namespacePSS" true .Values.global) }}
+{{-   if and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "namespacePSS" true .Values.global) }}
 {{-     $_ := set $labels "pod-security.kubernetes.io/warn" "restricted" }}
 {{-     $_ := set $labels "pod-security.kubernetes.io/audit" "restricted" }}
 {{-     if (dig "openshift" false .Values.global) }}

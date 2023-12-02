@@ -184,7 +184,7 @@ if strictMode is enabled and the boolean is true
 {{ $root := index . 0 }}
 {{ $message := index . 1 }}
 {{ $condition := index . 2 }}
-{{- if and (dig "spire" "useRecommended" "enabled" false $root.Values.global) (dig "spire" "useRecommended" "strictMode" true $root.Values.global) }}
+{{- if and (dig "spire" "recommendations" "enabled" false $root.Values.global) (dig "spire" "recommendations" "strictMode" true $root.Values.global) }}
 {{- if $condition }}
 {{- fail $message }}
 {{- end }}
@@ -251,7 +251,7 @@ to merge in values, but spire needs arrays.
 {{- define "spire-lib.default_node_priority_class_name" }}
 {{- if .Values.priorityClassName }}
 priorityClassName: {{ .Values.priorityClassName }}
-{{- else if and (dig "spire" "useRecommended" "enabled" false .Values.global) (dig "spire" "useRecommended" "priorityClasses" true .Values.global) }}
+{{- else if and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "priorityClasses" true .Values.global) }}
 priorityClassName: system-node-critical
 {{- end }}
 {{- end }}
@@ -259,7 +259,7 @@ priorityClassName: system-node-critical
 {{- define "spire-lib.default_cluster_priority_class_name" }}
 {{- if .Values.priorityClassName }}
 priorityClassName: {{ .Values.priorityClassName }}
-{{- else if and (dig "spire" "useRecommended" "enabled" false .Values.global) (dig "spire" "useRecommended" "priorityClasses" true .Values.global) }}
+{{- else if and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "priorityClasses" true .Values.global) }}
 priorityClassName: system-cluster-critical
 {{- end }}
 {{- end }}
@@ -283,7 +283,7 @@ root - global . context for the chart
 securityContext - the subbranch of values that contains the securityContext to merge
 */}}
 {{- define "spire-lib.securitycontext-extended" }}
-{{- if and (dig "spire" "useRecommended" "enabled" false .root.Values.global) (dig "spire" "useRecommended" "securityContexts" true .root.Values.global) }}
+{{- if and (dig "spire" "recommendations" "enabled" false .root.Values.global) (dig "spire" "recommendations" "securityContexts" true .root.Values.global) }}
 {{- $vals := deepCopy (include "spire-lib.default_securitycontext_values" .root | fromYaml) }}
 {{- $vals = mergeOverwrite $vals .securityContext }}
 {{- toYaml $vals }}

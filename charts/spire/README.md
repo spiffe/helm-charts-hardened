@@ -26,7 +26,7 @@ Step 1: Save the following to your-values.yaml, ideally your git repo.
 global:
   openshift: false # If running on openshift, set to true
   spire:
-    useRecommended:
+    recommendations:
       enabled: true
     namespaces:
       create: true
@@ -67,8 +67,8 @@ We only support upgrading one major version at a time. Version skipping isn't su
 ### 0.17.X
 
 A few options were renamed. If you have changed any of these from the defaults, please update them:
-* global.telemetry.prometheus.enabled=true -> global.spire.useRecommended.enabled=true
-* global.spire.strictMode=true -> global.spire.useRecommended.enabled=true
+* global.telemetry.prometheus.enabled=true -> global.spire.recommendations.enabled=true
+* global.spire.strictMode=true -> global.spire.recommendations.enabled=true
 
 ### 0.16.X
 
@@ -194,7 +194,7 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `global.spire.jwtIssuer`                        | The issuer for Spire JWT tokens. Defaults to oidc-discovery.$trustDomain if unset                                                                                                                                                      | `""`              |
 | `global.spire.trustDomain`                      | The trust domain for Spire install                                                                                                                                                                                                     | `example.org`     |
 | `global.spire.upstreamServerAddress`            | Set what address to use for the upstream server when using nested spire                                                                                                                                                                | `""`              |
-| `global.spire.recommendations.enabled`          | Enable usage of the recommendations. Default is off.                                                                                                                                                                                   | `false`           |
+| `global.spire.recommendations.enabled`          | Use recommended settings for production deployments. Default is off.                                                                                                                                                                   | `false`           |
 | `global.spire.recommendations.securityContexts` | Set to true to use our recommendations for pod and container securityContexts                                                                                                                                                          | `true`            |
 | `global.spire.recommendations.priorityClasses`  | Set to true to use our recommendations for pod priority classes                                                                                                                                                                        | `true`            |
 | `global.spire.recommendations.namespaceLayout`  | Set to true to use our recommendations for installing across namespaces                                                                                                                                                                | `true`            |

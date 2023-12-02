@@ -29,7 +29,7 @@ Allow the release namespace to be overridden for multi-namespace deployments in 
 {{- define "spire-server.namespace" -}}
   {{- if .Values.namespaceOverride -}}
     {{- .Values.namespaceOverride -}}
-  {{- else if and (dig "spire" "useRecommended" "enabled" false .Values.global) (dig "spire" "useRecommended" "namespaceLayout" true .Values.global) }}
+  {{- else if and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "namespaceLayout" true .Values.global) }}
     {{- if ne (len (dig "spire" "namespaces" "server" "name" "" .Values.global)) 0 }}
       {{- .Values.global.spire.namespaces.server.name }}
     {{- else }}
@@ -43,7 +43,7 @@ Allow the release namespace to be overridden for multi-namespace deployments in 
 {{- define "spire-server.agent-namespace" -}}
   {{- if .Values.namespaceOverride -}}
     {{- .Values.namespaceOverride -}}
-  {{- else if and (dig "spire" "useRecommended" "enabled" false .Values.global) (dig "spire" "useRecommended" "namespaceLayout" true .Values.global) }}
+  {{- else if and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "namespaceLayout" true .Values.global) }}
     {{- if ne (len (dig "spire" "namespaces" "system" "name" "" .Values.global)) 0 }}
       {{- .Values.global.spire.namespaces.system.name }}
     {{- else }}
@@ -59,7 +59,7 @@ Allow the release namespace to be overridden for multi-namespace deployments in 
     {{- .Values.notifier.k8sbundle.namespace }}
   {{- else if .Values.namespaceOverride -}}
     {{- .Values.namespaceOverride -}}
-  {{- else if and (dig "spire" "useRecommended" "enabled" false .Values.global) (dig "spire" "useRecommended" "namespaceLayout" true .Values.global) }}
+  {{- else if and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "namespaceLayout" true .Values.global) }}
     {{- if ne (len (dig "spire" "namespaces" "system" "name" "" .Values.global)) 0 }}
       {{- .Values.global.spire.namespaces.system.name }}
     {{- else }}
