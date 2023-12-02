@@ -21,9 +21,9 @@ global:
     ## @param global.spire.upstreamServerAddress Set what address to use for the upstream server when using nested spire
     upstreamServerAddress: ""
 
-    ## @param global.spire.useRecommended.enabled Enable usage of the recommendations. Default is off.
-    ## @param global.spire.useRecommended.namespacePSS When chart namespace creation is enabled, label them with preffered Pod Security Standard labels
-    useRecommended:
+    ## @param global.spire.recommendations.enabled Use recommended settings for production deployments. Default is off.
+    ## @param global.spire.recommendations.namespacePSS When chart namespace creation is enabled, label them with preffered Pod Security Standard labels
+    recommendations:
       enabled: false
       namespacePSS: true
 
