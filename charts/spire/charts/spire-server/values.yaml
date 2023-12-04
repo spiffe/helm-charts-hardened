@@ -479,7 +479,7 @@ controllerManager:
         downstream: false
         ## @param controllerManager.identities.clusterSPIFFEIDs.default.autoPopulateDNSNames Auto populate DNS names from services attached to pods
         autoPopulateDNSNames: false
-      
+
       # You can specify additional ClusterSPIFFEIDs following this example:
       # foo:
       #   labels:
@@ -488,7 +488,6 @@ controllerManager:
       #   namespaceSelector:
       #     matchLabels:
       #       foo: bar
-    
     ## @param controllerManager.identities.clusterStaticEntries Specify ClusterStaticEntry objects.
     clusterStaticEntries: {}
     # foo:
@@ -498,7 +497,6 @@ controllerManager:
     #   spiffeID: spiffe://example.com/foo
     #   selectors:
     #   - k8s:pod-label:app.kubernetes.io/name:server
-    
     ## @param controllerManager.identities.clusterFederatedTrustDomains Specify ClusterFederatedTrustDomain objects.
     clusterFederatedTrustDomains: {}
     # foo:
@@ -756,4 +754,4 @@ tests:
       repository: chainguard/bash
       pullPolicy: IfNotPresent
       version: ""
-      tag: latest@sha256:d8e08cda119684ca08dcfcebdd63cbf3d3ff7c4f8a8effca80b962dddd42438e
+      tag: latest@sha256:3dc87ab5263b3e6a0a082aa08fe2f1188eff62de3aee9e63b2cbad8594c62404
