@@ -303,7 +303,7 @@ tests:
       repository: chainguard/slim-toolkit-debug
       pullPolicy: IfNotPresent
       version: ""
-      tag: latest@sha256:b7b4cb6a241990f1caba892e061b6b4fa014d778e9608a94b97580a40ab361bb
+      tag: latest@sha256:99cafee4f14fe07a3298fcb7b90d4f0c396cba150b65d937856788b42ad83f79
 
   busybox:
     ## @param tests.busybox.image.registry The OCI registry to pull the image from
