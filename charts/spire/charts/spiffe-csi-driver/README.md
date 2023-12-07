@@ -64,3 +64,9 @@ A Helm chart to install the SPIFFE CSI driver.
 | `restrictedScc.enabled`                  | Enables the creation of a SecurityContextConstraint based on the restricted SCC with CSI volume support | `false`                                     |
 | `restrictedScc.name`                     | Set the name of the restricted SCC with CSI support                                                     | `""`                                        |
 | `restrictedScc.version`                  | Version of the restricted SCC                                                                           | `2`                                         |
+| `selinux.enabled`                        | Enable selinux support                                                                                  | `false`                                     |
+| `selinux.context`                        | Which selinux context to use                                                                            | `container_file_t`                          |
+| `selinux.image.registry`                 | The OCI registry to pull the image from                                                                 | `registry.access.redhat.com`                |
+| `selinux.image.repository`               | The repository within the registry                                                                      | `ubi9`                                      |
+| `selinux.image.pullPolicy`               | The image pull policy                                                                                   | `Always`                                    |
+| `selinux.image.tag`                      | Overrides the image tag whose default is the chart appVersion                                           | `latest`                                    |
