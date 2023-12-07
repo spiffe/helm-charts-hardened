@@ -33,7 +33,7 @@ jobs:
           git diff
 
       - name: Setup go
-        uses: actions/setup-go@v4.1.0
+        uses: actions/setup-go@v5.0.0
         with:
           go-version: '1.21'
           cache: false
@@ -41,7 +41,7 @@ jobs:
       - name: Setup crane
         uses: imjasonh/setup-crane@v0.3
 
-      - uses: actions/setup-python@v4.6.1
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
