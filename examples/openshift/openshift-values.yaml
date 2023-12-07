@@ -58,24 +58,3 @@ tornjak-frontend:
     runAsUser: null
     runAsGroup: null
     fsGroup: null
-
-spiffe-csi-driver:
-  initContainers:
-    - terminationMessagePath: /dev/termination-log
-      name: set-context
-      command:
-        - chcon
-        - '-Rvt'
-        - container_file_t
-        - spire-agent-socket/
-      securityContext:
-        capabilities:
-          drop:
-            - all
-        privileged: true
-      imagePullPolicy: Always
-      volumeMounts:
-        - name: spire-agent-socket-dir
-          mountPath: /spire-agent-socket
-      terminationMessagePolicy: File
-      image: 'registry.access.redhat.com/ubi9:latest'
