@@ -33,7 +33,7 @@ jobs:
           git diff
 
       - name: Setup go
-        uses: actions/setup-go@v4.1.0
+        uses: actions/setup-go@v5.0.0
         with:
           go-version: '1.21'
           cache: false

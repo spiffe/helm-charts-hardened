@@ -73,7 +73,7 @@ jobs:
           fi
 
       - name: Setup Go
-        uses: actions/setup-go@v4.1.0
+        uses: actions/setup-go@v5.0.0
         with:
           go-version-file: tests/go.mod
           cache-dependency-path: tests/go.sum
