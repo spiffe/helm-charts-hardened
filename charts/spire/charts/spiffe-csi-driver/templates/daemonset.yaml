@@ -34,27 +34,27 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- include "spire-lib.default_node_priority_class_name" . | nindent 6 }}
-      {{- if or (gt (len .Values.initContainers) 0) (dig "openshift" false .Values.global) (dig "selinux" false .Values.global)}}
+      {{- if or (gt (len .Values.initContainers) 0) (dig "openshift" false .Values.global) (dig "selinux" false .Values.global) .Values.selinux.enabled }}
       initContainers:
-      {{- if or (dig "openshift" false .Values.global) (dig "selinux" false .Values.global) }}
-        - terminationMessagePath: /dev/termination-log
-          name: set-context
+      {{- if or (dig "openshift" false .Values.global) (dig "selinux" false .Values.global) .Values.selinux.enabled }}
+        - name: set-context
           command:
             - chcon
             - '-Rvt'
             - {{ .Values.selinux.context }}
             - spire-agent-socket/
+          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.selinux.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.selinux.image.pullPolicy }}
           securityContext:
             capabilities:
               drop:
                 - all
             privileged: true
-          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.selinux.image "global" .Values.global) }}
-          imagePullPolicy: {{ .Values.selinux.image.pullPolicy }}
           volumeMounts:
             - name: spire-agent-socket-dir
               mountPath: /spire-agent-socket
           terminationMessagePolicy: File
+          terminationMessagePath: /dev/termination-log
       {{- end }}
       {{- if gt (len .Values.initContainers) 0 }}
         {{- toYaml .Values.initContainers | nindent 8 }}
