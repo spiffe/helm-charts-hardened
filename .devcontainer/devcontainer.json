@@ -1,6 +1,6 @@
 {
 	"name": "spiffe-helm-charts-hardened",
-	"image": "docker.io/kfox1111/misc:test-spire-helm-charts-hardened",
+	"image": "ghcr.io/spiffe/helm-charts-hardened-devcontainer:latest",
 	"features": {
 		"ghcr.io/devcontainers/features/docker-in-docker:2": {
 			"version": "latest",
