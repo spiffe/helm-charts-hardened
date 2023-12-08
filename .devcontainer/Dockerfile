@@ -56,6 +56,10 @@ RUN \
   mkdir /etc/ct && \
   mv /etc/chart_schema.yaml /etc/ct/ && \
   mv /etc/lintconf.yaml /etc/ct/ && \
+  curl -o /tmp/gh.tar.gz https://github.com/cli/cli/releases/download/v2.40.0/gh_2.40.0_linux_amd64.tar.gz -L && \
+  tar -zxvf gh.tar.gz && \
+  mv gh_*_linux_amd64/bin/* /usr/local/bin && \
+  mv gh_*_linux_amd64/share/man/man1/* /usr/local/share/main/man1/ && \
   cd
 
 RUN \
