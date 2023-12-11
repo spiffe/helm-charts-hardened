@@ -22,10 +22,10 @@ global:
     upstreamServerAddress: ""
 
     ## @param global.spire.recommendations.enabled Use recommended settings for production deployments. Default is off.
-    ## @param global.spire.recommendations.priorityClasses Set to true to use our recommendations for pod priority classes
+    ## @param global.spire.recommendations.priorityClasses Set to true to use our recommendations for Pod Priority Class Names
     recommendations:
       enabled: false
-      priorityClasses: true
+      priorityClasseName: true
 
     image:
       ## @param global.spire.image.registry Override all Spire image registries at once
