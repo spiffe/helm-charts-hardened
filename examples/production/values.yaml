@@ -21,7 +21,6 @@ spire-server:
       drop: [ALL]
     seccompProfile:
       type: RuntimeDefault
-  priorityClassName: system-cluster-critical
 
   logLevel: info
 
@@ -42,15 +41,9 @@ spire-server:
 
 spiffe-csi-driver:
   enabled: true
-  priorityClassName: system-node-critical
-
-
-upstream-spiffe-csi-driver:
-  priorityClassName: system-node-critical
 
 spire-agent:
   enabled: true
-  priorityClassName: system-node-critical
   podSecurityContext:
     runAsUser: 1000
     runAsGroup: 1000
@@ -67,7 +60,6 @@ spire-agent:
   logLevel: info
 
 upstream-spire-agent:
-  priorityClassName: system-node-critical
   podSecurityContext:
     runAsUser: 1000
     runAsGroup: 1000
