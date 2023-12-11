@@ -95,7 +95,7 @@ spec:
               readOnly: false
           resources:
             {{- toYaml .Values.insecureScheme.nginx.resources | nindent 12 }}
-        {{- if (dig "telemetry" "prometheus" "enabled" .Values.telemetry.prometheus.enabled .Values.global) }}
+        {{- if or (dig "telemetry" "prometheus" "enabled" .Values.telemetry.prometheus.enabled .Values.global) (and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "prometheus" true .Values.global)) }}
         - name: nginx-exporter
           securityContext:
             {{- include "spire-lib.securitycontext" . | nindent 12 }}
