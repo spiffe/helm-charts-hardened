@@ -48,9 +48,7 @@ spec:
       shareProcessNamespace: true
       securityContext:
         {{- include "spire-lib.podsecuritycontext" . | nindent 8 }}
-      {{- if .Values.priorityClassName }}
-      priorityClassName: {{ .Values.priorityClassName }}
-      {{- end }}
+      {{- include "spire-lib.default_cluster_priority_class_name" . | nindent 6 }}
       {{- if or (gt (len .Values.initContainers) 0) (and .Values.upstreamAuthority.certManager.enabled .Values.upstreamAuthority.certManager.ca.create) }}
       initContainers:
       {{- if and .Values.upstreamAuthority.certManager.enabled .Values.upstreamAuthority.certManager.ca.create }}

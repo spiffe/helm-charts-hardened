@@ -22,9 +22,11 @@ global:
     upstreamServerAddress: ""
 
     ## @param global.spire.recommendations.enabled Use recommended settings for production deployments. Default is off.
-    ## @param global.spire.recommendations.securityContexts Set to true to use our recommendations for pod and container securityContexts
+    ## @param global.spire.recommendations.priorityClassName Set to true to use recommended values for Pod Priority Class Names
+    ## @param global.spire.recommendations.securityContexts Set to true to use recommended values for Pod and Container Security Contexts
     recommendations:
       enabled: false
+      priorityClassName: true
       securityContexts: true
 
     image:
