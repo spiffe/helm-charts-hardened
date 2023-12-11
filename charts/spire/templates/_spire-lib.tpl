@@ -251,7 +251,7 @@ to merge in values, but spire needs arrays.
 {{- define "spire-lib.default_node_priority_class_name" }}
 {{- if .Values.priorityClassName }}
 priorityClassName: {{ .Values.priorityClassName }}
-{{- else if and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "priorityClasses" true .Values.global) }}
+{{- else if and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "priorityClassName" true .Values.global) }}
 priorityClassName: system-node-critical
 {{- end }}
 {{- end }}
@@ -259,7 +259,7 @@ priorityClassName: system-node-critical
 {{- define "spire-lib.default_cluster_priority_class_name" }}
 {{- if .Values.priorityClassName }}
 priorityClassName: {{ .Values.priorityClassName }}
-{{- else if and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "priorityClasses" true .Values.global) }}
+{{- else if and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "priorityClassName" true .Values.global) }}
 priorityClassName: system-cluster-critical
 {{- end }}
 {{- end }}
