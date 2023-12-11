@@ -22,9 +22,11 @@ global:
     upstreamServerAddress: ""
 
     ## @param global.spire.recommendations.enabled Use recommended settings for production deployments. Default is off.
+    ## @param global.spire.recommendations.priorityClassName Set to true to use recommended values for Pod Priority Class Names
     ## @param global.spire.recommendations.strictMode Check values, such as trustDomain, are overridden with a suitable value for production.
     recommendations:
       enabled: false
+      priorityClassName: true
       strictMode: true
 
     image:

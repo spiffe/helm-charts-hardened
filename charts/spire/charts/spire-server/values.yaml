@@ -59,7 +59,7 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
-## @param priorityClassName Priority class assigned to statefulset pods
+## @param priorityClassName Priority class assigned to statefulset pods. Can be auto set with global.recommendations.priorityClassName.
 priorityClassName: ""
 
 ## @param service.type Type of the Spire server service created
