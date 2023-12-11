@@ -130,7 +130,7 @@ agentSocketPath: /run/spire/agent-sockets/spire-agent.sock
 ## @param kubeletPath Path to kubelet file
 kubeletPath: /var/lib/kubelet
 
-## @param priorityClassName Priority class assigned to daemonset pods
+## @param priorityClassName Priority class assigned to daemonset pods. Can be auto set with global.recommendations.priorityClassName.
 priorityClassName: ""
 
 restrictedScc:
