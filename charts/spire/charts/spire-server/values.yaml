@@ -754,4 +754,4 @@ tests:
       repository: chainguard/bash
       pullPolicy: IfNotPresent
       version: ""
-      tag: latest@sha256:3dc87ab5263b3e6a0a082aa08fe2f1188eff62de3aee9e63b2cbad8594c62404
+      tag: latest@sha256:2f93669e39cbd3c7866058bb7d446e56cabd17e17192134aa6b135dae82cd6e3
