@@ -608,7 +608,8 @@ tornjak:
   ## @param tornjak.image.repository The repository within the registry
   ## @param tornjak.image.pullPolicy The image pull policy
   ## @param tornjak.image.version This value is deprecated in favor of tag. (Will be removed in a future release)
-  ## @param tornjak.image.tag Overrides the image tag whose default is the chart appVersion
+  ## @param tornjak.image.tag Overrides the image tag to be whatever you need it to be. It will always be the flag you set without modifications
+  ## @param tornjak.image.defaultTag Sets the default image to use when image.tag is not set. It will automatically be updated with a ubi- prefix if on OpenShift.
   ##
   image:
     registry: ghcr.io
@@ -616,6 +617,7 @@ tornjak:
     pullPolicy: IfNotPresent
     version: ""
     tag: ""
+    defaultTag: "v1.4.1"
 
   service:
     ## @param tornjak.service.type Type of service resource
