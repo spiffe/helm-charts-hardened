@@ -50,7 +50,6 @@ spiffe-oidc-discovery-provider:
     fsGroup: null
 
 tornjak-frontend:
-  workingDir: /opt/app-root/src
   podSecurityContext:
     runAsUser: null
     runAsGroup: null
