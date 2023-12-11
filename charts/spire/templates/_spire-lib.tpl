@@ -289,6 +289,8 @@ Note: Values not needed on openshift due to it autoassigning restricted users
 {{- toYaml $vals }}
 {{- else }}
 {{- toYaml .Values.podSecurityContext }}
+{{- end }}
+{{- end }}
 
 {{- define "spire-lib.default_node_priority_class_name" }}
 {{- if .Values.priorityClassName }}
@@ -303,6 +305,5 @@ priorityClassName: system-node-critical
 priorityClassName: {{ .Values.priorityClassName }}
 {{- else if and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "priorityClassName" true .Values.global) }}
 priorityClassName: system-cluster-critical
-
 {{- end }}
 {{- end }}
