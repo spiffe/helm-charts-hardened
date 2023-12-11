@@ -231,7 +231,7 @@ spec:
         - name: tornjak
           securityContext:
             {{- toYaml .Values.controllerManager.securityContext | nindent 12 }}
-          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.tornjak.image "global" .Values.global) }}
+          image: {{ template "spire-lib.image" (dict "appVersion" .Values.tornjak.image.defaultTag "image" .Values.tornjak.image "global" .Values.global "ubi" true) }}
           imagePullPolicy: {{ .Values.tornjak.image.pullPolicy }}
           {{- if eq (include "spire-tornjak.connectionType" .) "http" }}
           startupProbe:
