@@ -60,3 +60,7 @@ Any changes to Chart.yaml or values.yaml require an update of the README.md. Thi
 In contrary to many other Helm repositories we do NOT require contributors to increate the Chart version. We have customized our release pipeline so we can bundle various PRs in a single release. Maintainers of the helm-charts in this repo will take care of the semantic versioning.
 
 [readme-generator]: https://github.com/bitnami-labs/readme-generator-for-helm "Auto generate READMEs for Helm Charts."
+
+## devcontainer support
+
+We have a usable devcontainer with all the dev tools preinstalled to make contributions easier. You should be able to use it via Codespaces (https://github.com/codespaces/), Visual Studio Code (https://code.visualstudio.com/), DevPod (https://devpod.sh), etc. Please consult the documentation for those tools for how to use them.
