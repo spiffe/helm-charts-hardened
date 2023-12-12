@@ -22,8 +22,6 @@ spire-server:
     seccompProfile:
       type: RuntimeDefault
 
-  logLevel: info
-
   controllerManager:
     securityContext:
       allowPrivilegeEscalation: false
@@ -34,16 +32,7 @@ spire-server:
       seccompProfile:
         type: RuntimeDefault
 
-    ignoreNamespaces:
-      - kube-system
-      - kube-public
-      - local-path-storage
-
-spiffe-csi-driver:
-  enabled: true
-
 spire-agent:
-  enabled: true
   podSecurityContext:
     runAsUser: 1000
     runAsGroup: 1000
@@ -56,8 +45,6 @@ spire-agent:
       drop: [ALL]
     seccompProfile:
       type: RuntimeDefault
-
-  logLevel: info
 
 upstream-spire-agent:
   podSecurityContext:
@@ -73,12 +60,8 @@ upstream-spire-agent:
     seccompProfile:
       type: RuntimeDefault
 
-  logLevel: info
-
 spiffe-oidc-discovery-provider:
   enabled: true
-  config:
-    additionalDomains: []
   insecureScheme:
     enabled: true
   podSecurityContext:
