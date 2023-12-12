@@ -27,8 +27,6 @@ spire-server:
     seccompProfile:
       type: RuntimeDefault
 
-  logLevel: info
-
   controllerManager:
     securityContext:
       allowPrivilegeEscalation: false
@@ -39,21 +37,13 @@ spire-server:
       seccompProfile:
         type: RuntimeDefault
 
-    ignoreNamespaces:
-      - kube-system
-      - kube-public
-      - local-path-storage
-
 spiffe-csi-driver:
-  enabled: true
   namespaceOverride: spire-system
-
 
 upstream-spiffe-csi-driver:
   namespaceOverride: spire-system
 
 spire-agent:
-  enabled: true
   namespaceOverride: spire-system
   serviceAccount:
     name: spire-agent
@@ -72,8 +62,6 @@ spire-agent:
     seccompProfile:
       type: RuntimeDefault
 
-  logLevel: info
-
 upstream-spire-agent:
   namespaceOverride: spire-system
   podSecurityContext:
@@ -89,12 +77,8 @@ upstream-spire-agent:
     seccompProfile:
       type: RuntimeDefault
 
-  logLevel: info
-
 spiffe-oidc-discovery-provider:
   enabled: true
-  config:
-    additionalDomains: []
   insecureScheme:
     enabled: true
   podSecurityContext:
