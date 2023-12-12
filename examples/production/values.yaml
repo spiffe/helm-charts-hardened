@@ -15,40 +15,23 @@ spire-server:
     k8sbundle:
       namespace: spire-system
 
-  logLevel: info
-
-  controllerManager:
-    ignoreNamespaces:
-      - kube-system
-      - kube-public
-      - local-path-storage
-
 spiffe-csi-driver:
-  enabled: true
   namespaceOverride: spire-system
-
 
 upstream-spiffe-csi-driver:
   namespaceOverride: spire-system
 
 spire-agent:
-  enabled: true
   namespaceOverride: spire-system
   serviceAccount:
     name: spire-agent
   server:
     namespaceOverride: spire-server
 
-  logLevel: info
-
 upstream-spire-agent:
   namespaceOverride: spire-system
 
-  logLevel: info
-
 spiffe-oidc-discovery-provider:
   enabled: true
-  config:
-    additionalDomains: []
   insecureScheme:
     enabled: true
