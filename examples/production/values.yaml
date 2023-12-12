@@ -94,8 +94,6 @@ upstream-spire-agent:
 
 spiffe-oidc-discovery-provider:
   enabled: true
-  config:
-    additionalDomains: []
   insecureScheme:
     enabled: true
   podSecurityContext:
