@@ -258,6 +258,20 @@ seccompProfile:
   type: RuntimeDefault
 {{- end }}
 
+{{- define "spire-lib.default_k8s_podsecuritycontext_values" }}
+fsGroupChangePolicy: OnRootMismatch
+runAsUser: 1000
+runAsGroup: 1000
+fsGroup: 1000
+{{- end }}
+
+{{/*
+Note: runAsUser, runAsGroup, fsGroup, are not needed due to it autoassigning restricted users feature of openshift
+*/}}
+{{- define "spire-lib.default_openshift_podsecuritycontext_values" }}
+fsGroupChangePolicy: OnRootMismatch
+{{- end }}
+
 {{- define "spire-lib.securitycontext" }}
 {{ include "spire-lib.securitycontext-extended" (dict "root" . "securityContext" .Values.securityContext) }}
 {{- end }}
@@ -276,20 +290,17 @@ securityContext - the subbranch of values that contains the securityContext to m
 {{- end }}
 {{- end }}
 
-{{/*
-Note: Values not needed on openshift due to it autoassigning restricted users
-*/}}
 {{- define "spire-lib.podsecuritycontext" }}
-{{- $vals := dict "fsGroupChangePolicy" "OnRootMismatch" }}
-{{- if not (dig "openshift" false .Values.global) }}
-{{- $_ := set $vals "runAsUser" 1000 }}
-{{- $_ := set $vals "runAsGroup" 1000 }}
-{{- $_ := set $vals "fsGroup" 1000 }}
-{{- $vals = mergeOverwrite $vals .Values.podSecurityContext }}
-{{- toYaml $vals }}
-{{- else }}
-{{- toYaml .Values.podSecurityContext }}
-{{- end }}
+{{-   $vals := dict }}
+{{-   if and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "securityContexts" true .Values.global) }}
+{{-     if (dig "openshift" false .Values.global) }}
+{{-       $vals = mergeOverwrite $vals (include "spire-lib.default_openshift_podsecuritycontext_values" . | fromYaml) }}
+{{-     else }}
+{{-       $vals = mergeOverwrite $vals (include "spire-lib.default_k8s_podsecuritycontext_values" . | fromYaml) }}
+{{-     end }}
+{{-   end }}
+{{-   $vals = mergeOverwrite $vals .Values.podSecurityContext }}
+{{-   toYaml $vals }}
 {{- end }}
 
 {{- define "spire-lib.default_node_priority_class_name" }}
