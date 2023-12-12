@@ -1,16 +1,7 @@
 global:
   openshift: true
-  telemetry:
-    prometheus:
-      enabled: true
 
 spire-server:
-  nodeAttestor:
-    k8sPsat:
-      serviceAccountAllowList: ["spire-system:spire-agent"]
-  notifier:
-    k8sbundle:
-      namespace: spire-system
   podSecurityContext:
     # These are unset so that openshift can automatically assign its own restricted uids to the pods
     runAsUser: null

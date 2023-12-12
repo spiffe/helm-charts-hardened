@@ -132,8 +132,8 @@ config:
   ## @param config.logLevel The log level, valid values are "debug", "info", "warn", and "error"
   logLevel: info
   ## @param config.additionalDomains [array] Add additional domains that can be used for oidc discovery
-  additionalDomains:
-    - localhost
+  additionalDomains: []
+  # - localhost
 
   acme:
     ## @param config.acme.tosAccepted Flag for Terms of Service acceptance
