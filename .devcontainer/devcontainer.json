@@ -1,0 +1,30 @@
+{
+	"name": "spiffe-helm-charts-hardened",
+	"image": "ghcr.io/spiffe/helm-charts-hardened-devcontainer:latest",
+	"features": {
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {
+			"version": "latest",
+			"moby": true,
+			"installDockerBuildx": false
+		}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-kubernetes-tools.vscode-kubernetes-tools"
+			],
+			"settings": {
+				"terminal.integrated.defaultProfile.linux": "bash",
+				"terminal.integrated.profiles.linux": {
+					"zsh": { "path": "/bin/zsh" },
+					"bash": { "path": "/bin/bash" }
+				}
+			}
+		}
+	},
+	"postStartCommand": "minikube start && helm upgrade --install -n spire-server spire-crds charts/spire-crds --create-namespace && kubectl version",
+	"hostRequirements": {
+		"cpus": 1
+	},
+	"remoteUser": "dev"
+}
