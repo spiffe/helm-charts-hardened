@@ -1,9 +1,12 @@
+{{- define "spire.namespace.default_system_labels" }}
+"pod-security.kubernetes.io/warn": privileged
+"pod-security.kubernetes.io/audit": privileged
+"pod-security.kubernetes.io/enforce": privileged
+{{- end }}
 {{- if or .Values.global.spire.namespaces.create .Values.global.spire.namespaces.system.create }}
 {{-   $labels := dict }}
 {{-   if and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "namespacePSS" true .Values.global) }}
-{{-     $_ := set $labels "pod-security.kubernetes.io/warn" "privileged" }}
-{{-     $_ := set $labels "pod-security.kubernetes.io/audit" "privileged" }}
-{{-     $_ := set $labels "pod-security.kubernetes.io/enforce" "privileged" }}
+{{-     $labels = mergeOverwrite $labels (include "spire.namespace.default_system_labels" . | fromYaml) }}
 {{-     if (dig "openshift" false .Values.global) }}
 {{-       $_ := set $labels "security.openshift.io/scc.podSecurityLabelSync" "false" }}
 {{-     end }}
