@@ -30,19 +30,13 @@ spec:
         - name: data-volume
           mountPath: /data
     - name: install-step
-      image: {{ template "spire-lib.image" (dict "image" .Values.tests.toolkit.image "global" .Values.global) }}
-      env:
-      - name: STEP_VERSION
-        value: 0.25.1
+      image: {{ template "spire-lib.image" (dict "image" .Values.tests.step.image "global" .Values.global) }}
       workingDir: /data
       command:
         - sh
         - -c
         - |
-          export URL="https://dl.smallstep.com/gh-release/cli/gh-release-header/v${STEP_VERSION}/step_linux_${STEP_VERSION}_amd64.tar.gz"
-          wget -c $URL -O - | tar --strip-components 2 -C . -xzv "step_${STEP_VERSION}/bin/step"
-          chmod +x /data/step
-          /data/step >/dev/null
+          cp /usr/local/bin/step /data/step
       {{- with .Values.securityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
