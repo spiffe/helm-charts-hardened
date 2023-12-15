@@ -461,7 +461,10 @@ controllerManager:
           # matchLabels:
           #   spiffe.io/spiffe-id: "true"
         ## @param controllerManager.identities.clusterSPIFFEIDs.default.dnsNameTemplates [array] DNS name template for issued identities
-        dnsNameTemplates: []
+#        dnsNameTemplates: []
+        dnsNameTemplates:
+          - '{{ index .PodMeta.Labels "app.kubernetes.io/name" }}.{{ .PodMeta.Namespace }}.svc.cluster.local'
+          - oidc-discovery.example.org
           # - '{{ index .PodMeta.Labels "app.kubernetes.io/name" }}.{{ .PodMeta.Namespace }}.svc.cluster.local'
         ## @param controllerManager.identities.clusterSPIFFEIDs.default.federatesWith [array] Other Spire server URLs for identity federation
         federatesWith: []

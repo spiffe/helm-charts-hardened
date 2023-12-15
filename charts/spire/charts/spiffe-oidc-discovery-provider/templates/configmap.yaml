@@ -18,11 +18,17 @@ domains:
 allow_insecure_scheme: {{ .Values.insecureScheme.enabled }}
 listen_socket_path: {{ $oidcSocket | quote }}
 {{- else }}
+{{- if .Values.config.acme.enabled }}
 acme:
   directory_url: {{ .Values.config.acme.directoryUrl | quote }}
   cache_dir: {{ .Values.config.acme.cacheDir | quote }}
   tos_accepted: {{ .Values.config.acme.tosAccepted }}
   email: {{ .Values.config.acme.emailAddress | quote }}
+{{- else }}
+serving_cert_file:
+  cert_file_path: /certs/tls.crt
+  key_file_path: /certs/tls.key
+{{- end }}
 {{- end }}
 
 workload_api:
@@ -69,3 +75,12 @@ data:
       }
     }
   {{- end }}
+  helper.conf: |
+    agent_address = {{ include "spiffe-oidc-discovery-provider.workload-api-socket-path" . | quote }}
+    cmd = "/opt/spire/bin/oidc-discovery-provider"
+    cmd_args = "-config /run/spire/oidc/config/oidc-discovery-provider.conf"
+    cert_dir = "/certs"
+    renew_signal = "SIGUSR1"
+    svid_file_name = "tls.crt"
+    svid_key_file_name = "tls.key"
+    svid_bundle_file_name = "ca.pem"

@@ -40,9 +40,16 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if and (eq .Values.tlsSecret "") (not .Values.config.acme.enabled) (not .Values.insecureScheme.enabled) }}
+          command:
+            - /spiffe-helper
+            - -config
+            - /run/spire/oidc/config/helper.conf
+          {{- else }}
           args:
             - -config
             - /run/spire/oidc/config/oidc-discovery-provider.conf
+          {{- end }}
           ports:
             - containerPort: 8008
               name: healthz
@@ -61,6 +68,12 @@ spec:
               mountPath: /run/spire/oidc/config/oidc-discovery-provider.conf
               subPath: oidc-discovery-provider.conf
               readOnly: true
+            - name: spire-oidc-config
+              mountPath: /run/spire/oidc/config/helper.conf
+              subPath: helper.conf
+              readOnly: true
+            - name: certdir
+              mountPath: /certs
           readinessProbe:
             httpGet:
               path: /ready
@@ -122,6 +135,13 @@ spec:
             name: {{ include "spiffe-oidc-discovery-provider.fullname" . }}
         - name: nginx-tmp
           emptyDir: {}
+        - name: certdir
+          {{- if ne .Values.tlsSecret "" }}
+          secret:
+            secretName: {{ .Values.tlsSecret }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

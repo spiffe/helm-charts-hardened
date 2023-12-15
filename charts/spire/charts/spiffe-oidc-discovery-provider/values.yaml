@@ -25,11 +25,14 @@ image:
   ## @param image.version This value is deprecated in favor of tag. (Will be removed in a future release)
   ## @param image.tag Overrides the image tag whose default is the chart appVersion
   ##
-  registry: ghcr.io
-  repository: spiffe/oidc-discovery-provider
+  #  registry: ghcr.io
+  registry: docker.io
+  #  repository: spiffe/oidc-discovery-provider
+  repository: kfox1111/misc
   pullPolicy: IfNotPresent
   version: ""
-  tag: ""
+  #  tag: ""
+  tag: "spiffe-helper-test"
 
 ## @param resources [object] Resource requests and limits
 resources: {}
@@ -88,6 +91,9 @@ livenessProbe:
 ## @param podAnnotations [object] Pod annotations for Spire OIDC discovery provider
 podAnnotations: {}
 
+## @param tlsSecret Provide your own certificate/key via tls style Kubernetes Secret
+tlsSecret: ""
+
 insecureScheme:
   ## @param insecureScheme.enabled Flag to enable insecure schema
   enabled: false
@@ -136,6 +142,8 @@ config:
   # - localhost
 
   acme:
+    ## @param config.acme.enabled Enable certificate/key via ACME
+    enabled: false
     ## @param config.acme.tosAccepted Flag for Terms of Service acceptance
     tosAccepted: false
     ## @param config.acme.cacheDir Path for cache directory
