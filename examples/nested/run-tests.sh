@@ -43,7 +43,7 @@ teardown() {
   fi
 }
 
-trap 'ec=$? && trap - SIGTERM && teardown $ec' SIGINT SIGTERM EXIT
+trap 'EC=$? && trap - SIGTERM && teardown $EC' SIGINT SIGTERM EXIT
 
 kubectl create namespace spire-system --dry-run=client -o yaml | kubectl apply -f -
 kubectl label namespace spire-system pod-security.kubernetes.io/enforce=privileged || true
