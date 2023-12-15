@@ -82,11 +82,17 @@ spec:
             httpGet:
               path: /ready
               port: healthz
+              {{- if not .Values.insecureScheme.enabled }}
+              scheme: https
+              {{- end }}
             {{- toYaml .Values.readinessProbe | nindent 12 }}
           livenessProbe:
             httpGet:
               path: /live
               port: healthz
+              {{- if not .Values.insecureScheme.enabled }}
+              scheme: https
+              {{- end }}
             {{- toYaml .Values.livenessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
