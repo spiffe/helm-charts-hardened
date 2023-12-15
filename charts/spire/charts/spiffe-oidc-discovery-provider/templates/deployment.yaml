@@ -83,7 +83,7 @@ spec:
               path: /ready
               port: healthz
               {{- if not .Values.insecureScheme.enabled }}
-              scheme: https
+              scheme: HTTPS
               {{- end }}
             {{- toYaml .Values.readinessProbe | nindent 12 }}
           livenessProbe:
@@ -91,7 +91,7 @@ spec:
               path: /live
               port: healthz
               {{- if not .Values.insecureScheme.enabled }}
-              scheme: https
+              scheme: HTTPS
               {{- end }}
             {{- toYaml .Values.livenessProbe | nindent 12 }}
           resources:
