@@ -22,6 +22,7 @@ $(kubectl --request-timeout=30s describe pods --namespace "$1")
 
 \`\`\`shell
 $(kubectl get pods -o name -n "$1" | while read -r line; do echo logs for "${line}"; kubectl logs -n "$1" "${line}" --all-containers=true --ignore-errors=true; done)
+$(([[ ! -z "$2" ] && kubectl get pods -o name -n "$2") | while read -r line; do echo logs for "${line}"; kubectl logs -n "$2" "${line}" --all-containers=true --ignore-errors=true; done)
 \`\`\`
 
 EOF
