@@ -1,7 +1,28 @@
+{{- define "spire-controller-manager-identity-nsselector" }}
+key: "kubernetes.io/metadata.name"
+{{-   if eq .type "base" }}
+operator: NotIn
+{{-   else }}
+operator: In
+{{-  end }}
+values:
+  {{ .namespaces | toYaml | nindent 2 }}
+{{- end }}
+{{- define "spire-controller-manager-identity-podselector" }}
+{{-   if eq .type "oidc-discovery-provider" }}
+matchLabels:
+  release: {{ .Release.Name }}
+  release-namespace: {{ .Release.Namespace }}
+  component: oidc-discovery-provider
+{{-   else }}
+{}
+{{-   end }}
+{{- end }}
 {{- $root := . }}
+{{  $namespaces := list .Release.Namespace .Values.namespaceOverride (dig "spire" "namespaces" "server" "name" "" .Values.global) (dig "spire" "namespaces" "system" "name" "" .Values.global) | compact | uniq }}
 {{- range $key, $value := .Values.controllerManager.identities.clusterSPIFFEIDs }}
 {{-   range $skey, $svalue := $value }}
-{{-     if not (has $skey (list "name" "annotations" "labels" "enabled" "admin" "dnsNameTemplates" "downstream" "federatesWith" "jwtTTL" "namespaceSelector" "podSelector" "spiffeIDTemplate" "ttl" "workloadSelectorTemplates" "autoPopulateDNSNames")) }}
+{{-     if not (has $skey (list "name" "annotations" "labels" "enabled" "type" "admin" "dnsNameTemplates" "downstream" "federatesWith" "jwtTTL" "namespaceSelector" "podSelector" "spiffeIDTemplate" "ttl" "workloadSelectorTemplates" "autoPopulateDNSNames")) }}
 {{-       fail (printf "Unsupported property specified: %s" $skey) }}
 {{-     end }}
 {{-   end }}
@@ -12,6 +33,13 @@
 {{-   end }}
 {{-   if eq ($root.Values.controllerManager.enabled | toString) "true" }}
 {{-     if or (not (hasKey $value "enabled")) (eq ($value.enabled | toString) "true") }}
+{{-       $type := dig "type" "base" $value }}
+{{-       $namespaceSelector := deepCopy (dig "namespaceSelector" (dict) $value) }}
+{{-       $namespaceSelector := merge $namespaceSelector (dict "matchExpressions" (list)) }}
+{{-       $namespaceSelectorToAdd := include "spire-controller-manager-identity-nsselector" (dict "type" $type "namespaces" $namespaces) | fromYaml }}
+{{-       $_ := set $namespaceSelector "matchExpressions" (append $namespaceSelector.matchExpressions $namespaceSelectorToAdd) }}
+{{-       $podSelector := deepCopy (dig "podSelector" (dict) $value) }}
+{{-       $podSelector := merge $podSelector (include "spire-controller-manager-identity-podselector" (dict "type" $type "Release" $root.Release) | fromYaml ) }}
 ---
 apiVersion: spire.spiffe.io/v1alpha1
 kind: ClusterSPIFFEID
@@ -32,11 +60,11 @@ spec:
   federatesWith:
   {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- with $value.podSelector }}
+  {{- with $podSelector }}
   podSelector:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- with $value.namespaceSelector }}
+  {{- with $namespaceSelector }}
   namespaceSelector:
     {{- toYaml . | nindent 4 }}
   {{- end }}

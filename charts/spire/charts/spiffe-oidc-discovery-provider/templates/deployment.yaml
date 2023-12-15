@@ -26,6 +26,10 @@ spec:
         {{- end }}
       labels:
         {{- include "spiffe-oidc-discovery-provider.selectorLabels" . | nindent 8 }}
+        release: {{ .Release.Name }}
+        release-namespace: {{ .Release.Namespace }}
+        component: oidc-discovery-provider
+        svc: {{ include "spiffe-oidc-discovery-provider.fullname" . }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
