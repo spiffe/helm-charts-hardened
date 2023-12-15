@@ -58,7 +58,7 @@ spec:
             - containerPort: 8008
               name: healthz
           {{- if not .Values.insecureScheme.enabled }}
-            - containerPort: 443
+            - containerPort: 1443
               name: https
           {{- end }}
           volumeMounts:
