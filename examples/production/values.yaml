@@ -79,9 +79,6 @@ upstream-spire-agent:
       type: RuntimeDefault
 
 spiffe-oidc-discovery-provider:
-  enabled: true
-  insecureScheme:
-    enabled: true
   podSecurityContext:
     runAsUser: 1000
     runAsGroup: 1000

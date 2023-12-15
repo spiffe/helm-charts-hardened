@@ -492,6 +492,14 @@ controllerManager:
           - '{{ index .PodMeta.Labels "svc" }}.{{ .PodMeta.Namespace }}.svc.cluster.local'
           - oidc-discovery.{{ .TrustDomain }}
 
+      test-keys:
+        ## @param controllerManager.identities.clusterSPIFFEIDs.test-keys.enabled Enable this identity for controller manager
+        enabled: true
+        ## @param controllerManager.identities.clusterSPIFFEIDs.test-keys.type The type of rule this is.
+        type: test-keys
+        ## @param controllerManager.identities.clusterSPIFFEIDs.test-keys.spiffeIDTemplate Spiffe ID template for identities
+        spiffeIDTemplate: spiffe://{{ .TrustDomain }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
+
       # You can specify additional ClusterSPIFFEIDs following this example:
       # foo:
       #   labels:

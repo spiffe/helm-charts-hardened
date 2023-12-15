@@ -1,3 +1,11 @@
+{{- $protocol := "https" }}
+{{- if .Values.insecureScheme.enabled }}
+{{- $protocol = "http" }}
+{{- end }}
+{{- $port := 443 }}
+{{- if .Values.insecureScheme.enabled }}
+{{- $port := .Values.service.port }}
+{{- end }}
 apiVersion: v1
 kind: Pod
 metadata:
@@ -5,6 +13,9 @@ metadata:
   namespace: {{ include "spiffe-oidc-discovery-provider.namespace" . }}
   labels:
     {{- include "spiffe-oidc-discovery-provider.labels" . | nindent 4 }}
+    release: {{ .Release.Name }}
+    release-namespace: {{ .Release.Namespace }}
+    component: test-keys
   annotations:
     "helm.sh/hook": test
 spec:
@@ -62,7 +73,7 @@ spec:
       args:
         - -c
         - |
-          URL=http://{{ include "spiffe-oidc-discovery-provider.fullname" . }}.{{ include "spiffe-oidc-discovery-provider.namespace" . }}.svc.{{ include "spire-lib.cluster-domain" . }}:{{ .Values.service.port }}
+          URL={{ $protocol }}://{{ include "spiffe-oidc-discovery-provider.fullname" . }}.{{ include "spiffe-oidc-discovery-provider.namespace" . }}.svc.{{ include "spire-lib.cluster-domain" . }}:{{ $port }}
           curl -k -s -f "${URL}"/keys
           JWT=$(cat /data/token.svid | jq -r '.[].svids[0].svid' | xargs)
           cat <<'EOF' >> /data/jwt-decode.sh
