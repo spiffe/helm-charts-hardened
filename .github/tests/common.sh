@@ -36,7 +36,7 @@ k_rollout_status () {
 }
 
 get_spire_release_name () {
-  helm ls -A | grep '^spire' | awk '{print $1}'
+  helm ls -A | grep '^spire' | grep -v spire-crds | awk '{print $1}'
 }
 
 print_spire_workload_status () {
