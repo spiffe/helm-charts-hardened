@@ -37,10 +37,10 @@ done
 teardown() {
 
   print_helm_releases
-  print_spire_workload_status "${ns}"
+  print_spire_workload_status spire-server spire-system
 
   if [[ "$1" -ne 0 ]]; then
-    get_namespace_details "${ns}"
+    get_namespace_details spire-server spire-system
   fi
 
   if [ "${CLEANUP}" -eq 1 ]; then
@@ -54,7 +54,7 @@ teardown() {
   fi
 }
 
-trap 'trap - SIGTERM && teardown $?' SIGINT SIGTERM EXIT
+trap 'EC=$? && trap - SIGTERM && teardown $EC' SIGINT SIGTERM EXIT
 
 if [[ -n "$UPGRADE_ARGS" ]]; then
   pushd "${SCRIPTPATH}"
