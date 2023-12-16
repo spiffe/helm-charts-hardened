@@ -19,10 +19,5 @@ spire-server:
         test-keys:
           spiffeIDTemplate: spiffe://{{ .TrustDomain }}/k8s/{{ .ClusterName }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
 
-spiffe-oidc-discovery-provider:
-  enabled: true
-  insecureScheme:
-    enabled: true
-
 upstream:
   enabled: true

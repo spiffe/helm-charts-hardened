@@ -8,13 +8,23 @@ spire-server:
     identities:
       clusterSPIFFEIDs:
         default:
+          spiffeIDTemplate: spiffe://{{ .TrustDomain }}/k8s/{{ .ClusterName }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
+          type: raw
           namespaceSelector:
-            kubernetes.io/metadata.name: spire-server
+            matchExpressions:
+            - key: "kubernetes.io/metadata.name"
+              operator: In
+              values: [spire-server]
           podSelector:
-            app.kubernetes.io/component: server
-            app.kubernetes.io/instance: spire
-            app.kubernetes.io/name: server
+            matchLabels:
+              release: spire
+              release-namespace: spire-server
+              component: server
           downstream: true
+        oidc-discovery-provider:
+          enabled: false
+        test-keys:
+          enabled: false
   nodeAttestor:
     k8sPsat:
       serviceAccountAllowList:
@@ -23,6 +33,9 @@ spire-server:
   notifier:
     k8sbundle:
       namespace: spire-system
+
+spiffe-oidc-discovery-provider:
+  enabled: false
 
 spire-agent:
   enabled: false
