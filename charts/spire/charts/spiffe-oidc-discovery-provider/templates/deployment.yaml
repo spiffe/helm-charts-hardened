@@ -50,7 +50,8 @@ spec:
             - -config
             - /run/spire/oidc/config/helper.conf
           {{- else }}
-          args:
+          command:
+            - /opt/spire/bin/oidc-discovery-provider
             - -config
             - /run/spire/oidc/config/oidc-discovery-provider.conf
           {{- end }}
