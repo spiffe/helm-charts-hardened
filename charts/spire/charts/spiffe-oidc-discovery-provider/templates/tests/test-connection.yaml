@@ -6,7 +6,7 @@
 {{- end }}
 {{- $port := 443 }}
 {{- if .Values.insecureScheme.enabled }}
-{{- $port := .Values.service.port }}
+{{- $port = .Values.service.port }}
 {{- end }}
 {{- if gt (len .Values.ingress.hosts) 0 }}
 {{-   $host = (index .Values.ingress.hosts 0).host }}

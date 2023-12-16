@@ -1,7 +1,7 @@
 {{- if .Values.ingress.enabled -}}
 {{- $port := 443 }}
 {{- if .Values.insecureScheme.enabled }}
-{{- $port := .Values.service.port }}
+{{- $port = .Values.service.port }}
 {{- end }}
 {{- $ingressControllerType := include "spire-lib.ingress-controller-type" (dict "global" .Values.global "ingress" .Values.ingress) }}
 {{- $fullName := include "spiffe-oidc-discovery-provider.fullname" . }}

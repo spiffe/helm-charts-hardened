@@ -4,7 +4,7 @@
 {{- end }}
 {{- $port := 443 }}
 {{- if .Values.insecureScheme.enabled }}
-{{- $port := .Values.service.port }}
+{{- $port = .Values.service.port }}
 {{- end }}
 apiVersion: v1
 kind: Pod
