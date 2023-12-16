@@ -24,6 +24,15 @@ for i in "$@"; do
 done
 
 teardown() {
+  print_helm_releases
+  print_spire_workload_status spire-root-server
+  print_spire_workload_status spire-server spire-system
+
+  if [[ "$1" -ne 0 ]]; then
+    get_namespace_details spire-root-server
+    get_namespace_details spire-server spire-system
+  fi
+
   if [ "${CLEANUP}" -eq 1 ]; then
     helm uninstall --namespace spire-server spire 2>/dev/null || true
     kubectl delete ns spire-server 2>/dev/null || true
@@ -34,7 +43,7 @@ teardown() {
   fi
 }
 
-trap 'trap - SIGTERM && teardown' SIGINT SIGTERM EXIT
+trap 'EC=$? && trap - SIGTERM && teardown $EC' SIGINT SIGTERM EXIT
 
 kubectl create namespace spire-system --dry-run=client -o yaml | kubectl apply -f -
 kubectl label namespace spire-system pod-security.kubernetes.io/enforce=privileged || true
@@ -50,13 +59,3 @@ helm upgrade --install --create-namespace --namespace spire-server --values "${S
   --wait spire charts/spire
 helm test --namespace spire-server spire
 
-print_helm_releases
-print_spire_workload_status spire-root-server
-print_spire_workload_status spire-server
-print_spire_workload_status spire-system
-
-if [[ "$1" -ne 0 ]]; then
-  get_namespace_details spire-root-server
-  get_namespace_details spire-server
-  get_namespace_details spire-system
-fi
