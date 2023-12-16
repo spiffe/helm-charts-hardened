@@ -11,10 +11,15 @@
 {{-   $_ := set $annotations "nginx.ingress.kubernetes.io/ssl-redirect" "true" }}
 {{-   $_ := set $annotations "nginx.ingress.kubernetes.io/force-ssl-redirect" "true" }}
 {{-   if not .Values.insecureScheme.enabled }}
-{{-   $_ := set $annotations "nginx.ingress.kubernetes.io/backend-protocol" "HTTPS" }}
+{{-     $_ := set $annotations "nginx.ingress.kubernetes.io/backend-protocol" "HTTPS" }}
+{{-     $_ := set $annotations "nginx.ingress.kubernetes.io/ssl-passthrough" "true" }}
 {{-   end }}
 {{- else if eq $ingressControllerType "openshift" }}
-{{-   $_ := set $annotations "route.openshift.io/termination" "edge" }}
+{{-   if .Values.insecureScheme.enabled }}
+{{-     $_ := set $annotations "route.openshift.io/termination" "edge" }}
+{{-   else }}
+{{-     $_ := set $annotations "route.openshift.io/termination" "passthrough" }}
+{{-   end }}
 {{-   $tlsSection = false }}
 {{- end }}
 apiVersion: networking.k8s.io/v1
