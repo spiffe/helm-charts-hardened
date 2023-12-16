@@ -28,7 +28,7 @@ acme:
 serving_cert_file:
   cert_file_path: /certs/tls.crt
   key_file_path: /certs/tls.key
-  addr: ':1443'
+  addr: ':8443'
 {{- end }}
 {{- end }}
 
