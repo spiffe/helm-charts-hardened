@@ -489,7 +489,7 @@ controllerManager:
         spiffeIDTemplate: spiffe://{{ .TrustDomain }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
         ## @param controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.dnsNameTemplates [array] DNS name template for issued identities
         dnsNameTemplates:
-          - '{{ index .PodMeta.Labels "svc" }}.{{ .PodMeta.Namespace }}.svc.cluster.local'
+          - '{{ index .PodMeta.Labels "svc" }}.{{ .PodMeta.Namespace }}.svc.{{ .ClusterDomain }}'
           - oidc-discovery.{{ .TrustDomain }}
 
       test-keys:
