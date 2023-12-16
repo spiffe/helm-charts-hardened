@@ -12,13 +12,18 @@
 {{-   $_ := set $annotations "nginx.ingress.kubernetes.io/force-ssl-redirect" "true" }}
 {{-   if not .Values.insecureScheme.enabled }}
 {{-     $_ := set $annotations "nginx.ingress.kubernetes.io/backend-protocol" "HTTPS" }}
+{{-     if not (and .Values.ingress.enabled .Values.ingress.tlsSecret) }}
 {{-     $_ := set $annotations "nginx.ingress.kubernetes.io/ssl-passthrough" "true" }}
 {{-   end }}
 {{- else if eq $ingressControllerType "openshift" }}
 {{-   if .Values.insecureScheme.enabled }}
 {{-     $_ := set $annotations "route.openshift.io/termination" "edge" }}
 {{-   else }}
-{{-     $_ := set $annotations "route.openshift.io/termination" "passthrough" }}
+{{-     if and .Values.ingress.enabled .Values.ingress.tlsSecret }}
+{{-       $_ := set $annotations "route.openshift.io/termination" "reencrypt" }}
+{{-     else }}
+{{-       $_ := set $annotations "route.openshift.io/termination" "passthrough" }}
+{{-     end }}
 {{-   end }}
 {{-   $tlsSection = false }}
 {{- end }}
