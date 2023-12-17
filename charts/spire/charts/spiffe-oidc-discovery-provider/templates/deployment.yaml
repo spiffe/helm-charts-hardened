@@ -44,7 +44,7 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- if and (eq .Values.tlsSecret "") (not .Values.config.acme.enabled) (not .Values.insecureScheme.enabled) }}
+          {{- if and (eq .Values.tlsSecret "") (not .Values.certManager.enabled) (not .Values.insecureScheme.enabled) }}
           command:
             - /spiffe-helper
             - -config
@@ -144,6 +144,9 @@ spec:
           {{- if ne .Values.tlsSecret "" }}
           secret:
             secretName: {{ .Values.tlsSecret }}
+          {{- else if .Values.certManager.enabled }}
+          secret:
+            secretName: {{ include "spiffe-oidc-discovery-provider.fullname" . }}-cert
           {{- else }}
           emptyDir: {}
           {{- end }}

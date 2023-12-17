@@ -18,18 +18,10 @@ domains:
 allow_insecure_scheme: {{ .Values.insecureScheme.enabled }}
 listen_socket_path: {{ $oidcSocket | quote }}
 {{- else }}
-{{- if .Values.config.acme.enabled }}
-acme:
-  directory_url: {{ .Values.config.acme.directoryUrl | quote }}
-  cache_dir: {{ .Values.config.acme.cacheDir | quote }}
-  tos_accepted: {{ .Values.config.acme.tosAccepted }}
-  email: {{ .Values.config.acme.emailAddress | quote }}
-{{- else }}
 serving_cert_file:
   cert_file_path: /certs/tls.crt
   key_file_path: /certs/tls.key
   addr: ':8443'
-{{- end }}
 {{- end }}
 
 workload_api:
