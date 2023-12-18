@@ -48,9 +48,7 @@ spec:
       shareProcessNamespace: true
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      {{- if .Values.priorityClassName }}
-      priorityClassName: {{ .Values.priorityClassName }}
-      {{- end }}
+      {{- include "spire-lib.default_cluster_priority_class_name" . | nindent 6 }}
       {{- if or (gt (len .Values.initContainers) 0) (and .Values.upstreamAuthority.certManager.enabled .Values.upstreamAuthority.certManager.ca.create) }}
       initContainers:
       {{- if and .Values.upstreamAuthority.certManager.enabled .Values.upstreamAuthority.certManager.ca.create }}
@@ -231,7 +229,7 @@ spec:
         - name: tornjak
           securityContext:
             {{- toYaml .Values.controllerManager.securityContext | nindent 12 }}
-          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.tornjak.image "global" .Values.global) }}
+          image: {{ template "spire-lib.image" (dict "appVersion" .Values.tornjak.image.defaultTag "image" .Values.tornjak.image "global" .Values.global "ubi" true) }}
           imagePullPolicy: {{ .Values.tornjak.image.pullPolicy }}
           {{- if eq (include "spire-tornjak.connectionType" .) "http" }}
           startupProbe:

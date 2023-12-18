@@ -59,7 +59,7 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
-## @param priorityClassName Priority class assigned to statefulset pods
+## @param priorityClassName Priority class assigned to statefulset pods. Can be auto set with global.recommendations.priorityClassName.
 priorityClassName: ""
 
 ## @param service.type Type of the Spire server service created
@@ -608,14 +608,16 @@ tornjak:
   ## @param tornjak.image.repository The repository within the registry
   ## @param tornjak.image.pullPolicy The image pull policy
   ## @param tornjak.image.version This value is deprecated in favor of tag. (Will be removed in a future release)
-  ## @param tornjak.image.tag Overrides the image tag whose default is the chart appVersion
+  ## @param tornjak.image.tag Overrides the image tag to be whatever you need it to be. It will always be the flag you set without modifications
+  ## @param tornjak.image.defaultTag Sets the default image to use when image.tag is not set. It will automatically be updated with a ubi- prefix if on OpenShift.
   ##
   image:
     registry: ghcr.io
     repository: spiffe/tornjak-backend
     pullPolicy: IfNotPresent
     version: ""
-    tag: "v1.4.0"
+    tag: ""
+    defaultTag: "v1.4.2"
 
   service:
     ## @param tornjak.service.type Type of service resource
@@ -754,4 +756,4 @@ tests:
       repository: chainguard/bash
       pullPolicy: IfNotPresent
       version: ""
-      tag: latest@sha256:3dc87ab5263b3e6a0a082aa08fe2f1188eff62de3aee9e63b2cbad8594c62404
+      tag: latest@sha256:0b3904b9ac440671549e2391d4148e129e581fb16d9d98ae2cbf2b135dda82c8

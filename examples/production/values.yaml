@@ -27,9 +27,6 @@ spire-server:
       drop: [ALL]
     seccompProfile:
       type: RuntimeDefault
-  priorityClassName: system-cluster-critical
-
-  logLevel: info
 
   controllerManager:
     securityContext:
@@ -41,29 +38,18 @@ spire-server:
       seccompProfile:
         type: RuntimeDefault
 
-    ignoreNamespaces:
-      - kube-system
-      - kube-public
-      - local-path-storage
-
 spiffe-csi-driver:
-  enabled: true
   namespaceOverride: spire-system
-  priorityClassName: system-node-critical
-
 
 upstream-spiffe-csi-driver:
   namespaceOverride: spire-system
-  priorityClassName: system-node-critical
 
 spire-agent:
-  enabled: true
   namespaceOverride: spire-system
   serviceAccount:
     name: spire-agent
   server:
     namespaceOverride: spire-server
-  priorityClassName: system-node-critical
   podSecurityContext:
     runAsUser: 1000
     runAsGroup: 1000
@@ -76,12 +62,9 @@ spire-agent:
       drop: [ALL]
     seccompProfile:
       type: RuntimeDefault
-
-  logLevel: info
 
 upstream-spire-agent:
   namespaceOverride: spire-system
-  priorityClassName: system-node-critical
   podSecurityContext:
     runAsUser: 1000
     runAsGroup: 1000
@@ -95,12 +78,8 @@ upstream-spire-agent:
     seccompProfile:
       type: RuntimeDefault
 
-  logLevel: info
-
 spiffe-oidc-discovery-provider:
   enabled: true
-  config:
-    additionalDomains: []
   insecureScheme:
     enabled: true
   podSecurityContext:

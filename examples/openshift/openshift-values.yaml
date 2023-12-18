@@ -1,8 +1,5 @@
 global:
   openshift: true
-  telemetry:
-    prometheus:
-      enabled: true
   spire:
     namespaces:
       system:
@@ -19,17 +16,6 @@ global:
           pod-security.kubernetes.io/audit: privileged
 
 spire-server:
-  tornjak:
-    image:
-      registry: ghcr.io
-      repository: spiffe/tornjak-backend
-      tag: ubi-v1.4.1
-  nodeAttestor:
-    k8sPsat:
-      serviceAccountAllowList: ["spire-system:spire-agent"]
-  notifier:
-    k8sbundle:
-      namespace: spire-system
   podSecurityContext:
     # These are unset so that openshift can automatically assign its own restricted uids to the pods
     runAsUser: null
@@ -55,11 +41,6 @@ spiffe-oidc-discovery-provider:
     fsGroup: null
 
 tornjak-frontend:
-  workingDir: /opt/app-root/src
-  image:
-    registry: ghcr.io
-    repository: spiffe/tornjak-frontend
-    tag: ubi-v1.4.1
   podSecurityContext:
     runAsUser: null
     runAsGroup: null

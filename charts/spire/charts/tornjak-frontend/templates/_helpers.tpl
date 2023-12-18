@@ -84,3 +84,13 @@ Create URL for accessing Tornjak APIs
 {{- print "http://localhost:" .Values.service.port }}
 {{- end }}
 {{- end }}
+
+{{- define "tornjak-frontend.workingDir" }}
+{{- if .Values.workingDir }}
+{{- .Values.workingDir }}
+{{- else if (dig "openshift" false .Values.global) }}
+{{- printf "/opt/app-root/src" }}
+{{- else }}
+{{- printf "/usr/src/app" }}
+{{- end }}
+{{- end }}
