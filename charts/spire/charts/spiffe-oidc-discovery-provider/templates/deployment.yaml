@@ -102,7 +102,7 @@ spec:
         {{- if and (eq .Values.tlsSecret "") (not .Values.certManager.enabled) (not .Values.insecureScheme.enabled) }}
         - name: spiffe-helper
           securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
+            {{- include "spire-lib.securitycontext" . | nindent 12 }}
           image: {{ template "spire-lib.image" (dict "image" .Values.spiffeHelper.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.spiffeHelper.image.pullPolicy }}
           volumeMounts:
