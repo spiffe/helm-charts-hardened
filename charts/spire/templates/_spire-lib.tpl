@@ -184,7 +184,7 @@ if strictMode is enabled and the boolean is true
 {{ $root := index . 0 }}
 {{ $message := index . 1 }}
 {{ $condition := index . 2 }}
-{{- if (dig "spire" "strictMode" false $root.Values.global) }}
+{{- if or (dig "spire" "strictMode" false $root.Values.global) (and (dig "spire" "recommendations" "enabled" false $root.Values.global) (dig "spire" "recommendations" "strictMode" true $root.Values.global)) }}
 {{- if $condition }}
 {{- fail $message }}
 {{- end }}
