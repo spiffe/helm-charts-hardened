@@ -22,19 +22,19 @@ global:
     upstreamServerAddress: ""
 
     ## @param global.spire.recommendations.enabled Use recommended settings for production deployments. Default is off.
-    ## @param global.spire.recommendations.namespaceLayout Set to true to use our recommendations for installing across namespaces
+    ## @param global.spire.recommendations.namespaceLayout Set to true to use recommended values for installing across namespaces
     ## @param global.spire.recommendations.namespacePSS When chart namespace creation is enabled, label them with preffered Pod Security Standard labels
-    ## @param global.spire.recommendations.securityContexts Set to true to use our recommendations for pod and container securityContexts
-    ## @param global.spire.recommendations.strictMode Check values, such as trustDomain, are overridden with a suitable value for production.
     ## @param global.spire.recommendations.priorityClassName Set to true to use recommended values for Pod Priority Class Names
+    ## @param global.spire.recommendations.strictMode Check values, such as trustDomain, are overridden with a suitable value for production.
+    ## @param global.spire.recommendations.securityContexts Set to true to use recommended values for Pod and Container Security Contexts
     ## @param global.spire.recommendations.prometheus Enable prometheus exporters for monitoring
     recommendations:
       enabled: false
       namespaceLayout: true
       namespacePSS: true
-      securityContexts: true
-      strictMode: true
       priorityClassName: true
+      strictMode: true
+      securityContexts: true
       prometheus: true
 
     image:
