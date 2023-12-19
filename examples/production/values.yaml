@@ -3,12 +3,6 @@ global:
     recommendations:
       enabled: true
 
-spire-server:
-
-spire-agent:
-
-upstream-spire-agent:
-
 spiffe-oidc-discovery-provider:
   enabled: true
   insecureScheme:
