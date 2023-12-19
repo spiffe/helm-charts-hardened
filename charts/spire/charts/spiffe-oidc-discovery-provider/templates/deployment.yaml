@@ -38,23 +38,34 @@ spec:
       serviceAccountName: {{ include "spiffe-oidc-discovery-provider.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        {{- if and (eq .Values.tlsSecret "") (not .Values.certManager.enabled) (not .Values.insecureScheme.enabled) }}
+        - name: init
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: {{ template "spire-lib.image" (dict "image" .Values.spiffeHelper.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.spiffeHelper.image.pullPolicy }}
+          volumeMounts:
+            - name: spiffe-workload-api
+              mountPath: {{ include "spiffe-oidc-discovery-provider.workload-api-socket-path" . | dir }}
+              readOnly: true
+            - name: spire-oidc-config
+              mountPath: /etc/spiffe-helper.conf
+              subPath: helper-init.conf
+              readOnly: true
+            - name: certdir
+              mountPath: /certs
+        {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- if and (eq .Values.tlsSecret "") (not .Values.certManager.enabled) (not .Values.insecureScheme.enabled) }}
-          command:
-            - /spiffe-helper
-            - -config
-            - /run/spire/oidc/config/helper.conf
-          {{- else }}
           command:
             - /opt/spire/bin/oidc-discovery-provider
             - -config
             - /run/spire/oidc/config/oidc-discovery-provider.conf
-          {{- end }}
           ports:
             - containerPort: 8008
               name: healthz
@@ -73,12 +84,9 @@ spec:
               mountPath: /run/spire/oidc/config/oidc-discovery-provider.conf
               subPath: oidc-discovery-provider.conf
               readOnly: true
-            - name: spire-oidc-config
-              mountPath: /run/spire/oidc/config/helper.conf
-              subPath: helper.conf
-              readOnly: true
             - name: certdir
               mountPath: /certs
+              readOnly: true
           readinessProbe:
             httpGet:
               path: /ready
@@ -91,6 +99,23 @@ spec:
             {{- toYaml .Values.livenessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+        {{- if and (eq .Values.tlsSecret "") (not .Values.certManager.enabled) (not .Values.insecureScheme.enabled) }}
+        - name: spiffe-helper
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: {{ template "spire-lib.image" (dict "image" .Values.spiffeHelper.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.spiffeHelper.image.pullPolicy }}
+          volumeMounts:
+            - name: spiffe-workload-api
+              mountPath: {{ include "spiffe-oidc-discovery-provider.workload-api-socket-path" . | dir }}
+              readOnly: true
+            - name: spire-oidc-config
+              mountPath: /etc/spiffe-helper.conf
+              subPath: helper-sidecar.conf
+              readOnly: true
+            - name: certdir
+              mountPath: /certs
+        {{- end }}
         {{- if .Values.insecureScheme.enabled }}
         - name: nginx
           securityContext:
