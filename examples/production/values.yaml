@@ -1,7 +1,4 @@
 global:
-  telemetry:
-    prometheus:
-      enabled: true
   spire:
     recommendations:
       enabled: true
