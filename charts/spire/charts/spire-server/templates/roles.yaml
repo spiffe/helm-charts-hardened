@@ -1,10 +1,11 @@
 {{- $namespace := include "spire-server.namespace" . }}
+{{- $bundleNamespace := include "spire-server.bundle-namespace" . }}
 # Role to be able to push certificate bundles to a configmap
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: {{ include "spire-lib.bundle-configmap" . }}
-  namespace: {{ .Values.notifier.k8sbundle.namespace | default $namespace }}
+  namespace: {{ $bundleNamespace }}
 rules:
   - apiGroups: [""]
     resources: [configmaps]
@@ -52,7 +53,7 @@ kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: {{ include "spire-lib.bundle-configmap" . }}
-  namespace: {{ .Values.notifier.k8sbundle.namespace | default $namespace }}
+  namespace: {{ $bundleNamespace }}
 subjects:
   - kind: ServiceAccount
     name: {{ include "spire-server.serviceAccountName" . }}

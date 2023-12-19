@@ -2,27 +2,3 @@ global:
   spire:
     recommendations:
       enabled: true
-
-spire-server:
-  nodeAttestor:
-    k8sPsat:
-      serviceAccountAllowList: ["spire-system:spire-agent"]
-  notifier:
-    k8sbundle:
-      namespace: spire-system
-
-spiffe-csi-driver:
-  namespaceOverride: spire-system
-
-upstream-spiffe-csi-driver:
-  namespaceOverride: spire-system
-
-spire-agent:
-  namespaceOverride: spire-system
-  serviceAccount:
-    name: spire-agent
-  server:
-    namespaceOverride: spire-server
-
-upstream-spire-agent:
-  namespaceOverride: spire-system

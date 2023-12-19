@@ -131,7 +131,7 @@ plugins:
   Notifier:
     k8sbundle:
       plugin_data:
-        namespace: {{ .Values.notifier.k8sbundle.namespace | default (include "spire-server.namespace" .) | quote }}
+        namespace: {{ include "spire-server.bundle-namespace" . | quote }}
         config_map: {{ include "spire-lib.bundle-configmap" . | quote }}
 
   {{- with .Values.upstreamAuthority.disk }}
