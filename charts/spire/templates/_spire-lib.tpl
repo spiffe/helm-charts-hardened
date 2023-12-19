@@ -1,3 +1,4 @@
+
 {{- define "spire-lib.cluster-name" }}
 {{- if ne (len (dig "spire" "clusterName" "" .Values.global)) 0 }}
 {{- .Values.global.spire.clusterName }}
