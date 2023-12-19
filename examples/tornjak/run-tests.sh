@@ -24,20 +24,20 @@ for i in "$@"; do
 done
 
 teardown() {
+  print_helm_releases
+  print_spire_workload_status "${ns}"
+
+  if [[ "$1" -ne 0 ]]; then
+    get_namespace_details "${ns}"
+  fi
+
   if [ "${CLEANUP}" -eq 1 ]; then
     helm uninstall --namespace "${ns}" spire 2>/dev/null || true
     kubectl delete ns "${ns}" 2>/dev/null || true
   fi
 }
 
-trap 'trap - SIGTERM && teardown' SIGINT SIGTERM EXIT
+trap 'EC=$? && trap - SIGTERM && teardown $EC' SIGINT SIGTERM EXIT
 
 "${helm_install[@]}" --namespace "${ns}" --values "${SCRIPTPATH}/values.yaml" --wait spire charts/spire
 helm test --namespace "${ns}" spire
-
-print_helm_releases
-print_spire_workload_status "${ns}"
-
-if [[ "$1" -ne 0 ]]; then
-  get_namespace_details "${ns}"
-fi
