@@ -35,7 +35,6 @@ for i in "$@"; do
 done
 
 teardown() {
-
   print_helm_releases
   print_spire_workload_status spire-server spire-system
 
