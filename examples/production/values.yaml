@@ -3,7 +3,6 @@ global:
     prometheus:
       enabled: true
   spire:
-    strictMode: true
     recommendations:
       enabled: true
 
