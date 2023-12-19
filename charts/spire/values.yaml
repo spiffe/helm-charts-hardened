@@ -23,9 +23,15 @@ global:
 
     ## @param global.spire.recommendations.enabled Use recommended settings for production deployments. Default is off.
     ## @param global.spire.recommendations.priorityClassName Set to true to use recommended values for Pod Priority Class Names
+    ## @param global.spire.recommendations.strictMode Check values, such as trustDomain, are overridden with a suitable value for production.
+    ## @param global.spire.recommendations.securityContexts Set to true to use recommended values for Pod and Container Security Contexts
+    ## @param global.spire.recommendations.prometheus Enable prometheus exporters for monitoring
     recommendations:
       enabled: false
       priorityClassName: true
+      strictMode: true
+      securityContexts: true
+      prometheus: true
 
     image:
       ## @param global.spire.image.registry Override all Spire image registries at once

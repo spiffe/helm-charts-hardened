@@ -19,10 +19,8 @@ metadata:
   annotations:
     "helm.sh/hook": test
 spec:
-  {{- with .Values.podSecurityContext }}
   securityContext:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
+    {{- include "spire-lib.podsecuritycontext" . | nindent 4 }}
   serviceAccountName: {{ include "spiffe-oidc-discovery-provider.serviceAccountName" . }}
   initContainers:
     - name: static-busybox
@@ -33,10 +31,8 @@ spec:
         - |
           cp /bin/busybox /data/busybox
           chmod +x /data/busybox
-      {{- with .Values.securityContext }}
       securityContext:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- include "spire-lib.securitycontext" . | nindent 8 }}
       volumeMounts:
         - name: data-volume
           mountPath: /data
@@ -52,10 +48,8 @@ spec:
             [ $? -eq 0 ] && break
             sleep 1
           done
-      {{- with .Values.securityContext }}
       securityContext:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- include "spire-lib.securitycontext" . | nindent 8 }}
       volumeMounts:
         - name: data-volume
           mountPath: /data
@@ -80,10 +74,8 @@ spec:
           {{- (.Files.Get "files/test/jwt-decode.sh") | nindent 10 }}
           EOF
           bash /data/jwt-decode.sh "${URL}"/keys "${JWT}"
-      {{- with .Values.securityContext }}
       securityContext:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- include "spire-lib.securitycontext" . | nindent 8 }}
       volumeMounts:
       - mountPath: /data
         name: data-volume
