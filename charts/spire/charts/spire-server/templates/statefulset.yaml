@@ -47,14 +47,14 @@ spec:
       serviceAccountName: {{ include "spire-server.serviceAccountName" . }}
       shareProcessNamespace: true
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+        {{- include "spire-lib.podsecuritycontext" . | nindent 8 }}
       {{- include "spire-lib.default_cluster_priority_class_name" . | nindent 6 }}
       {{- if or (gt (len .Values.initContainers) 0) (and .Values.upstreamAuthority.certManager.enabled .Values.upstreamAuthority.certManager.ca.create) }}
       initContainers:
       {{- if and .Values.upstreamAuthority.certManager.enabled .Values.upstreamAuthority.certManager.ca.create }}
         - name: wait
           securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
+            {{- include "spire-lib.securitycontext" . | nindent 12 }}
           image: {{ template "spire-lib.kubectl-image" (dict "appVersion" $.Chart.AppVersion "image" .Values.tools.kubectl.image "global" .Values.global "KubeVersion" .Capabilities.KubeVersion.Version) }}
           args:
             - wait
@@ -73,7 +73,7 @@ spec:
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
+            {{- include "spire-lib.securitycontext" . | nindent 12 }}
           image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
@@ -187,7 +187,7 @@ spec:
         {{- if eq (.Values.controllerManager.enabled | toString) "true" }}
         - name: spire-controller-manager
           securityContext:
-            {{- toYaml .Values.controllerManager.securityContext | nindent 12 }}
+            {{- include "spire-lib.securitycontext-extended" (dict "root" . "securityContext" .Values.controllerManager.securityContext) | nindent 12 }}
           image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.controllerManager.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.controllerManager.image.pullPolicy }}
           args:
@@ -228,7 +228,7 @@ spec:
         {{- if eq (.Values.tornjak.enabled | toString) "true" }}
         - name: tornjak
           securityContext:
-            {{- toYaml .Values.controllerManager.securityContext | nindent 12 }}
+            {{- include "spire-lib.securitycontext-extended" (dict "root" . "securityContext" .Values.tornjak.securityContext) | nindent 12 }}
           image: {{ template "spire-lib.image" (dict "appVersion" .Values.tornjak.image.defaultTag "image" .Values.tornjak.image "global" .Values.global "ubi" true) }}
           imagePullPolicy: {{ .Values.tornjak.image.pullPolicy }}
           {{- if eq (include "spire-tornjak.connectionType" .) "http" }}

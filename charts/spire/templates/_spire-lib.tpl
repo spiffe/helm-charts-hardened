@@ -248,6 +248,61 @@ to merge in values, but spire needs arrays.
 {{- $config | toPrettyJson }}
 {{- end }}
 
+{{- define "spire-lib.default_securitycontext_values" }}
+allowPrivilegeEscalation: false
+runAsNonRoot: true
+readOnlyRootFilesystem: true
+capabilities:
+  drop: [ALL]
+seccompProfile:
+  type: RuntimeDefault
+{{- end }}
+
+{{- define "spire-lib.default_k8s_podsecuritycontext_values" }}
+fsGroupChangePolicy: OnRootMismatch
+runAsUser: 1000
+runAsGroup: 1000
+fsGroup: 1000
+{{- end }}
+
+{{/*
+Note: runAsUser, runAsGroup, fsGroup, are not needed due to it autoassigning restricted users feature of openshift
+*/}}
+{{- define "spire-lib.default_openshift_podsecuritycontext_values" }}
+fsGroupChangePolicy: OnRootMismatch
+{{- end }}
+
+{{- define "spire-lib.securitycontext" }}
+{{ include "spire-lib.securitycontext-extended" (dict "root" . "securityContext" .Values.securityContext) }}
+{{- end }}
+
+{{/* Same as securitycontext but takes in:
+root - global . context for the chart
+securityContext - the subbranch of values that contains the securityContext to merge
+*/}}
+{{- define "spire-lib.securitycontext-extended" }}
+{{- if and (dig "spire" "recommendations" "enabled" false .root.Values.global) (dig "spire" "recommendations" "securityContexts" true .root.Values.global) }}
+{{- $vals := deepCopy (include "spire-lib.default_securitycontext_values" .root | fromYaml) }}
+{{- $vals = mergeOverwrite $vals .securityContext }}
+{{- toYaml $vals }}
+{{- else }}
+{{- toYaml .securityContext }}
+{{- end }}
+{{- end }}
+
+{{- define "spire-lib.podsecuritycontext" }}
+{{-   $vals := dict }}
+{{-   if and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "securityContexts" true .Values.global) }}
+{{-     if (dig "openshift" false .Values.global) }}
+{{-       $vals = mergeOverwrite $vals (include "spire-lib.default_openshift_podsecuritycontext_values" . | fromYaml) }}
+{{-     else }}
+{{-       $vals = mergeOverwrite $vals (include "spire-lib.default_k8s_podsecuritycontext_values" . | fromYaml) }}
+{{-     end }}
+{{-   end }}
+{{-   $vals = mergeOverwrite $vals .Values.podSecurityContext }}
+{{-   toYaml $vals }}
+{{- end }}
+
 {{- define "spire-lib.default_node_priority_class_name" }}
 {{- if .Values.priorityClassName }}
 priorityClassName: {{ .Values.priorityClassName }}

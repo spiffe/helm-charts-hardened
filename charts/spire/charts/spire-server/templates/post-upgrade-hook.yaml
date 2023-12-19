@@ -59,11 +59,11 @@ spec:
       restartPolicy: Never
       serviceAccountName: {{ include "spire-server.serviceAccountName" . }}-post-upgrade
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+        {{- include "spire-lib.podsecuritycontext" . | nindent 8 }}
       containers:
       - name: post-upgrade-job
         securityContext:
-          {{- toYaml .Values.securityContext | nindent 10 }}
+          {{- include "spire-lib.securitycontext" . | nindent 10 }}
         image: {{ template "spire-lib.kubectl-image" (dict "appVersion" $.Chart.AppVersion "image" .Values.tools.kubectl.image "global" .Values.global "KubeVersion" .Capabilities.KubeVersion.Version) }}
         args:
           - patch
