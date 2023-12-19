@@ -63,6 +63,9 @@ global:
         ## @param global.spire.namespaces.server.labels [object] Labels to apply to the Spire server Namespace.
         labels: {}
 
+    ## @param global.spire.strictMode Check values, such as trustDomain, are overridden with a suitable value for production.
+    strictMode: false
+
     ## @param global.spire.ingressControllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, autodetection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""].
     ingressControllerType: ""
 
@@ -75,6 +78,7 @@ global:
 
 #  telemetry:
 #    prometheus:
+#      enabled: true
 #      podMonitor:
 #        enabled: true
 #        # -- Allows to install the PodMonitor in another namespace then the spire components are installed into.

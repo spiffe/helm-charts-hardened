@@ -66,9 +66,7 @@ We only support upgrading one major version at a time. Version skipping isn't su
 
 ### 0.17.X
 
-A few options were renamed. If you have changed any of these from the defaults, please update them:
-* global.telemetry.prometheus.enabled=true -> global.spire.recommendations.enabled=true
-* global.spire.strictMode=true -> global.spire.recommendations.enabled=true
+No changes required.
 
 ### 0.16.X
 
@@ -211,6 +209,7 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `global.spire.namespaces.server.create`          | Create a Namespace for Spire server resources.                                                                                                                                                                                         | `false`           |
 | `global.spire.namespaces.server.annotations`     | Annotations to apply to the Spire server Namespace.                                                                                                                                                                                    | `{}`              |
 | `global.spire.namespaces.server.labels`          | Labels to apply to the Spire server Namespace.                                                                                                                                                                                         | `{}`              |
+| `global.spire.strictMode`                        | Check values, such as trustDomain, are overridden with a suitable value for production.                                                                                                                                                | `false`           |
 | `global.spire.ingressControllerType`             | Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, autodetection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""]. | `""`              |
 | `global.installAndUpgradeHooks.enabled`          | Enable Helm hooks to autofix common install/upgrade issues (should be disabled when using `helm template`)                                                                                                                             | `true`            |
 | `global.deleteHooks.enabled`                     | Enable Helm hooks to autofix common delete issues (should be disabled when using `helm template`)                                                                                                                                      | `true`            |
