@@ -63,7 +63,7 @@ spec:
   {{- if and (hasKey $value "spiffeIDTemplate") (ne (len $value.spiffeIDTemplate) 0) }}
   spiffeIDTemplate: {{ $value.spiffeIDTemplate | quote }}
   {{- else }}
-  spiffeIDTemplate: {{ $root.Values.controllerManager.identity.defaultSpiffeIDTemplate | quote }}
+  spiffeIDTemplate: {{ $root.Values.controllerManager.identities.defaultSpiffeIDTemplate | quote }}
   {{- end }}
   {{- with $value.federatesWith }}
   federatesWith:
