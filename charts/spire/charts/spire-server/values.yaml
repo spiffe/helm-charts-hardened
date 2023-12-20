@@ -445,13 +445,15 @@ controllerManager:
     - local-path-storage
 
   identities:
+    ## @param controllerManager.identities.defaultSpiffeIDTemplate Spiffe ID template to use for clusterSPIFFEIDs that don't specify one
+    defaultSpiffeIDTemplate: spiffe://{{ .TrustDomain }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
     clusterSPIFFEIDs:
       # NOTE you can add multiple uniquely named entries to create multiple ClusterSPIFFEID objects. See example below.
       default:
         ## @param controllerManager.identities.clusterSPIFFEIDs.default.enabled Enable this identity for controller manager
         enabled: true
-        ## @param controllerManager.identities.clusterSPIFFEIDs.default.spiffeIDTemplate Spiffe ID template for identities
-        spiffeIDTemplate: spiffe://{{ .TrustDomain }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
+        ## @param controllerManager.identities.clusterSPIFFEIDs.default.spiffeIDTemplate Set to specify Spiffe ID template for this clusterSPIFFEID
+        spiffeIDTemplate: ""
         ## @param controllerManager.identities.clusterSPIFFEIDs.default.podSelector [object] Selector for pods to issue identity
         podSelector: {}
           # matchLabels:
@@ -485,8 +487,6 @@ controllerManager:
         enabled: true
         ## @param controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.type The type of rule this is.
         type: oidc-discovery-provider
-        ## @param controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.spiffeIDTemplate Spiffe ID template for identities
-        spiffeIDTemplate: spiffe://{{ .TrustDomain }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
         ## @param controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.dnsNameTemplates [array] DNS name template for issued identities
         dnsNameTemplates:
           - '{{ index .PodMeta.Labels "svc" }}.{{ .PodMeta.Namespace }}.svc.{{ .ClusterDomain }}'
@@ -497,8 +497,6 @@ controllerManager:
         enabled: true
         ## @param controllerManager.identities.clusterSPIFFEIDs.test-keys.type The type of rule this is.
         type: test-keys
-        ## @param controllerManager.identities.clusterSPIFFEIDs.test-keys.spiffeIDTemplate Spiffe ID template for identities
-        spiffeIDTemplate: spiffe://{{ .TrustDomain }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
 
       # You can specify additional ClusterSPIFFEIDs following this example:
       # foo:

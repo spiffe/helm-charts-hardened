@@ -31,11 +31,6 @@ matchLabels:
 {{-       fail (printf "Unsupported property specified: %s" $skey) }}
 {{-     end }}
 {{-   end }}
-{{-   range $rprop := list "spiffeIDTemplate" }}
-{{-     if not (hasKey $value $rprop) }}
-{{-       fail (printf "Required property %s was not specified" $rprop) }}
-{{-     end }}
-{{-   end }}
 {{-   if eq ($root.Values.controllerManager.enabled | toString) "true" }}
 {{-     if or (not (hasKey $value "enabled")) (eq ($value.enabled | toString) "true") }}
 {{-       $type := dig "type" "base" $value }}
@@ -65,7 +60,11 @@ metadata:
   {{- end }}
 spec:
   className: {{ include "spire-server.controller-manager-class-name" $root | quote }}
+  {{- if hasKey $value "spiffeIDTemplate" }}
   spiffeIDTemplate: {{ $value.spiffeIDTemplate | quote }}
+  {{- else }}
+  spiffeIDTemplate: {{ $root.Values.controllerManager.identity.defaultSpiffeIDTemplate | quote }}
+  {{- end }}
   {{- with $value.federatesWith }}
   federatesWith:
   {{- toYaml . | nindent 4 }}

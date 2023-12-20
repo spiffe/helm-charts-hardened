@@ -8,8 +8,8 @@ spire-server:
     identities:
       clusterSPIFFEIDs:
         default:
-          spiffeIDTemplate: spiffe://{{ .TrustDomain }}/k8s/{{ .ClusterName }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
           type: raw
+          spiffeIDTemplate: spiffe://{{ .TrustDomain }}/k8s/{{ .ClusterName }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
           namespaceSelector:
             matchExpressions:
             - key: "kubernetes.io/metadata.name"

@@ -11,15 +11,11 @@ spire-server:
   controllerManager:
     enabled: true
     identities:
+      defaultSpiffeIDTemplate: spiffe://{{ .TrustDomain }}/k8s/{{ .ClusterName }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
       clusterSPIFFEIDs:
-        default:
-          spiffeIDTemplate: spiffe://{{ .TrustDomain }}/k8s/{{ .ClusterName }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
         oidc-discovery-provider:
-          spiffeIDTemplate: spiffe://{{ .TrustDomain }}/k8s/{{ .ClusterName }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
           dnsNameTemplates:
             - oidc-discovery.{{ .TrustDomain }}
-        test-keys:
-          spiffeIDTemplate: spiffe://{{ .TrustDomain }}/k8s/{{ .ClusterName }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
 
 upstream:
   enabled: true
