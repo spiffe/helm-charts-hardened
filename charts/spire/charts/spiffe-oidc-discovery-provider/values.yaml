@@ -25,14 +25,11 @@ image:
   ## @param image.version This value is deprecated in favor of tag. (Will be removed in a future release)
   ## @param image.tag Overrides the image tag whose default is the chart appVersion
   ##
-  #  registry: ghcr.io
-  registry: docker.io
-  #  repository: spiffe/oidc-discovery-provider
-  repository: kfox1111/misc
+  registry: ghcr.io
+  repository: spiffe/oidc-discovery-provider
   pullPolicy: IfNotPresent
   version: ""
-  #  tag: ""
-  tag: "spiffe-helper-test"
+  tag: ""
 
 spiffeHelper:
   image:

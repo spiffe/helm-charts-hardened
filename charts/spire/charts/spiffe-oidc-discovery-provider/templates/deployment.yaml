@@ -62,8 +62,7 @@ spec:
             {{- include "spire-lib.securitycontext" . | nindent 12 }}
           image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          command:
-            - /opt/spire/bin/oidc-discovery-provider
+          args:
             - -config
             - /run/spire/oidc/config/oidc-discovery-provider.conf
           ports:
