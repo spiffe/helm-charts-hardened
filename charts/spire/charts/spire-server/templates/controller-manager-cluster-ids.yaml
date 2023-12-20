@@ -60,7 +60,7 @@ metadata:
   {{- end }}
 spec:
   className: {{ include "spire-server.controller-manager-class-name" $root | quote }}
-  {{- if hasKey $value "spiffeIDTemplate" }}
+  {{- if and (hasKey $value "spiffeIDTemplate") (ne (len $value.spiffeIDTemplate) 0) }}
   spiffeIDTemplate: {{ $value.spiffeIDTemplate | quote }}
   {{- else }}
   spiffeIDTemplate: {{ $root.Values.controllerManager.identity.defaultSpiffeIDTemplate | quote }}
