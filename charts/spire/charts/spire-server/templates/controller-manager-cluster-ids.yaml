@@ -39,10 +39,15 @@ matchLabels:
 {{-   if eq ($root.Values.controllerManager.enabled | toString) "true" }}
 {{-     if or (not (hasKey $value "enabled")) (eq ($value.enabled | toString) "true") }}
 {{-       $type := dig "type" "base" $value }}
+{{-       if not (has $type (list "base" "raw" "oidc-discovery-provider" "test-keys")) }}
+{{-         fail (printf "Type given: %s, must be one of [base, raw, oidc-discovery-provider, test-keys]" $type) }}
+{{-       end }}
 {{-       $namespaceSelector := deepCopy (dig "namespaceSelector" (dict) $value) }}
-{{-       $namespaceSelector := merge $namespaceSelector (dict "matchExpressions" (list)) }}
-{{-       $namespaceSelectorToAdd := include "spire-controller-manager-identity-nsselector" (dict "type" $type "namespaces" $namespaces) | fromYaml }}
-{{-       $_ := set $namespaceSelector "matchExpressions" (append $namespaceSelector.matchExpressions $namespaceSelectorToAdd) }}
+{{-       if ne $type "raw" }}
+{{-         $namespaceSelector := merge $namespaceSelector (dict "matchExpressions" (list)) }}
+{{-         $namespaceSelectorToAdd := include "spire-controller-manager-identity-nsselector" (dict "type" $type "namespaces" $namespaces) | fromYaml }}
+{{-         $_ := set $namespaceSelector "matchExpressions" (append $namespaceSelector.matchExpressions $namespaceSelectorToAdd) }}
+{{-       end }}
 {{-       $podSelector := deepCopy (dig "podSelector" (dict) $value) }}
 {{-       $podSelector := merge $podSelector (include "spire-controller-manager-identity-podselector" (dict "type" $type "Release" $root.Release) | fromYaml ) }}
 ---
