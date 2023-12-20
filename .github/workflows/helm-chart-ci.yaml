@@ -130,7 +130,6 @@ jobs:
         # Kubernetes, but can go back farther as long as we don't need heroics
         # to pull it off (i.e. kubectl version juggling).
         k8s:
-          - v1.29.0
           - v1.28.0
           - v1.27.3
           - v1.26.6
@@ -210,7 +209,6 @@ jobs:
       fail-fast: false
       matrix:
         k8s:
-          - v1.29.0
           - v1.28.0
           - v1.27.3
           - v1.26.6
@@ -257,7 +255,6 @@ jobs:
       fail-fast: false
       matrix:
         k8s:
-          - v1.29.0
           - v1.28.0
           - v1.27.3
           - v1.26.6
