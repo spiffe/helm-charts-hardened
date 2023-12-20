@@ -1,4 +1,3 @@
-{{- $fullName := include "spiffe-oidc-discovery-provider.fullname" . }}
 {{- define "spiffe-oidc-discovery-provider.cert-manager-default-issuer" }}
 {{-   if not .Values.certManager.issuer.acme.email }}
 {{-     fail "You must specify an email address via certManager.issuer.acme.email" }}
@@ -6,7 +5,7 @@
 email: {{ .Values.certManager.issuer.acme.email | quote}}
 server: {{ .Values.certManager.issuer.acme.server | quote}}
 privateKeySecretRef:
-  name: {{ $fullName }}-issuer
+  name: {{ include "spiffe-oidc-discovery-provider.fullname" . }}-issuer
 solvers:
 - http01:
     ingress: {}
@@ -15,7 +14,7 @@ solvers:
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
-  name: {{ $fullName }}
+  name: {{ include "spiffe-oidc-discovery-provider.fullname" . }}
   namespace: {{ include "spiffe-oidc-discovery-provider.namespace" . }}
 spec:
   acme:
