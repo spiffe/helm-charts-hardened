@@ -14,8 +14,7 @@ spire-server:
       defaultSpiffeIDTemplate: spiffe://{{ .TrustDomain }}/k8s/{{ .ClusterName }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
       clusterSPIFFEIDs:
         oidc-discovery-provider:
-          dnsNameTemplates:
-            - oidc-discovery.{{ .TrustDomain }}
+          autoPopulateDNSNames: false
 
 upstream:
   enabled: true

@@ -487,9 +487,10 @@ controllerManager:
         enabled: true
         ## @param controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.type The type of rule this is.
         type: oidc-discovery-provider
+        ## @param controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.autoPopulateDNSNames Auto populate DNS names to the discovery provider
+        autoPopulateDNSNames: true
         ## @param controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.dnsNameTemplates [array] DNS name template for issued identities
         dnsNameTemplates:
-          - '{{ index .PodMeta.Labels "svc" }}.{{ .PodMeta.Namespace }}.svc.{{ .ClusterDomain }}'
           - oidc-discovery.{{ .TrustDomain }}
 
       test-keys:

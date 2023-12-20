@@ -29,7 +29,6 @@ spec:
         release: {{ .Release.Name }}
         release-namespace: {{ .Release.Namespace }}
         component: oidc-discovery-provider
-        svc: {{ include "spiffe-oidc-discovery-provider.fullname" . }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
