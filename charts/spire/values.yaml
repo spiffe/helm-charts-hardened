@@ -42,7 +42,7 @@ global:
       registry: ""
 
     namespaces:
-      ## @param global.spire.namespaces.create Set to true to Create all namespaces.
+      ## @param global.spire.namespaces.create Set to true to Create all namespaces. If this or either of the namespace specific create flags is set, the namespace will be created.
       create: false
       system:
         ## @param global.spire.namespaces.system.name Name of the Spire system Namespace.
