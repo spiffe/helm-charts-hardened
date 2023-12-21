@@ -42,6 +42,8 @@ spec:
         - name: init
           securityContext:
             {{- include "spire-lib.securitycontext" . | nindent 12 }}
+          resources:
+            {{- toYaml .Values.spiffeHelper.resources | nindent 12 }}
           image: {{ template "spire-lib.image" (dict "image" .Values.spiffeHelper.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.spiffeHelper.image.pullPolicy }}
           volumeMounts:
@@ -99,6 +101,8 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
         {{- if and (eq .Values.tlsSecret "") (not .Values.certManager.enabled) (not .Values.insecureScheme.enabled) }}
         - name: spiffe-helper
+          resources:
+            {{- toYaml .Values.spiffeHelper.resources | nindent 12 }}
           securityContext:
             {{- include "spire-lib.securitycontext" . | nindent 12 }}
           image: {{ template "spire-lib.image" (dict "image" .Values.spiffeHelper.image "global" .Values.global) }}

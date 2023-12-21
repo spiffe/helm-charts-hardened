@@ -44,6 +44,8 @@ spiffeHelper:
     pullPolicy: IfNotPresent
     version: ""
     tag: "spiffe-helper-test2"
+  ## @param spiffeHelper.resources [object] Resource requests and limits
+  resources: {}
 
 ## @param resources [object] Resource requests and limits
 resources: {}
