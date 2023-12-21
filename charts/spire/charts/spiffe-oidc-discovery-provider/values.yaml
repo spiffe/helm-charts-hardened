@@ -317,7 +317,7 @@ tests:
       repository: smallstep/step-cli
       pullPolicy: IfNotPresent
       version: ""
-      tag: latest@sha256:071f01f10ccd3aedeb65362b50a873dacd41b59b4d7e60ad46485e7eceec834e
+      tag: 0.25.1
 
   busybox:
     ## @param tests.busybox.image.registry The OCI registry to pull the image from
