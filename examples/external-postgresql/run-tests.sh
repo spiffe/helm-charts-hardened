@@ -24,6 +24,15 @@ for i in "$@"; do
 done
 
 teardown() {
+  print_helm_releases
+  print_spire_workload_status spire-server
+  print_spire_workload_status spire-system
+
+  if [[ "$1" -ne 0 ]]; then
+    get_namespace_details spire-server
+    get_namespace_details spire-system
+  fi
+
   if [ "${CLEANUP}" -eq 1 ]; then
     helm uninstall --namespace "spire-server" spire 2>/dev/null || true
     helm uninstall --namespace "spire-server" postgresql 2>/dev/null || true
@@ -32,7 +41,7 @@ teardown() {
   fi
 }
 
-trap 'trap - SIGTERM && teardown' SIGINT SIGTERM EXIT
+trap 'EC=$? && trap - SIGTERM && teardown $EC' SIGINT SIGTERM EXIT
 
 kubectl create namespace spire-system --dry-run=client -o yaml | kubectl apply -f -
 kubectl label namespace spire-system pod-security.kubernetes.io/enforce=privileged || true
@@ -48,12 +57,3 @@ helm upgrade --install --namespace "spire-server" \
   --values "${SCRIPTPATH}/values.yaml,${SCRIPTPATH}/../production/values.yaml,${SCRIPTPATH}/../production/values-node-pod-antiaffinity.yaml,${SCRIPTPATH}/../production/example-your-values.yaml" \
   --set 'spire-server.dataStore.sql.password=sp1ff3Test' --wait spire charts/spire
 helm test --namespace "spire-server" spire
-
-print_helm_releases
-print_spire_workload_status spire-server
-print_spire_workload_status spire-system
-
-if [[ "$1" -ne 0 ]]; then
-  get_namespace_details spire-server
-  get_namespace_details spire-system
-fi

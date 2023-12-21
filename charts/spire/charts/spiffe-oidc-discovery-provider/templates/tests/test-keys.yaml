@@ -8,10 +8,8 @@ metadata:
   annotations:
     "helm.sh/hook": test
 spec:
-  {{- with .Values.podSecurityContext }}
   securityContext:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
+    {{- include "spire-lib.podsecuritycontext" . | nindent 4 }}
   serviceAccountName: {{ include "spiffe-oidc-discovery-provider.serviceAccountName" . }}
   initContainers:
     - name: static-busybox
@@ -22,10 +20,8 @@ spec:
         - |
           cp /bin/busybox /data/busybox
           chmod +x /data/busybox
-      {{- with .Values.securityContext }}
       securityContext:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- include "spire-lib.securitycontext" . | nindent 8 }}
       volumeMounts:
         - name: data-volume
           mountPath: /data
@@ -56,10 +52,8 @@ spec:
             [ $? -eq 0 ] && break
             sleep 1
           done
-      {{- with .Values.securityContext }}
       securityContext:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- include "spire-lib.securitycontext" . | nindent 8 }}
       volumeMounts:
         - name: data-volume
           mountPath: /data
@@ -87,10 +81,8 @@ spec:
           curl -k -s --fail-with-body "${URL}"/keys | jq '.keys[] | select(.kid == "'${KID}'")' > public.pem
           # Verify JWT with public pem
           echo $JWT | /data/step crypto jwt verify --key=public.pem --alg=RS256 --subtle
-      {{- with .Values.securityContext }}
       securityContext:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- include "spire-lib.securitycontext" . | nindent 8 }}
       volumeMounts:
       - mountPath: /data
         name: data-volume

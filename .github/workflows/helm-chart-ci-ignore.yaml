@@ -30,9 +30,9 @@ jobs:
     strategy:
       matrix:
         k8s:
-          - v1.27.2
-          - v1.26.4
-          - v1.25.9
+          - v1.28.0
+          - v1.27.3
+          - v1.26.6
 
     steps:
       - run: 'echo "Skipping tests"'
@@ -65,9 +65,9 @@ jobs:
     strategy:
       matrix:
         k8s:
-          - v1.27.2
-          - v1.26.4
-          - v1.25.9
+          - v1.28.0
+          - v1.27.3
+          - v1.26.6
         example:
           - ${{ fromJson(needs.build-matrix.outputs.examples) }}
 

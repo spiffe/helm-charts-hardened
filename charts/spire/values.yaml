@@ -22,16 +22,28 @@ global:
     upstreamServerAddress: ""
 
     ## @param global.spire.recommendations.enabled Use recommended settings for production deployments. Default is off.
+    ## @param global.spire.recommendations.namespaceLayout Set to true to use recommended values for installing across namespaces
+    ## @param global.spire.recommendations.namespacePSS When chart namespace creation is enabled, label them with preffered Pod Security Standard labels
     ## @param global.spire.recommendations.priorityClassName Set to true to use recommended values for Pod Priority Class Names
+    ## @param global.spire.recommendations.strictMode Check values, such as trustDomain, are overridden with a suitable value for production.
+    ## @param global.spire.recommendations.securityContexts Set to true to use recommended values for Pod and Container Security Contexts
+    ## @param global.spire.recommendations.prometheus Enable prometheus exporters for monitoring
     recommendations:
       enabled: false
+      namespaceLayout: true
+      namespacePSS: true
       priorityClassName: true
+      strictMode: true
+      securityContexts: true
+      prometheus: true
 
     image:
       ## @param global.spire.image.registry Override all Spire image registries at once
       registry: ""
 
     namespaces:
+      ## @param global.spire.namespaces.create Set to true to Create all namespaces. If this or either of the namespace specific create flags is set, the namespace will be created.
+      create: false
       system:
         ## @param global.spire.namespaces.system.name Name of the Spire system Namespace.
         name: "spire-system"
