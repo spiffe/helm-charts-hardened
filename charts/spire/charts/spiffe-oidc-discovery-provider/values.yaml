@@ -313,7 +313,7 @@ tests:
     ## @param tests.step.image.tag Overrides the image tag whose default is the chart appVersion
     ##
     image:
-      registry: ""
+      registry: "docker.io"
       repository: smallstep/step-cli
       pullPolicy: IfNotPresent
       version: ""
