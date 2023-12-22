@@ -16,5 +16,10 @@ spire-server:
         oidc-discovery-provider:
           autoPopulateDNSNames: false
 
+spiffe-oidc-discovery-provider:
+  enabled: true
+  insecureScheme:
+    enabled: true
+
 upstream:
   enabled: true
