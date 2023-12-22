@@ -2,8 +2,3 @@ global:
   spire:
     recommendations:
       enabled: true
-
-spiffe-oidc-discovery-provider:
-  enabled: true
-  insecureScheme:
-    enabled: true

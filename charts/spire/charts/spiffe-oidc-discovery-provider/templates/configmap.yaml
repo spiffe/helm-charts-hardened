@@ -68,3 +68,22 @@ data:
       }
     }
   {{- end }}
+  helper-init.conf: |
+    exit_when_ready = true
+    agent_address = {{ include "spiffe-oidc-discovery-provider.workload-api-socket-path" . | quote }}
+    cmd = ""
+    cmd_args = ""
+    cert_dir = "/certs"
+    renew_signal = "SIGUSR1"
+    svid_file_name = "tls.crt"
+    svid_key_file_name = "tls.key"
+    svid_bundle_file_name = "ca.pem"
+  helper-sidecar.conf: |
+    agent_address = {{ include "spiffe-oidc-discovery-provider.workload-api-socket-path" . | quote }}
+    cmd = ""
+    cmd_args = ""
+    cert_dir = "/certs"
+    renew_signal = "SIGUSR1"
+    svid_file_name = "tls.crt"
+    svid_key_file_name = "tls.key"
+    svid_bundle_file_name = "ca.pem"
