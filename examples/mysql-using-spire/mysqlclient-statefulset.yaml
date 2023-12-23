@@ -41,6 +41,22 @@ spec:
         volumeMounts:
         - name: certdir
           mountPath: /certs
+      - name: refresh-tls
+        image: kfox1111/misc:spiffe-helper-test2
+        imagePullPolicy: Always
+        securityContext:
+          runAsUser: 1001
+          runAsGroup: 1001
+        volumeMounts:
+        - name: spiffe-workload-api
+          mountPath: /spiffe-workload-api
+          readOnly: true
+        - name: spiffe-helper-configmap
+          mountPath: /etc/spiffe-helper.conf
+          subPath: helper-sidecar.conf
+          readOnly: true
+        - name: certdir
+          mountPath: /certs
       volumes:
       - name: certdir
         emptyDir: {}
