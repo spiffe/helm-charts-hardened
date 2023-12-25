@@ -104,13 +104,46 @@ livenessProbe:
 ## @param podAnnotations [object] Pod annotations for Spire OIDC discovery provider
 podAnnotations: {}
 
-## @param tlsSecret Provide your own certificate/key via tls style Kubernetes Secret
-tlsSecret: ""
+tls:
+  spire:
+    ## @param tls.spire.enabled Use spire to secure the oidc-discovery-provider
+    enabled: true
+
+  externalSecret:
+    ## @param tls.externalSecret.enabled Provide your own certificate/key via tls style Kubernetes Secret
+    enabled: false
+    ## @param tls.externalSecret.secretName Specify which secret to use
+    secretName: ""
+
+  certManager:
+    ## @param tls.certManager.enabled Use certificateManager to create the certificate
+    enabled: false
+    issuer:
+      ## @param tls.certManager.issuer.create Create an issuer to use to issue the certificate
+      create: true
+      acme:
+        ## @param tls.certManager.issuer.acme.email Must be set in order to register with LetsEncrypt. By setting, you agree to their Terms of Service
+        email: ""
+        ## @param tls.certManager.issuer.acme.server Server to use to get certificate. Defaults to LetsEncrypt
+        server: https://acme-v02.api.letsencrypt.org/directory
+        # Testing server: https://acme-staging-v02.api.letsencrypt.org/directory
+        ## @param tls.certManager.issuer.acme.solvers [object] Configure the issuer solvers. Defaults to http01 via ingress.
+        solvers: {}
+        # - http01:
+        #     ingress:
+        #       ingressClassName: nginx
+    certificate:
+      ## @param tls.certManager.certificate.dnsNames Override the dnsNames on the certificate request. Defaults to the same settings as Ingress
+      dnsNames: []
+      ## @param tls.certManager.certificate.issuerRef.group If you are using an external plugin, specify the group for it here
+      ## @param tls.certManager.certificate.issuerRef.kind Kind of the issuer reference. Override if you want to use a ClusterIssuer
+      ## @param tls.certManager.certificate.issuerRef.name Name of the issuer to use. If unset, it will use the name of the built in issuer
+      issuerRef:
+        group: ""
+        kind: Issuer
+        name: ""
 
 insecureScheme:
-  ## @param insecureScheme.enabled Flag to enable insecure schema
-  enabled: false
-
   nginx:
     ## @param insecureScheme.nginx.image.registry The OCI registry to pull the image from
     ## @param insecureScheme.nginx.image.repository The repository within the registry
@@ -245,34 +278,6 @@ telemetry:
         #   cpu: 100m
         #   memory: 64Mi
 
-certManager:
-  ## @param certManager.enabled Use certificateManager to create the certificate
-  enabled: false
-  issuer:
-    ## @param certManager.issuer.create Create an issuer to use to issue the certificate
-    create: true
-    acme:
-      ## @param certManager.issuer.acme.email Must be set in order to register with LetsEncrypt. By setting, you agree to their Terms of Service
-      email: ""
-      ## @param certManager.issuer.acme.server Server to use to get certificate. Defaults to LetsEncrypt
-      server: https://acme-v02.api.letsencrypt.org/directory
-      # Testing server: https://acme-staging-v02.api.letsencrypt.org/directory
-      ## @param certManager.issuer.acme.solvers [object] Configure the issuer solvers. Defaults to http01 via ingress.
-      solvers: {}
-      # - http01:
-      #     ingress:
-      #       ingressClassName: nginx
-  certificate:
-    ## @param certManager.certificate.dnsNames Override the dnsNames on the certificate request. Defaults to the same settings as Ingress
-    dnsNames: []
-    ## @param certManager.certificate.issuerRef.group If you are using an external plugin, specify the group for it here
-    ## @param certManager.certificate.issuerRef.kind Kind of the issuer reference. Override if you want to use a ClusterIssuer
-    ## @param certManager.certificate.issuerRef.name Name of the issuer to use. If unset, it will use the name of the built in issuer
-    issuerRef:
-      group: ""
-      kind: Issuer
-      name: ""
-
 ingress:
   ## @param ingress.enabled Flag to enable ingress
   enabled: false
@@ -340,7 +345,7 @@ tests:
       repository: chainguard/slim-toolkit-debug
       pullPolicy: IfNotPresent
       version: ""
-      tag: latest@sha256:b7b4cb6a241990f1caba892e061b6b4fa014d778e9608a94b97580a40ab361bb
+      tag: latest@sha256:201305e2ad567a4387a92663f58068073c0833cdc2d84ed9f69be385aa4ece98
 
   step:
     ## @param tests.step.image.registry The OCI registry to pull the image from

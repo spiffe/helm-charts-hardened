@@ -1,11 +1,9 @@
 {{- $values := merge .Values }}
 {{- $host := include "spire-lib.ingress-calculated-name" (dict "Values" .Values "ingress" .Values.ingress) }}
 {{- $protocol := "https" }}
-{{- if .Values.insecureScheme.enabled }}
-{{- $protocol = "http" }}
-{{- end }}
 {{- $port := 443 }}
-{{- if .Values.insecureScheme.enabled }}
+{{- if eq (include "spiffe-oidc-discovery-provider.tls-count" . | int) 0 }}
+{{- $protocol = "http" }}
 {{- $port = .Values.service.port }}
 {{- end }}
 {{- if gt (len .Values.ingress.hosts) 0 }}

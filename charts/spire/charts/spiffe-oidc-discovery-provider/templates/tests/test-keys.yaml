@@ -1,9 +1,7 @@
 {{- $protocol := "https" }}
-{{- if .Values.insecureScheme.enabled }}
-{{- $protocol = "http" }}
-{{- end }}
 {{- $port := 443 }}
-{{- if .Values.insecureScheme.enabled }}
+{{- if eq (include "spiffe-oidc-discovery-provider.tls-count" . | int) 0 }}
+{{- $protocol = "http" }}
 {{- $port = .Values.service.port }}
 {{- end }}
 apiVersion: v1

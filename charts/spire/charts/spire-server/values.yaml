@@ -445,15 +445,13 @@ controllerManager:
     - local-path-storage
 
   identities:
-    ## @param controllerManager.identities.defaultSpiffeIDTemplate Spiffe ID template to use for clusterSPIFFEIDs that don't specify one
-    defaultSpiffeIDTemplate: spiffe://{{ .TrustDomain }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
     clusterSPIFFEIDs:
       # NOTE you can add multiple uniquely named entries to create multiple ClusterSPIFFEID objects. See example below.
       default:
         ## @param controllerManager.identities.clusterSPIFFEIDs.default.enabled Enable this identity for controller manager
         enabled: true
-        ## @param controllerManager.identities.clusterSPIFFEIDs.default.spiffeIDTemplate Set to specify Spiffe ID template for this clusterSPIFFEID
-        spiffeIDTemplate: ""
+        ## @param controllerManager.identities.clusterSPIFFEIDs.default.spiffeIDTemplate Spiffe ID template for identities
+        spiffeIDTemplate: spiffe://{{ .TrustDomain }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
         ## @param controllerManager.identities.clusterSPIFFEIDs.default.podSelector [object] Selector for pods to issue identity
         podSelector: {}
           # matchLabels:

@@ -1,16 +1,16 @@
 {{- define "spiffe-oidc-discovery-provider.cert-manager-default-issuer" }}
-{{-   if not .Values.certManager.issuer.acme.email }}
+{{-   if not .Values.tls.certManager.issuer.acme.email }}
 {{-     fail "You must specify an email address via certManager.issuer.acme.email" }}
 {{-   end }}
-email: {{ .Values.certManager.issuer.acme.email | quote}}
-server: {{ .Values.certManager.issuer.acme.server | quote}}
+email: {{ .Values.tls.certManager.issuer.acme.email | quote}}
+server: {{ .Values.tls.certManager.issuer.acme.server | quote}}
 privateKeySecretRef:
   name: {{ include "spiffe-oidc-discovery-provider.fullname" . }}-issuer
 solvers:
 - http01:
     ingress: {}
 {{- end }}
-{{- if and .Values.certManager.enabled .Values.certManager.issuer.create }}
+{{- if and .Values.tls.certManager.enabled .Values.tls.certManager.issuer.create }}
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
@@ -18,5 +18,5 @@ metadata:
   namespace: {{ include "spiffe-oidc-discovery-provider.namespace" . }}
 spec:
   acme:
-    {{ mergeOverwrite (include "spiffe-oidc-discovery-provider.cert-manager-default-issuer" . | fromYaml) .Values.certManager.issuer.acme | toYaml | nindent 4 }}
+    {{ mergeOverwrite (include "spiffe-oidc-discovery-provider.cert-manager-default-issuer" . | fromYaml) .Values.tls.certManager.issuer.acme | toYaml | nindent 4 }}
 {{- end }}
