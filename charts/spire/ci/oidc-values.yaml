@@ -21,8 +21,9 @@ spire-agent:
 spiffe-oidc-discovery-provider:
   enabled: true
 
-  insecureScheme:
-    enabled: true
+  tls:
+    spire:
+      enabled: false
 
   config:
     additionalDomains:

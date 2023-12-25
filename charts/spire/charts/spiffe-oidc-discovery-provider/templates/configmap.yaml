@@ -14,8 +14,8 @@ domains:
   {{- $jwtIssuer := (default $uri.path $uri.host) }}
   {{- uniq (concat (list $jwtIssuer) .Values.config.additionalDomains) | toYaml | nindent 2 }}
 
-{{- if .Values.insecureScheme.enabled }}
-allow_insecure_scheme: {{ .Values.insecureScheme.enabled }}
+{{- if eq (include "spiffe-oidc-discovery-provider.tls-count" . | int) 0 }}
+allow_insecure_scheme: true
 listen_socket_path: {{ $oidcSocket | quote }}
 {{- else }}
 serving_cert_file:
@@ -46,7 +46,7 @@ metadata:
 data:
   oidc-discovery-provider.conf: |
     {{- include "spiffe-oidc-discovery-provider.yaml-config" (dict "oidcSocket" $oidcSocket "root" .) | fromYaml | toPrettyJson | nindent 4 }}
-  {{- if .Values.insecureScheme.enabled }}
+  {{- if eq (include "spiffe-oidc-discovery-provider.tls-count" . | int) 0 }}
   default.conf: |
     upstream oidc {
       server unix:{{ $oidcSocket }};

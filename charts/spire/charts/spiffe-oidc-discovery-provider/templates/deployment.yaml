@@ -1,6 +1,4 @@
-{{- if and (.Values.enabled) (eq .Values.tlsSecret "") (not .Values.certManager.enabled) (not .Values.insecureScheme.enabled) }}
-{{-   fail "You must specify tlsSecret or certManager.enabled or insecureScheme.enabled" }}
-{{- end }}
+{{- $tlsCount := include "spiffe-oidc-discovery-provider.tls-count" . | int }}
 {{- $configSum := (include (print $.Template.BasePath "/configmap.yaml") . | sha256sum) }}
 apiVersion: apps/v1
 kind: Deployment
@@ -52,7 +50,7 @@ spec:
           ports:
             - containerPort: 8008
               name: healthz
-          {{- if not .Values.insecureScheme.enabled }}
+          {{- if ne $tlsCount 0 }}
             - containerPort: 8443
               name: https
           {{- end }}
@@ -82,7 +80,7 @@ spec:
             {{- toYaml .Values.livenessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-        {{- if .Values.insecureScheme.enabled }}
+        {{- if eq $tlsCount 0 }}
         - name: nginx
           securityContext:
             {{- include "spire-lib.securitycontext" . | nindent 12 }}
@@ -132,10 +130,10 @@ spec:
         - name: nginx-tmp
           emptyDir: {}
         - name: certdir
-          {{- if ne .Values.tlsSecret "" }}
+          {{- if .Values.tls.externalSecret.enabled }}
           secret:
-            secretName: {{ .Values.tlsSecret }}
-          {{- else if .Values.certManager.enabled }}
+            secretName: {{ .Values.tls.externalSecret.secretName }}
+          {{- else if .Values.tls.certManager.enabled }}
           secret:
             secretName: {{ include "spiffe-oidc-discovery-provider.fullname" . }}-cert
           {{- else }}

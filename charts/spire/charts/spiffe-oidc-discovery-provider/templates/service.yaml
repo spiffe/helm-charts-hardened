@@ -10,7 +10,7 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
-    {{- if .Values.insecureScheme.enabled }}
+    {{- if eq (include "spiffe-oidc-discovery-provider.tls-count" . | int) 0 }}
     - name: http
       port: {{ .Values.service.port }}
       targetPort: http

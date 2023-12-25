@@ -19,8 +19,9 @@ spire-server:
 
 spiffe-oidc-discovery-provider:
   enabled: true
-  insecureScheme:
-    enabled: true
+  tls:
+    spire:
+      enabled: false
 
 upstream:
   enabled: true
