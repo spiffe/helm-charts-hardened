@@ -88,6 +88,8 @@ livenessProbe:
 ## @param podAnnotations [object] Pod annotations for Spire OIDC discovery provider
 podAnnotations: {}
 
+# Select from one of the options below to be the source of certificates for OIDC Discovery Provider.
+# If none are enabled, connections won't be TLS encrypted.
 tls:
   spire:
     ## @param tls.spire.enabled Use spire to secure the oidc-discovery-provider
@@ -96,7 +98,7 @@ tls:
   externalSecret:
     ## @param tls.externalSecret.enabled Provide your own certificate/key via tls style Kubernetes Secret
     enabled: false
-    ## @param tls.externalSecret.secretName Specify which secret to use
+    ## @param tls.externalSecret.secretName Specify which Secret to use
     secretName: ""
 
   certManager:
