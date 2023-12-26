@@ -1,8 +1,8 @@
 {{- if .Values.ingress.enabled -}}
 {{- $tlsCount := include "spiffe-oidc-discovery-provider.tls-count" . | int }}
-{{- $port := 443 }}
+{{- $port := .Values.service.ports.https }}
 {{- if eq $tlsCount 0 }}
-{{- $port = .Values.service.port }}
+{{- $port = .Values.service.ports.http }}
 {{- end }}
 {{- $ingressControllerType := include "spire-lib.ingress-controller-type" (dict "global" .Values.global "ingress" .Values.ingress) }}
 {{- $fullName := include "spiffe-oidc-discovery-provider.fullname" . }}

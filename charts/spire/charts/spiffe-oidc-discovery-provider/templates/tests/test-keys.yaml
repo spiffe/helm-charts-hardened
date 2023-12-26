@@ -1,8 +1,8 @@
 {{- $protocol := "https" }}
-{{- $port := 443 }}
+{{- $port := .Values.service.ports.https }}
 {{- if eq (include "spiffe-oidc-discovery-provider.tls-count" . | int) 0 }}
 {{- $protocol = "http" }}
-{{- $port = .Values.service.port }}
+{{- $port = .Values.service.ports.http }}
 {{- end }}
 apiVersion: v1
 kind: Pod

@@ -12,12 +12,12 @@ spec:
   ports:
     {{- if eq (include "spiffe-oidc-discovery-provider.tls-count" . | int) 0 }}
     - name: http
-      port: {{ .Values.service.port }}
+      port: {{ .Values.service.ports.http }}
       targetPort: http
       protocol: TCP
     {{- else }}
     - name: https
-      port: 443
+      port: {{ .Values.service.ports.https }}
       targetPort: https
       protocol: TCP
     {{- end }}

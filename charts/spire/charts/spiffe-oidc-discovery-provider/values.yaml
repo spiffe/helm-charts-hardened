@@ -45,12 +45,15 @@ resources: {}
   #   memory: 64Mi
 
 ## @param service.type Service type
-## @param service.port Service port
+## @param service.ports.http Insecure port for the service
+## @param service.ports.https Secure port for the service
 ## @param service.annotations Annotations for service resource
 ##
 service:
   type: ClusterIP
-  port: 80
+  ports:
+    http: 80
+    https: 443
   annotations: {}
   # external-dns.alpha.kubernetes.io/hostname: oidc-discovery.example.org
 
