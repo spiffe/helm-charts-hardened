@@ -1,5 +1,5 @@
 {{- if .Values.ingress.enabled -}}
-{{- $tlsEnabled := (include "spiffe-oidc-discovery-provider.tls-enabled" .) "true" }}
+{{- $tlsEnabled := eq (include "spiffe-oidc-discovery-provider.tls-enabled" .) "true" }}
 {{- $port := .Values.service.ports.https }}
 {{- if not $tlsEnabled }}
 {{- $port = .Values.service.ports.http }}
