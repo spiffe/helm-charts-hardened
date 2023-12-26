@@ -2,7 +2,7 @@
 {{- $host := include "spire-lib.ingress-calculated-name" (dict "Values" .Values "ingress" .Values.ingress) }}
 {{- $protocol := "https" }}
 {{- $port := .Values.service.ports.https }}
-{{- if eq (include "spiffe-oidc-discovery-provider.tls-count" . | int) 0 }}
+{{- if eq (include "spiffe-oidc-discovery-provider.tls-enabled" .) "false" }}
 {{- $protocol = "http" }}
 {{- $port = .Values.service.ports.http }}
 {{- end }}

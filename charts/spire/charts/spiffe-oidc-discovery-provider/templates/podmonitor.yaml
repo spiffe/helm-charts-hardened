@@ -1,4 +1,4 @@
-{{- if eq (include "spiffe-oidc-discovery-provider.tls-count" . | int) 0 }}
+{{- if eq (include "spiffe-oidc-discovery-provider.tls-count" .) "false" }}
 {{- if (dig "telemetry" "prometheus" "podMonitor" "enabled" .Values.telemetry.prometheus.podMonitor.enabled .Values.global) }}
 {{- $namespace := include "spiffe-oidc-discovery-provider.podMonitor.namespace" . }}
 {{- $podNamespace := ( include "spiffe-oidc-discovery-provider.namespace" . ) }}
