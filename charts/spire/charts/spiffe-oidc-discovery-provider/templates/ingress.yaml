@@ -20,7 +20,7 @@
 {{-     end }}
 {{-   end }}
 {{- else if eq $ingressControllerType "openshift" }}
-{{-   if not $tlsEnable }}
+{{-   if not $tlsEnabled }}
 {{-     $_ := set $annotations "route.openshift.io/termination" "edge" }}
 {{-   else }}
 {{-     if and .Values.ingress.enabled .Values.ingress.tlsSecret }}
