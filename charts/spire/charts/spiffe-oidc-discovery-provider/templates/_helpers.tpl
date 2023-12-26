@@ -95,7 +95,7 @@ Create the name of the service account to use
 {{- define "spiffe-oidc-discovery-provider.tls-count" -}}
 {{-   $tlsCount := 0 }}
 {{-   if and .Values.enabled .Values.tls.spire.enabled }}
-{{-     fail "Built in spire support is not yet supported." }}
+{{-     fail "Built in SPIRE support is not yet supported." }}
 {{-     $tlsCount = add $tlsCount 1 }}
 {{-   end }}
 {{-   if and .Values.enabled .Values.tls.externalSecret.enabled }}
@@ -105,7 +105,7 @@ Create the name of the service account to use
 {{-     $tlsCount = add $tlsCount 1 }}
 {{-   end }}
 {{-   if gt $tlsCount 1 }}
-{{-     fail "You can only have one tls configuration enabled" }}
+{{-     fail "You can only have one TLS configuration enabled" }}
 {{-   end }}
 {{-   $tlsCount }}
 {{- end }}
