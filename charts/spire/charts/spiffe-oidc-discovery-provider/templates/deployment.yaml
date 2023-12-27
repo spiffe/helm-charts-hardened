@@ -39,7 +39,7 @@ spec:
       securityContext:
         {{- include "spire-lib.podsecuritycontext" . | nindent 8 }}
       initContainers:
-        {{- if and (eq .Values.tlsSecret "") (not .Values.certManager.enabled) (not .Values.insecureScheme.enabled) }}
+        {{- if .Values.spire.enabled }}
         - name: init
           securityContext:
             {{- include "spire-lib.securitycontext" . | nindent 12 }}
@@ -100,7 +100,7 @@ spec:
             {{- toYaml .Values.livenessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-        {{- if $tlsEnabled }}
+        {{- if .Values.spire.enabled }}
         - name: spiffe-helper
           resources:
             {{- toYaml .Values.spiffeHelper.resources | nindent 12 }}

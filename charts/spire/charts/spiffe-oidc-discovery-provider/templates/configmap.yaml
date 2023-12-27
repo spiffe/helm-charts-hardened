@@ -1,6 +1,5 @@
 {{- $tlsCount := 0 }}
 {{- if and .Values.enabled .Values.tls.spire.enabled }}
-{{-   fail "Built in SPIRE support is not yet supported." }}
 {{-   $tlsCount = add $tlsCount 1 }}
 {{- end }}
 {{- if and .Values.enabled .Values.tls.externalSecret.enabled }}
