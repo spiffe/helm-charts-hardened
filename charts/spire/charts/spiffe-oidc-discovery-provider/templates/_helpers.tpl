@@ -92,20 +92,10 @@ Create the name of the service account to use
 {{- printf "/spiffe-workload-api/%s" .Values.agentSocketName }}
 {{- end }}
 
-{{- define "spiffe-oidc-discovery-provider.tls-count" -}}
-{{-   $tlsCount := 0 }}
-{{-   if and .Values.enabled .Values.tls.spire.enabled }}
-{{-     fail "Built in spire support is not yet supported." }}
-{{-     $tlsCount = add $tlsCount 1 }}
+{{- define "spiffe-oidc-discovery-provider.tls-enabled" -}}
+{{-   if and .Values.enabled (or .Values.tls.spire.enabled .Values.tls.externalSecret.enabled .Values.tls.certManager.enabled) }}
+{{-     true }}
+{{-   else }}
+{{-     false }}
 {{-   end }}
-{{-   if and .Values.enabled .Values.tls.externalSecret.enabled }}
-{{-     $tlsCount = add $tlsCount 1 }}
-{{-   end }}
-{{-   if and .Values.enabled .Values.tls.certManager.enabled }}
-{{-     $tlsCount = add $tlsCount 1 }}
-{{-   end }}
-{{-   if gt $tlsCount 1 }}
-{{-     fail "You can only have one tls configuration enabled" }}
-{{-   end }}
-{{-   $tlsCount }}
 {{- end }}

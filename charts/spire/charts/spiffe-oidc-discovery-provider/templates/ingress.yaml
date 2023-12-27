@@ -1,8 +1,8 @@
 {{- if .Values.ingress.enabled -}}
-{{- $tlsCount := include "spiffe-oidc-discovery-provider.tls-count" . | int }}
-{{- $port := 443 }}
-{{- if eq $tlsCount 0 }}
-{{- $port = .Values.service.port }}
+{{- $tlsEnabled := eq (include "spiffe-oidc-discovery-provider.tls-enabled" .) "true" }}
+{{- $port := .Values.service.ports.https }}
+{{- if not $tlsEnabled }}
+{{- $port = .Values.service.ports.http }}
 {{- end }}
 {{- $ingressControllerType := include "spire-lib.ingress-controller-type" (dict "global" .Values.global "ingress" .Values.ingress) }}
 {{- $fullName := include "spiffe-oidc-discovery-provider.fullname" . }}
@@ -13,14 +13,14 @@
 {{- if eq $ingressControllerType "ingress-nginx" }}
 {{-   $_ := set $annotations "nginx.ingress.kubernetes.io/ssl-redirect" "true" }}
 {{-   $_ := set $annotations "nginx.ingress.kubernetes.io/force-ssl-redirect" "true" }}
-{{-   if ne $tlsCount 0 }}
+{{-   if $tlsEnabled }}
 {{-     $_ := set $annotations "nginx.ingress.kubernetes.io/backend-protocol" "HTTPS" }}
 {{-     if not (and .Values.ingress.enabled .Values.ingress.tlsSecret) }}
 {{-       $_ := set $annotations "nginx.ingress.kubernetes.io/ssl-passthrough" "true" }}
 {{-     end }}
 {{-   end }}
 {{- else if eq $ingressControllerType "openshift" }}
-{{-   if eq $tlsCount 0 }}
+{{-   if not $tlsEnabled }}
 {{-     $_ := set $annotations "route.openshift.io/termination" "edge" }}
 {{-   else }}
 {{-     if and .Values.ingress.enabled .Values.ingress.tlsSecret }}

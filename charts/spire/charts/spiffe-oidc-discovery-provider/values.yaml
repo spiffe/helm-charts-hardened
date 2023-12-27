@@ -61,12 +61,15 @@ resources: {}
   #   memory: 64Mi
 
 ## @param service.type Service type
-## @param service.port Service port
+## @param service.ports.http Insecure port for the service
+## @param service.ports.https Secure port for the service
 ## @param service.annotations Annotations for service resource
 ##
 service:
   type: ClusterIP
-  port: 80
+  ports:
+    http: 80
+    https: 443
   annotations: {}
   # external-dns.alpha.kubernetes.io/hostname: oidc-discovery.example.org
 
@@ -104,6 +107,8 @@ livenessProbe:
 ## @param podAnnotations [object] Pod annotations for Spire OIDC discovery provider
 podAnnotations: {}
 
+# Select from one of the options below to be the source of certificates for OIDC Discovery Provider.
+# If none are enabled, connections won't be TLS encrypted.
 tls:
   spire:
     ## @param tls.spire.enabled Use spire to secure the oidc-discovery-provider
@@ -112,7 +117,7 @@ tls:
   externalSecret:
     ## @param tls.externalSecret.enabled Provide your own certificate/key via tls style Kubernetes Secret
     enabled: false
-    ## @param tls.externalSecret.secretName Specify which secret to use
+    ## @param tls.externalSecret.secretName Specify which Secret to use
     secretName: ""
 
   certManager:
