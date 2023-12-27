@@ -27,6 +27,22 @@ Your cluster needs to have Kyverno installed. You can do that by running somethi
 helm upgrade --install --create-namespace kyverno kyverno -n kyverno --repo https://kyverno.github.io/kyverno/ --version 3.1.1
 ```
 
+You also need SPIRE installed. You can do that by running something like the following for a non production test cluster:
+
+```
+helm install -n spire-server spire-crds spire-crds --repo https://spiffe.github.io/helm-charts-hardened/ --create-namespace
+helm install -n spire-server spire spire --repo https://spiffe.github.io/helm-charts-hardened/
+```
+
+## Install Instructions
+```
+helm install -n spire-server spiffe-helper-csi-driver charts/spiffe-helper-csi-driver
+```
+
+## Example usage
+
+See the examples/good directory for different ways of using the driver.
+
 <!-- The parameters section is generated using helm-docs.sh and should not be edited by hand. -->
 
 ## Parameters

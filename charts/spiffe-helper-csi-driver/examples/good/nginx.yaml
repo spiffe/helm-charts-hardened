@@ -1,8 +1,9 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: good-test3
+  name: nginx
 spec:
+  shareProcessNamespace: true
   containers:
   - name: nginx
     image: nginx
@@ -10,6 +11,7 @@ spec:
     - /bin/sh
     - -c
     - |
+      echo $$$$ > $$SPIFFE_HELPER_PID_CERTS
       cat > /etc/nginx/conf.d/ssl.conf <<EOF
       server {
           listen       443 ssl;
@@ -32,19 +34,16 @@ spec:
       mountPath: /certs
     ports:
     - containerPort: 443
-  - name: sidecar
-    image: mysql
-    env:
-    - name: some-setting
-      value: foo
   volumes:
   - name: certs
     csi:
       driver: helper.spiffe.io
       volumeAttributes:
-        customSidecar: sidecar
-        cmd: "bash"
-        cmdArgs: "-c \"echo rolled\""
-        svidBundleFileName: ca.pem
+        renewSignal: SIGHUP
+        pidContainer: nginx
+
+        addIntermediatesToBundle: "true"
+
         svidFileName: tls.crt
         svidKeyFileName: tls.key
+        svidBundleFileName: ca.pem

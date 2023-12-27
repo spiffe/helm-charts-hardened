@@ -1,0 +1,34 @@
+# NOTE:
+#   This example shows how you can use a custom image for your sidecar
+#   enabling you to run specific commands whenever a certificate is updated.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: custom-sidecar
+spec:
+  containers:
+  - name: busybox
+    image: busybox
+    command:
+    - /bin/sh
+    - -c
+    - 'while true; do sleep 1000; done'
+    volumeMounts:
+    - name: certs
+      mountPath: /certs
+  - name: sidecar
+    image: mysql
+    env:
+    - name: some-setting
+      value: foo
+  volumes:
+  - name: certs
+    csi:
+      driver: helper.spiffe.io
+      volumeAttributes:
+        customSidecar: sidecar
+        cmd: "bash"
+        cmdArgs: "-c \"echo rolled. Could do a mysql cli command here.\""
+        svidBundleFileName: ca.pem
+        svidFileName: tls.crt
+        svidKeyFileName: tls.key
