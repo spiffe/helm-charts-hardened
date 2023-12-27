@@ -42,8 +42,6 @@ spec:
     csi:
       driver: helper.spiffe.io
       volumeAttributes:
-        # cmd and cmdArgs should only work with customSidecar
-        # customSidecar and pidContainer can't be used together
         customSidecar: sidecar
         cmd: "bash"
         cmdArgs: "-c \"echo rolled\""
