@@ -47,3 +47,8 @@ kubectl wait --namespace ingress-nginx --for=condition=ready --timeout 60s pod -
   --namespace postgresql \
   --values "${DEPS}/postgresql.yaml" \
   --wait
+
+# kyverno
+"${helm_install[@]}" kyverno kyverno --version "$VERSION_KYVERNO" --repo "$HELM_REPO_KYVERNO" \
+  --namespace kyverno-system \
+  --wait

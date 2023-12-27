@@ -1,11 +1,20 @@
+## @skip global
 global: {}
 
+## @param spiffeHelper.image.registry The OCI registry to pull the image from
+## @param spiffeHelper.image.repository The repository within the registry
+## @param spiffeHelper.image.tag Overrides the image tag whose default is the chart appVersion
+##
 spiffeHelper:
   image:
     registry: docker.io
     repository: kfox1111/misc
     tag: spiffe-helper-test3
 
+## @param busybox.image.registry The OCI registry to pull the image from
+## @param busybox.image.repository The repository within the registry
+## @param busybox.image.tag Overrides the image tag whose default is the chart appVersion
+##
 busybox:
   image:
     registry: docker.io
