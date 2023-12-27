@@ -1,0 +1,13 @@
+global: {}
+
+spiffeHelper:
+  image:
+    registry: docker.io
+    repository: kfox1111/misc
+    tag: spiffe-helper-test3
+
+busybox:
+  image:
+    registry: docker.io
+    repository: busybox
+    tag: 1.36.1-uclibc
