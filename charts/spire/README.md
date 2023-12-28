@@ -5,7 +5,7 @@
 
 A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
 
-**Homepage:** <https://github.com/spiffe/helm-charts/tree/main/charts/spire>
+**Homepage:** <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire>
 
 ## Install Instructions
 
@@ -164,7 +164,7 @@ Now you can interact with the Spire agent socket from your own application. The 
 
 ## Source Code
 
-* <https://github.com/spiffe/helm-charts/tree/main/charts/spire>
+* <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire>
 
 ## Requirements
 
