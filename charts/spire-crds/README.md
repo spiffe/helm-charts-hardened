@@ -4,7 +4,7 @@
 
 A Helm chart to install the SPIRE CRDS.
 
-**Homepage:** <https://github.com/spiffe/helm-charts/tree/main/charts/spire>
+**Homepage:** <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire>
 
 ## Maintainers
 
@@ -17,7 +17,7 @@ A Helm chart to install the SPIRE CRDS.
 
 ## Source Code
 
-* <https://github.com/spiffe/helm-charts/tree/main/charts/spire-crds>
+* <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire-crds>
 
 <!-- The parameters section is generated using helm-docs.sh and should not be edited by hand. -->
 
