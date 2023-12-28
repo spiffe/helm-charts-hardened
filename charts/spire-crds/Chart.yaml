@@ -6,9 +6,9 @@ type: application
 version: 0.2.0
 appVersion: "0.0.1"
 keywords: ["spire-crds"]
-home: https://github.com/spiffe/helm-charts/tree/main/charts/spire
+home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire
 sources:
-  - https://github.com/spiffe/helm-charts/tree/main/charts/spire
+  - https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire
 icon: https://spiffe.io/img/logos/spire/icon/color/spire-icon-color.png
 maintainers:
   - name: marcofranssen
