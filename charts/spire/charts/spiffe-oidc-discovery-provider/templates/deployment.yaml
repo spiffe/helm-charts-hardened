@@ -120,7 +120,7 @@ spec:
       volumes:
         - name: spiffe-workload-api
           csi:
-            driver: "csi.spiffe.io"
+            driver: "{{ .Values.csiDriverName }}"
             readOnly: true
         - name: spire-oidc-sockets
           emptyDir: {}

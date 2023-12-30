@@ -8,6 +8,8 @@ global: {}
 ##
 ## @param agentSocketName The name of the spire-agent unix socket
 agentSocketName: spire-agent.sock
+## @param csiDriverName The csi driver to use
+csiDriverName: csi.spiffe.io
 
 ## @param replicaCount Replica count
 replicaCount: 1
