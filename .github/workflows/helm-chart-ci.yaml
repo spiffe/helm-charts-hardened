@@ -240,7 +240,7 @@ jobs:
 
       - name: Install and test example
         run: |
-          if [ "$$ matrix.example }}" = "examples/federation" ]; then
+          if [ "${{ matrix.example }}" = "examples/federation" ]; then
             kubectl create namespace spire-mgmt
             helm install -n spire-mgmt spire-crds charts/spire-crds
           else
