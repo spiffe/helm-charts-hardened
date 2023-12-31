@@ -240,8 +240,13 @@ jobs:
 
       - name: Install and test example
         run: |
-          kubectl create namespace spire-server
-          helm install -n spire-server spire-crds charts/spire-crds
+          if [ "$$ matrix.example }}" = "examples/federation" ]; then
+            kubectl create namespace spire-mgmt
+            helm install -n spire-mgmt spire-crds charts/spire-crds
+          else
+            kubectl create namespace spire-server
+            helm install -n spire-server spire-crds charts/spire-crds
+          fi
           ${{ matrix.example }}/run-tests.sh
 
   upgrade-test:
