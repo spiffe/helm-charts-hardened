@@ -5,7 +5,6 @@ set -xe
 SCRIPT="$(readlink -f "$0")"
 SCRIPTPATH="$(dirname "${SCRIPT}")"
 TESTDIR="${SCRIPTPATH}/../../.github/tests"
-DEPS="${TESTDIR}/dependencies"
 
 # shellcheck source=/dev/null
 source "${SCRIPTPATH}/../../.github/scripts/parse-versions.sh"
