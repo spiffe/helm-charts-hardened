@@ -350,7 +350,7 @@ tests:
       repository: chainguard/slim-toolkit-debug
       pullPolicy: IfNotPresent
       version: ""
-      tag: latest@sha256:201305e2ad567a4387a92663f58068073c0833cdc2d84ed9f69be385aa4ece98
+      tag: latest@sha256:c33000bbf5fc823722d1a190ce96c58ee0baa3780e23d148c27773bbc7e884e1
 
   step:
     ## @param tests.step.image.registry The OCI registry to pull the image from
