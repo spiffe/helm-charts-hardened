@@ -110,7 +110,7 @@ nodeDriverRegistrar:
     repository: sig-storage/csi-node-driver-registrar
     pullPolicy: IfNotPresent
     version: ""
-    tag: v2.9.2
+    tag: v2.9.3
   ## @param nodeDriverRegistrar.resources Resource requests and limits for CSI driver pods
   resources: {}
     # We usually recommend not to specify default resources and to leave this as a conscious
