@@ -39,6 +39,9 @@ spec:
       labels:
         {{- include "spire-server.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: server
+        component: server
+        release: {{ .Release.Name }}
+        release-namespace: {{ .Release.Namespace }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:

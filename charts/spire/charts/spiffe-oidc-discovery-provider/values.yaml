@@ -8,6 +8,8 @@ global: {}
 ##
 ## @param agentSocketName The name of the spire-agent unix socket
 agentSocketName: spire-agent.sock
+## @param csiDriverName The csi driver to use
+csiDriverName: csi.spiffe.io
 
 ## @param replicaCount Replica count
 replicaCount: 1
@@ -45,12 +47,15 @@ resources: {}
   #   memory: 64Mi
 
 ## @param service.type Service type
-## @param service.port Service port
+## @param service.ports.http Insecure port for the service
+## @param service.ports.https Secure port for the service
 ## @param service.annotations Annotations for service resource
 ##
 service:
   type: ClusterIP
-  port: 80
+  ports:
+    http: 80
+    https: 443
   annotations: {}
   # external-dns.alpha.kubernetes.io/hostname: oidc-discovery.example.org
 
@@ -88,16 +93,53 @@ livenessProbe:
 ## @param podAnnotations [object] Pod annotations for Spire OIDC discovery provider
 podAnnotations: {}
 
-insecureScheme:
-  ## @param insecureScheme.enabled Flag to enable insecure schema
-  enabled: true
+# Select from one of the options below to be the source of certificates for OIDC Discovery Provider.
+# If none are enabled, connections won't be TLS encrypted.
+tls:
+  spire:
+    ## @param tls.spire.enabled Use spire to secure the oidc-discovery-provider
+    enabled: true
 
+  externalSecret:
+    ## @param tls.externalSecret.enabled Provide your own certificate/key via tls style Kubernetes Secret
+    enabled: false
+    ## @param tls.externalSecret.secretName Specify which Secret to use
+    secretName: ""
+
+  certManager:
+    ## @param tls.certManager.enabled Use certificateManager to create the certificate
+    enabled: false
+    issuer:
+      ## @param tls.certManager.issuer.create Create an issuer to use to issue the certificate
+      create: true
+      acme:
+        ## @param tls.certManager.issuer.acme.email Must be set in order to register with LetsEncrypt. By setting, you agree to their Terms of Service
+        email: ""
+        ## @param tls.certManager.issuer.acme.server Server to use to get certificate. Defaults to LetsEncrypt
+        server: https://acme-v02.api.letsencrypt.org/directory
+        # Testing server: https://acme-staging-v02.api.letsencrypt.org/directory
+        ## @param tls.certManager.issuer.acme.solvers [object] Configure the issuer solvers. Defaults to http01 via ingress.
+        solvers: {}
+        # - http01:
+        #     ingress:
+        #       ingressClassName: nginx
+    certificate:
+      ## @param tls.certManager.certificate.dnsNames Override the dnsNames on the certificate request. Defaults to the same settings as Ingress
+      dnsNames: []
+      ## @param tls.certManager.certificate.issuerRef.group If you are using an external plugin, specify the group for it here
+      ## @param tls.certManager.certificate.issuerRef.kind Kind of the issuer reference. Override if you want to use a ClusterIssuer
+      ## @param tls.certManager.certificate.issuerRef.name Name of the issuer to use. If unset, it will use the name of the built in issuer
+      issuerRef:
+        group: ""
+        kind: Issuer
+        name: ""
+
+insecureScheme:
   nginx:
-    ## @param insecureScheme.nginx.image.registry The OCI registry to pull the image from
-    ## @param insecureScheme.nginx.image.repository The repository within the registry
-    ## @param insecureScheme.nginx.image.pullPolicy The image pull policy
-    ## @param insecureScheme.nginx.image.version This value is deprecated in favor of tag. (Will be removed in a future release)
-    ## @param insecureScheme.nginx.image.tag Overrides the image tag whose default is the chart appVersion
+    ## @param insecureScheme.nginx.image.registry The OCI registry to pull the image from. Only used when TLS is disabled.
+    ## @param insecureScheme.nginx.image.repository The repository within the registry. Only used when TLS is disabled.
+    ## @param insecureScheme.nginx.image.pullPolicy The image pull policy.  Only used when TLS is disabled.
+    ## @param insecureScheme.nginx.image.tag Overrides the image tag whose default is the chart appVersion. Only used when TLS is disabled.
     ## Example:
     ## chainguard image does not support the templates feature
     ## https://github.com/chainguard-images/nginx/issues/43
@@ -110,7 +152,6 @@ insecureScheme:
       registry: docker.io
       repository: nginxinc/nginx-unprivileged
       pullPolicy: IfNotPresent
-      version: ""
       tag: 1.25.3-alpine
     ## @param insecureScheme.nginx.resources Resource requests and limits
     resources: {}
@@ -134,16 +175,6 @@ config:
   ## @param config.additionalDomains [array] Add additional domains that can be used for oidc discovery
   additionalDomains: []
   # - localhost
-
-  acme:
-    ## @param config.acme.tosAccepted Flag for Terms of Service acceptance
-    tosAccepted: false
-    ## @param config.acme.cacheDir Path for cache directory
-    cacheDir: /run/spire
-    ## @param config.acme.directoryUrl URL for acme directory
-    directoryUrl: https://acme-v02.api.letsencrypt.org/directory
-    ## @param config.acme.emailAddress Email address for registration
-    emailAddress: letsencrypt@example.org
 
 ## @param imagePullSecrets [array] Image pull secret names
 imagePullSecrets: []

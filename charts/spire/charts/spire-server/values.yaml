@@ -480,6 +480,23 @@ controllerManager:
         ## @param controllerManager.identities.clusterSPIFFEIDs.default.autoPopulateDNSNames Auto populate DNS names from services attached to pods
         autoPopulateDNSNames: false
 
+      oidc-discovery-provider:
+        ## @param controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.enabled Enable this identity for controller manager
+        enabled: true
+        ## @param controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.type The type of rule this is.
+        type: oidc-discovery-provider
+        ## @param controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.autoPopulateDNSNames Auto populate DNS names to the discovery provider
+        autoPopulateDNSNames: true
+        ## @param controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.dnsNameTemplates [array] DNS name template for issued identities
+        dnsNameTemplates:
+          - oidc-discovery.{{ .TrustDomain }}
+
+      test-keys:
+        ## @param controllerManager.identities.clusterSPIFFEIDs.test-keys.enabled Enable this identity for controller manager
+        enabled: true
+        ## @param controllerManager.identities.clusterSPIFFEIDs.test-keys.type The type of rule this is.
+        type: test-keys
+
       # You can specify additional ClusterSPIFFEIDs following this example:
       # foo:
       #   labels:
