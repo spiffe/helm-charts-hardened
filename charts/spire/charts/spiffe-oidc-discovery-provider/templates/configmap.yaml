@@ -1,3 +1,17 @@
+{{- $tlsCount := 0 }}
+{{- if and .Values.enabled .Values.tls.spire.enabled }}
+{{-   fail "Built in SPIRE support is not yet supported." }}
+{{-   $tlsCount = add $tlsCount 1 }}
+{{- end }}
+{{- if and .Values.enabled .Values.tls.externalSecret.enabled }}
+{{-   $tlsCount = add $tlsCount 1 }}
+{{- end }}
+{{- if and .Values.enabled .Values.tls.certManager.enabled }}
+{{-   $tlsCount = add $tlsCount 1 }}
+{{- end }}
+{{- if gt $tlsCount 1 }}
+{{-   fail "You can only have one TLS configuration enabled" }}
+{{- end }}
 {{- include "spire-lib.check-strict-mode" (list . "trustDomain must be set" (eq (include "spire-lib.trust-domain" .) "example.org"))}}
 {{- include "spire-lib.check-strict-mode" (list . "jwtIssuer must be set" (eq (include "spire-lib.jwt-issuer" .) "https://oidc-discovery.example.org"))}}
 {{- $oidcSocket := "/run/spire/oidc-sockets/spire-oidc-server.sock" }}
@@ -14,15 +28,14 @@ domains:
   {{- $jwtIssuer := (default $uri.path $uri.host) }}
   {{- uniq (concat (list $jwtIssuer) .Values.config.additionalDomains) | toYaml | nindent 2 }}
 
-{{- if .Values.insecureScheme.enabled }}
-allow_insecure_scheme: {{ .Values.insecureScheme.enabled }}
+{{- if eq (include "spiffe-oidc-discovery-provider.tls-enabled" .) "false" }}
+allow_insecure_scheme: true
 listen_socket_path: {{ $oidcSocket | quote }}
 {{- else }}
-acme:
-  directory_url: {{ .Values.config.acme.directoryUrl | quote }}
-  cache_dir: {{ .Values.config.acme.cacheDir | quote }}
-  tos_accepted: {{ .Values.config.acme.tosAccepted }}
-  email: {{ .Values.config.acme.emailAddress | quote }}
+serving_cert_file:
+  cert_file_path: /certs/tls.crt
+  key_file_path: /certs/tls.key
+  addr: ':8443'
 {{- end }}
 
 workload_api:
@@ -47,7 +60,7 @@ metadata:
 data:
   oidc-discovery-provider.conf: |
     {{- include "spiffe-oidc-discovery-provider.yaml-config" (dict "oidcSocket" $oidcSocket "root" .) | fromYaml | toPrettyJson | nindent 4 }}
-  {{- if .Values.insecureScheme.enabled }}
+  {{- if eq (include "spiffe-oidc-discovery-provider.tls-enabled" .) "false" }}
   default.conf: |
     upstream oidc {
       server unix:{{ $oidcSocket }};
