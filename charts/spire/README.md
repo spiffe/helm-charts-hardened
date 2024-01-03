@@ -69,6 +69,7 @@ We only support upgrading one major version at a time. Version skipping isn't su
 
 The SPIFFE OIDC Discovery Provider now has many new TLS options and out of the box defaults to using SPIRE for its certificate. Also, the `spiffe-oidc-discovery-provider.insecureScheme.enabled` flag was removed. If you previously set that option, remove the setting from your values.yaml and see if the new default is suitable for your deployment. If it isn't, please consider one of the other options under `spiffe-oidc-discovery-provider.tls`. If all other options are still unsuitable, you can still enable the previous mode by disabling all tls options. (`spiffe-oidc-discovery-provider.spire.enabled=false`)
 
+The SPIFFE OIDC Discovery Provider is now enabled by default. If you previously chose to have it off, you can disable it explicitly with `spiffe-oidc-discovery-provider.enabled=false`.
 ### 0.16.X
 
 The settings under "spire-server.controllerManager.identities" have all been moved under "spire-server.controllerManager.identities.clusterSPIFFEIDs.default". If you have changed any from the defaults, please update them to the new location during upgrade.
