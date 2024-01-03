@@ -1,6 +1,5 @@
 {{- $tlsCount := 0 }}
 {{- if and .Values.enabled .Values.tls.spire.enabled }}
-{{-   fail "Built in SPIRE support is not yet supported." }}
 {{-   $tlsCount = add $tlsCount 1 }}
 {{- end }}
 {{- if and .Values.enabled .Values.tls.externalSecret.enabled }}
@@ -82,3 +81,16 @@ data:
       }
     }
   {{- end }}
+  helper-init.conf: |
+    exit_when_ready = true
+    agent_address = {{ include "spiffe-oidc-discovery-provider.workload-api-socket-path" . | quote }}
+    cert_dir = "/certs"
+    svid_file_name = "tls.crt"
+    svid_key_file_name = "tls.key"
+    svid_bundle_file_name = "ca.pem"
+  helper-sidecar.conf: |
+    agent_address = {{ include "spiffe-oidc-discovery-provider.workload-api-socket-path" . | quote }}
+    cert_dir = "/certs"
+    svid_file_name = "tls.crt"
+    svid_key_file_name = "tls.key"
+    svid_bundle_file_name = "ca.pem"

@@ -38,6 +38,26 @@ spec:
       serviceAccountName: {{ include "spiffe-oidc-discovery-provider.serviceAccountName" . }}
       securityContext:
         {{- include "spire-lib.podsecuritycontext" . | nindent 8 }}
+      initContainers:
+        {{- if .Values.tls.spire.enabled }}
+        - name: init
+          securityContext:
+            {{- include "spire-lib.securitycontext" . | nindent 12 }}
+          resources:
+            {{- toYaml .Values.spiffeHelper.resources | nindent 12 }}
+          image: {{ template "spire-lib.image" (dict "image" .Values.spiffeHelper.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.spiffeHelper.image.pullPolicy }}
+          volumeMounts:
+            - name: spiffe-workload-api
+              mountPath: {{ include "spiffe-oidc-discovery-provider.workload-api-socket-path" . | dir }}
+              readOnly: true
+            - name: spire-oidc-config
+              mountPath: /etc/spiffe-helper.conf
+              subPath: helper-init.conf
+              readOnly: true
+            - name: certdir
+              mountPath: /certs
+        {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -80,6 +100,25 @@ spec:
             {{- toYaml .Values.livenessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+        {{- if .Values.tls.spire.enabled }}
+        - name: spiffe-helper
+          resources:
+            {{- toYaml .Values.spiffeHelper.resources | nindent 12 }}
+          securityContext:
+            {{- include "spire-lib.securitycontext" . | nindent 12 }}
+          image: {{ template "spire-lib.image" (dict "image" .Values.spiffeHelper.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.spiffeHelper.image.pullPolicy }}
+          volumeMounts:
+            - name: spiffe-workload-api
+              mountPath: {{ include "spiffe-oidc-discovery-provider.workload-api-socket-path" . | dir }}
+              readOnly: true
+            - name: spire-oidc-config
+              mountPath: /etc/spiffe-helper.conf
+              subPath: helper-sidecar.conf
+              readOnly: true
+            - name: certdir
+              mountPath: /certs
+        {{- end }}
         {{- if not $tlsEnabled }}
         - name: nginx
           securityContext:
