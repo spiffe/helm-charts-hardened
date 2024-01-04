@@ -2,9 +2,3 @@ global:
   spire:
     recommendations:
       enabled: true
-
-spiffe-oidc-discovery-provider:
-  enabled: true
-  tls:
-    spire:
-      enabled: false
