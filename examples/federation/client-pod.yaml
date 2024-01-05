@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: client
+spec:
+  terminationGracePeriodSeconds: 1
+  containers:
+  - name: busybox
+    image: busybox
+    command:
+    - /bin/sh
+    - -c
+    - 'while true; do wget -q -O - localhost:8080 && touch /tmp/healthy; sleep 1; done'
+    readinessProbe:
+      exec:
+        command:
+        - cat
+        - /tmp/healthy
+      initialDelaySeconds: 5
+      periodSeconds: 5
+  - name: ghostunnel
+    image: ghostunnel/ghostunnel:v1.7.2
+    command:
+    - ghostunnel
+    - client
+    - --use-workload-api-addr
+    - unix:/spire-workload-api/spire-agent.sock
+    - --listen
+    - localhost:8080
+    - --target
+    - server:8443
+    - --verify-uri
+    - spiffe://b-org.local/ns/default/sa/default
+    volumeMounts:
+    - name: agent
+      mountPath: /spire-workload-api
+      readOnly: true
+    ports:
+    - containerPort: 8443
+  volumes:
+  - name: agent
+    csi:
+      driver: a.csi.spiffe.io
+      readOnly: true
