@@ -202,6 +202,12 @@ federation:
       ## @param federation.tls.spire.enabled Use spire to secure the federation bundle endpoint
       enabled: true
 
+    externalSecret:
+      ## @param federation.tls.externalSecret.enabled Provide your own certificate/key via tls style Kubernetes Secret
+      enabled: false
+      ## @param federation.tls.externalSecret.secretName Specify which Secret to use
+      secretName: ""
+
     certManager:
       ## @param federation.tls.certManager.enabled Use certificateManager to create the certificate
       enabled: false

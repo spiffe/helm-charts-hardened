@@ -26,6 +26,9 @@
 {{- if .Values.federation.tls.spire.enabled }}
 {{-   $tlsFederationCount = add $tlsFederationCount 1 }}
 {{- end }}
+{{- if .Values.federation.tls.externalSecret.enabled }}
+{{-   $tlsFederationCount = add $tlsFederationCount 1 }}
+{{- end }}
 {{- if .Values.federation.tls.certManager.enabled }}
 {{-   $tlsFederationCount = add $tlsFederationCount 1 }}
 {{- end }}
