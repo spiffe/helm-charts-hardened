@@ -22,6 +22,16 @@
 {{-     end }}
 {{-   end }}
 {{- end }}
+{{- $tlsFederationCount := 0 }}
+{{- if .Values.federation.tls.spire.enabled }}
+{{-   $tlsFederationCount = add $tlsFederationCount 1 }}
+{{- end }}
+{{- if .Values.federation.tls.certManager.enabled }}
+{{-   $tlsFederationCount = add $tlsFederationCount 1 }}
+{{- end }}
+{{- if ne $tlsFederationCount 1 }}
+{{-   fail "You must enable one and only one federation TLS configuration" }}
+{{- end }}
 {{- define "spire-server.yaml-config" -}}
 {{- $upstreamAuthorityUsed := 0 }}
 {{- $keyManagerUsed := 0 }}
