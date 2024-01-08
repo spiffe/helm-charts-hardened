@@ -1,8 +1,9 @@
 spiffe-oidc-discovery-provider:
   enabled: true
   namespaceOverride: spire-server
-  insecureScheme:
-    enabled: true
+  tls:
+    spire:
+      enabled: false
 
 spire-server:
   namespaceOverride: spire-server

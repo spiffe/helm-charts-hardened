@@ -1,3 +1,9 @@
+{{- $protocol := "https" }}
+{{- $port := .Values.service.ports.https }}
+{{- if eq (include "spiffe-oidc-discovery-provider.tls-enabled" .) "false" }}
+{{- $protocol = "http" }}
+{{- $port = .Values.service.ports.http }}
+{{- end }}
 apiVersion: v1
 kind: Pod
 metadata:
@@ -5,6 +11,9 @@ metadata:
   namespace: {{ include "spiffe-oidc-discovery-provider.namespace" . }}
   labels:
     {{- include "spiffe-oidc-discovery-provider.labels" . | nindent 4 }}
+    release: {{ .Release.Name }}
+    release-namespace: {{ .Release.Namespace }}
+    component: test-keys
   annotations:
     "helm.sh/hook": test
 spec:
@@ -70,7 +79,7 @@ spec:
       args:
         - -cx
         - |
-          URL=http://{{ include "spiffe-oidc-discovery-provider.fullname" . }}.{{ include "spiffe-oidc-discovery-provider.namespace" . }}.svc.{{ include "spire-lib.cluster-domain" . }}:{{ .Values.service.port }}
+          URL={{ $protocol }}://{{ include "spiffe-oidc-discovery-provider.fullname" . }}.{{ include "spiffe-oidc-discovery-provider.namespace" . }}.svc.{{ include "spire-lib.cluster-domain" . }}:{{ $port }}
 
           cat /data/token.svid
           JWT=$(cat /data/token.svid | jq -r '.[] | select(.svids) | .svids[0].svid' | xargs)
