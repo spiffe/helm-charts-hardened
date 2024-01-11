@@ -31,7 +31,6 @@ A Helm chart to install the SPIFFE CSI driver.
 | `image.registry`                         | The OCI registry to pull the image from                                                                   | `ghcr.io`                                   |
 | `image.repository`                       | The repository within the registry                                                                        | `spiffe/spiffe-csi-driver`                  |
 | `image.pullPolicy`                       | The image pull policy                                                                                     | `IfNotPresent`                              |
-| `image.version`                          | This value is deprecated in favor of tag. (Will be removed in a future release)                           | `""`                                        |
 | `image.tag`                              | Overrides the image tag whose default is the chart appVersion                                             | `""`                                        |
 | `resources`                              | Resource requests and limits for spiffe-csi-driver                                                        | `{}`                                        |
 | `healthChecks.port`                      | The healthcheck port for spiffe-csi-driver                                                                | `9809`                                      |
@@ -55,7 +54,6 @@ A Helm chart to install the SPIFFE CSI driver.
 | `nodeDriverRegistrar.image.registry`     | The OCI registry to pull the image from                                                                   | `registry.k8s.io`                           |
 | `nodeDriverRegistrar.image.repository`   | The repository within the registry                                                                        | `sig-storage/csi-node-driver-registrar`     |
 | `nodeDriverRegistrar.image.pullPolicy`   | The image pull policy                                                                                     | `IfNotPresent`                              |
-| `nodeDriverRegistrar.image.version`      | This value is deprecated in favor of tag. (Will be removed in a future release)                           | `""`                                        |
 | `nodeDriverRegistrar.image.tag`          | Overrides the image tag                                                                                   | `v2.9.3`                                    |
 | `nodeDriverRegistrar.resources`          | Resource requests and limits for CSI driver pods                                                          | `{}`                                        |
 | `agentSocketPath`                        | The unix socket path to the spire-agent                                                                   | `/run/spire/agent-sockets/spire-agent.sock` |
