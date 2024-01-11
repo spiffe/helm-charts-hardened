@@ -1,7 +1,7 @@
 {{- if .Values.federation.enabled }}
 {{- if .Values.federation.ingress.enabled -}}
 {{- $svcName := include "spire-server.fullname" . }}
-{{/* Until https://github.com/spiffe/spireissues/2202 is resolved, use ingress to implement cert-manager support. */}}
+{{/* Until https://github.com/spiffe/spire/issues/2202 is resolved, use ingress to implement cert-manager and externalSecret support. */}}
 {{- $federationIngress := deepCopy .Values.federation.ingress }}
 {{- if .Values.federation.tls.certManager.enabled }}
 {{-   $secret := printf "%s-federation-cert" $svcName }}

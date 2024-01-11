@@ -21,13 +21,15 @@ Warning: You're using an unsupported plugin. Functionality of this release and f
 
 Warning: You're using an experimental config. Functionality of this release and future upgrades aren't guaranteed to work smoothly.
 {{- end }}
-{{- $className := include "spire-server.controller-manager-class-name" (dict "Values" (index .Values "spire-server") "Release" .Release) }}
-{{- if (index .Values "spire-server").controllerManager.enabled }}
-{{-   if (index .Values "spire-server").controllerManager.watchClassless }}
+{{- if (index .Values "spire-server").enabled }}
+{{-   $className := include "spire-server.controller-manager-class-name" (dict "Values" (index .Values "spire-server") "Release" .Release) }}
+{{-   if (index .Values "spire-server").controllerManager.enabled }}
+{{-     if (index .Values "spire-server").controllerManager.watchClassless }}
 
 Spire CR's will be handled if no className is specified or if className is set to "{{ $className }}"
-{{-   else }}
+{{-     else }}
 
 Spire CR's will be handled only if className is set to "{{ $className }}"
+{{-     end }}
 {{-   end }}
 {{- end }}
