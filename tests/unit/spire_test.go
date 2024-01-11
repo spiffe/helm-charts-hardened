@@ -133,4 +133,15 @@ spire-agent:
 			Expect(notes).Should(ContainSubstring("join_token"))
 		})
 	})
+	Describe("spire-server.disabled", func() {
+		It("spire server off", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  enabled: false
+`)
+			Expect(err).Should(Succeed())
+			notes := objs["spire/templates/NOTES.txt"]
+			Expect(notes).Should(ContainSubstring("Installed"))
+		})
+	})
 })
