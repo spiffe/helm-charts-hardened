@@ -51,7 +51,7 @@
 {{- define "spire-lib.image" -}}
 {{- $registry := include "spire-lib.registry" . }}
 {{- $repo := .image.repository }}
-{{- $tag := (default .image.tag .image.version) | toString }}
+{{- $tag := .image.tag | toString }}
 {{- if eq (substr 0 7 $tag) "sha256:" }}
 {{- printf "%s/%s@%s" $registry $repo $tag }}
 {{- else if .appVersion }}
@@ -169,7 +169,7 @@ rules:
 
 {{- define "spire-lib.kubectl-image" }}
 {{- $root := deepCopy . }}
-{{- $tag := (default $root.image.tag $root.image.version) | toString }}
+{{- $tag := $root.image.tag | toString }}
 {{- if eq (len $tag) 0 }}
 {{- $_ := set $root.image "tag" (regexReplaceAll "^(v?\\d+\\.\\d+\\.\\d+).*" $root.KubeVersion "${1}") }}
 {{- end }}
@@ -316,5 +316,19 @@ priorityClassName: system-node-critical
 priorityClassName: {{ .Values.priorityClassName }}
 {{- else if and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "priorityClassName" true .Values.global) }}
 priorityClassName: system-cluster-critical
+{{- end }}
+{{- end }}
+
+{{/*
+Use autoscaling/v2 (Kubernetes 1.23 and newer) or autoscaling/v2beta2 (Kubernetes 1.12-1.25) based on cluster capabilities.
+Anything lower has an incompatible API.
+*/}}
+{{- define "spire-lib.autoscalingVersion" -}}
+{{- if (.Capabilities.APIVersions.Has "autoscaling/v2") }}
+{{- print "autoscaling/v2" }}
+{{- else if (.Capabilities.APIVersions.Has "autoscaling/v2beta2") }}
+{{- print "autoscaling/v2beta2" }}
+{{- else }}
+{{- fail "Unsupported autoscaling API version" }}
 {{- end }}
 {{- end }}
