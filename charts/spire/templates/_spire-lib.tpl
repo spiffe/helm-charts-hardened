@@ -318,3 +318,17 @@ priorityClassName: {{ .Values.priorityClassName }}
 priorityClassName: system-cluster-critical
 {{- end }}
 {{- end }}
+
+{{/*
+Use autoscaling/v2 (Kubernetes 1.23 and newer) or autoscaling/v2beta2 (Kubernetes 1.12-1.25) based on cluster capabilities.
+Anything lower has an incompatible API.
+*/}}
+{{- define "spire-lib.autoscalingVersion" -}}
+{{- if (.Capabilities.APIVersions.Has "autoscaling/v2") }}
+{{- print "autoscaling/v2" }}
+{{- else if (.Capabilities.APIVersions.Has "autoscaling/v2beta2") }}
+{{- print "autoscaling/v2beta2" }}
+{{- else }}
+{{- fail "Unsupported autoscaling API version" }}
+{{- end }}
+{{- end }}
