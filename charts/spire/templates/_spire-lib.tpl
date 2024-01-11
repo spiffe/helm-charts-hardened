@@ -51,7 +51,7 @@
 {{- define "spire-lib.image" -}}
 {{- $registry := include "spire-lib.registry" . }}
 {{- $repo := .image.repository }}
-{{- $tag := (default .image.tag .image.version) | toString }}
+{{- $tag := .image.tag | toString }}
 {{- if eq (substr 0 7 $tag) "sha256:" }}
 {{- printf "%s/%s@%s" $registry $repo $tag }}
 {{- else if .appVersion }}
@@ -169,7 +169,7 @@ rules:
 
 {{- define "spire-lib.kubectl-image" }}
 {{- $root := deepCopy . }}
-{{- $tag := (default $root.image.tag $root.image.version) | toString }}
+{{- $tag := $root.image.tag | toString }}
 {{- if eq (len $tag) 0 }}
 {{- $_ := set $root.image "tag" (regexReplaceAll "^(v?\\d+\\.\\d+\\.\\d+).*" $root.KubeVersion "${1}") }}
 {{- end }}
