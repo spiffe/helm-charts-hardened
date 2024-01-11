@@ -53,13 +53,17 @@ spec:
         - name: ensure-alternate-names
           image: {{ template "spire-lib.image" (dict "image" .Values.socketAlternate.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.socketAlternate.image.pullPolicy }}
-          command: ["bash", "-c"]
+          command: ["bash", "-xc"]
+          {{/* 1. Look for symlinks pointing at the wrong place and remove them. 2. Make symlinks that don't exist. 3. If new socket is pointing at an existing symlink, remove old symlink. */}}
           args:
             - |
               cd {{ $socketPath | dir }}
               {{- range $socketAlternateNames }}
+              L=`readlink {{ . }}`
+              [ "x$L" != "x{{ $socketPath | base}}" ] && rm -f {{ . }}
               [ ! -L {{ . }} ] && ln -s {{ $socketPath | base }} {{ . }}
               {{- end }}
+              [ -L {{ $socketPath | base }} ] && rm -f {{ $socketPath | base }}
               exit 0
           resources:
             {{- toYaml .Values.socketAlternate.resources | nindent 12 }}
