@@ -71,8 +71,9 @@ spec:
           image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args: ["-config", "/run/spire/config/agent.conf"]
-          {{- if or (gt (len .Values.extraEnvVars) 0) $cbh }}
           env:
+          - name: PATH
+            value: "/opt/spire/bin:/bin"
           {{- if $cbh }}
             - name: MY_NODE_NAME
               valueFrom:
@@ -81,7 +82,6 @@ spec:
           {{- end }}
           {{- with .Values.extraEnvVars }}
           {{- toYaml . | nindent 12 }}
-          {{- end }}
           {{- end }}
           ports:
             - containerPort: {{ .Values.healthChecks.port }}
