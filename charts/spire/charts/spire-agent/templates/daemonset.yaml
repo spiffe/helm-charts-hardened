@@ -72,8 +72,8 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args: ["-config", "/run/spire/config/agent.conf"]
           env:
-          - name: PATH
-            value: "/opt/spire/bin:/bin"
+            - name: PATH
+              value: "/opt/spire/bin:/bin"
           {{- if $cbh }}
             - name: MY_NODE_NAME
               valueFrom:
