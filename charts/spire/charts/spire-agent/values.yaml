@@ -130,7 +130,7 @@ waitForIt:
     registry: cgr.dev
     repository: chainguard/wait-for-it
     pullPolicy: IfNotPresent
-    tag: latest@sha256:fdd8d70cdb1e0383f77b6f7820552f0b330a526d967ed996b01ee30cc026f4fb
+    tag: latest@sha256:9500241a8a6a5912ded07445991b9d3a0834beef810b10c302af593aee1b33dc
 
   ## @param waitForIt.resources [object] Resource requests and limits
   resources: {}
@@ -147,7 +147,7 @@ fsGroupFix:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: Always
-    tag: latest@sha256:07d2662ef699e9ceafab3f39624083193dfcb7b768ee86860dbdd5cb4473dcea
+    tag: latest@sha256:099e4b9adb13a94e6f25d6bb9bfe69fd5ba734a615e62bb0e1efba6650c6b23d
 
   ## @param fsGroupFix.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
