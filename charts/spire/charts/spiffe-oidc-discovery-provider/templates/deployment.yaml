@@ -47,13 +47,17 @@ spec:
             {{- toYaml .Values.spiffeHelper.resources | nindent 12 }}
           image: {{ template "spire-lib.image" (dict "image" .Values.spiffeHelper.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.spiffeHelper.image.pullPolicy }}
+          args:
+            - -config
+            - /etc/spiffe-helper.conf
+            - -exitWhenReady
           volumeMounts:
             - name: spiffe-workload-api
               mountPath: {{ include "spiffe-oidc-discovery-provider.workload-api-socket-path" . | dir }}
               readOnly: true
             - name: spire-oidc-config
               mountPath: /etc/spiffe-helper.conf
-              subPath: helper-init.conf
+              subPath: spiffe-helper.conf
               readOnly: true
             - name: certdir
               mountPath: /certs
@@ -108,13 +112,16 @@ spec:
             {{- include "spire-lib.securitycontext" . | nindent 12 }}
           image: {{ template "spire-lib.image" (dict "image" .Values.spiffeHelper.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.spiffeHelper.image.pullPolicy }}
+          args:
+            - -config
+            - /etc/spiffe-helper.conf
           volumeMounts:
             - name: spiffe-workload-api
               mountPath: {{ include "spiffe-oidc-discovery-provider.workload-api-socket-path" . | dir }}
               readOnly: true
             - name: spire-oidc-config
               mountPath: /etc/spiffe-helper.conf
-              subPath: helper-sidecar.conf
+              subPath: spiffe-helper.conf
               readOnly: true
             - name: certdir
               mountPath: /certs

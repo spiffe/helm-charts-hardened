@@ -43,7 +43,7 @@ spiffeHelper:
     repository: kfox1111/misc
     pullPolicy: IfNotPresent
     version: ""
-    tag: "spiffe-helper-test2"
+    tag: "spiffe-helper-test4"
   ## @param spiffeHelper.resources [object] Resource requests and limits
   resources: {}
 
