@@ -208,7 +208,6 @@ socketAlternate:
   ## @param socketAlternate.image.registry The OCI registry to pull the image from
   ## @param socketAlternate.image.repository The repository within the registry
   ## @param socketAlternate.image.pullPolicy The image pull policy
-  ## @param socketAlternate.image.version This value is deprecated in favor of tag. (Will be removed in a future release)
   ## @param socketAlternate.image.tag Overrides the image tag whose default is the chart appVersion
   ##
   image:
