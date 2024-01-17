@@ -649,6 +649,9 @@ nodeAttestor:
     enabled: true
     ## @param nodeAttestor.k8sPsat.serviceAccountAllowList [array] Allowed service accounts for Psat nodeattestor
     serviceAccountAllowList: []
+  joinToken:
+    ## @param nodeAttestor.joinToken.enabled Enable the join_token nodeattestor
+    enabled: false
 
 ## @section Tornjak
 tornjak:
