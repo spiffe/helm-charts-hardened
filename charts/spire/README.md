@@ -42,18 +42,25 @@ spire-server:
     common_name: example.org
 ```
 
-Step 2:  If your Kubernetes cluster is OpenShift based, use the output of the following command for your trustDomain:
+Step 2: If you need a non default storageClass, append the following to the spire-server section and update:
+```
+  persistence:
+    storageClass: changeme
+```
+
+Step 3: If your Kubernetes cluster is OpenShift based, use the output of the following command for your trustDomain:
 ```shell
 oc get cm -n openshift-config-managed  console-public -o go-template="{{ .data.consoleURL }}" | sed 's@https://@@; s/^[^.]*\.//'
 ```
-Step 3: Find any additional values you might want to set based on the documentation below or the examples at:
+
+Step 4: Find any additional values you might want to set based on the documentation below or the examples at:
 https://github.com/spiffe/helm-charts-hardened/tree/main/examples
 
 In particular, consider using an external database.
 
-Step 4: Edit your-values.yaml with the appropriate values.
+Step 5: Edit your-values.yaml with the appropriate values.
 
-Step 5: Deployment
+Step 6: Deployment
 
 ```shell
 helm upgrade --install -n spire-mgmt spire-crds spire-crds --repo https://spiffe.github.io/helm-charts-hardened/ --create-namespace
