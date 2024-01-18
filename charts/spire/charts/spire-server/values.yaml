@@ -195,6 +195,45 @@ federation:
     ## @param federation.bundleEndpoint.address Address for trust bundle federation
     address: "0.0.0.0"
 
+  tls:
+    spire:
+      ## @param federation.tls.spire.enabled Use spire to secure the federation bundle endpoint
+      enabled: true
+
+    externalSecret:
+      ## @param federation.tls.externalSecret.enabled Provide your own certificate/key via tls style Kubernetes Secret
+      enabled: false
+      ## @param federation.tls.externalSecret.secretName Specify which Secret to use
+      secretName: ""
+
+    certManager:
+      ## @param federation.tls.certManager.enabled Use certificateManager to create the certificate
+      enabled: false
+      issuer:
+        ## @param federation.tls.certManager.issuer.create Create an issuer to use to issue the certificate
+        create: true
+        acme:
+          ## @param federation.tls.certManager.issuer.acme.email Must be set in order to register with LetsEncrypt. By setting, you agree to their Terms of Service
+          email: ""
+          ## @param federation.tls.certManager.issuer.acme.server Server to use to get certificate. Defaults to LetsEncrypt
+          server: https://acme-v02.api.letsencrypt.org/directory
+          # Testing server: https://acme-staging-v02.api.letsencrypt.org/directory
+          ## @param federation.tls.certManager.issuer.acme.solvers [object] Configure the issuer solvers. Defaults to http01 via ingress.
+          solvers: {}
+          # - http01:
+          #     ingress:
+          #       ingressClassName: nginx
+      certificate:
+        ## @param federation.tls.certManager.certificate.dnsNames Override the dnsNames on the certificate request. Defaults to the same settings as Ingress
+        dnsNames: []
+        ## @param federation.tls.certManager.certificate.issuerRef.group If you are using an external plugin, specify the group for it here
+        ## @param federation.tls.certManager.certificate.issuerRef.kind Kind of the issuer reference. Override if you want to use a ClusterIssuer
+        ## @param federation.tls.certManager.certificate.issuerRef.name Name of the issuer to use. If unset, it will use the name of the built in issuer
+        issuerRef:
+          group: ""
+          kind: Issuer
+          name: ""
+
   ingress:
     ## @param federation.ingress.enabled Flag to enable ingress for federation
     enabled: false
@@ -610,6 +649,9 @@ nodeAttestor:
     enabled: true
     ## @param nodeAttestor.k8sPsat.serviceAccountAllowList [array] Allowed service accounts for Psat nodeattestor
     serviceAccountAllowList: []
+  joinToken:
+    ## @param nodeAttestor.joinToken.enabled Enable the join_token nodeattestor
+    enabled: false
 
 ## @section Tornjak
 tornjak:
