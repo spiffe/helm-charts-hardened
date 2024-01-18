@@ -36,14 +36,12 @@ spiffeHelper:
     ## @param spiffeHelper.image.registry The OCI registry to pull the image from
     ## @param spiffeHelper.image.repository The repository within the registry
     ## @param spiffeHelper.image.pullPolicy The image pull policy
-    ## @param spiffeHelper.image.version This value is deprecated in favor of tag. (Will be removed in a future release)
     ## @param spiffeHelper.image.tag Overrides the image tag whose default is the chart appVersion
     ##
-    registry: docker.io
-    repository: kfox1111/misc
+    registry: ghcr.io
+    repository: spiffe/spiffe-helper
     pullPolicy: IfNotPresent
-    version: ""
-    tag: "spiffe-helper-test4"
+    tag: nightly@sha256:8cee346ffdcee5c996d394f1c3bb761c2c06834a0e779a78db6dc6a46fd13ae6
   ## @param spiffeHelper.resources [object] Resource requests and limits
   resources: {}
 
