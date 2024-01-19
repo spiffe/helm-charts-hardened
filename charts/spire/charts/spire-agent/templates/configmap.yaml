@@ -32,6 +32,9 @@ agent:
   trust_bundle_path: "/run/spire/bundle/bundle.crt"
   {{- end }}
   trust_domain: {{ include "spire-lib.trust-domain" . | quote }}
+  {{- with .Values.availabilityTarget }}
+  availability_target: {{ . | quote }}
+  {{- end }}
   {{- if .Values.sds.enabled }}
   sds:
     default_svid_name: {{ .Values.sds.defaultSvidName | quote }}
