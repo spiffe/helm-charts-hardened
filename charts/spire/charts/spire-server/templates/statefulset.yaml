@@ -195,6 +195,9 @@ spec:
           imagePullPolicy: {{ .Values.controllerManager.image.pullPolicy }}
           args:
             - --config=controller-manager-config.yaml
+            {{- if .Values.controllerManager.expandEnv }}
+            - --expand-env
+            {{- end }}
           ports:
             - name: https
               containerPort: 9443
