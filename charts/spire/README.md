@@ -10,7 +10,7 @@ A Helm chart for deploying the complete Spire stack including: spire-server, spi
 ## Install Instructions
 
 ### Non Production
-To do a quick non production install suitable for quick testing in something like minikube:
+To do a quick install suitable for testing in something like minikube:
 
 ```shell
 helm upgrade --install -n spire-server spire-crds spire-crds --repo https://spiffe.github.io/helm-charts-hardened/ --create-namespace
@@ -21,7 +21,7 @@ helm upgrade --install -n spire-server spire spire --repo https://spiffe.github.
 
 Preparing a production deployment requires a few steps.
 
-Step 1: Save the following to your-values.yaml, ideally your git repo.
+Step 1: Save the following to your-values.yaml, ideally in your git repo.
 ```yaml
 global:
   openshift: false # If running on openshift, set to true
@@ -45,7 +45,7 @@ spire-server:
 Step 2: If you need a non default storageClass, append the following to the spire-server section and update:
 ```
   persistence:
-    storageClass: changeme
+    storageClass: your-storage-class
 ```
 
 Step 3: If your Kubernetes cluster is OpenShift based, use the output of the following command for your trustDomain:
@@ -53,14 +53,13 @@ Step 3: If your Kubernetes cluster is OpenShift based, use the output of the fol
 oc get cm -n openshift-config-managed  console-public -o go-template="{{ .data.consoleURL }}" | sed 's@https://@@; s/^[^.]*\.//'
 ```
 
-Step 4: Find any additional values you might want to set based on the documentation below or the examples at:
-https://github.com/spiffe/helm-charts-hardened/tree/main/examples
+Step 4: Find any additional values you might want to set based on the documentation below or using the [examples](https://github.com/spiffe/helm-charts-hardened/tree/main/examples)
 
 In particular, consider using an external database.
 
 Step 5: Edit your-values.yaml with the appropriate values.
 
-Step 6: Deployment
+Step 6: Deploy
 
 ```shell
 helm upgrade --install -n spire-mgmt spire-crds spire-crds --repo https://spiffe.github.io/helm-charts-hardened/ --create-namespace
@@ -73,9 +72,10 @@ We only support upgrading one major version at a time. Version skipping isn't su
 
 ### 0.17.X
 
-The SPIFFE OIDC Discovery Provider now has many new TLS options and out of the box defaults to using SPIRE for its certificate. Also, the `spiffe-oidc-discovery-provider.insecureScheme.enabled` flag was removed. If you previously set that option, remove the setting from your values.yaml and see if the new default is suitable for your deployment. If it isn't, please consider one of the other options under `spiffe-oidc-discovery-provider.tls`. If all other options are still unsuitable, you can still enable the previous mode by disabling all tls options. (`spiffe-oidc-discovery-provider.spire.enabled=false`)
+- The SPIFFE OIDC Discovery Provider now has many new TLS options and defaults to using SPIRE to issue its certificate.
+- The `spiffe-oidc-discovery-provider.insecureScheme.enabled` flag was removed. If you previously set that flag, remove the setting from your values.yaml and see if the new default of using a SPIRE issued certificate is suitable for your deployment. If it isn't, please consider one of the other options under `spiffe-oidc-discovery-provider.tls`. If all other options are still unsuitable, you can still enable the previous mode by disabling TLS. (`spiffe-oidc-discovery-provider.spire.enabled=false`)
 
-The SPIFFE OIDC Discovery Provider is now enabled by default. If you previously chose to have it off, you can disable it explicitly with `spiffe-oidc-discovery-provider.enabled=false`.
+- The SPIFFE OIDC Discovery Provider is now enabled by default. If you previously chose to have it off, you can disable it explicitly with `spiffe-oidc-discovery-provider.enabled=false`.
 
 ### 0.16.X
 
