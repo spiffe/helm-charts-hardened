@@ -25,7 +25,13 @@ data:
       leaderElect: true
       resourceName: {{ .Release.Name | sha256sum | trunc 8 }}.spiffe.io
       resourceNamespace: {{ include "spire-server.namespace" . }}
+    {{- with .Values.controllerManager.cacheNamespaces }}
+    cacheNamespaces:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- if .Values.controllerManager.validatingWebhookConfiguration.enabled }}
     validatingWebhookConfigurationName: {{ .Release.Namespace }}-{{ include "spire-controller-manager.fullname" . }}-webhook
+    {{- end }}
     clusterName: {{ include "spire-lib.cluster-name" . }}
     trustDomain: {{ include "spire-lib.trust-domain" . }}
     ignoreNamespaces:

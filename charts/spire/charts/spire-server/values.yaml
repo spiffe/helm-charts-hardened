@@ -420,6 +420,9 @@ controllerManager:
   ## @param controllerManager.watchClassless specify to process custom resources without class name specified. Useful to slowly migrate to class names from classless installs. Do not have two installs on the same k8s cluster both set to true.
   watchClassless: false
 
+  ## @param controllerManager.expandEnv Set to true to enable environment variable substitution of config file options
+  expandEnv: false
+
   installAndUpgradeHook:
     ## @param controllerManager.installAndUpgradeHook.enabled Enable Helm hook to autofix common install/upgrade issues (should be disabled when using `helm template`)
     enabled: true
@@ -436,7 +439,7 @@ controllerManager:
     registry: ghcr.io
     repository: spiffe/spire-controller-manager
     pullPolicy: IfNotPresent
-    tag: "0.4.0"
+    tag: "0.4.1"
 
   ## @param controllerManager.resources [object] Resource requests and limits for controller manager
   resources: {}
@@ -561,8 +564,25 @@ controllerManager:
     #   trustDomain: example.com
 
   validatingWebhookConfiguration:
+    ## @param controllerManager.validatingWebhookConfiguration.enabled Disable only when you have another chart instance on the k8s cluster with webhooks enabled.
+    enabled: true
     ## @param controllerManager.validatingWebhookConfiguration.failurePolicy Action when identity is not issued
     failurePolicy: Fail
+
+  ## @param controllerManager.cacheNamespaces If specified restricts the manager's cache to watch objects in the desired namespaces. Defaults to all namespaces.
+  cacheNamespaces: {}
+  # default:
+  # nsWithLabel:
+  #    labelSelectors:
+  #       lName: l1
+  # nsWithField:
+  #    fieldSelectors:
+  #       fName: f1
+  # nsWithBoth:
+  #    labelSelectors:
+  #       lName: l1
+  #    fieldSelectors:
+  #       fName: f1
 
 tools:
   kubectl:

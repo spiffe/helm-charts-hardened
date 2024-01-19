@@ -195,6 +195,12 @@ spec:
           imagePullPolicy: {{ .Values.controllerManager.image.pullPolicy }}
           args:
             - --config=controller-manager-config.yaml
+            {{- if .Values.controllerManager.expandEnv }}
+            - --expand-env
+            {{- end }}
+          env:
+            - name: ENABLE_WEBHOOKS
+              value: {{ .Values.controllerManager.validatingWebhookConfiguration.enabled | toString | quote }}
           ports:
             - name: https
               containerPort: 9443
