@@ -26,6 +26,9 @@ imagePullSecrets: []
 ## @param nameOverride Name override
 nameOverride: ""
 
+## @param crNameOverride Name override for any custom resources
+crNameOverride: ""
+
 ## @param namespaceOverride Namespace override
 namespaceOverride: ""
 
