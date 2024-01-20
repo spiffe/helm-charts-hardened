@@ -48,7 +48,7 @@ spire-server:
     storageClass: your-storage-class
 ```
 
-3. If your Kubernetes cluster is OpenShift based, use the output of the following command for your trustDomain:
+3. If your Kubernetes cluster is OpenShift based, use the output of the following command to update the trustDomain setting:
 ```shell
 oc get cm -n openshift-config-managed  console-public -o go-template="{{ .data.consoleURL }}" | sed 's@https://@@; s/^[^.]*\.//'
 ```
@@ -57,9 +57,7 @@ oc get cm -n openshift-config-managed  console-public -o go-template="{{ .data.c
 
 In particular, consider using an external database.
 
-5. Edit your-values.yaml with the appropriate values.
-
-6. Deploy
+5. Deploy
 
 ```shell
 helm upgrade --install -n spire-mgmt spire-crds spire-crds --repo https://spiffe.github.io/helm-charts-hardened/ --create-namespace
