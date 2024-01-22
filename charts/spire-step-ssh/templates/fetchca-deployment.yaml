@@ -1,0 +1,176 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "spire-step-ssh.fullname" . }}-fetchca
+  labels:
+    {{- include "spire-step-ssh.labels" . | nindent 4 }}
+    app: spire-step-ssh
+    component: fetchca
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "spire-step-ssh.selectorLabels" . | nindent 6 }}
+      app: spire-step-ssh
+      component: fetchca
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "spire-step-ssh.labels" . | nindent 8 }}
+	{{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        app: spire-step-ssh
+        component: fetchca
+    spec:
+      shareProcessNamespace: true
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "spire-step-ssh.serviceAccountName" . }}-fetchca
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: busybox-volume
+          image: busybox:1.36.1-uclibc
+          imagePullPolicy: IfNotPresent
+          command:
+          - sh
+          - -c
+          - 'cp -a /bin/busybox /busybox'
+          volumeMounts:
+          - name: busybox
+            mountPath: /busybox
+        - name: init-tls
+          image: ghcr.io/spiffe/spiffe-helper:nightly@sha256:8cee346ffdcee5c996d394f1c3bb761c2c06834a0e779a78db6dc6a46fd13ae6
+          imagePullPolicy: Always
+          command:
+          - /spiffe-helper
+          - -config
+          - /etc/spiffe-helper.conf
+          - -exitWhenReady
+          volumeMounts:
+          - name: spiffe-workload-api
+            mountPath: /spiffe-workload-api
+            readOnly: true
+          - name: config
+            mountPath: /etc/spiffe-helper.conf
+            subPath: spiffe-helper-init.conf
+            readOnly: true
+          - name: certs
+            mountPath: /certs
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+          - /bin/sh
+          - -c
+          - |
+            echo $$$$ > /pid/pid
+            cat > /etc/nginx/conf.d/ssl.conf <<EOF
+            server {
+                listen       8443 ssl;
+                server_name  localhost;
+                ssl_certificate     /certs/tls.crt;
+                ssl_certificate_key /certs/tls.key;
+                location / {
+                    root   /usr/share/nginx/html;
+                    index  root_ca.crt index.html index.htm;
+                }
+                error_page   500 502 503 504  /50x.html;
+                location = /50x.html {
+                    root   /usr/share/nginx/html;
+                }
+            }
+            EOF
+            exec nginx -g "daemon off;"
+          ports:
+            - name: http
+              containerPort: 8443
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+              scheme: HTTPS
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+              scheme: HTTPS
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+          - name: certs
+            mountPath: /certs
+            readOnly: true
+          - name: pid
+            mountPath: /pid
+          - name: share
+            mountPath: /usr/share/nginx/html
+        - name: update-tls
+          image: ghcr.io/spiffe/spiffe-helper:nightly@sha256:8cee346ffdcee5c996d394f1c3bb761c2c06834a0e779a78db6dc6a46fd13ae6
+          imagePullPolicy: Always
+          command:
+          - /spiffe-helper
+          - -config
+          - /etc/spiffe-helper.conf
+          volumeMounts:
+          - name: certs
+            mountPath: /certs
+          - name: spiffe-workload-api
+            mountPath: /spiffe-workload-api
+            readOnly: true
+          - name: config
+            mountPath: /etc/spiffe-helper.conf
+            subPath: spiffe-helper-sidecar.conf
+            readOnly: true
+          - name: config
+            mountPath: /update.sh
+            subPath: update.sh
+            readOnly: true
+          - name: pid
+            mountPath: /pid
+            readOnly: true
+          - name: busybox
+            mountPath: /busybox
+            readOnly: true
+      volumes:
+      - name: certs
+        emptyDir: {}
+      - name: pid
+        emptyDir: {}
+      - name: busybox
+        emptyDir: {}
+      - name: config
+        configMap:
+          name: {{ include "spire-step-ssh.fullname" . }}-fetchca
+      - name: spiffe-workload-api
+        csi:
+          driver: "csi.spiffe.io"
+          readOnly: true
+      - name: share
+        configMap:
+          name: {{ include "spire-step-ssh.fullname" . }}-certs
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
