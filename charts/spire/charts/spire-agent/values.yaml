@@ -132,7 +132,7 @@ waitForIt:
     registry: cgr.dev
     repository: chainguard/wait-for-it
     pullPolicy: IfNotPresent
-    tag: latest@sha256:9500241a8a6a5912ded07445991b9d3a0834beef810b10c302af593aee1b33dc
+    tag: latest@sha256:84be7f9205d88f368097c3712a867c5d35d1d024633de4b5675b3f17f63f27cf
 
   ## @param waitForIt.resources [object] Resource requests and limits
   resources: {}
