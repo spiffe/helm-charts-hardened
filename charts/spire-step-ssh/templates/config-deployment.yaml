@@ -48,6 +48,8 @@ spec:
         volumeMounts:
         - name: spiffe-helper
           mountPath: /helper
+        resources:
+          {{- toYaml .Values.config.resources | nindent 12 }}
       - name: setup-volume-p2
         image: {{ template "spire-lib.kubectl-image" (dict "appVersion" $.Chart.AppVersion "image" .Values.kubectl.image "global" .Values.global "KubeVersion" .Capabilities.KubeVersion.Version) }}
         imagePullPolicy: {{ .Values.kubectl.image.pullPolicy }}
@@ -60,6 +62,8 @@ spec:
         volumeMounts:
         - name: spiffe-helper
           mountPath: /helper
+        resources:
+          {{- toYaml .Values.config.resources | nindent 12 }}
       - name: setup-volume-p3
         image: {{ template "spire-lib.image" (dict "image" .Values.spiffeHelper.image "global" .Values.global) }}
         imagePullPolicy: {{ .Values.spiffeHelper.image.pullPolicy }}
@@ -72,6 +76,8 @@ spec:
         volumeMounts:
         - name: spiffe-helper
           mountPath: /helper
+        resources:
+          {{- toYaml .Values.config.resources | nindent 12 }}
       containers:
       - name: {{ .Chart.Name }}
         securityContext:
@@ -83,7 +89,7 @@ spec:
         - -config
         - /config-deployment/spiffe-helper.conf
         resources:
-          {{- toYaml .Values.resources | nindent 12 }}
+          {{- toYaml .Values.config.resources | nindent 12 }}
         volumeMounts:
         - name: spiffe-helper
           mountPath: /helper
@@ -120,15 +126,15 @@ spec:
         emptyDir: {}
       - name: workdir
         emptyDir: {}
-      {{- with .Values.nodeSelector }}
+      {{- with .Values.config.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.affinity }}
+      {{- with .Values.config.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.tolerations }}
+      {{- with .Values.config.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}

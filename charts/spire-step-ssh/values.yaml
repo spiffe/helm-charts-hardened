@@ -1,9 +1,10 @@
 # Default values for spire-step-ssh.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
+# SPDX-License-Identifier: APACHE-2.0
 
+## @skip global
 global: {}
 
+## @skip step
 step:
   service:
     targetPort: 8443
@@ -23,13 +24,23 @@ step:
     sshUserCa: true
 
 spiffeHelper:
+  ## @param spiffeHelper.image.registry The OCI registry to pull the image from
+  ## @param spiffeHelper.image.repository The repository within the registry
+  ## @param spiffeHelper.image.pullPolicy The image pull policy
+  ## @param spiffeHelper.image.tag Overrides the image tag whose default is the chart appVersion
+  ##
   image:
     registry: ghcr.io
-    repository:  spiffe/spiffe-helper
+    repository: spiffe/spiffe-helper
     pullPolicy: IfNotPresent
     tag: "nightly@sha256:8cee346ffdcee5c996d394f1c3bb761c2c06834a0e779a78db6dc6a46fd13ae6"
 
 nginx:
+  ## @param nginx.image.registry The OCI registry to pull the image from
+  ## @param nginx.image.repository The repository within the registry
+  ## @param nginx.image.pullPolicy The image pull policy
+  ## @param nginx.image.tag Overrides the image tag whose default is the chart appVersion
+  ##
   image:
     registry: docker.io
     repository: nginxinc/nginx-unprivileged
@@ -37,6 +48,11 @@ nginx:
     tag: 1.25.3-alpine
 
 kubectl:
+  ## @param kubectl.image.registry The OCI registry to pull the image from
+  ## @param kubectl.image.repository The repository within the registry
+  ## @param kubectl.image.pullPolicy The image pull policy
+  ## @param kubectl.image.tag Overrides the image tag whose default is the chart appVersion
+  ##
   image:
     registry: docker.io
     repository: rancher/kubectl
@@ -44,6 +60,11 @@ kubectl:
     tag: ""
 
 yq:
+  ## @param yq.image.registry The OCI registry to pull the image from
+  ## @param yq.image.repository The repository within the registry
+  ## @param yq.image.pullPolicy The image pull policy
+  ## @param yq.image.tag Overrides the image tag whose default is the chart appVersion
+  ##
   image:
     registry: docker.io
     repository: mikefarah/yq
@@ -51,23 +72,33 @@ yq:
     tag: "4.40.5"
 
 busybox:
+  ## @param yq.image.registry The OCI registry to pull the image from
+  ## @param yq.image.repository The repository within the registry
+  ## @param yq.image.pullPolicy The image pull policy
+  ## @param yq.image.tag Overrides the image tag whose default is the chart appVersion
+  ##
   image:
     registry: docker.io
     repository: busybox
     pullPolicy: IfNotPresent
     tag: "1.36.1-uclibc"
 
+## @param imagePullSecrets [array] Pull secrets for images
 imagePullSecrets: []
+
+## @param nameOverride Name override
 nameOverride: ""
+
+## @param fullnameOverride Fullname override
 fullnameOverride: ""
 
+## @param serviceAccount.create Specifies whether a service account should be created
+## @param serviceAccount.annotations [object] Annotations to add to the service account
+## @param serviceAccount.name The name of the service account to use. If not set and create is true, a name is generated.
+##
 serviceAccount:
-  # Specifies whether a service account should be created
   create: true
-  # Annotations to add to the service account
   annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
   name: ""
 
 podAnnotations: {}
@@ -83,7 +114,7 @@ securityContext:
   # readOnlyRootFilesystem: true
   # runAsNonRoot: true
   # runAsUser: 1000
-  #FIXME
+  # FIXME
   runAsUser: 0
 
 fetchca:
@@ -116,20 +147,47 @@ fetchca:
     targetCPUUtilizationPercentage: 80
     # targetMemoryUtilizationPercentage: 80
 
-resources: {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+  resources: {}
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
 
-nodeSelector: {}
+  sidecarResources: {}
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
 
-tolerations: []
+  nodeSelector: {}
 
-affinity: {}
+  tolerations: []
+
+  affinity: {}
+
+config:
+  resources: {}
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
+  sidecarResources: {}
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}

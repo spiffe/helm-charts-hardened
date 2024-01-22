@@ -48,6 +48,8 @@ spec:
           volumeMounts:
           - name: busybox
             mountPath: /busybox
+          resources:
+            {{- toYaml .Values.fetchca.sidecarResources | nindent 12 }}
         - name: init-tls
           image: {{ template "spire-lib.image" (dict "image" .Values.spiffeHelper.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.spiffeHelper.image.pullPolicy }}
@@ -66,6 +68,8 @@ spec:
             readOnly: true
           - name: certs
             mountPath: /certs
+          resources:
+            {{- toYaml .Values.fetchca.sidecarResources | nindent 12 }}
       containers:
         - name: {{ .Chart.Name }}-fetchca
           securityContext:
@@ -109,7 +113,7 @@ spec:
               port: http
               scheme: HTTPS
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            {{- toYaml .Values.fetchca.resources | nindent 12 }}
           volumeMounts:
           - name: certs
             mountPath: /certs
@@ -145,6 +149,8 @@ spec:
           - name: busybox
             mountPath: /busybox
             readOnly: true
+          resources:
+            {{- toYaml .Values.fetchca.sidecarResources | nindent 12 }}
       volumes:
       - name: certs
         emptyDir: {}
