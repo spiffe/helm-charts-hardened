@@ -23,7 +23,7 @@ spec:
         {{- end }}
       labels:
         {{- include "spire-step-ssh.labels" . | nindent 8 }}
-	{{- with .Values.podLabels }}
+        {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
         app: spire-step-ssh
@@ -38,8 +38,8 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       initContainers:
       - name: setup-volume-p1
-        image: busybox:1.36.1-uclibc
-        imagePullPolicy: IfNotPresent
+        image: {{ template "spire-lib.image" (dict "image" .Values.busybox.image "global" .Values.global) }}
+        imagePullPolicy: {{ .Values.busybox.image.pullPolicy }}
         command:
         - sh
         - -c
@@ -49,9 +49,8 @@ spec:
         - name: spiffe-helper
           mountPath: /helper
       - name: setup-volume-p2
-        image: kfox1111/misc:spiffe-helper-test2
         image: {{ template "spire-lib.kubectl-image" (dict "appVersion" $.Chart.AppVersion "image" .Values.kubectl.image "global" .Values.global "KubeVersion" .Capabilities.KubeVersion.Version) }}
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: {{ .Values.kubectl.image.pullPolicy }}
         command:
         - /helper/busybox
         - sh
@@ -62,8 +61,8 @@ spec:
         - name: spiffe-helper
           mountPath: /helper
       - name: setup-volume-p3
-        image: kfox1111/misc:spiffe-helper-test2
-        imagePullPolicy: IfNotPresent
+        image: {{ template "spire-lib.image" (dict "image" .Values.spiffeHelper.image "global" .Values.global) }}
+        imagePullPolicy: {{ .Values.spiffeHelper.image.pullPolicy }}
         command:
         - /helper/busybox
         - sh
@@ -77,7 +76,7 @@ spec:
       - name: {{ .Chart.Name }}
         securityContext:
           {{- toYaml .Values.securityContext | nindent 12 }}
-        image: "{{ .Values.yq.image.registry}}/{{.Values.yq.image.repository }}:{{ .Values.yq.image.tag }}"
+        image: {{ template "spire-lib.image" (dict "image" .Values.yq.image "global" .Values.global) }}
         imagePullPolicy: {{ .Values.yq.image.pullPolicy }}
         command:
         - /helper/spiffe-helper

@@ -1,0 +1,32 @@
+{{- if .Values.fetchca.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "spire-step-ssh.fullname" . }}-fetchca
+  labels:
+    {{- include "spire-step-ssh.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "spire-step-ssh.fullname" . }}-fetchca
+  minReplicas: {{ .Values.fetchca.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.fetchca.autoscaling.maxReplicas }}
+  metrics:
+    {{- if .Values.fetchca.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.fetchca.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.fetchca.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.fetchca.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
+{{- end }}

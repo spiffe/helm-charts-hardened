@@ -7,8 +7,8 @@ metadata:
     app: spire-step-ssh
     component: fetchca
 spec:
-  {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
+  {{- if not .Values.fetchca.autoscaling.enabled }}
+  replicas: {{ .Values.fetchca.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
@@ -23,7 +23,7 @@ spec:
       {{- end }}
       labels:
         {{- include "spire-step-ssh.labels" . | nindent 8 }}
-	{{- with .Values.podLabels }}
+        {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
         app: spire-step-ssh
@@ -39,8 +39,8 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       initContainers:
         - name: busybox-volume
-          image: busybox:1.36.1-uclibc
-          imagePullPolicy: IfNotPresent
+          image: {{ template "spire-lib.image" (dict "image" .Values.busybox.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.busybox.image.pullPolicy }}
           command:
           - sh
           - -c
@@ -49,8 +49,8 @@ spec:
           - name: busybox
             mountPath: /busybox
         - name: init-tls
-          image: ghcr.io/spiffe/spiffe-helper:nightly@sha256:8cee346ffdcee5c996d394f1c3bb761c2c06834a0e779a78db6dc6a46fd13ae6
-          imagePullPolicy: Always
+          image: {{ template "spire-lib.image" (dict "image" .Values.spiffeHelper.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.spiffeHelper.image.pullPolicy }}
           command:
           - /spiffe-helper
           - -config
@@ -67,11 +67,11 @@ spec:
           - name: certs
             mountPath: /certs
       containers:
-        - name: {{ .Chart.Name }}
+        - name: {{ .Chart.Name }}-fetchca
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          image: {{ template "spire-lib.image" (dict "image" .Values.nginx.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.nginx.image.pullPolicy }}
           command:
           - /bin/sh
           - -c
@@ -119,8 +119,8 @@ spec:
           - name: share
             mountPath: /usr/share/nginx/html
         - name: update-tls
-          image: ghcr.io/spiffe/spiffe-helper:nightly@sha256:8cee346ffdcee5c996d394f1c3bb761c2c06834a0e779a78db6dc6a46fd13ae6
-          imagePullPolicy: Always
+          image: {{ template "spire-lib.image" (dict "image" .Values.spiffeHelper.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.spiffeHelper.image.pullPolicy }}
           command:
           - /spiffe-helper
           - -config
