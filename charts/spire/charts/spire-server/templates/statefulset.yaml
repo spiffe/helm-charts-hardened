@@ -229,6 +229,9 @@ spec:
             - name: spire-controller-manager-tmp
               mountPath: /tmp
               readOnly: false
+            {{- if gt (len .Values.extraVolumeMounts) 0 }}
+            {{- toYaml .Values.extraVolumeMounts | nindent 12 }}
+            {{- end }}
         {{- end }}
 
         {{- if eq (.Values.tornjak.enabled | toString) "true" }}
