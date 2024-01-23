@@ -86,6 +86,9 @@ spec:
           env:
           - name: PATH
             value: "/opt/spire/bin:/bin"
+          {{- with .Values.extraEnv }}
+          {{- . | toYaml | nindent 10 }}
+          {{- end }}
           {{- if ne .Values.dataStore.sql.databaseType "sqlite3" }}
           {{- if .Values.dataStore.sql.externalSecret.enabled }}
           - name: DBPW
@@ -198,6 +201,10 @@ spec:
             {{- if .Values.controllerManager.expandEnv }}
             - --expand-env
             {{- end }}
+          {{- if gt (len .Values.controllerManager.extraEnv) 0 }}
+          env:
+            {{- .Values.controllerManager.extraEnv | toYaml | nindent 12 }}
+          {{- end }}
           ports:
             - name: https
               containerPort: 9443
