@@ -32,6 +32,9 @@ agent:
   trust_bundle_path: "/run/spire/bundle/bundle.crt"
   {{- end }}
   trust_domain: {{ include "spire-lib.trust-domain" . | quote }}
+  {{- with .Values.availabilityTarget }}
+  availability_target: {{ . | quote }}
+  {{- end }}
   {{- if .Values.sds.enabled }}
   sds:
     default_svid_name: {{ .Values.sds.defaultSvidName | quote }}
@@ -86,7 +89,7 @@ health_checks:
   live_path: "/live"
   ready_path: "/ready"
 
-{{- if (dig "telemetry" "prometheus" "enabled" .Values.telemetry.prometheus.enabled .Values.global) }}
+{{- if or (dig "telemetry" "prometheus" "enabled" .Values.telemetry.prometheus.enabled .Values.global) (and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "prometheus" true .Values.global)) }}
 telemetry:
   - Prometheus:
       - host: "0.0.0.0"

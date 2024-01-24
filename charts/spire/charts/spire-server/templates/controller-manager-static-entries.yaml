@@ -16,7 +16,7 @@
 apiVersion: spire.spiffe.io/v1alpha1
 kind: ClusterStaticEntry
 metadata:
-  name: {{ $root.Release.Namespace }}-{{ $root.Release.Name }}-{{ $key }}
+  name: {{ $root.Release.Namespace }}-{{ default $root.Release.Name $root.Values.crNameOverride }}-{{ $key }}
   {{- with $value.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}

@@ -51,11 +51,15 @@
 {{- define "spire-lib.image" -}}
 {{- $registry := include "spire-lib.registry" . }}
 {{- $repo := .image.repository }}
-{{- $tag := (default .image.tag .image.version) | toString }}
+{{- $tag := .image.tag | toString }}
 {{- if eq (substr 0 7 $tag) "sha256:" }}
 {{- printf "%s/%s@%s" $registry $repo $tag }}
 {{- else if .appVersion }}
-{{- printf "%s%s:%s" $registry $repo (default .appVersion $tag) }}
+{{- $appVersion := .appVersion }}
+{{- if and (hasKey . "ubi") (dig "openshift" false .global) }}
+{{- $appVersion = printf "ubi-%s" $appVersion }}
+{{- end }}
+{{- printf "%s%s:%s" $registry $repo (default $appVersion $tag) }}
 {{- else if $tag }}
 {{- printf "%s%s:%s" $registry $repo $tag }}
 {{- else }}
@@ -165,7 +169,7 @@ rules:
 
 {{- define "spire-lib.kubectl-image" }}
 {{- $root := deepCopy . }}
-{{- $tag := (default $root.image.tag $root.image.version) | toString }}
+{{- $tag := $root.image.tag | toString }}
 {{- if eq (len $tag) 0 }}
 {{- $_ := set $root.image "tag" (regexReplaceAll "^(v?\\d+\\.\\d+\\.\\d+).*" $root.KubeVersion "${1}") }}
 {{- end }}
@@ -180,7 +184,7 @@ if strictMode is enabled and the boolean is true
 {{ $root := index . 0 }}
 {{ $message := index . 1 }}
 {{ $condition := index . 2 }}
-{{- if (dig "spire" "strictMode" false $root.Values.global) }}
+{{- if or (dig "spire" "strictMode" false $root.Values.global) (and (dig "spire" "recommendations" "enabled" false $root.Values.global) (dig "spire" "recommendations" "strictMode" true $root.Values.global)) }}
 {{- if $condition }}
 {{- fail $message }}
 {{- end }}
@@ -242,4 +246,89 @@ to merge in values, but spire needs arrays.
 {{- $plugins := include "spire-lib.plugins_reformat" $config.plugins | fromYaml }}
 {{- $_ := set $config "plugins" $plugins }}
 {{- $config | toPrettyJson }}
+{{- end }}
+
+{{- define "spire-lib.default_securitycontext_values" }}
+allowPrivilegeEscalation: false
+runAsNonRoot: true
+readOnlyRootFilesystem: true
+capabilities:
+  drop: [ALL]
+seccompProfile:
+  type: RuntimeDefault
+{{- end }}
+
+{{- define "spire-lib.default_k8s_podsecuritycontext_values" }}
+fsGroupChangePolicy: OnRootMismatch
+runAsUser: 1000
+runAsGroup: 1000
+fsGroup: 1000
+{{- end }}
+
+{{/*
+Note: runAsUser, runAsGroup, fsGroup, are not needed due to it autoassigning restricted users feature of openshift
+*/}}
+{{- define "spire-lib.default_openshift_podsecuritycontext_values" }}
+fsGroupChangePolicy: OnRootMismatch
+{{- end }}
+
+{{- define "spire-lib.securitycontext" }}
+{{ include "spire-lib.securitycontext-extended" (dict "root" . "securityContext" .Values.securityContext) }}
+{{- end }}
+
+{{/* Same as securitycontext but takes in:
+root - global . context for the chart
+securityContext - the subbranch of values that contains the securityContext to merge
+*/}}
+{{- define "spire-lib.securitycontext-extended" }}
+{{- if and (dig "spire" "recommendations" "enabled" false .root.Values.global) (dig "spire" "recommendations" "securityContexts" true .root.Values.global) }}
+{{- $vals := deepCopy (include "spire-lib.default_securitycontext_values" .root | fromYaml) }}
+{{- $vals = mergeOverwrite $vals .securityContext }}
+{{- toYaml $vals }}
+{{- else }}
+{{- toYaml .securityContext }}
+{{- end }}
+{{- end }}
+
+{{- define "spire-lib.podsecuritycontext" }}
+{{-   $vals := dict }}
+{{-   if and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "securityContexts" true .Values.global) }}
+{{-     if (dig "openshift" false .Values.global) }}
+{{-       $vals = mergeOverwrite $vals (include "spire-lib.default_openshift_podsecuritycontext_values" . | fromYaml) }}
+{{-     else }}
+{{-       $vals = mergeOverwrite $vals (include "spire-lib.default_k8s_podsecuritycontext_values" . | fromYaml) }}
+{{-     end }}
+{{-   end }}
+{{-   $vals = mergeOverwrite $vals .Values.podSecurityContext }}
+{{-   toYaml $vals }}
+{{- end }}
+
+{{- define "spire-lib.default_node_priority_class_name" }}
+{{- if .Values.priorityClassName }}
+priorityClassName: {{ .Values.priorityClassName }}
+{{- else if and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "priorityClassName" true .Values.global) }}
+priorityClassName: system-node-critical
+{{- end }}
+{{- end }}
+
+{{- define "spire-lib.default_cluster_priority_class_name" }}
+{{- if .Values.priorityClassName }}
+priorityClassName: {{ .Values.priorityClassName }}
+{{- else if and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "priorityClassName" true .Values.global) }}
+priorityClassName: system-cluster-critical
+{{- end }}
+{{- end }}
+
+{{/*
+Use autoscaling/v2 (Kubernetes 1.23 and newer) or autoscaling/v2beta2 (Kubernetes 1.12-1.25) based on cluster capabilities.
+Anything lower has an incompatible API.
+*/}}
+{{- define "spire-lib.autoscalingVersion" -}}
+{{- if (.Capabilities.APIVersions.Has "autoscaling/v2") }}
+{{- print "autoscaling/v2" }}
+{{- else if (.Capabilities.APIVersions.Has "autoscaling/v2beta2") }}
+{{- print "autoscaling/v2beta2" }}
+{{- else }}
+{{- fail "Unsupported autoscaling API version" }}
+{{- end }}
 {{- end }}

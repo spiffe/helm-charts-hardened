@@ -11,7 +11,7 @@ metadata:
     "helm.sh/hook": test
 spec:
   securityContext:
-    {{- toYaml .Values.podSecurityContext | nindent 4 }}
+    {{- include "spire-lib.podsecuritycontext" . | nindent 4 }}
   containers:
     - name: curl
       image: {{ template "spire-lib.image" (dict "image" .Values.tests.bash.image "global" .Values.global) }}
@@ -30,14 +30,14 @@ spec:
           fi
           exit 1
       securityContext:
-        {{- toYaml .Values.securityContext | nindent 8 }}
+        {{- include "spire-lib.securitycontext" . | nindent 8 }}
     {{- if eq (.Values.federation.enabled | toString) "true" }}
     - name: curl-federation-bundle-endpoint
       image: {{ template "spire-lib.image" (dict "image" .Values.tests.bash.image "global" .Values.global) }}
       command: ['curl']
       args: ['-k', '-s', '-f', 'https://{{ include "spire-server.fullname" . }}.{{ include "spire-server.namespace" . }}.svc.{{ include "spire-lib.cluster-domain" . }}:{{ .Values.federation.bundleEndpoint.port }}']
       securityContext:
-        {{- toYaml .Values.securityContext | nindent 8 }}
+        {{- include "spire-lib.securitycontext" . | nindent 8 }}
     {{- end }}
     {{- if .Values.federation.ingress.enabled }}
     - name: federation-ingress
@@ -51,7 +51,7 @@ spec:
           mountPath: /ca
       {{- end }}
       securityContext:
-        {{- toYaml .Values.securityContext | nindent 8 }}
+        {{- include "spire-lib.securitycontext" . | nindent 8 }}
     {{- end }}
   {{- if ne (len (dig "tests" "hostAliases" "" $values)) 0 }}
   hostAliases:

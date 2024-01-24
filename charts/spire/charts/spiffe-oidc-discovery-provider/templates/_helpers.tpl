@@ -29,6 +29,12 @@ Allow the release namespace to be overridden for multi-namespace deployments in 
 {{- define "spiffe-oidc-discovery-provider.namespace" -}}
   {{- if .Values.namespaceOverride -}}
     {{- .Values.namespaceOverride -}}
+  {{- else if and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "namespaceLayout" true .Values.global) }}
+    {{- if ne (len (dig "spire" "namespaces" "server" "name" "" .Values.global)) 0 }}
+      {{- .Values.global.spire.namespaces.server.name }}
+    {{- else }}
+      {{- printf "spire-server" }}
+    {{- end }}
   {{- else -}}
     {{- .Release.Namespace -}}
   {{- end -}}
@@ -84,4 +90,12 @@ Create the name of the service account to use
 
 {{- define "spiffe-oidc-discovery-provider.workload-api-socket-path" -}}
 {{- printf "/spiffe-workload-api/%s" .Values.agentSocketName }}
+{{- end }}
+
+{{- define "spiffe-oidc-discovery-provider.tls-enabled" -}}
+{{-   if and .Values.enabled (or .Values.tls.spire.enabled .Values.tls.externalSecret.enabled .Values.tls.certManager.enabled) }}
+{{-     true }}
+{{-   else }}
+{{-     false }}
+{{-   end }}
 {{- end }}

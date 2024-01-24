@@ -29,6 +29,12 @@ Allow the release namespace to be overridden for multi-namespace deployments in 
 {{- define "tornjak-frontend.namespace" -}}
   {{- if .Values.namespaceOverride -}}
     {{- .Values.namespaceOverride -}}
+  {{- else if and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "namespaceLayout" true .Values.global) }}
+    {{- if ne (len (dig "spire" "namespaces" "server" "name" "" .Values.global)) 0 }}
+      {{- .Values.global.spire.namespaces.server.name }}
+    {{- else }}
+      {{- printf "spire-server" }}
+    {{- end }}
   {{- else -}}
     {{- .Release.Namespace -}}
   {{- end -}}
@@ -82,5 +88,15 @@ Create URL for accessing Tornjak APIs
 {{- printf "https://tornjak-backend.%s" (include "spire-lib.trust-domain" .) }}
 {{- else }}
 {{- print "http://localhost:" .Values.service.port }}
+{{- end }}
+{{- end }}
+
+{{- define "tornjak-frontend.workingDir" }}
+{{- if .Values.workingDir }}
+{{- .Values.workingDir }}
+{{- else if (dig "openshift" false .Values.global) }}
+{{- printf "/opt/app-root/src" }}
+{{- else }}
+{{- printf "/usr/src/app" }}
 {{- end }}
 {{- end }}

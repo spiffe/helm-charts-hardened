@@ -1,5 +1,11 @@
 {{- $values := merge .Values }}
 {{- $host := include "spire-lib.ingress-calculated-name" (dict "Values" .Values "ingress" .Values.ingress) }}
+{{- $protocol := "https" }}
+{{- $port := .Values.service.ports.https }}
+{{- if eq (include "spiffe-oidc-discovery-provider.tls-enabled" .) "false" }}
+{{- $protocol = "http" }}
+{{- $port = .Values.service.ports.http }}
+{{- end }}
 {{- if gt (len .Values.ingress.hosts) 0 }}
 {{-   $host = (index .Values.ingress.hosts 0).host }}
 {{- end }}
@@ -14,26 +20,26 @@ metadata:
     "helm.sh/hook": test
 spec:
   securityContext:
-    {{- toYaml .Values.podSecurityContext | nindent 4 }}
+    {{- include "spire-lib.podsecuritycontext" . | nindent 4 }}
   containers:
     - name: curl-service-name
       image: {{ template "spire-lib.image" (dict "image" .Values.tests.bash.image "global" .Values.global) }}
       command: ['curl']
-      args: ['-s', '-f', 'http://{{ include "spiffe-oidc-discovery-provider.fullname" . }}:{{ .Values.service.port }}/.well-known/openid-configuration']
+      args: ['-s', '-f', '-k', '{{ $protocol }}://{{ include "spiffe-oidc-discovery-provider.fullname" . }}:{{ $port }}/.well-known/openid-configuration']
       securityContext:
-        {{- toYaml .Values.securityContext | nindent 8 }}
+        {{- include "spire-lib.securitycontext" . | nindent 8 }}
     - name: curl-service-name-namespace
       image: {{ template "spire-lib.image" (dict "image" .Values.tests.bash.image "global" .Values.global) }}
       command: ['curl']
-      args: ['-s', '-f', 'http://{{ include "spiffe-oidc-discovery-provider.fullname" . }}.{{ include "spiffe-oidc-discovery-provider.namespace" . }}:{{ .Values.service.port }}/.well-known/openid-configuration']
+      args: ['-s', '-f', '-k', '{{ $protocol }}://{{ include "spiffe-oidc-discovery-provider.fullname" . }}.{{ include "spiffe-oidc-discovery-provider.namespace" . }}:{{ $port }}/.well-known/openid-configuration']
       securityContext:
-        {{- toYaml .Values.securityContext | nindent 8 }}
+        {{- include "spire-lib.securitycontext" . | nindent 8 }}
     - name: curl-service-name-namespace-svc-cluster-local
       image: {{ template "spire-lib.image" (dict "image" .Values.tests.bash.image "global" .Values.global) }}
       command: ['curl']
-      args: ['-s', '-f', 'http://{{ include "spiffe-oidc-discovery-provider.fullname" . }}.{{ include "spiffe-oidc-discovery-provider.namespace" . }}.svc.{{ include "spire-lib.cluster-domain" . }}:{{ .Values.service.port }}/.well-known/openid-configuration']
+      args: ['-s', '-f', '-k', '{{ $protocol }}://{{ include "spiffe-oidc-discovery-provider.fullname" . }}.{{ include "spiffe-oidc-discovery-provider.namespace" . }}.svc.{{ include "spire-lib.cluster-domain" . }}:{{ $port }}/.well-known/openid-configuration']
       securityContext:
-        {{- toYaml .Values.securityContext | nindent 8 }}
+        {{- include "spire-lib.securitycontext" . | nindent 8 }}
     {{- if .Values.ingress.enabled }}
     - name: curl-ingress
       image: {{ template "spire-lib.image" (dict "image" .Values.tests.bash.image "global" .Values.global) }}
@@ -53,7 +59,7 @@ spec:
       args: ['-s', '-f', 'http://{{ $host }}/.well-known/openid-configuration']
       {{- end }}
       securityContext:
-        {{- toYaml .Values.securityContext | nindent 8 }}
+        {{- include "spire-lib.securitycontext" . | nindent 8 }}
     {{- end }}
   {{- if ne (len (dig "tests" "hostAliases" "" $values)) 0 }}
   hostAliases:

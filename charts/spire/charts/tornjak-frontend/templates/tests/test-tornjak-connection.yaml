@@ -9,13 +9,13 @@ metadata:
     "helm.sh/hook": test
 spec:
   securityContext:
-    {{- toYaml .Values.podSecurityContext | nindent 4 }}
+    {{- include "spire-lib.podsecuritycontext" . | nindent 4 }}
   containers:
     - name: curl-tornjak-frontend
       image: {{ template "spire-lib.image" (dict "image" .Values.tests.bash.image "global" .Values.global) }}
       command: ['curl']
       args: ['-k', '-s', '-f', 'http://{{ include "tornjak-frontend.fullname" . }}.{{ include "tornjak-frontend.namespace" . }}.svc.{{ include "spire-lib.cluster-domain" . }}:{{ .Values.service.port }}/tornjak/serverinfo']
       securityContext:
-        {{- toYaml .Values.securityContext | nindent 8 }}
+        {{- include "spire-lib.securitycontext" . | nindent 8 }}
   restartPolicy: Never
 

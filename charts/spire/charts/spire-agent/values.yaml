@@ -9,14 +9,12 @@ global: {}
 ## @param image.registry The OCI registry to pull the image from
 ## @param image.repository The repository within the registry
 ## @param image.pullPolicy The image pull policy
-## @param image.version This value is deprecated in favor of tag. (Will be removed in a future release)
 ## @param image.tag Overrides the image tag whose default is the chart appVersion
 ##
 image:
   registry: ghcr.io
   repository: spiffe/spire-agent
   pullPolicy: IfNotPresent
-  version: ""
   tag: ""
 
 ## @param imagePullSecrets [array] Pull secrets for images
@@ -91,6 +89,8 @@ trustBundleURL: ""
 trustBundleFormat: pem
 ## @param bundleConfigMap Configmap name for Spire bundle
 bundleConfigMap: spire-bundle
+## @param availabilityTarget The minimum amount of time desired to gracefully handle SPIRE Server or Agent downtime. This configurable influences how aggressively X509 SVIDs should be rotated. If set, must be at least 24h.
+availabilityTarget: ""
 
 ## @skip upstream
 upstream: false
@@ -126,15 +126,13 @@ waitForIt:
   ## @param waitForIt.image.registry The OCI registry to pull the image from
   ## @param waitForIt.image.repository The repository within the registry
   ## @param waitForIt.image.pullPolicy The image pull policy
-  ## @param waitForIt.image.version This value is deprecated in favor of tag. (Will be removed in a future release)
   ## @param waitForIt.image.tag Overrides the image tag whose default is the chart appVersion
   ##
   image:
     registry: cgr.dev
     repository: chainguard/wait-for-it
     pullPolicy: IfNotPresent
-    version: ""
-    tag: latest@sha256:ffab5a8d7b7da2d04f433d0321cc5c34d8aa53bd15dd54eb2e4cd9c0d3d3cf5e
+    tag: latest@sha256:84be7f9205d88f368097c3712a867c5d35d1d024633de4b5675b3f17f63f27cf
 
   ## @param waitForIt.resources [object] Resource requests and limits
   resources: {}
@@ -145,15 +143,13 @@ fsGroupFix:
   ## @param fsGroupFix.image.registry The OCI registry to pull the image from
   ## @param fsGroupFix.image.repository The repository within the registry
   ## @param fsGroupFix.image.pullPolicy The image pull policy
-  ## @param fsGroupFix.image.version This value is deprecated in favor of tag. (Will be removed in a future release)
   ## @param fsGroupFix.image.tag Overrides the image tag whose default is the chart appVersion
   ##
   image:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: Always
-    version: ""
-    tag: latest@sha256:d8e08cda119684ca08dcfcebdd63cbf3d3ff7c4f8a8effca80b962dddd42438e
+    tag: latest@sha256:099e4b9adb13a94e6f25d6bb9bfe69fd5ba734a615e62bb0e1efba6650c6b23d
 
   ## @param fsGroupFix.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
@@ -204,7 +200,7 @@ kubeletConnectByHostname: ""
 ## @param socketPath The unix socket path to the spire-agent
 socketPath: /run/spire/agent-sockets/spire-agent.sock
 
-## @param priorityClassName Priority class assigned to daemonset pods
+## @param priorityClassName Priority class assigned to daemonset pods. Can be auto set with global.recommendations.priorityClassName.
 priorityClassName: ""
 
 ## @param extraEnvVars [array] Extra environment variables to be added to the Spire Agent container

@@ -1,4 +1,5 @@
 {{- $configSum := (include (print $.Template.BasePath "/configmap.yaml") . | sha256sum) }}
+{{- $podSecurityContext := fromYaml (include "spire-lib.podsecuritycontext" .) }}
 {{- $cbh := eq (include "spire-agent.connect-by-hostname" .) "true" }}
 apiVersion: apps/v1
 kind: DaemonSet
@@ -30,10 +31,8 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       serviceAccountName: {{ include "spire-agent.serviceAccountName" . }}
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      {{- if .Values.priorityClassName }}
-      priorityClassName: {{ .Values.priorityClassName }}
-      {{- end }}
+        {{- toYaml $podSecurityContext | nindent 8 }}
+      {{- include "spire-lib.default_node_priority_class_name" . | nindent 6 }}
       {{- if ne (len .Values.hostAliases) 0 }}
       hostAliases:
         {{- toYaml .Values.hostAliases | nindent 8 }}
@@ -48,13 +47,13 @@ spec:
           args: ["-t", "30", "-h", "{{ include "spire-agent.server-address" . | trim }}", "-p", {{ .Values.server.port | quote }}]
           resources:
             {{- toYaml .Values.waitForIt.resources | nindent 12 }}
-        {{- if gt (int (dig "fsGroup" 0 .Values.podSecurityContext)) 0 }}
+        {{- if gt (int (dig "fsGroup" 0 $podSecurityContext)) 0 }}
         - name: fsgroupfix
           image: {{ template "spire-lib.image" (dict "image" .Values.fsGroupFix.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.fsGroupFix.image.pullPolicy }}
           command: ["bash", "-c"]
           args:
-            - "chown -R {{ .Values.podSecurityContext.runAsUser }}:{{ .Values.podSecurityContext.fsGroup }} {{ include "spire-agent.socket-path" . | dir }}"
+            - "chown -R {{ $podSecurityContext.runAsUser }}:{{ $podSecurityContext.fsGroup }} {{ include "spire-agent.socket-path" . | dir }}"
           resources:
             {{- toYaml .Values.fsGroupFix.resources | nindent 12 }}
           volumeMounts:
@@ -72,8 +71,9 @@ spec:
           image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args: ["-config", "/run/spire/config/agent.conf"]
-          {{- if or (gt (len .Values.extraEnvVars) 0) $cbh }}
           env:
+            - name: PATH
+              value: "/opt/spire/bin:/bin"
           {{- if $cbh }}
             - name: MY_NODE_NAME
               valueFrom:
@@ -83,11 +83,10 @@ spec:
           {{- with .Values.extraEnvVars }}
           {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- end }}
           ports:
             - containerPort: {{ .Values.healthChecks.port }}
               name: healthz
-            {{- if (dig "telemetry" "prometheus" "enabled" .Values.telemetry.prometheus.enabled .Values.global) }}
+            {{- if or (dig "telemetry" "prometheus" "enabled" .Values.telemetry.prometheus.enabled .Values.global) (and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "prometheus" true .Values.global)) }}
             - containerPort: {{ .Values.telemetry.prometheus.port }}
               name: prom
             {{- end }}

@@ -8,6 +8,7 @@ global:
   k8s:
     ## @param global.k8s.clusterDomain Cluster domain name configured for Spire install
     clusterDomain: cluster.local
+
   spire:
     ## @param global.spire.bundleConfigMap A configmap containing the Spire bundle
     bundleConfigMap: ""
@@ -20,9 +21,47 @@ global:
     ## @param global.spire.upstreamServerAddress Set what address to use for the upstream server when using nested spire
     upstreamServerAddress: ""
 
+    ## @param global.spire.recommendations.enabled Use recommended settings for production deployments. Default is off.
+    ## @param global.spire.recommendations.namespaceLayout Set to true to use recommended values for installing across namespaces
+    ## @param global.spire.recommendations.namespacePSS When chart namespace creation is enabled, label them with preffered Pod Security Standard labels
+    ## @param global.spire.recommendations.priorityClassName Set to true to use recommended values for Pod Priority Class Names
+    ## @param global.spire.recommendations.strictMode Check values, such as trustDomain, are overridden with a suitable value for production.
+    ## @param global.spire.recommendations.securityContexts Set to true to use recommended values for Pod and Container Security Contexts
+    ## @param global.spire.recommendations.prometheus Enable prometheus exporters for monitoring
+    recommendations:
+      enabled: false
+      namespaceLayout: true
+      namespacePSS: true
+      priorityClassName: true
+      strictMode: true
+      securityContexts: true
+      prometheus: true
+
     image:
       ## @param global.spire.image.registry Override all Spire image registries at once
       registry: ""
+
+    namespaces:
+      ## @param global.spire.namespaces.create Set to true to Create all namespaces. If this or either of the namespace specific create flags is set, the namespace will be created.
+      create: false
+      system:
+        ## @param global.spire.namespaces.system.name Name of the Spire system Namespace.
+        name: "spire-system"
+        ## @param global.spire.namespaces.system.create Create a Namespace for Spire system resources.
+        create: false
+        ## @param global.spire.namespaces.system.annotations [object] Annotations to apply to the Spire system Namespace.
+        annotations: {}
+        ## @param global.spire.namespaces.system.labels [object] Labels to apply to the Spire system Namespace.
+        labels: {}
+      server:
+        ## @param global.spire.namespaces.server.name Name of the Spire server Namespace.
+        name: "spire-server"
+        ## @param global.spire.namespaces.server.create Create a Namespace for Spire server resources.
+        create: false
+        ## @param global.spire.namespaces.server.annotations [object] Annotations to apply to the Spire server Namespace.
+        annotations: {}
+        ## @param global.spire.namespaces.server.labels [object] Labels to apply to the Spire server Namespace.
+        labels: {}
 
     ## @param global.spire.strictMode Check values, such as trustDomain, are overridden with a suitable value for production.
     strictMode: false
@@ -123,7 +162,7 @@ upstream-spiffe-csi-driver:
 ##
 spiffe-oidc-discovery-provider:
   ## @param spiffe-oidc-discovery-provider.enabled Flag to enable spiffe-oidc-discovery-provider for the cluster
-  enabled: false
+  enabled: true
 
 ## @section Tornjak frontend parameters
 ## Parameter values for Tornjak frontend

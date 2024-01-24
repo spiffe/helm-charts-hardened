@@ -1,38 +1,79 @@
 # spire
 
-![Version: 0.16.0](https://img.shields.io/badge/Version-0.16.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.8.5](https://img.shields.io/badge/AppVersion-1.8.5-informational?style=flat-square)
+![Version: 0.17.0](https://img.shields.io/badge/Version-0.17.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.8.7](https://img.shields.io/badge/AppVersion-1.8.7-informational?style=flat-square)
 [![Development Phase](https://github.com/spiffe/spiffe/blob/main/.img/maturity/dev.svg)](https://github.com/spiffe/spiffe/blob/main/MATURITY.md#development)
 
 A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
 
-**Homepage:** <https://github.com/spiffe/helm-charts/tree/main/charts/spire>
+**Homepage:** <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire>
 
-## Install notes
+## Install Instructions
 
-To do a quick non production install suitable for quick testing in something like minikube:
-
-```shell
-helm install -n spire-server spire-crds spire-crds --repo https://spiffe.github.io/helm-charts-hardened/ --create-namespace
-helm install -n spire-server spire spire --repo https://spiffe.github.io/helm-charts-hardened/
-```
-
-To customize, start with a base values file and edit as needed:
+### Non Production
+To do a quick install suitable for testing in something like minikube:
 
 ```shell
-curl -o your-values.yaml https://raw.githubusercontent.com/spiffe/helm-charts-hardened/main/examples/production/example-your-values.yaml
+helm upgrade --install -n spire-server spire-crds spire-crds --repo https://spiffe.github.io/helm-charts-hardened/ --create-namespace
+helm upgrade --install -n spire-server spire spire --repo https://spiffe.github.io/helm-charts-hardened/
 ```
 
-Then:
+### Production
+
+Preparing a production deployment requires a few steps.
+
+1. Save the following to your-values.yaml, ideally in your git repo.
+```yaml
+global:
+  openshift: false # If running on openshift, set to true
+  spire:
+    recommendations:
+      enabled: true
+    namespaces:
+      create: true
+    ingressControllerType: "" # If not openshift, and want to expose services, set to a supported option [ingress-nginx]
+    # Update these
+    clusterName: example-cluster
+    trustDomain: example.org
+spire-server:
+  ca_subject:
+    # Update these
+    country: ARPA
+    organization: Example
+    common_name: example.org
+```
+
+2. If you need a non default storageClass, append the following to the spire-server section and update:
+```
+  persistence:
+    storageClass: your-storage-class
+```
+
+3. If your Kubernetes cluster is OpenShift based, use the output of the following command to update the trustDomain setting:
+```shell
+oc get cm -n openshift-config-managed  console-public -o go-template="{{ .data.consoleURL }}" | sed 's@https://@@; s/^[^.]*\.//'
+```
+
+4. Find any additional values you might want to set based on the documentation below or using the [examples](https://github.com/spiffe/helm-charts-hardened/tree/main/examples)
+
+In particular, consider using an external database.
+
+5. Deploy
 
 ```shell
-helm install -n spire-server spire --repo https://spiffe.github.io/helm-charts-hardened/ -f your-values.yaml
+helm upgrade --install -n spire-mgmt spire-crds spire-crds --repo https://spiffe.github.io/helm-charts-hardened/ --create-namespace
+helm upgrade --install -n spire-mgmt spire spire --repo https://spiffe.github.io/helm-charts-hardened/ -f your-values.yaml
 ```
-
-For production installs, please see [the production example](https://github.com/spiffe/helm-charts-hardened/tree/spire-0.16.0/examples/production).
 
 ## Upgrade notes
 
 We only support upgrading one major version at a time. Version skipping isn't supported.
+
+### 0.17.X
+
+- The SPIFFE OIDC Discovery Provider now has many new TLS options and defaults to using SPIRE to issue its certificate.
+- The `spiffe-oidc-discovery-provider.insecureScheme.enabled` flag was removed. If you previously set that flag, remove the setting from your values.yaml and see if the new default of using a SPIRE issued certificate is suitable for your deployment. If it isn't, please consider one of the other options under `spiffe-oidc-discovery-provider.tls`. If all other options are still unsuitable, you can still enable the previous mode by disabling TLS. (`spiffe-oidc-discovery-provider.spire.enabled=false`)
+
+- The SPIFFE OIDC Discovery Provider is now enabled by default. If you previously chose to have it off, you can disable it explicitly with `spiffe-oidc-discovery-provider.enabled=false`.
 
 ### 0.16.X
 
@@ -130,7 +171,7 @@ Now you can interact with the Spire agent socket from your own application. The 
 
 ## Source Code
 
-* <https://github.com/spiffe/helm-charts/tree/main/charts/spire>
+* <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire>
 
 ## Requirements
 
@@ -150,19 +191,35 @@ Now you can interact with the Spire agent socket from your own application. The 
 
 ### Global parameters
 
-| Name                                    | Description                                                                                                                                                                                                                            | Value             |
-| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| `global.k8s.clusterDomain`              | Cluster domain name configured for Spire install                                                                                                                                                                                       | `cluster.local`   |
-| `global.spire.bundleConfigMap`          | A configmap containing the Spire bundle                                                                                                                                                                                                | `""`              |
-| `global.spire.clusterName`              | The name of the k8s cluster for Spire install                                                                                                                                                                                          | `example-cluster` |
-| `global.spire.jwtIssuer`                | The issuer for Spire JWT tokens. Defaults to oidc-discovery.$trustDomain if unset                                                                                                                                                      | `""`              |
-| `global.spire.trustDomain`              | The trust domain for Spire install                                                                                                                                                                                                     | `example.org`     |
-| `global.spire.upstreamServerAddress`    | Set what address to use for the upstream server when using nested spire                                                                                                                                                                | `""`              |
-| `global.spire.image.registry`           | Override all Spire image registries at once                                                                                                                                                                                            | `""`              |
-| `global.spire.strictMode`               | Check values, such as trustDomain, are overridden with a suitable value for production.                                                                                                                                                | `false`           |
-| `global.spire.ingressControllerType`    | Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, autodetection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""]. | `""`              |
-| `global.installAndUpgradeHooks.enabled` | Enable Helm hooks to autofix common install/upgrade issues (should be disabled when using `helm template`)                                                                                                                             | `true`            |
-| `global.deleteHooks.enabled`            | Enable Helm hooks to autofix common delete issues (should be disabled when using `helm template`)                                                                                                                                      | `true`            |
+| Name                                             | Description                                                                                                                                                                                                                            | Value             |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| `global.k8s.clusterDomain`                       | Cluster domain name configured for Spire install                                                                                                                                                                                       | `cluster.local`   |
+| `global.spire.bundleConfigMap`                   | A configmap containing the Spire bundle                                                                                                                                                                                                | `""`              |
+| `global.spire.clusterName`                       | The name of the k8s cluster for Spire install                                                                                                                                                                                          | `example-cluster` |
+| `global.spire.jwtIssuer`                         | The issuer for Spire JWT tokens. Defaults to oidc-discovery.$trustDomain if unset                                                                                                                                                      | `""`              |
+| `global.spire.trustDomain`                       | The trust domain for Spire install                                                                                                                                                                                                     | `example.org`     |
+| `global.spire.upstreamServerAddress`             | Set what address to use for the upstream server when using nested spire                                                                                                                                                                | `""`              |
+| `global.spire.recommendations.enabled`           | Use recommended settings for production deployments. Default is off.                                                                                                                                                                   | `false`           |
+| `global.spire.recommendations.namespaceLayout`   | Set to true to use recommended values for installing across namespaces                                                                                                                                                                 | `true`            |
+| `global.spire.recommendations.namespacePSS`      | When chart namespace creation is enabled, label them with preffered Pod Security Standard labels                                                                                                                                       | `true`            |
+| `global.spire.recommendations.priorityClassName` | Set to true to use recommended values for Pod Priority Class Names                                                                                                                                                                     | `true`            |
+| `global.spire.recommendations.strictMode`        | Check values, such as trustDomain, are overridden with a suitable value for production.                                                                                                                                                | `true`            |
+| `global.spire.recommendations.securityContexts`  | Set to true to use recommended values for Pod and Container Security Contexts                                                                                                                                                          | `true`            |
+| `global.spire.recommendations.prometheus`        | Enable prometheus exporters for monitoring                                                                                                                                                                                             | `true`            |
+| `global.spire.image.registry`                    | Override all Spire image registries at once                                                                                                                                                                                            | `""`              |
+| `global.spire.namespaces.create`                 | Set to true to Create all namespaces. If this or either of the namespace specific create flags is set, the namespace will be created.                                                                                                  | `false`           |
+| `global.spire.namespaces.system.name`            | Name of the Spire system Namespace.                                                                                                                                                                                                    | `spire-system`    |
+| `global.spire.namespaces.system.create`          | Create a Namespace for Spire system resources.                                                                                                                                                                                         | `false`           |
+| `global.spire.namespaces.system.annotations`     | Annotations to apply to the Spire system Namespace.                                                                                                                                                                                    | `{}`              |
+| `global.spire.namespaces.system.labels`          | Labels to apply to the Spire system Namespace.                                                                                                                                                                                         | `{}`              |
+| `global.spire.namespaces.server.name`            | Name of the Spire server Namespace.                                                                                                                                                                                                    | `spire-server`    |
+| `global.spire.namespaces.server.create`          | Create a Namespace for Spire server resources.                                                                                                                                                                                         | `false`           |
+| `global.spire.namespaces.server.annotations`     | Annotations to apply to the Spire server Namespace.                                                                                                                                                                                    | `{}`              |
+| `global.spire.namespaces.server.labels`          | Labels to apply to the Spire server Namespace.                                                                                                                                                                                         | `{}`              |
+| `global.spire.strictMode`                        | Check values, such as trustDomain, are overridden with a suitable value for production.                                                                                                                                                | `false`           |
+| `global.spire.ingressControllerType`             | Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, autodetection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""]. | `""`              |
+| `global.installAndUpgradeHooks.enabled`          | Enable Helm hooks to autofix common install/upgrade issues (should be disabled when using `helm template`)                                                                                                                             | `true`            |
+| `global.deleteHooks.enabled`                     | Enable Helm hooks to autofix common delete issues (should be disabled when using `helm template`)                                                                                                                                      | `true`            |
 
 ### Spire server parameters
 
@@ -213,9 +270,9 @@ Now you can interact with the Spire agent socket from your own application. The 
 
 ### SPIFFE oidc discovery provider parameters
 
-| Name                                     | Description                                                   | Value   |
-| ---------------------------------------- | ------------------------------------------------------------- | ------- |
-| `spiffe-oidc-discovery-provider.enabled` | Flag to enable spiffe-oidc-discovery-provider for the cluster | `false` |
+| Name                                     | Description                                                   | Value  |
+| ---------------------------------------- | ------------------------------------------------------------- | ------ |
+| `spiffe-oidc-discovery-provider.enabled` | Flag to enable spiffe-oidc-discovery-provider for the cluster | `true` |
 
 ### Tornjak frontend parameters
 
