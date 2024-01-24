@@ -1,0 +1,5 @@
+spiffe-csi-driver:
+  kubeletPath: /var/data/kubelet
+  restrictedScc:
+    enabled: true
+
