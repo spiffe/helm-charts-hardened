@@ -426,6 +426,9 @@ controllerManager:
   ## @param controllerManager.expandEnv Set to true to enable environment variable substitution of config file options
   expandEnv: false
 
+  ## @param controllerManager.extraEnv [array] Extra environment variables to add to the controller manager
+  extraEnv: []
+
   installAndUpgradeHook:
     ## @param controllerManager.installAndUpgradeHook.enabled Enable Helm hook to autofix common install/upgrade issues (should be disabled when using `helm template`)
     enabled: true
@@ -643,6 +646,9 @@ ingress:
   #    hosts:
   #      - spire-server.example.org
 
+## @param extraEnv [array] Extra environment variables to add to the spire server
+extraEnv: []
+
 ## @param extraVolumes [array] Extra volumes to be mounted
 extraVolumes: []
 
@@ -788,16 +794,19 @@ tornjak:
 # can prioritize proper support.
 ## @skip unsupportedBuiltInPlugins
 unsupportedBuiltInPlugins:
+  bundlePublisher: {}
   keyManager: {}
   nodeAttestor: {}
   upstreamAuthority: {}
   notifier: {}
 
+## @param customPlugins.bundlePublisher Custom plugins of type BundlePublisher are configured here
 ## @param customPlugins.keyManager Custom plugins of type KeyManager are configured here
 ## @param customPlugins.nodeAttestor Custom plugins of type NodeAttestor are configured here
 ## @param customPlugins.upstreamAuthority Custom plugins of type upstreamAuthority are configured here
 ## @param customPlugins.notifier Custom plugins of type notifier are configured here
 customPlugins:
+  bundlePublisher: {}
   keyManager: {}
   nodeAttestor: {}
   upstreamAuthority: {}
