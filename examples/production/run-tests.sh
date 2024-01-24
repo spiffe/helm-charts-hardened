@@ -24,6 +24,10 @@ CLEANUP=1
 for i in "$@"; do
   case $i in
     -u)
+      if [[ -z "$UPGRADE_VERSION" ]]; then
+        echo "Failed to detect previous version."
+	exit 1
+      fi
       UPGRADE_ARGS="--repo $UPGRADE_REPO --version $UPGRADE_VERSION"
       shift # past argument=value
       ;;
