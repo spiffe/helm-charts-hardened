@@ -142,6 +142,7 @@ Create the name of the service account to use
   {{- $port := int .Values.dataStore.sql.port | default 3306 }}
   {{- $query := include "spire-server.config-mysql-query" .Values.dataStore.sql.options }}
   {{- $_ := set $config "connection_string" (printf "%s:${DBPW}@tcp(%s:%d)/%s%s" .Values.dataStore.sql.username .Values.dataStore.sql.host $port .Values.dataStore.sql.databaseName $query) }}
+  {{- $_ := set $config "ro_connection_string" (printf "%s:${DBPW}@tcp(%s:%d)/%s%s" .Values.dataStore.sql.username .Values.dataStore.sql.host $port .Values.dataStore.sql.databaseName $query) }}
 {{- else if eq .Values.dataStore.sql.databaseType "postgres" }}
   {{- $_ := set $config "database_type" "postgres" }}
   {{- $port := int .Values.dataStore.sql.port | default 5432 }}

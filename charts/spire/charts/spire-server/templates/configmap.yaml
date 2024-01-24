@@ -55,6 +55,9 @@ server:
   {{- end }}
   {{- end }}
 
+  experimental:
+    prune_events_older_than: 2m
+
   {{- with .Values.experimental }}
   {{- if eq (.enabled | toString) "true" }}
   experimental:

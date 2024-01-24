@@ -85,30 +85,30 @@ spire-server:
   nameOverride: server
   logLevel: debug
 
-  #image:
-    #registry: ""
-    #repository: "spire-server"
-    #tag: "latest-local"
+  image:
+    registry: ""
+    repository: "spire-server"
+    tag: "latest-local"
 
-  #dataStore:
-    #sql:
+  dataStore:
+    sql:
       # -- Other supported databases are "postgres" and "mysql"
-      #databaseType: mysql
+      databaseType: mysql
       # -- Only used by "postgres" or "mysql"
-      #databaseName: spire
+      databaseName: spire
       # -- Only used by "postgres" or "mysql"
-      #host: "mysql.default.svc"
+      host: "mysql.default.svc"
       # -- If 0 (default), it will auto set to 5432 for postgres and 3306 for mysql. Only used by those databases.
-      #port: 0
+      port: 0
       # -- Only used by "postgres" or "mysql"
-      #username: root
+      username: root
       # -- Only used by "postgres" or "mysql"
-      #password: password
+      password: password
       # -- Only used by "postgres" or "mysql"
-      #options: []
+      options: []
 
       # -- Settings from https://github.com/spiffe/spire/blob/main/doc/plugin_server_datastore_sql.md go in this section
-      #plugin_data: {}
+      plugin_data: {}
 
   controllerManager:
     ## @param spire-server.controllerManager.enabled Enable controller manager and provision CRD's
@@ -122,6 +122,11 @@ spire-agent:
   enabled: true
   ## @param spire-agent.nameOverride Overrides the name of Spire agent pods
   nameOverride: agent
+
+  image:
+    registry: ""
+    repository: "spire-agent"
+    tag: "latest-local"
 
 ## @section Upstream Spire agent and CSI driver configuration
 ## Parameter values enabling upstream spire agent and CSI driver
