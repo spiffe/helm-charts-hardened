@@ -17,6 +17,7 @@ spec:
   template:
     metadata:
       annotations:
+        kubectl.kubernetes.io/default-container: spire-agent
         checksum/config: {{ $configSum }}
         {{- with .Values.podAnnotations }}
           {{- toYaml . | nindent 8 }}
