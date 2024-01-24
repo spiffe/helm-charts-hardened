@@ -1,9 +1,8 @@
 # Recommended production setup
 
 Dependencies
-```
-StorageClass
-```
+
+- StorageClass
 
 To install Spire with the least privileges possible we deploy spire across 2 namespaces.
 
