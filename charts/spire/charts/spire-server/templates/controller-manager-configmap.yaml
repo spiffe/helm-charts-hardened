@@ -23,7 +23,7 @@ data:
       healthProbeBindAddress: 0.0.0.0:8083
     leaderElection:
       leaderElect: true
-      resourceName: {{ .Release.Name | sha256sum | trunc 8 }}.spiffe.io
+      resourceName: {{ printf "%s-%s" .Release.Namespace (default .Release.Name .Values.crNameOverride) | sha256sum | trunc 8 }}.spiffe.io
       resourceNamespace: {{ include "spire-server.namespace" . }}
     {{- with .Values.controllerManager.cacheNamespaces }}
     cacheNamespaces:

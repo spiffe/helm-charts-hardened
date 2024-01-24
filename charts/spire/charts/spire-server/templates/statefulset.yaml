@@ -29,6 +29,7 @@ spec:
   template:
     metadata:
       annotations:
+        kubectl.kubernetes.io/default-container: spire-server
         checksum/config: {{ $configSum }}
         checksum/config2: {{ $configSum2 }}
         checksum/config3: {{ $configSum3 }}
@@ -86,6 +87,9 @@ spec:
           env:
           - name: PATH
             value: "/opt/spire/bin:/bin"
+          {{- with .Values.extraEnv }}
+          {{- . | toYaml | nindent 10 }}
+          {{- end }}
           {{- if ne .Values.dataStore.sql.databaseType "sqlite3" }}
           {{- if .Values.dataStore.sql.externalSecret.enabled }}
           - name: DBPW
@@ -201,6 +205,9 @@ spec:
           env:
             - name: ENABLE_WEBHOOKS
               value: {{ .Values.controllerManager.validatingWebhookConfiguration.enabled | toString | quote }}
+          {{- if gt (len .Values.controllerManager.extraEnv) 0 }}
+            {{- .Values.controllerManager.extraEnv | toYaml | nindent 12 }}
+          {{- end }}
           ports:
             - name: https
               containerPort: 9443
@@ -232,6 +239,9 @@ spec:
             - name: spire-controller-manager-tmp
               mountPath: /tmp
               readOnly: false
+            {{- if gt (len .Values.extraVolumeMounts) 0 }}
+            {{- toYaml .Values.extraVolumeMounts | nindent 12 }}
+            {{- end }}
         {{- end }}
 
         {{- if eq (.Values.tornjak.enabled | toString) "true" }}
