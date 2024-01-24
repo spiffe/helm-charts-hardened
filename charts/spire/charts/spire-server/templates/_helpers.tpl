@@ -261,6 +261,6 @@ The code below determines what connection type should be used.
 {{-   if .Values.controllerManager.className }}
 {{-     .Values.controllerManager.className }}
 {{-   else }}
-{{-     .Release.Namespace }}-{{ .Release.Name }}
+{{-     .Release.Namespace }}-{{ default .Release.Name .Values.crNameOverride }}
 {{-   end -}}
 {{- end -}}
