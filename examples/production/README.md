@@ -1,5 +1,10 @@
 # Recommended production setup
 
+Dependencies
+```
+StorageClass
+```
+
 To install Spire with the least privileges possible we deploy spire across 2 namespaces.
 
 ```shell
