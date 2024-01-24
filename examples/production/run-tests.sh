@@ -2,7 +2,7 @@
 
 set -xe
 
-UPGRADE_VERSION=v0.15.1
+UPGRADE_VERSION=$(git tag -l 'spire-0.*' | awk -F. '{print $2}' | sort -n | tail -n 1 | sed 's/^/v0./; s/$/.0/')
 UPGRADE_REPO=https://spiffe.github.io/helm-charts-hardened
 
 SCRIPT="$(readlink -f "$0")"
