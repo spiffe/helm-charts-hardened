@@ -684,6 +684,21 @@ nodeAttestor:
   joinToken:
     ## @param nodeAttestor.joinToken.enabled Enable the join_token nodeattestor
     enabled: false
+  tpmDirect:
+    ## @param nodeAttestor.tpmDirect.enabled Enable the direct tpm nodeattestor
+    enabled: false
+    ## @param nodeAttestor.tpmDirect.image.registry The OCI registry to pull the image from
+    ## @param nodeAttestor.tpmDirect.image.repository The repository within the registry
+    ## @param nodeAttestor.tpmDirect.image.pullPolicy The image pull policy
+    ## @param nodeAttestor.tpmDirect.image.tag Overrides the image tag
+    ##
+    image:
+      registry: docker.io
+      repository: boxboat/spire-tpm-plugin-tpm-attestor-server
+      pullPolicy: IfNotPresent
+      tag: "v1.7.0"
+    ## @param nodeAttestor.tpmDirect.checksum The sha256 checksum of the plugin binary
+    checksum: 6dc74979eb41ecbd45cd047592c24e1830f9c52fff40441d69870e8927def13f
 
 ## @section Tornjak
 tornjak:

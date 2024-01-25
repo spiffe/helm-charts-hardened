@@ -53,8 +53,25 @@ spec:
       securityContext:
         {{- include "spire-lib.podsecuritycontext" . | nindent 8 }}
       {{- include "spire-lib.default_cluster_priority_class_name" . | nindent 6 }}
-      {{- if or (gt (len .Values.initContainers) 0) (and .Values.upstreamAuthority.certManager.enabled .Values.upstreamAuthority.certManager.ca.create) }}
+      {{- if or (gt (len .Values.initContainers) 0) (and .Values.upstreamAuthority.certManager.enabled .Values.upstreamAuthority.certManager.ca.create) .Values.nodeAttestor.tpmDirect.enabled }}
       initContainers:
+        - name: init-tpm-direct
+          securityContext:
+            {{- include "spire-lib.securitycontext" . | nindent 12 }}
+          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.nodeAttestor.tpmDirect.image "global" .Values.global) }}
+          command:
+            - sh
+            - -ec
+            - |
+              cp -a /app/tpm_attestor_server /tpm
+              mkdir -p /run/spire/data/tpm-direct/certs
+              mkdir -p /run/spire/data/tpm-direct/hashes
+          volumeMounts:
+            - name: tpm-direct
+              mountPath: /tpm
+            - name: spire-data
+              mountPath: /run/spire/data
+          imagePullPolicy: {{ .Values.nodeAttestor.tpmDirect.image.pullPolicy }}
       {{- if and .Values.upstreamAuthority.certManager.enabled .Values.upstreamAuthority.certManager.ca.create }}
         - name: wait
           securityContext:
@@ -158,6 +175,11 @@ spec:
             - name: spire-data
               mountPath: /run/spire/data
               readOnly: false
+            {{- if .Values.nodeAttestor.tpmDirect.enabled }}
+            - name: tpm-direct
+              mountPath: /tpm
+              readOnly: true
+            {{- end }}
             {{- if eq (.Values.upstreamAuthority.disk.enabled | toString) "true" }}
             - name: upstream-ca
               mountPath: /run/spire/upstream_ca
@@ -321,6 +343,10 @@ spec:
           emptyDir: {}
         - name: spire-controller-manager-tmp
           emptyDir: {}
+        {{- if .Values.nodeAttestor.tpmDirect.enabled }}
+        - name: tpm-direct
+          emptyDir: {}
+        {{- end }}
         {{- if or (eq (include "spire-tornjak.connectionType" .) "tls") (eq (include "spire-tornjak.connectionType" .) "mtls") }}
         - name: server-cert
           secret:
