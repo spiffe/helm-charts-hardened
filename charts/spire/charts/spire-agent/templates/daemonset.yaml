@@ -39,6 +39,7 @@ spec:
         {{- toYaml .Values.hostAliases | nindent 8 }}
       {{- end }}
       initContainers:
+        {{- if .Values.nodeAttestor.tpmDirect.enabled }}
         - name: init-tpm-direct
           securityContext:
             {{- include "spire-lib.securitycontext" . | nindent 12 }}
@@ -52,6 +53,7 @@ spec:
             - name: tpm-direct
               mountPath: /tpm
           imagePullPolicy: {{ .Values.nodeAttestor.tpmDirect.image.pullPolicy }}
+        {{- end }}
         - name: init
           # This is a small image with wait-for-it, choose whatever image
           # you prefer that waits for a service to be up. This image is built
