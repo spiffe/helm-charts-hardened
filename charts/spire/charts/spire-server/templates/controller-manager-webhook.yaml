@@ -1,4 +1,4 @@
-{{- if eq (.Values.controllerManager.enabled | toString) "true" }}
+{{- if and (eq (.Values.controllerManager.enabled | toString) "true") .Values.controllerManager.validatingWebhookConfiguration.enabled }}
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
