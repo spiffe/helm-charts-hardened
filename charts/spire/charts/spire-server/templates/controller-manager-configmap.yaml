@@ -29,7 +29,9 @@ data:
     cacheNamespaces:
       {{- toYaml . | nindent 6 }}
     {{- end }}
+    {{- if .Values.controllerManager.validatingWebhookConfiguration.enabled }}
     validatingWebhookConfigurationName: {{ .Release.Namespace }}-{{ include "spire-controller-manager.fullname" . }}-webhook
+    {{- end }}
     clusterName: {{ include "spire-lib.cluster-name" . }}
     trustDomain: {{ include "spire-lib.trust-domain" . }}
     ignoreNamespaces:
@@ -39,4 +41,5 @@ data:
     spireServerSocketPath: "/tmp/spire-server/private/api.sock"
     className: {{ include "spire-server.controller-manager-class-name" . | quote}}
     watchClassless: {{ .Values.controllerManager.watchClassless | toYaml }}
+    parentIDTemplate: {{ .Values.controllerManager.parentIDTemplate | quote }}
 {{- end }}

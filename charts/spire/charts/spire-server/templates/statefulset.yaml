@@ -202,8 +202,10 @@ spec:
             {{- if .Values.controllerManager.expandEnv }}
             - --expand-env
             {{- end }}
-          {{- if gt (len .Values.controllerManager.extraEnv) 0 }}
           env:
+            - name: ENABLE_WEBHOOKS
+              value: {{ .Values.controllerManager.validatingWebhookConfiguration.enabled | toString | quote }}
+          {{- if gt (len .Values.controllerManager.extraEnv) 0 }}
             {{- .Values.controllerManager.extraEnv | toYaml | nindent 12 }}
           {{- end }}
           ports:
