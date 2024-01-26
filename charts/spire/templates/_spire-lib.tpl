@@ -273,7 +273,7 @@ fsGroupChangePolicy: OnRootMismatch
 {{- end }}
 
 {{- define "spire-lib.securitycontext" }}
-{{ include "spire-lib.securitycontext-extended" (dict "root" . "securityContext" .Values.securityContext) }}
+{{- include "spire-lib.securitycontext-extended" (dict "root" . "securityContext" .Values.securityContext) }}
 {{- end }}
 
 {{/* Same as securitycontext but takes in:
