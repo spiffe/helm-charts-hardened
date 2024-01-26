@@ -119,8 +119,8 @@ livenessProbe:
 ## @param readinessProbe.periodSeconds Period seconds for probe
 ##
 readinessProbe:
-  initialDelaySeconds: 15
-  periodSeconds: 60
+  initialDelaySeconds: 10
+  periodSeconds: 30
 
 waitForIt:
   ## @param waitForIt.image.registry The OCI registry to pull the image from
