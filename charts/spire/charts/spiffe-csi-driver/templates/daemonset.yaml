@@ -9,8 +9,10 @@ spec:
   selector:
     matchLabels:
       {{- include "spiffe-csi-driver.selectorLabels" . | nindent 6 }}
+  {{- with .Values.updateStrategy }}
   updateStrategy:
-    type: RollingUpdate
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
