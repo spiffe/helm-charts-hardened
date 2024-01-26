@@ -39,6 +39,21 @@ spec:
         {{- toYaml .Values.hostAliases | nindent 8 }}
       {{- end }}
       initContainers:
+        {{- if .Values.nodeAttestor.tpmDirect.enabled }}
+        - name: init-tpm-direct
+          securityContext:
+            {{- include "spire-lib.securitycontext" . | nindent 12 }}
+          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.nodeAttestor.tpmDirect.image "global" .Values.global) }}
+          command:
+            - sh
+            - -ec
+            - |
+              cp -a /app/tpm_attestor_agent /tpm
+          volumeMounts:
+            - name: tpm-direct
+              mountPath: /tpm
+          imagePullPolicy: {{ .Values.nodeAttestor.tpmDirect.image.pullPolicy }}
+        {{- end }}
         - name: init
           # This is a small image with wait-for-it, choose whatever image
           # you prefer that waits for a service to be up. This image is built
@@ -100,6 +115,11 @@ spec:
               mountPath: /run/spire/bundle
               readOnly: true
             {{- end }}
+            {{- if .Values.nodeAttestor.tpmDirect.enabled }}
+            - name: tpm-direct
+              mountPath: /tpm
+              readOnly: true
+            {{- end }}
             - name: spire-agent-socket-dir
               mountPath: {{ include "spire-agent.socket-path" . | dir }}
               readOnly: false
@@ -139,6 +159,10 @@ spec:
         - name: spire-bundle
           configMap:
             name: {{ include "spire-lib.bundle-configmap" . }}
+        {{- end }}
+        {{- if .Values.nodeAttestor.tpmDirect.enabled }}
+        - name: tpm-direct
+          emptyDir: {}
         {{- end }}
         - name: spire-token
           projected:
