@@ -161,18 +161,32 @@ nodeAttestor:
   tpmDirect:
     ## @param nodeAttestor.tpmDirect.enabled Enable the direct tpm nodeattestor
     enabled: false
-    ## @param nodeAttestor.tpmDirect.image.registry The OCI registry to pull the image from
-    ## @param nodeAttestor.tpmDirect.image.repository The repository within the registry
-    ## @param nodeAttestor.tpmDirect.image.pullPolicy The image pull policy
-    ## @param nodeAttestor.tpmDirect.image.tag Overrides the image tag
-    ##
-    image:
-      registry: docker.io
-      repository: boxboat/spire-tpm-plugin-tpm-attestor-agent
-      pullPolicy: IfNotPresent
-      tag: "v1.7.0"
-    ## @param nodeAttestor.tpmDirect.checksum The sha256 checksum of the plugin binary
-    checksum: 6268bfe385ff847461c24f5eec43a0d05ddc875adfc8632289b6b77bde1866af
+    plugin:
+      ## @param nodeAttestor.tpmDirect.plugin.image.registry The OCI registry to pull the image from
+      ## @param nodeAttestor.tpmDirect.plugin.image.repository The repository within the registry
+      ## @param nodeAttestor.tpmDirect.plugin.image.pullPolicy The image pull policy
+      ## @param nodeAttestor.tpmDirect.plugin.image.tag Overrides the image tag
+      ##
+      image:
+        registry: docker.io
+        repository: boxboat/spire-tpm-plugin-tpm-attestor-agent
+        pullPolicy: IfNotPresent
+        tag: "v1.7.0"
+      ## @param nodeAttestor.tpmDirect.plugin.checksum The sha256 checksum of the plugin binary
+      checksum: 6268bfe385ff847461c24f5eec43a0d05ddc875adfc8632289b6b77bde1866af
+    pubHash:
+      ## @param nodeAttestor.tpmDirect.pubHash.enabled Enable Psat k8s nodeattestor
+      enabled: true
+      ## @param nodeAttestor.tpmDirect.pubHash.image.registry The OCI registry to pull the image from
+      ## @param nodeAttestor.tpmDirect.pubHash.image.repository The repository within the registry
+      ## @param nodeAttestor.tpmDirect.pubHash.image.pullPolicy The image pull policy
+      ## @param nodeAttestor.tpmDirect.pubHash.image.tag Overrides the image tag
+      ##
+      image:
+        registry: docker.io
+        repository: boxboat/spire-tpm-plugin-get-tpm-pubhash
+        pullPolicy: IfNotPresent
+        tag: "v1.7.0"
 
 # workloadAttestors determine a workload's properties and then generate a set of selectors associated with it.
 workloadAttestors:
