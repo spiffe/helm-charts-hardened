@@ -1,0 +1,12 @@
+spire-agent:
+  nodeAttestor:
+    k8sPsat:
+      enabled: false
+    tpmDirect:
+      enabled: true
+
+spire-server:
+  controllerManager:
+    parentIDTemplate: 'spiffe://{{ .TrustDomain }}/tpm/{{ index .NodeMeta.Labels "node-restriction.kubernetes.io/tpm-pubhash" }}'
+    tpmDirect:
+      enabled: true
