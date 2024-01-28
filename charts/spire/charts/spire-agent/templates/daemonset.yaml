@@ -1,4 +1,14 @@
 {{- $configSum := (include (print $.Template.BasePath "/configmap.yaml") . | sha256sum) }}
+{{- $root := . }}
+{{- range $name := (concat (list "default") (keys .Values.agents)) | uniq }}
+{{- with (dict "Release" $root.Release "Chart" $root.Chart "Values" (deepCopy $root.Values)) }}
+{{- $nameSuffix := "" }}
+{{- if ne $name "default" }}
+{{-   $nameSuffix = printf "-%s" $name }}
+{{- end }}
+{{- if hasKey $root.Values.agents $name }}
+{{-   $_ := set . "Values" (mergeOverwrite .Values (index $root.Values.agents $name)) }}
+{{- end }}
 {{- $podSecurityContext := fromYaml (include "spire-lib.podsecuritycontext" .) }}
 {{- $mainSecurityContext := deepCopy .Values.securityContext }}
 {{- if .Values.nodeAttestor.tpmDirect.enabled }}
@@ -6,10 +16,11 @@
 {{-   $_ := set $mainSecurityContext "privileged" true }}
 {{- end }}
 {{- $cbh := eq (include "spire-agent.connect-by-hostname" .) "true" }}
+---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: {{ include "spire-agent.fullname" . }}
+  name: {{ include "spire-agent.fullname" . }}{{ $nameSuffix }}
   namespace: {{ include "spire-agent.namespace" . }}
   labels:
     {{- include "spire-agent.labels" . | nindent 4 }}
@@ -194,7 +205,7 @@ spec:
         {{- if eq (len .Values.trustBundleURL) 0 }}
         - name: spire-bundle
           configMap:
-            name: {{ include "spire-lib.bundle-configmap" . }}
+            name: {{ include "spire-lib.bundle-configmap" . }}{{ $nameSuffix }}
         {{- end }}
         {{- if .Values.nodeAttestor.tpmDirect.enabled }}
         - name: tpm-direct
@@ -224,3 +235,5 @@ spec:
         {{- if gt (len .Values.extraVolumes) 0 }}
         {{- toYaml .Values.extraVolumes | nindent 8 }}
         {{- end }}
+{{- end }}
+{{- end }}

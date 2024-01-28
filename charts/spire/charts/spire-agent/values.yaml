@@ -281,3 +281,17 @@ experimental:
   syncInterval: 5s
   ## @param experimental.featureFlags [array] List of developer feature flags
   featureFlags: []
+
+## @param agents Configure multiple agents. Useful when you have different node types and nodeAttestors
+agents: {}
+#  default:
+#   nodeSelector:
+#     tpm: without
+#  tpm:
+#    nodeSelector:
+#      tpm: with
+#    nodeAttestor:
+#      k8sPsat:
+#        enabled: false
+#      tpmDirect:
+#        enabled: true

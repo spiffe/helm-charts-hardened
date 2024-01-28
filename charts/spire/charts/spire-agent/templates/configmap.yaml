@@ -1,3 +1,4 @@
+{{- define "spire-agent.check-config-values" -}}
 {{- include "spire-lib.check-strict-mode" (list . "clusterName must be set" (eq (include "spire-lib.cluster-name" .) "example-cluster"))}}
 {{- include "spire-lib.check-strict-mode" (list . "trustDomain must be set" (eq (include "spire-lib.trust-domain" .) "example.org"))}}
 {{- range $type, $tvals := .Values.customPlugins }}
@@ -17,6 +18,7 @@
 {{-       end }}
 {{-     end }}
 {{-   end }}
+{{- end }}
 {{- end }}
 {{- define "spire-agent.yaml-config" -}}
 agent:
@@ -69,7 +71,7 @@ plugins:
   {{- if eq (.enabled | toString) "true" }}
     tpm:
       plugin_cmd: "/tpm/tpm_attestor_agent"
-      plugin_checksum: {{ .checksum }}
+      plugin_checksum: {{ .plugin.checksum }}
       plugin_data: {}
   {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
   {{- end }}
@@ -112,10 +114,22 @@ telemetry:
         port: {{ .Values.telemetry.prometheus.port }}
 {{- end }}
 {{- end }}
+{{- $root := . }}
+{{- range $name := (concat (list "default") (keys .Values.agents)) | uniq }}
+{{- with (dict "Release" $root.Release "Chart" $root.Chart "Values" (deepCopy $root.Values)) }}
+{{- $nameSuffix := "" }}
+{{- if ne $name "default" }}
+{{-   $nameSuffix = printf "-%s" $name }}
+{{- end }}
+{{- if hasKey $root.Values.agents $name }}
+{{-   $_ := set . "Values" (mergeOverwrite .Values (index $root.Values.agents $name)) }}
+{{- end }}
+{{- include "spire-agent.check-config-values" . }}
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "spire-agent.fullname" . }}
+  name: {{ include "spire-agent.fullname" . }}{{ $nameSuffix }}
   namespace: {{ include "spire-agent.namespace" . }}
   {{- with .Values.configMap.annotations }}
   annotations:
@@ -124,3 +138,5 @@ metadata:
 data:
   agent.conf: |
     {{- include "spire-lib.reformat-and-yaml2json" (dict "config" (include "spire-agent.yaml-config" .) "root" .) | nindent 4 }}
+{{- end }}
+{{- end }}
