@@ -14,6 +14,6 @@ spire-agent:
 
 spire-server:
   controllerManager:
-    parentIDTemplate: 'spiffe://{{ .TrustDomain }}/{{if index .NodeMeta.Labels "node-restriction.kubernetes.io/tpm-pubhash" }}tpm/{{ index .NodeMeta.Labels "node-restriction.kubernetes.io/tpm-pubhash" }}{{ else }}/spire/agent/k8s_psat/{{ .ClusterName }}/{{ .NodeMeta.UID }}{{ end }}'
+    parentIDTemplate: 'spiffe://{{ .TrustDomain }}/{{if index .NodeMeta.Labels "node-restriction.kubernetes.io/tpm-pubhash" }}tpm/{{ index .NodeMeta.Labels "node-restriction.kubernetes.io/tpm-pubhash" }}{{ else }}spire/agent/k8s_psat/{{ .ClusterName }}/{{ .NodeMeta.UID }}{{ end }}'
     tpmDirect:
       enabled: true
