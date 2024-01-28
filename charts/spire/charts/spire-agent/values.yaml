@@ -282,7 +282,7 @@ experimental:
   ## @param experimental.featureFlags [array] List of developer feature flags
   featureFlags: []
 
-## @param agents Configure multiple agents. Useful when you have different node types and nodeAttestors
+## @param agents Configure multiple agent DaemonSets. Useful when you have different node types and nodeAttestors
 agents: {}
 #  default:
 #   nodeSelector:
