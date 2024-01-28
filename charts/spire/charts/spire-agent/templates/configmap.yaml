@@ -69,7 +69,7 @@ plugins:
   {{- if eq (.enabled | toString) "true" }}
     tpm:
       plugin_cmd: "/tpm/tpm_attestor_agent"
-      plugin_checksum: {{ .checksum }}
+      plugin_checksum: {{ .plugin.checksum }}
       plugin_data: {}
   {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
   {{- end }}
