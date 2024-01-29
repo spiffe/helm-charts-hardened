@@ -56,7 +56,7 @@ agent:
   {{- end }}
   {{- end }}
 
-{{- $nodeAttestorUsed := 0 }}
+{{- $nodeAttestorUsed := add (len .Values.customPlugins.nodeAttestor) (len .Values.unsupportedBuiltInPlugins.nodeAttestor) }}
 plugins:
   NodeAttestor:
   {{- if .Values.nodeAttestor.k8sPsat.enabled }}
