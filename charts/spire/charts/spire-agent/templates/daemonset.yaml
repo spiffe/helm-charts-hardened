@@ -24,10 +24,12 @@ metadata:
   namespace: {{ include "spire-agent.namespace" . }}
   labels:
     {{- include "spire-agent.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $name }}
 spec:
   selector:
     matchLabels:
       {{- include "spire-agent.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ $name }}
   template:
     metadata:
       annotations:
@@ -38,6 +40,7 @@ spec:
         {{- end }}
       labels:
         {{- include "spire-agent.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ $name }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
