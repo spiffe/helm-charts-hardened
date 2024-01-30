@@ -68,7 +68,7 @@ helm upgrade --install -n spire-mgmt spire spire --repo https://spiffe.github.io
 
 We only support upgrading one major version at a time. Version skipping isn't supported.
 
-## Clean up
+### Clean up
 
 ```shell
 helm -n spire-mgmt uninstall spire-crds
