@@ -154,6 +154,16 @@ fsGroupFix:
   ## @param fsGroupFix.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
 
+keyManager:
+  memory:
+    ## @param keyManager.memory.enabled Enable the memory based Key Manager
+    enabled: true
+
+nodeAttestor:
+  k8sPsat:
+    ## @param nodeAttestor.k8sPsat.enabled Enable Psat k8s Node Attestor
+    enabled: true
+
 # workloadAttestors determine a workload's properties and then generate a set of selectors associated with it.
 workloadAttestors:
   # unix is a workload attestor which generates unix-based selectors like 'uid' and 'gid'.
