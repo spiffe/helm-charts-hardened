@@ -57,6 +57,7 @@ agent:
   {{- end }}
 
 {{- $nodeAttestorUsed := add (len .Values.customPlugins.nodeAttestor) (len .Values.unsupportedBuiltInPlugins.nodeAttestor) }}
+{{- $keyManagerUsed := add (len .Values.customPlugins.keyManager) (len .Values.unsupportedBuiltInPlugins.keyManager) }}
 plugins:
   NodeAttestor:
   {{- if .Values.nodeAttestor.k8sPsat.enabled }}
@@ -79,8 +80,14 @@ plugins:
 {{- end }}
 
   KeyManager:
+    {{- if .Values.keyManager.memory.enabled }}
     memory:
       plugin_data:
+    {{- $keyManagerUsed = add1 $keyManagerUsed }}
+    {{- end }}
+{{- if ne $keyManagerUsed 1 }}
+{{- fail (printf "You have to enable exactly one Key Manager. There are %d enabled." $keyManagerUsed) }}
+{{- end }}
 
   WorkloadAttestor:
   {{- if .Values.workloadAttestors.k8s.enabled }}

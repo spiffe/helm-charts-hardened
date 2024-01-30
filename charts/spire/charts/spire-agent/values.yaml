@@ -154,9 +154,14 @@ fsGroupFix:
   ## @param fsGroupFix.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
 
+keyManager:
+  memory:
+    ## @param keyManager.memory.enabled Enable the memory based Key Manager
+    enabled: true
+
 nodeAttestor:
   k8sPsat:
-    ## @param nodeAttestor.k8sPsat.enabled Enable Psat k8s nodeattestor
+    ## @param nodeAttestor.k8sPsat.enabled Enable Psat k8s Node Attestor
     enabled: true
   tpmDirect:
     ## @param nodeAttestor.tpmDirect.enabled Enable the direct tpm nodeattestor
