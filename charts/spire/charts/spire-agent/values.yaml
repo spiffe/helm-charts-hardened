@@ -119,8 +119,8 @@ livenessProbe:
 ## @param readinessProbe.periodSeconds Period seconds for probe
 ##
 readinessProbe:
-  initialDelaySeconds: 15
-  periodSeconds: 60
+  initialDelaySeconds: 10
+  periodSeconds: 30
 
 waitForIt:
   ## @param waitForIt.image.registry The OCI registry to pull the image from
@@ -132,7 +132,7 @@ waitForIt:
     registry: cgr.dev
     repository: chainguard/wait-for-it
     pullPolicy: IfNotPresent
-    tag: latest@sha256:84be7f9205d88f368097c3712a867c5d35d1d024633de4b5675b3f17f63f27cf
+    tag: latest@sha256:e5f04633c3885d2a3a6fce512da4e03fcb064411f62642e7d2793bfafed10d59
 
   ## @param waitForIt.resources [object] Resource requests and limits
   resources: {}
@@ -149,10 +149,20 @@ fsGroupFix:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: Always
-    tag: latest@sha256:099e4b9adb13a94e6f25d6bb9bfe69fd5ba734a615e62bb0e1efba6650c6b23d
+    tag: latest@sha256:f37793c4af2a98f6cc313ac8af635d713e92d19344b11d499f92d8c644dd3b9f
 
   ## @param fsGroupFix.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
+
+keyManager:
+  memory:
+    ## @param keyManager.memory.enabled Enable the memory based Key Manager
+    enabled: true
+
+nodeAttestor:
+  k8sPsat:
+    ## @param nodeAttestor.k8sPsat.enabled Enable Psat k8s Node Attestor
+    enabled: true
 
 # workloadAttestors determine a workload's properties and then generate a set of selectors associated with it.
 workloadAttestors:

@@ -2,7 +2,7 @@
 
 set -xe
 
-UPGRADE_VERSION=v0.15.1
+UPGRADE_VERSION=$(git ls-remote --tags origin -l 'spire-0.*' | awk -F. '{print $2}' | sort -n | tail -n 1 | sed 's/^/v0./; s/$/.0/')
 UPGRADE_REPO=https://spiffe.github.io/helm-charts-hardened
 
 SCRIPT="$(readlink -f "$0")"
@@ -24,6 +24,10 @@ CLEANUP=1
 for i in "$@"; do
   case $i in
     -u)
+      if [[ -z "$UPGRADE_VERSION" ]]; then
+        echo "Failed to detect previous version."
+        exit 1
+      fi
       UPGRADE_ARGS="--repo $UPGRADE_REPO --version $UPGRADE_VERSION"
       shift # past argument=value
       ;;
