@@ -73,7 +73,7 @@ We only support upgrading one major version at a time. Version skipping isn't su
 ```shell
 helm -n spire-mgmt uninstall spire-crds
 helm -n spire-mgmt uninstall spire
-k delete crds clusterfederatedtrustdomains.spire.spiffe.io clusterspiffeids.spire.spiffe.io clusterstaticentries.spire.spiffe.io controllermanagerconfigs.spire.spiffe.io
+kubectl delete crds clusterfederatedtrustdomains.spire.spiffe.io clusterspiffeids.spire.spiffe.io clusterstaticentries.spire.spiffe.io
 ```
 
 ### 0.17.X
