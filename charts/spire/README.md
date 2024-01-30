@@ -68,6 +68,14 @@ helm upgrade --install -n spire-mgmt spire spire --repo https://spiffe.github.io
 
 We only support upgrading one major version at a time. Version skipping isn't supported.
 
+## Clean up
+
+```shell
+helm -n spire-mgmt uninstall spire-crds
+helm -n spire-mgmt uninstall spire
+k delete crds clusterfederatedtrustdomains.spire.spiffe.io clusterspiffeids.spire.spiffe.io clusterstaticentries.spire.spiffe.io controllermanagerconfigs.spire.spiffe.io
+```
+
 ### 0.17.X
 
 - If you set spire-server.replicaCount > 1, update it to 1 before upgrading and after upgrade you can set it back to its previous value.
