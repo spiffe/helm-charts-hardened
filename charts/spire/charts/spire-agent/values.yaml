@@ -295,3 +295,7 @@ agents: {}
 #        enabled: false
 #      tpmDirect:
 #        enabled: true
+
+installAndUpgradeHook:
+  ## @param installAndUpgradeHook.enabled Enable Helm hook to autofix common install/upgrade issues (should be disabled when using `helm template`)
+  enabled: true
