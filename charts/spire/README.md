@@ -64,7 +64,7 @@ helm upgrade --install -n spire-mgmt spire-crds spire-crds --repo https://spiffe
 helm upgrade --install -n spire-mgmt spire spire --repo https://spiffe.github.io/helm-charts-hardened/ -f your-values.yaml
 ```
 
-### Clean up
+## Clean up
 
 ```shell
 helm -n spire-mgmt uninstall spire-crds
