@@ -1,5 +1,5 @@
 {{- if eq ((dig "installAndUpgradeHooks" "enabled" .Values.installAndUpgradeHook.enabled .Values.global) | toString) "true" }}
-{{- $ds := lookup "apps/v1" "DaemonSet" (include "spire-server.namespace" .) (include "spire-agent.fullname" .) }}
+{{- $ds := lookup "apps/v1" "DaemonSet" (include "spire-agent.namespace" .) (include "spire-agent.fullname" .) }}
 {{- if and $ds (not (hasKey $ds.metadata.labels "app.kubernetes.io/component")) }}
 apiVersion: v1
 kind: ServiceAccount
