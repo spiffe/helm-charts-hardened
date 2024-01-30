@@ -64,10 +64,6 @@ helm upgrade --install -n spire-mgmt spire-crds spire-crds --repo https://spiffe
 helm upgrade --install -n spire-mgmt spire spire --repo https://spiffe.github.io/helm-charts-hardened/ -f your-values.yaml
 ```
 
-## Upgrade notes
-
-We only support upgrading one major version at a time. Version skipping isn't supported.
-
 ### Clean up
 
 ```shell
@@ -75,6 +71,10 @@ helm -n spire-mgmt uninstall spire-crds
 helm -n spire-mgmt uninstall spire
 kubectl delete crds clusterfederatedtrustdomains.spire.spiffe.io clusterspiffeids.spire.spiffe.io clusterstaticentries.spire.spiffe.io
 ```
+
+## Upgrade notes
+
+We only support upgrading one major version at a time. Version skipping isn't supported.
 
 ### 0.17.X
 
