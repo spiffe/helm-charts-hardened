@@ -21,10 +21,10 @@ metadata:
     "helm.sh/hook": pre-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation, hook-succeeded, hook-failed
 rules:
-  - apiGroups: ["admissionregistration.k8s.io"]
-    resources: ["validatingwebhookconfigurations"]
-    resourceNames: [{{ printf "%s-%s-webhook" .Release.Namespace (include "spire-agent.fullname" .) | quote }}]
-    verbs: ["get", "patch"]
+  - apiGroups: ["apps"]
+    resources: ["daemonsets"]
+    resourceNames: [{{ include "spire-agent.fullname" . | quote }}]
+    verbs: ["get", "delete"]
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1

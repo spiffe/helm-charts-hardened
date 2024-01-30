@@ -68,6 +68,10 @@ helm upgrade --install -n spire-mgmt spire spire --repo https://spiffe.github.io
 
 We only support upgrading one major version at a time. Version skipping isn't supported.
 
+### 0.18.X
+
+- The spire-agent daemonset gained a new label. For those disabling the upgrade hooks, you need to delete the spire-agent daemonset before issuing the helm upgrade.
+
 ### 0.17.X
 
 - If you set spire-server.replicaCount > 1, update it to 1 before upgrading and after upgrade you can set it back to its previous value.
