@@ -60,21 +60,21 @@ agent:
 {{- $keyManagerUsed := add (len .Values.customPlugins.keyManager) (len .Values.unsupportedBuiltInPlugins.keyManager) }}
 plugins:
   NodeAttestor:
-  {{- if .Values.nodeAttestor.k8sPsat.enabled }}
+    {{- if .Values.nodeAttestor.k8sPsat.enabled }}
     k8s_psat:
       plugin_data:
         cluster: {{ include "spire-lib.cluster-name" . | quote }}
-  {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
-  {{- end }}
-  {{- with .Values.nodeAttestor.tpmDirect }}
-  {{- if eq (.enabled | toString) "true" }}
+    {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
+    {{- end }}
+    {{- with .Values.nodeAttestor.tpmDirect }}
+    {{- if eq (.enabled | toString) "true" }}
     tpm:
       plugin_cmd: "/tpm/tpm_attestor_agent"
       plugin_checksum: {{ .plugin.checksum }}
       plugin_data: {}
-  {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
-  {{- end }}
-  {{- end }}
+    {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
+    {{- end }}
+    {{- end }}
 {{- if ne $nodeAttestorUsed 1 }}
 {{- fail (printf "You have to enable exactly one Node Attestor. There are %d enabled." $nodeAttestorUsed) }}
 {{- end }}
