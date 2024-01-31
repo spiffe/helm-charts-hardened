@@ -49,7 +49,7 @@ spec:
           resources:
             {{- toYaml .Values.waitForIt.resources | nindent 12 }}
           securityContext:
-            {{ toYaml .Values.securityContext | nindent 12 }}
+            {{- include "spire-lib.securitycontext" . | nindent 12 }}
         {{- if gt (int (dig "fsGroup" 0 $podSecurityContext)) 0 }}
         - name: fsgroupfix
           image: {{ template "spire-lib.image" (dict "image" .Values.fsGroupFix.image "global" .Values.global) }}
