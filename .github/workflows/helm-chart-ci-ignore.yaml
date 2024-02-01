@@ -86,8 +86,6 @@ jobs:
           - v1.28.0
           - v1.27.3
           - v1.26.6
-        example:
-          - ${{ fromJson(needs.build-matrix.outputs.examples) }}
 
     steps:
-      - run: 'echo "Skipping example-test"'
+      - run: 'echo "Skipping upgrade-test"'
