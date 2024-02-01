@@ -16,8 +16,13 @@ spec:
       terminationGracePeriodSeconds: 0
       initContainers:
       - name: init-tls
-        image: kfox1111/misc:spiffe-helper-test2
+        image: ghcr.io/spiffe/spiffe-helper:nightly@sha256:8cee346ffdcee5c996d394f1c3bb761c2c06834a0e779a78db6dc6a46fd13ae6
         imagePullPolicy: Always
+        command:
+        - /helper/spiffe-helper
+        - -config
+        - /etc/spiffe-helper.conf
+        - -exitWhenReady
         securityContext:
           runAsUser: 1001
           runAsGroup: 1001
@@ -27,7 +32,7 @@ spec:
           readOnly: true
         - name: spiffe-helper-configmap
           mountPath: /etc/spiffe-helper.conf
-          subPath: helper-init.conf
+          subPath: spiffe-helper.conf
           readOnly: true
         - name: certdir
           mountPath: /certs
@@ -42,8 +47,12 @@ spec:
         - name: certdir
           mountPath: /certs
       - name: refresh-tls
-        image: kfox1111/misc:spiffe-helper-test2
+        image: ghcr.io/spiffe/spiffe-helper:nightly@sha256:8cee346ffdcee5c996d394f1c3bb761c2c06834a0e779a78db6dc6a46fd13ae6
         imagePullPolicy: Always
+        command:
+        - /helper/spiffe-helper
+        - -config
+        - /etc/spiffe-helper.conf
         securityContext:
           runAsUser: 1001
           runAsGroup: 1001
@@ -53,7 +62,7 @@ spec:
           readOnly: true
         - name: spiffe-helper-configmap
           mountPath: /etc/spiffe-helper.conf
-          subPath: helper-sidecar.conf
+          subPath: spiffe-helper.conf
           readOnly: true
         - name: certdir
           mountPath: /certs

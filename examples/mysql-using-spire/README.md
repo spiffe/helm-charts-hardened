@@ -1,6 +1,6 @@
 ```
-helm upgrade --install -n spire-server spire-crds spire-crds --repo https://spiffe.github.io/helm-charts-hardened/ --create-namespace --version 0.2.0
-helm upgrade --install -n spire-server spire spire --repo https://spiffe.github.io/helm-charts-hardened/ --version 0.16.0 -f spire-values.yaml
+helm upgrade --install -n spire-server spire-crds spire-crds --repo https://spiffe.github.io/helm-charts-hardened/ --create-namespace --version 0.3.0
+helm upgrade --install -n spire-server spire spire --repo https://spiffe.github.io/helm-charts-hardened/ --version 0.17.1 -f spire-values.yaml
 
 kubectl apply -f mysqlclient-configmap.yaml
 kubectl apply -f mysqlclient-statefulset.yaml
