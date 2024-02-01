@@ -1,6 +1,6 @@
 # spire
 
-![Version: 0.17.0](https://img.shields.io/badge/Version-0.17.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.8.7](https://img.shields.io/badge/AppVersion-1.8.7-informational?style=flat-square)
+![Version: 0.17.1](https://img.shields.io/badge/Version-0.17.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.8.7](https://img.shields.io/badge/AppVersion-1.8.7-informational?style=flat-square)
 [![Development Phase](https://github.com/spiffe/spiffe/blob/main/.img/maturity/dev.svg)](https://github.com/spiffe/spiffe/blob/main/MATURITY.md#development)
 
 A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
@@ -62,6 +62,14 @@ In particular, consider using an external database.
 ```shell
 helm upgrade --install -n spire-mgmt spire-crds spire-crds --repo https://spiffe.github.io/helm-charts-hardened/ --create-namespace
 helm upgrade --install -n spire-mgmt spire spire --repo https://spiffe.github.io/helm-charts-hardened/ -f your-values.yaml
+```
+
+## Clean up
+
+```shell
+helm -n spire-mgmt uninstall spire-crds
+helm -n spire-mgmt uninstall spire
+kubectl delete crds clusterfederatedtrustdomains.spire.spiffe.io clusterspiffeids.spire.spiffe.io clusterstaticentries.spire.spiffe.io
 ```
 
 ## Upgrade notes
