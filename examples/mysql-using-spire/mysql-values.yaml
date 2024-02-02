@@ -34,7 +34,7 @@ primary:
       image: ghcr.io/spiffe/spiffe-helper:nightly@sha256:8cee346ffdcee5c996d394f1c3bb761c2c06834a0e779a78db6dc6a46fd13ae6
       imagePullPolicy: Always
       command:
-      - /helper/spiffe-helper
+      - /spiffe-helper
       - -config
       - /etc/spiffe-helper.conf
       - -exitWhenReady
