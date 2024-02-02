@@ -69,7 +69,7 @@ helm upgrade --install -n spire-mgmt spire spire --repo https://spiffe.github.io
 ```shell
 helm -n spire-mgmt uninstall spire-crds
 helm -n spire-mgmt uninstall spire
-kubectl -n spire-mgmt delete pvc -l app.kubernetes.io/instance=spire
+kubectl -n spire-server delete pvc -l app.kubernetes.io/instance=spire
 kubectl delete crds clusterfederatedtrustdomains.spire.spiffe.io clusterspiffeids.spire.spiffe.io clusterstaticentries.spire.spiffe.io
 ```
 
