@@ -168,9 +168,6 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
-            - name: server-tmp
-              mountPath: /tmp
-              readOnly: false
             - name: spire-server-socket
               mountPath: /tmp/spire-server/private
               readOnly: false
@@ -218,6 +215,9 @@ spec:
             {{- if gt (len .Values.extraVolumeMounts) 0 }}
             {{- toYaml .Values.extraVolumeMounts | nindent 12 }}
             {{- end }}
+            - name: server-tmp
+              mountPath: /tmp
+              readOnly: false
         {{- if eq (.Values.controllerManager.enabled | toString) "true" }}
         - name: spire-controller-manager
           securityContext:
