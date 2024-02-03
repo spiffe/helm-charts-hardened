@@ -181,6 +181,14 @@ spec:
             - name: tpm-direct
               mountPath: /tpm
               readOnly: true
+            {{- if ne (len .Values.nodeAttestor.tpmDirect.cas) 0 }}
+            - name: tpm-direct-cas
+              mountPath: /tpm-direct-cas
+            {{- end }}
+            {{- if ne (len .Values.nodeAttestor.tpmDirect.hashes) 0 }}
+            - name: tpm-direct-hashes
+              mountPath: /tmp-direct-hashes
+            {{- end }}
             {{- end }}
             {{- if eq (.Values.upstreamAuthority.disk.enabled | toString) "true" }}
             - name: upstream-ca
@@ -353,6 +361,16 @@ spec:
         {{- if .Values.nodeAttestor.tpmDirect.enabled }}
         - name: tpm-direct
           emptyDir: {}
+        {{- if ne (len .Values.nodeAttestor.tpmDirect.cas) 0 }}
+        - name: tpm-direct-cas
+          configMap:
+            name: {{ include "spire-server.fullname" . }}-tpm-direct-ca
+        {{- end }}
+        {{- if ne (len .Values.nodeAttestor.tpmDirect.hashes) 0 }}
+        - name: tpm-direct-hashes
+          configMap:
+            name: {{ include "spire-server.fullname" . }}-tpm-direct-hash
+        {{- end }}
         {{- end }}
         {{- if or (eq (include "spire-tornjak.connectionType" .) "tls") (eq (include "spire-tornjak.connectionType" .) "mtls") }}
         - name: server-cert

@@ -110,8 +110,16 @@ plugins:
       plugin_cmd: "/tpm/tpm_attestor_server"
       plugin_checksum: {{ .checksum }}
       plugin_data:
+        {{- if ne (len .cas) 0 }}
+        ca_path: /tpm-direct-cas
+        {{- else }}
         ca_path: /run/spire/data/tpm-direct/certs
+        {{- end }}
+        {{- if ne (len .hashes) 0 }}
+        hash_path: /tmp-direct-hashes
+        {{- else }}
         hash_path: /run/spire/data/tpm-direct/hashes
+        {{- end }}
   {{- end }}
   {{- end }}
   {{- end }}
