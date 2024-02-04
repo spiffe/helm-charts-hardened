@@ -56,12 +56,14 @@ spec:
           imagePullPolicy: {{ .Values.fsGroupFix.image.pullPolicy }}
           command: ["bash", "-c"]
           args:
-            - "chown -R {{ $podSecurityContext.runAsUser }}:{{ $podSecurityContext.fsGroup }} {{ include "spire-agent.socket-path" . | dir }} /tmp/spire-agent/private/"
+            - "chown -R {{ $podSecurityContext.runAsUser }}:{{ $podSecurityContext.fsGroup }} {{ include "spire-agent.socket-path" . | dir }} /tmp/spire-agent/private"
           resources:
             {{- toYaml .Values.fsGroupFix.resources | nindent 12 }}
           volumeMounts:
             - name: spire-agent-socket-dir
               mountPath: {{ include "spire-agent.socket-path" . | dir }}
+            - name: spire-agent-admin-socket-dir
+              mountPath: /tmp/spire-agent/private
           securityContext:
             runAsUser: 0
             runAsGroup: 0
