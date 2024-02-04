@@ -152,7 +152,7 @@ spec:
             type: DirectoryOrCreate
         {{-   else }}
         - name: spire-agent-admin-socket-dir
-          emptyDird: {}
+          emptyDir: {}
         {{-   end }}
         {{- end }}
         {{- if eq (len .Values.trustBundleURL) 0 }}
