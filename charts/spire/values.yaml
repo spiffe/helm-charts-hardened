@@ -137,6 +137,9 @@ upstream-spire-agent:
     prometheus:
       ## @param upstream-spire-agent.telemetry.prometheus.port The port where prometheus metrics are available
       port: 9989
+  adminSocket:
+    ## @param upstream-spire-agent.adminSocket.hostPath Path on which the socket is made available when expose is true
+    hostPath: /run/spire/agent-sockets-upstream-private
 
 ## @section SPIFFE CSI Driver parameters
 ## Parameter values for spiffe-csi-driver
