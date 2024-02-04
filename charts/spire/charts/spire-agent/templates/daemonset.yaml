@@ -99,6 +99,11 @@ spec:
             - name: spire-config
               mountPath: /run/spire/config
               readOnly: true
+            {{- if .Values.adminSocket.enabled }}
+            - name: spire-agent-admin-socket-dir
+              mountPath: /tmp/spire-agent/private
+              readOnly: false
+            {{- end }}
             {{- if eq (len .Values.trustBundleURL) 0 }}
             - name: spire-bundle
               mountPath: /run/spire/bundle
@@ -139,6 +144,17 @@ spec:
         - name: spire-config
           configMap:
             name: {{ include "spire-agent.fullname" . }}
+        {{- if .Values.adminSocket.enabled }}
+        {{-   if .Values.adminSocket.expose }}
+        - name: spire-agent-admin-socket-dir
+          hostPath:
+            hostPath: {{ .Values.adminSocket.hostPath }}
+            type: DirectoryOrCreate
+        {{-   else }}
+        - name: spire-agent-admin-socket-dir
+          emptyDird: {}
+        {{-   end }}
+        {{- end }}
         {{- if eq (len .Values.trustBundleURL) 0 }}
         - name: spire-bundle
           configMap:

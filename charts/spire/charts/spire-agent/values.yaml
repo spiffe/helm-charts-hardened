@@ -257,3 +257,11 @@ experimental:
   syncInterval: 5s
   ## @param experimental.featureFlags [array] List of developer feature flags
   featureFlags: []
+
+## @param adminSocket.enabled Enable the admin socket. Useful for admin tasks or the Delegated Identity API.
+## @param adminSocket.expose Enable the admin socket to be visible on the host.
+## @param adminSocket.hostPath Path on which the socket is made available when expose is true
+adminSocket:
+  enabled: false
+  expose: false
+  hostPath: /run/spire/agent-sockets-private
