@@ -146,16 +146,14 @@ spec:
         - name: spire-config
           configMap:
             name: {{ include "spire-agent.fullname" . }}
-        {{- if .Values.adminSocket.enabled }}
-        {{-   if .Values.adminSocket.expose }}
+        {{- if .Values.adminSocket.expose }}
         - name: spire-agent-admin-socket-dir
           hostPath:
             hostPath: {{ .Values.adminSocket.hostPath }}
             type: DirectoryOrCreate
-        {{-   else }}
+        {{- else }}
         - name: spire-agent-admin-socket-dir
           emptyDir: {}
-        {{-   end }}
         {{- end }}
         {{- if eq (len .Values.trustBundleURL) 0 }}
         - name: spire-bundle
