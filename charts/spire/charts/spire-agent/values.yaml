@@ -210,6 +210,27 @@ kubeletConnectByHostname: ""
 ## @param socketPath The unix socket path to the spire-agent
 socketPath: /run/spire/agent-sockets/spire-agent.sock
 
+socketAlternate:
+  ## @param socketAlternate.names List of alternate names for the socket that workloads might expect to be able to access in the driver mount.
+  names:
+    - socket
+    - spire-agent.sock
+    - api.sock
+
+  ## @param socketAlternate.image.registry The OCI registry to pull the image from
+  ## @param socketAlternate.image.repository The repository within the registry
+  ## @param socketAlternate.image.pullPolicy The image pull policy
+  ## @param socketAlternate.image.tag Overrides the image tag whose default is the chart appVersion
+  ##
+  image:
+    registry: cgr.dev
+    repository: chainguard/bash
+    pullPolicy: Always
+    tag: latest@sha256:07d2662ef699e9ceafab3f39624083193dfcb7b768ee86860dbdd5cb4473dcea
+
+  ## @param socketAlternate.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+  resources: {}
+
 ## @param priorityClassName Priority class assigned to daemonset pods. Can be auto set with global.recommendations.priorityClassName.
 priorityClassName: ""
 
