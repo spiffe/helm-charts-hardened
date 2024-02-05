@@ -6,6 +6,73 @@ entries:
       artifacthub.io/license: Apache-2.0
     apiVersion: v2
     appVersion: 1.8.7
+    created: "2024-02-05T21:08:57.592414772Z"
+    dependencies:
+    - condition: spire-server.enabled
+      name: spire-server
+      repository: file://./charts/spire-server
+      version: 0.1.0
+    - condition: spire-agent.enabled
+      name: spire-agent
+      repository: file://./charts/spire-agent
+      version: 0.1.0
+    - alias: upstream-spire-agent
+      condition: upstream.enabled
+      name: spire-agent
+      repository: file://./charts/spire-agent
+      version: 0.1.0
+    - condition: spiffe-csi-driver.enabled
+      name: spiffe-csi-driver
+      repository: file://./charts/spiffe-csi-driver
+      version: 0.1.0
+    - alias: upstream-spiffe-csi-driver
+      condition: upstream.enabled
+      name: spiffe-csi-driver
+      repository: file://./charts/spiffe-csi-driver
+      version: 0.1.0
+    - condition: spiffe-oidc-discovery-provider.enabled
+      name: spiffe-oidc-discovery-provider
+      repository: file://./charts/spiffe-oidc-discovery-provider
+      version: 0.1.0
+    - condition: tornjak-frontend.enabled
+      name: tornjak-frontend
+      repository: file://./charts/tornjak-frontend
+      version: 0.1.0
+    description: 'A Helm chart for deploying the complete Spire stack including: spire-server,
+      spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager. '
+    digest: d56a1db70392383ce8af121e583c0e5881f9ce341027193de35e8c554234b6d1
+    home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire
+    icon: https://spiffe.io/img/logos/spire/icon/color/spire-icon-color.png
+    keywords:
+    - spiffe
+    - spire
+    - spire-server
+    - spire-agent
+    - oidc
+    - spire-controller-manager
+    kubeVersion: '>=1.21.0-0'
+    maintainers:
+    - email: marco.franssen@gmail.com
+      name: marcofranssen
+      url: https://marcofranssen.nl
+    - email: Kevin.Fox@pnnl.gov
+      name: kfox1111
+    - email: fymemon@yahoo.com
+      name: faisal-memon
+    - email: edwbuck@gmail.com
+      name: edwbuck
+    name: spire
+    sources:
+    - https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire
+    type: application
+    urls:
+    - https://github.com/spiffe/helm-charts-hardened/releases/download/spire-0.17.2/spire-0.17.2.tgz
+    version: 0.17.2
+  - annotations:
+      artifacthub.io/category: security
+      artifacthub.io/license: Apache-2.0
+    apiVersion: v2
+    appVersion: 1.8.7
     created: "2024-01-30T21:54:38.057565731Z"
     dependencies:
     - condition: spire-server.enabled
@@ -1666,4 +1733,4 @@ entries:
     urls:
     - https://github.com/spiffe/helm-charts-hardened/releases/download/spire-crds-0.0.1/spire-crds-0.0.1.tgz
     version: 0.0.1
-generated: "2024-01-30T21:54:38.057758081Z"
+generated: "2024-02-05T21:08:57.592698723Z"
