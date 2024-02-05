@@ -1,6 +1,8 @@
 {{- $configSum := (include (print $.Template.BasePath "/configmap.yaml") . | sha256sum) }}
 {{- $podSecurityContext := fromYaml (include "spire-lib.podsecuritycontext" .) }}
 {{- $cbh := eq (include "spire-agent.connect-by-hostname" .) "true" }}
+{{- $socketAlternateNames := index (include "spire-agent.socket-alternate-names" . | fromYaml) "names" }}
+{{- $socketPath := include "spire-agent.socket-path" . }}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -50,18 +52,43 @@ spec:
             {{- toYaml .Values.waitForIt.resources | nindent 12 }}
           securityContext:
             {{ toYaml .Values.securityContext | nindent 12 }}
+        {{- if gt (len $socketAlternateNames) 0 }}
+        - name: ensure-alternate-names
+          image: {{ template "spire-lib.image" (dict "image" .Values.socketAlternate.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.socketAlternate.image.pullPolicy }}
+          command: ["bash", "-xc"]
+          {{/* 1. Look for symlinks pointing at the wrong place and remove them. 2. Make symlinks that don't exist. 3. If new socket is pointing at an existing symlink, remove old symlink. */}}
+          args:
+            - |
+              cd {{ $socketPath | dir }}
+              {{- range $socketAlternateNames }}
+              L=`readlink {{ . }}`
+              [ "x$L" != "x{{ $socketPath | base}}" ] && rm -f {{ . }}
+              [ ! -L {{ . }} ] && ln -s {{ $socketPath | base }} {{ . }}
+              {{- end }}
+              [ -L {{ $socketPath | base }} ] && rm -f {{ $socketPath | base }}
+              exit 0
+          resources:
+            {{- toYaml .Values.socketAlternate.resources | nindent 12 }}
+          volumeMounts:
+            - name: spire-agent-socket-dir
+              mountPath: {{ $socketPath | dir }}
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+        {{- end }}
         {{- if gt (int (dig "fsGroup" 0 $podSecurityContext)) 0 }}
         - name: fsgroupfix
           image: {{ template "spire-lib.image" (dict "image" .Values.fsGroupFix.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.fsGroupFix.image.pullPolicy }}
           command: ["bash", "-c"]
           args:
-            - "chown -R {{ $podSecurityContext.runAsUser }}:{{ $podSecurityContext.fsGroup }} {{ include "spire-agent.socket-path" . | dir }}"
+            - "chown -R {{ $podSecurityContext.runAsUser }}:{{ $podSecurityContext.fsGroup }} {{ $socketPath | dir }}"
           resources:
             {{- toYaml .Values.fsGroupFix.resources | nindent 12 }}
           volumeMounts:
             - name: spire-agent-socket-dir
-              mountPath: {{ include "spire-agent.socket-path" . | dir }}
+              mountPath: {{ $socketPath | dir }}
           securityContext:
             runAsUser: 0
             runAsGroup: 0
@@ -73,7 +100,7 @@ spec:
         - name: {{ .Chart.Name }}
           image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          args: ["-config", "/run/spire/config/agent.conf"]
+          args: ["-config", "/opt/spire/conf/agent/agent.conf"]
           securityContext:
             {{ toYaml .Values.securityContext | nindent 12 }}
           env:
@@ -97,7 +124,7 @@ spec:
             {{- end }}
           volumeMounts:
             - name: spire-config
-              mountPath: /run/spire/config
+              mountPath: /opt/spire/conf/agent
               readOnly: true
             {{- if eq (len .Values.trustBundleURL) 0 }}
             - name: spire-bundle
@@ -105,7 +132,7 @@ spec:
               readOnly: true
             {{- end }}
             - name: spire-agent-socket-dir
-              mountPath: {{ include "spire-agent.socket-path" . | dir }}
+              mountPath: /tmp/spire-agent/public
               readOnly: false
             - name: spire-token
               mountPath: /var/run/secrets/tokens
@@ -131,6 +158,10 @@ spec:
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- with .Values.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
@@ -153,7 +184,7 @@ spec:
                 audience: spire-server
         - name: spire-agent-socket-dir
           hostPath:
-            path: {{ include "spire-agent.socket-path" . | dir }}
+            path: {{ $socketPath | dir }}
             type: DirectoryOrCreate
         {{- if gt (len .Values.extraVolumes) 0 }}
         {{- toYaml .Values.extraVolumes | nindent 8 }}

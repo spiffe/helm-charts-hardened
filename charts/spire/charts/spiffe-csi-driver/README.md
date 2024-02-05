@@ -51,6 +51,7 @@ A Helm chart to install the SPIFFE CSI driver.
 | `securityContext.privileged`             | Flag for specifying privileged mode                                                                       | `true`                                      |
 | `nodeSelector`                           | Node selector for CSI driver pods                                                                         | `{}`                                        |
 | `tolerations`                            | Tolerations for CSI driver pods                                                                           | `[]`                                        |
+| `affinity`                               | Node affinity                                                                                             | `{}`                                        |
 | `nodeDriverRegistrar.image.registry`     | The OCI registry to pull the image from                                                                   | `registry.k8s.io`                           |
 | `nodeDriverRegistrar.image.repository`   | The repository within the registry                                                                        | `sig-storage/csi-node-driver-registrar`     |
 | `nodeDriverRegistrar.image.pullPolicy`   | The image pull policy                                                                                     | `IfNotPresent`                              |
