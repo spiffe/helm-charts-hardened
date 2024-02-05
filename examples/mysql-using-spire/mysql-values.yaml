@@ -1,0 +1,122 @@
+initdbScripts:
+  usertls.sql: |
+    CREATE USER 'mysqlclient'@'%' REQUIRE SUBJECT '/C=US/O=SPIRE/CN=mysqlclient.default.svc.cluster.local/x500UniqueIdentifier=a753b06724b81d4a2f14f615d40550ed';
+    GRANT ALL PRIVILEGES ON *.* TO 'mysqlclient'@'%' WITH GRANT OPTION;
+
+primary:
+  extraFlags: "--ssl-ca=/certs/ca.pem --ssl-cert=/certs/tls.crt --ssl-key=/certs/tls.key --require-secure-transport=ON"
+
+  initContainers: |
+    - name: setup-helper-volume-p1
+      image: busybox:1.36.1-uclibc
+      imagePullPolicy: IfNotPresent
+      command:
+      - sh
+      - -c
+      - 'cp -a /bin/busybox /helper'
+      securityContext: {{- omit .Values.primary.containerSecurityContext "enabled" | toYaml | nindent 8 }}
+      volumeMounts:
+      - name: spiffe-helper
+        mountPath: /helper
+    - name: setup-helper-volume-p2
+      image: ghcr.io/spiffe/spiffe-helper:nightly@sha256:8cee346ffdcee5c996d394f1c3bb761c2c06834a0e779a78db6dc6a46fd13ae6
+      imagePullPolicy: IfNotPresent
+      command:
+      - /helper/busybox
+      - sh
+      - -c
+      - '/helper/busybox cp -a /spiffe-helper /helper && /helper/busybox rm -f /helper/busybox'
+      securityContext: {{- omit .Values.primary.containerSecurityContext "enabled" | toYaml | nindent 8 }}
+      volumeMounts:
+      - name: spiffe-helper
+        mountPath: /helper
+    - name: init-tls
+      image: ghcr.io/spiffe/spiffe-helper:nightly@sha256:8cee346ffdcee5c996d394f1c3bb761c2c06834a0e779a78db6dc6a46fd13ae6
+      imagePullPolicy: Always
+      command:
+      - /spiffe-helper
+      - -config
+      - /etc/spiffe-helper.conf
+      - -exitWhenReady
+      securityContext: {{- omit .Values.primary.containerSecurityContext "enabled" | toYaml | nindent 8 }}
+      volumeMounts:
+      - name: spiffe-workload-api
+        mountPath: /spiffe-workload-api
+        readOnly: true
+      - name: spiffe-helper-configmap
+        mountPath: /etc/spiffe-helper.conf
+        subPath: spiffe-helper.conf
+        readOnly: true
+      - name: certdir
+        mountPath: /certs
+
+  sidecars: |
+    - name: refresh-tls
+      image: {{  include "mysql.image" . }}
+      imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+      command:
+      - /helper/spiffe-helper
+      - -config
+      - /etc/spiffe-helper.conf
+      env:
+      - name: MYSQL_PWD
+        valueFrom:
+          secretKeyRef:
+            name: {{ template "mysql.secretName" . }}
+            key: mysql-root-password
+      securityContext: {{- omit .Values.primary.containerSecurityContext "enabled" | toYaml | nindent 8 }}
+      volumeMounts:
+      - name: spiffe-workload-api
+        mountPath: /spiffe-workload-api
+        readOnly: true
+      - name: spiffe-helper-configmap
+        mountPath: /etc/spiffe-helper.conf
+        subPath: spiffe-helper.conf
+        readOnly: true
+      - name: certdir
+        mountPath: /certs
+      - name: spiffe-helper
+        mountPath: /helper
+      - name: mysql-sockdir
+        mountPath: /opt/bitnami/mysql/tmp
+
+  extraVolumeMounts:
+  - name: certdir
+    mountPath: /certs
+  - name: mysql-sockdir
+    mountPath: /opt/bitnami/mysql/tmp
+
+  extraVolumes: |
+    - name: certdir
+      emptyDir: {}
+    - name: spiffe-helper
+      emptyDir: {}
+    - name: mysql-sockdir
+      emptyDir: {}
+    - name: spiffe-helper-configmap
+      configMap:
+        name: {{ include "mysql.primary.fullname" . }}-spiffe-helper
+    - name: spiffe-workload-api
+      csi:
+        driver: "csi.spiffe.io"
+        readOnly: true
+
+extraDeploy:
+  - |
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: {{ include "mysql.primary.fullname" . }}-spiffe-helper
+      namespace: {{ include "common.names.namespace" . | quote }}
+    data:
+      spiffe-helper.conf: |
+        agent_address = "/spiffe-workload-api/spire-agent.sock"
+        cmd = "/opt/bitnami/mysql/bin/mysql"
+        cmd_args = "-uroot -e \"ALTER INSTANCE RELOAD TLS;\""
+        renew_signal = ""
+        cert_dir = "/certs"
+        renew_signal = ""
+        svid_file_name = "tls.crt"
+        svid_key_file_name = "tls.key"
+        svid_bundle_file_name = "ca.pem"
+        add_intermediates_to_bundle = true
