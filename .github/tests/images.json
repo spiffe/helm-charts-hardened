@@ -13,6 +13,11 @@
       "sort-flags": []
     },
     {
+      "query": "socketAlternate.image",
+      "filter": "LATESTSHA",
+      "sort-flags": []
+    },
+    {
       "query": "fsGroupFix.image",
       "filter": "LATESTSHA",
       "sort-flags": []
