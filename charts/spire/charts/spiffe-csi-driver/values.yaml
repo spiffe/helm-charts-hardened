@@ -96,6 +96,9 @@ nodeSelector: {}
 ## @param tolerations [array] Tolerations for CSI driver pods
 tolerations: []
 
+## @param affinity [object] Node affinity
+affinity: {}
+
 nodeDriverRegistrar:
   ## @param nodeDriverRegistrar.image.registry The OCI registry to pull the image from
   ## @param nodeDriverRegistrar.image.repository The repository within the registry

@@ -125,3 +125,11 @@ Create the name of the service account to use
 {{-     printf "false" }}
 {{-   end }}
 {{- end }}
+
+{{- define "spire-agent.socket-alternate-names" -}}
+{{-   $sockName := .Values.socketPath | base }}
+{{-   $l := deepCopy .Values.socketAlternate.names }}
+{{-   $l = without $l $sockName }}
+names:
+{{ $l | toYaml }}
+{{- end }}
