@@ -73,3 +73,19 @@ jobs:
 
     steps:
       - run: 'echo "Skipping example-test"'
+
+  upgrade-test:
+    runs-on: ubuntu-22.04
+
+    needs:
+      - build-matrix
+
+    strategy:
+      matrix:
+        k8s:
+          - v1.28.0
+          - v1.27.3
+          - v1.26.6
+
+    steps:
+      - run: 'echo "Skipping upgrade-test"'

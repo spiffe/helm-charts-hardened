@@ -56,15 +56,29 @@ agent:
   {{- end }}
   {{- end }}
 
+{{- $nodeAttestorUsed := add (len .Values.customPlugins.nodeAttestor) (len .Values.unsupportedBuiltInPlugins.nodeAttestor) }}
+{{- $keyManagerUsed := add (len .Values.customPlugins.keyManager) (len .Values.unsupportedBuiltInPlugins.keyManager) }}
 plugins:
   NodeAttestor:
+    {{- if .Values.nodeAttestor.k8sPsat.enabled }}
     k8s_psat:
       plugin_data:
         cluster: {{ include "spire-lib.cluster-name" . | quote }}
+    {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
+    {{- end }}
+{{- if ne $nodeAttestorUsed 1 }}
+{{- fail (printf "You have to enable exactly one Node Attestor. There are %d enabled." $nodeAttestorUsed) }}
+{{- end }}
 
   KeyManager:
+    {{- if .Values.keyManager.memory.enabled }}
     memory:
       plugin_data:
+    {{- $keyManagerUsed = add1 $keyManagerUsed }}
+    {{- end }}
+{{- if ne $keyManagerUsed 1 }}
+{{- fail (printf "You have to enable exactly one Key Manager. There are %d enabled." $keyManagerUsed) }}
+{{- end }}
 
   WorkloadAttestor:
   {{- if .Values.workloadAttestors.k8s.enabled }}

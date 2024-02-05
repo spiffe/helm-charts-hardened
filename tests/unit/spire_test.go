@@ -107,6 +107,9 @@ spire-server:
 		It("plugin set ok", func() {
 			objs, err := ValueStringRender(chart, `
 spire-agent:
+  nodeAttestor:
+    k8sPsat:
+      enabled: false
   customPlugins:
     nodeAttestor:
       tpm:
@@ -123,6 +126,9 @@ spire-agent:
 		It("plugin set ok", func() {
 			objs, err := ValueStringRender(chart, `
 spire-agent:
+  nodeAttestor:
+    k8sPsat:
+      enabled: false
   unsupportedBuiltInPlugins:
     nodeAttestor:
       join_token:

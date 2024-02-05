@@ -1,6 +1,6 @@
 # spire
 
-![Version: 0.17.0](https://img.shields.io/badge/Version-0.17.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.8.7](https://img.shields.io/badge/AppVersion-1.8.7-informational?style=flat-square)
+![Version: 0.17.1](https://img.shields.io/badge/Version-0.17.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.8.7](https://img.shields.io/badge/AppVersion-1.8.7-informational?style=flat-square)
 [![Development Phase](https://github.com/spiffe/spiffe/blob/main/.img/maturity/dev.svg)](https://github.com/spiffe/spiffe/blob/main/MATURITY.md#development)
 
 A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
@@ -64,14 +64,24 @@ helm upgrade --install -n spire-mgmt spire-crds spire-crds --repo https://spiffe
 helm upgrade --install -n spire-mgmt spire spire --repo https://spiffe.github.io/helm-charts-hardened/ -f your-values.yaml
 ```
 
+## Clean up
+
+```shell
+helm -n spire-mgmt uninstall spire-crds
+helm -n spire-mgmt uninstall spire
+kubectl -n spire-server delete pvc -l app.kubernetes.io/instance=spire
+kubectl delete crds clusterfederatedtrustdomains.spire.spiffe.io clusterspiffeids.spire.spiffe.io clusterstaticentries.spire.spiffe.io
+```
+
 ## Upgrade notes
 
 We only support upgrading one major version at a time. Version skipping isn't supported.
 
 ### 0.17.X
 
+- If you set spire-server.replicaCount > 1, update it to 1 before upgrading and after upgrade you can set it back to its previous value.
 - The SPIFFE OIDC Discovery Provider now has many new TLS options and defaults to using SPIRE to issue its certificate.
-- The `spiffe-oidc-discovery-provider.insecureScheme.enabled` flag was removed. If you previously set that flag, remove the setting from your values.yaml and see if the new default of using a SPIRE issued certificate is suitable for your deployment. If it isn't, please consider one of the other options under `spiffe-oidc-discovery-provider.tls`. If all other options are still unsuitable, you can still enable the previous mode by disabling TLS. (`spiffe-oidc-discovery-provider.spire.enabled=false`)
+- The `spiffe-oidc-discovery-provider.insecureScheme.enabled` flag was removed. If you previously set that flag, remove the setting from your values.yaml and see if the new default of using a SPIRE issued certificate is suitable for your deployment. If it isn't, please consider one of the other options under `spiffe-oidc-discovery-provider.tls`. If all other options are still unsuitable, you can still enable the previous mode by disabling TLS. (`spiffe-oidc-discovery-provider.tls.spire.enabled=false`)
 
 - The SPIFFE OIDC Discovery Provider is now enabled by default. If you previously chose to have it off, you can disable it explicitly with `spiffe-oidc-discovery-provider.enabled=false`.
 
