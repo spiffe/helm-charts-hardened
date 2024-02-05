@@ -20,7 +20,7 @@
 {{- end }}
 {{- define "spire-agent.yaml-config" -}}
 agent:
-  {{- if .Values.adminSocket.enabled }}
+  {{- if .Values.sockets.admin.enabled }}
   admin_socket_dir: /tmp/spire-agent/private/admin.sock
   {{- end }}
   data_dir: "/run/spire"

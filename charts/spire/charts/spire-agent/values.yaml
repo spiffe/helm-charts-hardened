@@ -258,10 +258,11 @@ experimental:
   ## @param experimental.featureFlags [array] List of developer feature flags
   featureFlags: []
 
-## @param adminSocket.enabled Enable the admin socket. Useful for admin tasks or the Delegated Identity API.
-## @param adminSocket.expose Enable the admin socket to be visible on the host.
-## @param adminSocket.hostPath Path on which the socket is made available when expose is true
-adminSocket:
-  enabled: false
-  expose: false
-  hostPath: /run/spire/agent-sockets-private
+sockets:
+  ## @param sockets.hostBasePath Path on which the agent socket is made available when admin.expose is true
+  hostBasePath: /run/spire/agent/sockets
+  ## @param sockets.admin.enabled Enable the admin socket. Useful for admin tasks or the Delegated Identity API.
+  ## @param sockets.admin.expose Enable the admin socket to be visible on the host.
+  admin:
+    enabled: false
+    expose: false

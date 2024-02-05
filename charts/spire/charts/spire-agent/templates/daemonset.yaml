@@ -101,7 +101,7 @@ spec:
             - name: spire-config
               mountPath: /run/spire/config
               readOnly: true
-            {{- if .Values.adminSocket.enabled }}
+            {{- if .Values.sockets.admin.enabled }}
             - name: spire-agent-admin-socket-dir
               mountPath: /tmp/spire-agent/private
               readOnly: false
@@ -146,10 +146,10 @@ spec:
         - name: spire-config
           configMap:
             name: {{ include "spire-agent.fullname" . }}
-        {{- if .Values.adminSocket.expose }}
+        {{- if .Values.sockets.admin.expose }}
         - name: spire-agent-admin-socket-dir
           hostPath:
-            hostPath: {{ .Values.adminSocket.hostPath }}
+            hostPath: {{ .Values.sockets.hostBasePath }}/{{ if .Values.upstream }}upstream.csi.spiffe.io{{ else }}csi.spiffe.io{{ end }}/admin
             type: DirectoryOrCreate
         {{- else }}
         - name: spire-agent-admin-socket-dir
