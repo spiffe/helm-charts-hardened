@@ -7,11 +7,11 @@ UPGRADE_REPO=https://spiffe.github.io/helm-charts-hardened
 
 SCRIPT="$(readlink -f "$0")"
 SCRIPTPATH="$(dirname "${SCRIPT}")"
-TESTDIR="${SCRIPTPATH}/../../.github/tests"
+TESTDIR="${SCRIPTPATH}/../../../.github/tests"
 DEPS="${TESTDIR}/dependencies"
 
 # shellcheck source=/dev/null
-source "${SCRIPTPATH}/../../.github/scripts/parse-versions.sh"
+source "${SCRIPTPATH}/../../../.github/scripts/parse-versions.sh"
 # shellcheck source=/dev/null
 source "${TESTDIR}/common.sh"
 
