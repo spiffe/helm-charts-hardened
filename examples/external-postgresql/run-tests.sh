@@ -50,10 +50,10 @@ kubectl label namespace spire-server pod-security.kubernetes.io/enforce=restrict
 
 helm upgrade --install postgresql postgresql --version "$VERSION_POSTGRESQL" --repo "$HELM_REPO_POSTGRESQL" \
   --namespace spire-server \
-  --values "${DEPS}/postgresql.yaml,${SCRIPTPATH}/../production/values.yaml,${SCRIPTPATH}/../production/values-node-pod-antiaffinity.yaml" \
+  --values "${DEPS}/postgresql.yaml,${SCRIPTPATH}/../../tests/integration/production/values.yaml,${SCRIPTPATH}/../../tests/integration/production/values-node-pod-antiaffinity.yaml" \
   --wait
 
 helm upgrade --install --namespace "spire-server" \
-  --values "${SCRIPTPATH}/values.yaml,${SCRIPTPATH}/../production/values.yaml,${SCRIPTPATH}/../production/values-node-pod-antiaffinity.yaml,${SCRIPTPATH}/../production/example-your-values.yaml" \
+  --values "${SCRIPTPATH}/values.yaml,${SCRIPTPATH}/../../tests/integration/production/values.yaml,${SCRIPTPATH}/../../tests/integration/production/values-node-pod-antiaffinity.yaml,${SCRIPTPATH}/../../tests/integration/production/example-your-values.yaml" \
   --set 'spire-server.dataStore.sql.password=sp1ff3Test' --wait spire charts/spire
 helm test --namespace "spire-server" spire
