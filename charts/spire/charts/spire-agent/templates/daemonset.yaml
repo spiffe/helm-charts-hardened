@@ -177,7 +177,7 @@ spec:
         - name: spire-config
           configMap:
             name: {{ include "spire-agent.fullname" . }}
-        {{- if .Values.sockets.admin.expose }}
+        {{- if .Values.sockets.admin.mountOnHost }}
         - name: spire-agent-admin-socket-dir
           hostPath:
             hostPath: {{ .Values.sockets.hostBasePath }}/{{ if .Values.upstream }}upstream.csi.spiffe.io{{ else }}csi.spiffe.io{{ end }}/admin

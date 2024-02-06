@@ -286,7 +286,7 @@ sockets:
   ## @param sockets.hostBasePath Path on which the agent socket is made available when admin.expose is true
   hostBasePath: /run/spire/agent/sockets
   ## @param sockets.admin.enabled Enable the admin socket. Useful for admin tasks or the Delegated Identity API.
-  ## @param sockets.admin.expose Enable the admin socket to be visible on the host.
+  ## @param sockets.admin.mountOnHost Enable the admin socket to be visible on the host.
   admin:
     enabled: false
-    expose: false
+    mountOnHost: false
