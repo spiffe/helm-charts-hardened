@@ -204,8 +204,8 @@ jobs:
           echo "integrationtests=$integrationtests_json" >>"$GITHUB_OUTPUT"
 
     outputs:
-      examples: ${{ steps.set-matrix.outputs.examples }}
-      integrationtests: ${{ steps.set-matrix.outputs.integrationtests }}
+      examples: ${{ steps.set-matrix-exaple.outputs.examples }}
+      integrationtests: ${{ steps.set-matrix-integration.outputs.integrationtests }}
 
   example-test:
     runs-on: ubuntu-22.04
