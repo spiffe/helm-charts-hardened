@@ -699,6 +699,8 @@ nodeAttestor:
       tag: "v1.7.0"
     ## @param nodeAttestor.tpmDirect.checksum The sha256 checksum of the plugin binary
     checksum: 6dc74979eb41ecbd45cd047592c24e1830f9c52fff40441d69870e8927def13f
+    ## @param nodeAttestor.tpmDirect.pluginPath The filename in the container of the plugin
+    pluginPath: /app/tpm_attestor_server
     ## @param nodeAttestor.tpmDirect.cas A dictionary of TPM CA PEM or DER files that are allowed to connect.
     cas: {}
     ## @param nodeAttestor.tpmDirect.hashes A list of TPM hashes that are allowed to connect.

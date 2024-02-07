@@ -64,7 +64,7 @@ spec:
             - sh
             - -ec
             - |
-              cp -a /app/tpm_attestor_server /tpm
+              cp -a {{ .Values.nodeAttestor.tpmDirect.pluginPath }} /tpm/tpm_attestor_server
               mkdir -p /run/spire/data/tpm-direct/certs
               mkdir -p /run/spire/data/tpm-direct/hashes
           volumeMounts:
