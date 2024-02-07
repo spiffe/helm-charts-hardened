@@ -79,7 +79,7 @@ spec:
             - sh
             - -ec
             - |
-              cp -a /app/tpm_attestor_agent /tpm
+              cp -a {{ .Values.nodeAttestor.tpmDirect.plugin.path }} /tpm/tpm_attestor_agent
           volumeMounts:
             - name: tpm-direct
               mountPath: /tpm

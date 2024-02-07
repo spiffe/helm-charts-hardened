@@ -182,6 +182,8 @@ nodeAttestor:
         tag: "v1.7.0"
       ## @param nodeAttestor.tpmDirect.plugin.checksum The sha256 checksum of the plugin binary
       checksum: 6268bfe385ff847461c24f5eec43a0d05ddc875adfc8632289b6b77bde1866af
+      ## @param nodeAttestor.tpmDirect.plugin.path The filename in the container of the plugin
+      path: /app/tpm_attestor_agent
     pubHash:
       ## @param nodeAttestor.tpmDirect.pubHash.enabled Enable Psat k8s nodeattestor
       enabled: true
