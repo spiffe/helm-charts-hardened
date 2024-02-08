@@ -51,13 +51,13 @@ spec:
           resources:
             {{- toYaml .Values.waitForIt.resources | nindent 12 }}
           securityContext:
-            {{ toYaml .Values.securityContext | nindent 12 }}
+            {{- toYaml .Values.securityContext | nindent 12 }}
         {{- if gt (len $socketAlternateNames) 0 }}
         - name: ensure-alternate-names
           image: {{ template "spire-lib.image" (dict "image" .Values.socketAlternate.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.socketAlternate.image.pullPolicy }}
           command: ["bash", "-xc"]
-          {{/* 1. Look for symlinks pointing at the wrong place and remove them. 2. Make symlinks that don't exist. 3. If new socket is pointing at an existing symlink, remove old symlink. */}}
+          {{- /* 1. Look for symlinks pointing at the wrong place and remove them. 2. Make symlinks that don't exist. 3. If new socket is pointing at an existing symlink, remove old symlink. */}}
           args:
             - |
               cd {{ $socketPath | dir }}
