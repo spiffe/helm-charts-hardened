@@ -681,6 +681,29 @@ nodeAttestor:
     enabled: true
     ## @param nodeAttestor.k8sPsat.serviceAccountAllowList [array] Allowed service accounts for Psat nodeattestor
     serviceAccountAllowList: []
+    ## @param nodeAttestor.k8sPsat.audience [array] Audience for token validation. If it is set to an empty array ([]), Kubernetes API server audience is used
+    audience: ["spire-server"]
+    ## @param nodeAttestor.k8sPsat.allowedNodeLabelKeys [array] Node label keys considered for selectors
+    allowedNodeLabelKeys: []
+    ## @param nodeAttestor.k8sPsat.allowedPodLabelKeys [array] Pod label keys considered for selectors
+    allowedPodLabelKeys: []
+  externalK8sPsat:
+    ## @param nodeAttestor.externalK8sPsat.enabled Enable Psat k8s nodeattestor for external Kubernetes clusters
+    enabled: false
+    defaults:
+      ## @param nodeAttestor.externalK8sPsat.defaults.serviceAccountAllowList [array] Allowed service accounts for Psat nodeattestor
+      serviceAccountAllowList: "spire-system:spire-agent-upstream"
+      ## @param nodeAttestor.externalK8sPsat.defaults.audience [array] Audience for token validation. If it is set to an empty array ([]), Kubernetes API server audience is used
+      audience: ["spire-server"]
+      ## @param nodeAttestor.externalK8sPsat.defaults.allowedNodeLabelKeys [array] Node label keys considered for selectors
+      allowedNodeLabelKeys: []
+      ## @param nodeAttestor.externalK8sPsat.defaults.allowedPodLabelKeys [array] Pod label keys considered for selectors
+      allowedPodLabelKeys: []
+    ## @param nodeAttestor.externalK8sPsat.clusters [object] A dictionary of clusters to add with optional overrides. If empty, all clusters defined in kubeconfigs will be used.
+    clusters: {}
+    # clustera:
+    #   serviceAccountAllowList: ["other-ns:other-agent"]
+    # clusterb: {}
   joinToken:
     ## @param nodeAttestor.joinToken.enabled Enable the join_token nodeattestor
     enabled: false
@@ -844,3 +867,12 @@ tests:
       repository: chainguard/bash
       pullPolicy: IfNotPresent
       tag: latest@sha256:1b4e8389d2582d0b013fad55d7ad799a67bbdcbfbae0a053258ae24c8b03a19f
+
+## @param kubeconfigs [object] Manage additional kubeconfig files to talk to external Kubernetes clusters
+kubeconfigs: {}
+# clustera:
+#   kubeconfig: |
+#     xxxxx
+#     xxxxx
+# clusterb:
+#   kubeconfigBase64: eXl5Cnl5eQo=

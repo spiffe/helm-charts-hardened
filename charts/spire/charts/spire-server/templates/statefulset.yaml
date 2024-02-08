@@ -158,6 +158,11 @@ spec:
             - name: spire-data
               mountPath: /run/spire/data
               readOnly: false
+            {{- with .Values.kubeconfigs }}
+            - name: kubeconfigs
+              mountPath: /kubeconfigs
+              readOnly: true
+            {{- end }}
             {{- if eq (.Values.upstreamAuthority.disk.enabled | toString) "true" }}
             - name: upstream-ca
               mountPath: /run/spire/upstream_ca
@@ -321,6 +326,11 @@ spec:
           emptyDir: {}
         - name: spire-controller-manager-tmp
           emptyDir: {}
+        {{- if gt (len .Values.kubeconfigs) 0 }}
+        - name: kubeconfigs
+          secret:
+            secretName: {{ include "spire-server.fullname" . }}-kubeconfigs
+        {{- end }}
         {{- if or (eq (include "spire-tornjak.connectionType" .) "tls") (eq (include "spire-tornjak.connectionType" .) "mtls") }}
         - name: server-cert
           secret:
