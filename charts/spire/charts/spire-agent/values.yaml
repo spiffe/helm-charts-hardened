@@ -281,3 +281,12 @@ experimental:
   syncInterval: 5s
   ## @param experimental.featureFlags [array] List of developer feature flags
   featureFlags: []
+
+sockets:
+  ## @param sockets.hostBasePath Path on which the agent socket is made available when admin.mountOnHost is true
+  hostBasePath: /run/spire/agent/sockets
+  ## @param sockets.admin.enabled Enable the admin socket. Useful for admin tasks or the Delegated Identity API.
+  ## @param sockets.admin.mountOnHost Enable the admin socket to be visible on the host.
+  admin:
+    enabled: false
+    mountOnHost: false
