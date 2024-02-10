@@ -129,12 +129,14 @@ spec:
           imagePullPolicy: {{ .Values.fsGroupFix.image.pullPolicy }}
           command: ["bash", "-c"]
           args:
-            - "chown -R {{ $podSecurityContext.runAsUser }}:{{ $podSecurityContext.fsGroup }} {{ $socketPath | dir }}"
+            - "chown -R {{ $podSecurityContext.runAsUser }}:{{ $podSecurityContext.fsGroup }} {{ $socketPath | dir }} /tmp/spire-agent/private"
           resources:
             {{- toYaml .Values.fsGroupFix.resources | nindent 12 }}
           volumeMounts:
             - name: spire-agent-socket-dir
               mountPath: {{ $socketPath | dir }}
+            - name: spire-agent-admin-socket-dir
+              mountPath: /tmp/spire-agent/private
           securityContext:
             runAsUser: 0
             runAsGroup: 0
@@ -172,6 +174,11 @@ spec:
             - name: spire-config
               mountPath: /opt/spire/conf/agent
               readOnly: true
+            {{- if .Values.sockets.admin.enabled }}
+            - name: spire-agent-admin-socket-dir
+              mountPath: /tmp/spire-agent/private
+              readOnly: false
+            {{- end }}
             {{- if eq (len .Values.trustBundleURL) 0 }}
             - name: spire-bundle
               mountPath: /run/spire/bundle
@@ -224,6 +231,15 @@ spec:
         - name: spire-config
           configMap:
             name: {{ include "spire-agent.fullname" . }}
+        {{- if .Values.sockets.admin.mountOnHost }}
+        - name: spire-agent-admin-socket-dir
+          hostPath:
+            hostPath: {{ .Values.sockets.hostBasePath }}/{{ if .Values.upstream }}upstream.csi.spiffe.io{{ else }}csi.spiffe.io{{ end }}/admin
+            type: DirectoryOrCreate
+        {{- else }}
+        - name: spire-agent-admin-socket-dir
+          emptyDir: {}
+        {{- end }}
         {{- if eq (len .Values.trustBundleURL) 0 }}
         - name: spire-bundle
           configMap:
