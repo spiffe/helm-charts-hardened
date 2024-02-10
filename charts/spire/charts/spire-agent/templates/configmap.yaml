@@ -22,6 +22,7 @@
 {{- if hasPrefix (.Values.socketPath | dir | clean) (.Values.sockets.hostBasePath | clean) }}
 {{- fail "The sockets.hostBasePath can not be located under the socketPath direcotry" }}
 {{- end }}
+{{- end }}
 {{- define "spire-agent.yaml-config" -}}
 agent:
   {{- if .Values.sockets.admin.enabled }}
