@@ -19,9 +19,14 @@
 {{-     end }}
 {{-   end }}
 {{- end }}
+{{- if hasPrefix (.Values.socketPath | dir | clean) (.Values.sockets.hostBasePath | clean) }}
+{{- fail "The sockets.hostBasePath can not be located under the socketPath direcotry" }}
 {{- end }}
 {{- define "spire-agent.yaml-config" -}}
 agent:
+  {{- if .Values.sockets.admin.enabled }}
+  admin_socket_dir: /tmp/spire-agent/private/admin.sock
+  {{- end }}
   data_dir: "/run/spire"
   log_level: {{ .Values.logLevel | quote }}
   server_address: {{ include "spire-agent.server-address" . | trim | quote }}

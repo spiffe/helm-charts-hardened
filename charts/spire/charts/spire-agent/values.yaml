@@ -167,7 +167,7 @@ nodeAttestor:
     ## @param nodeAttestor.k8sPsat.enabled Enable Psat k8s Node Attestor
     enabled: true
   tpmDirect:
-    ## @param nodeAttestor.tpmDirect.enabled Enable the direct tpm nodeattestor
+    ## @param nodeAttestor.tpmDirect.enabled Enable the direct TPM node attestor, a 3rd party plugin by Boxboat.
     enabled: false
     plugin:
       ## @param nodeAttestor.tpmDirect.plugin.image.registry The OCI registry to pull the image from
@@ -343,3 +343,12 @@ tools:
       repository: rancher/kubectl
       pullPolicy: IfNotPresent
       tag: ""
+
+sockets:
+  ## @param sockets.hostBasePath Path on which the agent socket is made available when admin.mountOnHost is true
+  hostBasePath: /run/spire/agent/sockets
+  ## @param sockets.admin.enabled Enable the admin socket. Useful for admin tasks or the Delegated Identity API.
+  ## @param sockets.admin.mountOnHost Enable the admin socket to be visible on the host.
+  admin:
+    enabled: false
+    mountOnHost: false
