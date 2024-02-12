@@ -46,6 +46,7 @@ server:
   data_dir: "/run/spire/data"
   log_level: {{ .Values.logLevel | quote }}
   jwt_issuer: {{ include "spire-lib.jwt-issuer" . | quote }}
+  audit_log_enabled: {{ .Values.auditLogEnabled }}
 
   ca_key_type: {{ .Values.caKeyType | quote }}
   ca_ttl: {{ .Values.caTTL | quote }}
