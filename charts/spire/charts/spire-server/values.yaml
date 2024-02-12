@@ -173,6 +173,8 @@ dataStore:
       ## @param dataStore.sql.externalSecret.key The key of the secret object whose value is the dataStore.sql password
       key: ""
 
+## @param auditLogEnabled If true, enables audit logging
+auditLogEnabled: false
 ## @param logLevel The log level, valid values are "debug", "info", "warn", and "error"
 logLevel: info
 ## @param jwtIssuer The JWT issuer domain. Defaults to oidc-discovery.$trustDomain if unset
