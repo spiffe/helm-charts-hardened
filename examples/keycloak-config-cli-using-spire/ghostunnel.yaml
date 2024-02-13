@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ghostunnel
+spec:
+  selector:
+    app: ghostunnel
+  ports:
+    - protocol: TCP
+      port: 8080
+      name: listen
+      targetPort: listen
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ghostunnel
+  labels:
+    app: ghostunnel
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ghostunnel
+  template:
+    metadata:
+      labels:
+        app: ghostunnel
+        app.kubernetes.io/instance: ghostunnel # This needs to match the podSelector for the SpiffeID
+    spec:
+      containers:
+        - name: ghostunnel
+          image: ghostunnel/ghostunnel:v1.7.3
+          imagePullPolicy: IfNotPresent
+          args:
+            - client
+            - --use-workload-api-addr
+            - unix:///run/spire/agent-sockets/spire-agent.sock # The filename depends on what the spire-agent uses
+            - --listen
+            - 0.0.0.0:8080 # Listen on local http
+            - --target
+            - keycloak:8443 # Tunnel via https
+            - --status
+            - http://0.0.0.0:6060
+            - --unsafe-listen # Required to listen on 0.0.0.0. This (and listening to 0.0.0.0) is not needed when running the process as a sidecar or as process baked into the main image
+          ports:
+            - containerPort: 8080
+              name: listen
+              protocol: TCP
+            - containerPort: 6060
+              name: readiness
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /_status
+              port: readiness
+          volumeMounts:
+            - name: spire-sockets
+              mountPath: /run/spire/agent-sockets
+              readOnly: true
+      restartPolicy: Always
+      volumes:
+        - name: spire-sockets
+          hostPath:
+            path: /run/spire/agent-sockets # This needs to match the path mounted by the spire-agent
+            type: DirectoryOrCreate

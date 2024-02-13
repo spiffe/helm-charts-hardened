@@ -1,0 +1,49 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: keycloak-config-cli
+  labels:
+    app: keycloak-config-cli
+spec:
+  backoffLimit: 1
+  template:
+    metadata:
+      labels:
+        app: keycloak-config-cli
+    spec:
+      containers:
+        - name: keycloak-config-cli
+          image: adorsys/keycloak-config-cli:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: KEYCLOAK_URL
+              value: "http://ghostunnel:8080"
+            - name: KEYCLOAK_USER
+              value: "keycloak-config-cli"
+            - name: KEYCLOAK_PASSWORD
+              value: "doesn't matter, since we are authenticated via the client certificate"
+            - name: KEYCLOAK_CLIENTID
+              value: "keycloak-config-cli" # This is the client created on bootstrapping Keycloak via the keycloak-config-cli sidecar
+          volumeMounts:
+            - name: realm
+              mountPath: /config
+      restartPolicy: OnFailure
+      volumes:
+        - name: realm
+          configMap:
+            name: keycloak-config-cli
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-config-cli
+  labels:
+    app: keycloak-config-cli
+data:
+  keycloak-config-cli.json: |
+    {
+      "id": "keycloak-config-cli",
+      "realm": "keycloak-config-cli",
+      "enabled": true
+    }

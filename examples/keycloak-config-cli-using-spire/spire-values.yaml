@@ -1,0 +1,35 @@
+spiffe-oidc-discovery-provider:
+  tools:
+    kubectl:
+      image:
+        tag: v1.26.10 # Only required if the rancher/kubectl image doesn't exist for your k8s version
+spire-server:
+  tools:
+    kubectl:
+      image:
+        tag: v1.26.10 # Only required if the rancher/kubectl image doesn't exist for your k8s version
+  controllerManager:
+    identities:
+      clusterSPIFFEIDs:
+        default:
+          enabled: false
+        keycloak:
+          spiffeIDTemplate: spiffe://{{ .TrustDomain }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
+          namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: default
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: keycloak
+          dnsNameTemplates:
+            - keycloak
+        ghostunnel:
+          spiffeIDTemplate: spiffe://{{ .TrustDomain }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
+          namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: default
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: ghostunnel
+          dnsNameTemplates:
+            - keycloak-config-cli # This is the common name used for the certificate. In this case, the username

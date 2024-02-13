@@ -1,0 +1,113 @@
+service:
+  extraPorts:
+    - name: https
+      port: 8443
+      targetPort: 8443
+extraEnvVars:
+  - name: KC_HTTPS_CLIENT_AUTH
+    value: "request"
+  - name: KC_HTTPS_KEY_STORE_FILE
+    value: "/certs/keystore.p12"
+  - name: KC_HTTPS_KEY_STORE_PASSWORD
+    value: "password"
+  - name: KC_HTTPS_KEY_STORE_TYPE
+    value: "pkcs12"
+  - name: KC_HTTPS_TRUST_STORE_FILE
+    value: "/certs/truststore.p12"
+  - name: KC_HTTPS_TRUST_STORE_PASSWORD
+    value: "password"
+  - name: KC_HTTPS_TRUST_STORE_TYPE
+    value: "pkcs12"
+initContainers:
+  - name: java-spiffe-helper
+    image: ghcr.io/spiffe/java-spiffe-helper:0.8.5
+    imagePullPolicy: IfNotPresent
+    restartPolicy: Always
+    readinessProbe:
+      exec:
+        command:
+          - ls
+          - /certs/truststore.p12
+    volumeMounts:
+      - name: java-spiffe-helper
+        mountPath: /app/java-spiffe-helper.properties
+        subPath: java-spiffe-helper.properties
+      - name: spire-sockets
+        mountPath: /run/spire/agent-sockets
+        readOnly: true
+      - name: certs
+        mountPath: /certs
+extraVolumeMounts:
+  - name: certs
+    mountPath: /certs
+extraVolumes:
+  - name: java-spiffe-helper
+    configMap:
+      name: java-spiffe-helper
+  - name: spire-sockets
+    hostPath:
+      path: /run/spire/agent-sockets
+      type: DirectoryOrCreate
+  - name: certs
+    emptyDir: {}
+auth:
+  adminPassword: "password"
+keycloakConfigCli:
+  enabled: true
+  configuration:
+    master.json: |
+      {
+        "id": "master",
+        "realm": "master",
+        "enabled": true,
+        "users": [
+          {
+            "username": "keycloak-config-cli",
+            "enabled": true,
+            "realmRoles": [
+              "admin"
+            ]
+          }
+        ],
+        "authenticationFlows": [
+          {
+            "alias": "direct grant x509",
+            "providerId": "basic-flow",
+            "topLevel": true,
+            "builtIn": false,
+            "authenticationExecutions": [
+              {
+                "authenticatorConfig": "username",
+                "authenticator": "direct-grant-auth-x509-username",
+                "requirement": "REQUIRED",
+                "priority": 0
+              }
+            ]
+          }
+        ],
+        "authenticatorConfig": [
+          {
+            "alias": "username",
+            "config": {
+              "x509-cert-auth.regular-expression": "CN=(keycloak-config-cli)",
+              "x509-cert-auth.mapper-selection": "Username or Email",
+              "x509-cert-auth.mapping-source-selection": "Match SubjectDN using regular expression"
+            }
+          }
+        ],
+        "clients": [
+          {
+            "clientId": "keycloak-config-cli",
+            "name": "keycloak-config-cli",
+            "enabled": true,
+            "standardFlowEnabled": false,
+            "directAccessGrantsEnabled": true,
+            "publicClient": true,
+            "authenticationFlowBindingOverrides": {
+              "direct_grant": "direct grant x509"
+            },
+            "fullScopeAllowed": true,
+            "nodeReRegistrationTimeout": 0
+          }
+        ]
+      }
