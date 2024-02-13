@@ -173,6 +173,8 @@ dataStore:
       ## @param dataStore.sql.externalSecret.key The key of the secret object whose value is the dataStore.sql password
       key: ""
 
+## @param auditLogEnabled If true, enables audit logging
+auditLogEnabled: false
 ## @param logLevel The log level, valid values are "debug", "info", "warn", and "error"
 logLevel: info
 ## @param jwtIssuer The JWT issuer domain. Defaults to oidc-discovery.$trustDomain if unset
@@ -866,7 +868,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:1b4e8389d2582d0b013fad55d7ad799a67bbdcbfbae0a053258ae24c8b03a19f
+      tag: latest@sha256:9086f8309a76d24b769105b78fc9646f7816e2cb758fcedfa54549d07c0d03fa
 
 ## @param kubeconfigs [object] Manage additional kubeconfig files to talk to external Kubernetes clusters
 kubeconfigs: {}

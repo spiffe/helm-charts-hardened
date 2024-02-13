@@ -152,7 +152,7 @@ fsGroupFix:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: Always
-    tag: latest@sha256:1b4e8389d2582d0b013fad55d7ad799a67bbdcbfbae0a053258ae24c8b03a19f
+    tag: latest@sha256:9086f8309a76d24b769105b78fc9646f7816e2cb758fcedfa54549d07c0d03fa
 
   ## @param fsGroupFix.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
@@ -229,7 +229,7 @@ socketAlternate:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: Always
-    tag: latest@sha256:07d2662ef699e9ceafab3f39624083193dfcb7b768ee86860dbdd5cb4473dcea
+    tag: latest@sha256:9086f8309a76d24b769105b78fc9646f7816e2cb758fcedfa54549d07c0d03fa
 
   ## @param socketAlternate.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
@@ -281,3 +281,12 @@ experimental:
   syncInterval: 5s
   ## @param experimental.featureFlags [array] List of developer feature flags
   featureFlags: []
+
+sockets:
+  ## @param sockets.hostBasePath Path on which the agent socket is made available when admin.mountOnHost is true
+  hostBasePath: /run/spire/agent/sockets
+  ## @param sockets.admin.enabled Enable the admin socket. Useful for admin tasks or the Delegated Identity API.
+  ## @param sockets.admin.mountOnHost Enable the admin socket to be visible on the host.
+  admin:
+    enabled: false
+    mountOnHost: false
