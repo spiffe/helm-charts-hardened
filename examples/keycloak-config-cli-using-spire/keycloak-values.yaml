@@ -66,6 +66,12 @@ keycloakConfigCli:
             "enabled": true,
             "realmRoles": [
               "admin"
+            ],
+            "credentials": [
+              {
+                "type": "password",
+                "value": "it-really-doesn't-matter-what-you-put-here"
+              }
             ]
           }
         ],
