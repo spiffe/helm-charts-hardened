@@ -1,5 +1,9 @@
 # keycloak-config-cli using spire
 
+This example shows how to leverage Spire in establishing an mTLS connection
+between [Keycloak](https://www.keycloak.org/) and [keycloak-config-cli](https://github.com/adorsys/keycloak-config-cli),
+a tool to configure Keycloak.
+
 ## Setup
 
 1. Create a local cluster for testing
@@ -59,9 +63,8 @@ This example uses [java-spiffe-helper](https://github.com/spiffe/java-spiffe/tre
 initContainer for Keycloak. It fetches the certificates from the `spire-agent` and conveniently provides them to
 Keycloak in `pkcs12` format.
 
-> **One important thing to understand though**: Keycloak does not rotate the certificates like Spire does. If you want
-> to run the `keycloak-config-cli` job again, you need to make sure Keycloak is also restarted/provided with non-expired
-> certificates.
+> [!IMPORTANT] Keycloak does not rotate the certificates like Spire does. If you want to run the `keycloak-config-cli`
+> job again, you need to make sure Keycloak is also restarted/provided with non-expired certificates.
 
 ### Ghostunnel as separate deployment
 
