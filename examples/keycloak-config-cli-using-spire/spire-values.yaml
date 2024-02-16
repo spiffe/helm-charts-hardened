@@ -23,13 +23,13 @@ spire-server:
               app.kubernetes.io/instance: keycloak
           dnsNameTemplates:
             - keycloak
-        ghostunnel:
+        keycloak-config-cli:
           spiffeIDTemplate: spiffe://{{ .TrustDomain }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
           namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: default
           podSelector:
             matchLabels:
-              app.kubernetes.io/instance: ghostunnel
+              app.kubernetes.io/instance: keycloak-config-cli
           dnsNameTemplates:
             - keycloak-config-cli # This is the common name used for the certificate. In this case, the username

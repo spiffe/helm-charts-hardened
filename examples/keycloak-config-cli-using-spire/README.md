@@ -41,20 +41,14 @@ kubectl apply -f java-spiffe-helper.yaml
 helm upgrade --install keycloak oci://registry-1.docker.io/bitnamicharts/keycloak -f keycloak-values.yaml
 ```
 
-6. Install `ghostunnel` (this creates the mTLS tunnel to Keycloak using Spire-issued certificates)
-
-```shell
-kubectl apply -f ghostunnel.yaml
-```
-
-7. Install `keycloak-config-cli`
+6. Install `keycloak-config-cli`
 
 ```shell
 kubectl apply -f keycloak-config-cli.yaml
 ```
 
-8. Verify the realm config at the bottom of [keycloak-config-cli.yaml](./keycloak-config-cli.yaml) has been created!
-9. Cleanup
+7. Verify the realm config at the bottom of [keycloak-config-cli.yaml](./keycloak-config-cli.yaml) has been created!
+8. Cleanup
 
 ```shell
 kind delete cluster
