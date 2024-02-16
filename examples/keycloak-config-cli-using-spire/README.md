@@ -63,7 +63,8 @@ This example uses [java-spiffe-helper](https://github.com/spiffe/java-spiffe/tre
 initContainer for Keycloak. It fetches the certificates from the `spire-agent` and conveniently provides them to
 Keycloak in `pkcs12` format.
 
-> [!IMPORTANT] Keycloak does not rotate the certificates like Spire does. If you want to run the `keycloak-config-cli`
+> [!IMPORTANT]
+> Keycloak does not rotate the certificates like Spire does. If you want to run the `keycloak-config-cli`
 > job again, you need to make sure Keycloak is also restarted/provided with non-expired certificates.
 
 ### Ghostunnel as separate deployment
