@@ -1,13 +1,4 @@
-spiffe-oidc-discovery-provider:
-  tools:
-    kubectl:
-      image:
-        tag: v1.26.10 # Only required if the rancher/kubectl image doesn't exist for your k8s version
 spire-server:
-  tools:
-    kubectl:
-      image:
-        tag: v1.26.10 # Only required if the rancher/kubectl image doesn't exist for your k8s version
   controllerManager:
     identities:
       clusterSPIFFEIDs:
