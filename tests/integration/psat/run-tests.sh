@@ -4,11 +4,11 @@ set -xe
 
 SCRIPT="$(readlink -f "$0")"
 SCRIPTPATH="$(dirname "${SCRIPT}")"
-TESTDIR="${SCRIPTPATH}/../../.github/tests"
+TESTDIR="${SCRIPTPATH}/../../../.github/tests"
 DEPS="${TESTDIR}/dependencies"
 
 # shellcheck source=/dev/null
-source "${SCRIPTPATH}/../../.github/scripts/parse-versions.sh"
+source "${SCRIPTPATH}/../../../.github/scripts/parse-versions.sh"
 # shellcheck source=/dev/null
 source "${TESTDIR}/common.sh"
 
@@ -55,7 +55,7 @@ helm upgrade --install --create-namespace spire charts/spire \
   --values "${DEPS}/spire-root-server-values.yaml" \
   --wait
 
-kind create cluster --name kind-2 --kubeconfig "${SCRIPTPATH}/kubeconfig"
+kind create cluster --name other --kubeconfig "${SCRIPTPATH}/kubeconfig"
 
 helm upgrade --install --create-namespace --namespace spire-server --values "${SCRIPTPATH}/values.yaml" \
   --wait spire charts/spire --set "spire-server.kubeconfigs.other.kubeconfigBase64=$(base64 < "${SCRIPTPATH}/kubeconfig")"
