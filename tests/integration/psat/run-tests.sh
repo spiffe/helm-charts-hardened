@@ -55,9 +55,9 @@ helm upgrade --install --create-namespace spire charts/spire \
   --values "${DEPS}/spire-root-server-values.yaml" \
   --wait
 
-kind create cluster --name kind-2 --kubeconfig ${SCRIPTPATH}/kubeconfig
+kind create cluster --name kind-2 --kubeconfig "${SCRIPTPATH}/kubeconfig"
 
 helm upgrade --install --create-namespace --namespace spire-server --values "${SCRIPTPATH}/values.yaml" \
-  --wait spire charts/spire --set spire-server.kubeconfigs.other.kubeconfigBase64=$(base64 < "${SCRIPTPATH}/kubeconfig")
+  --wait spire charts/spire --set "spire-server.kubeconfigs.other.kubeconfigBase64=$(base64 < "${SCRIPTPATH}/kubeconfig")"
 helm test --namespace spire-server spire
 
