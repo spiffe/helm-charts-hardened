@@ -343,4 +343,4 @@ jobs:
           verbosity: 1
 
       - name: Install and test example
-        run: tests/integration/production/run-tests.sh -u
+        run: examples/production/run-tests.sh -u
