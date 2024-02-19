@@ -14,7 +14,7 @@ a tool to configure Keycloak.
 1. Create a local cluster for testing
 
 ```shell
-kind create cluster
+kind create cluster --image kindest/node:v1.29.0
 ```
 
 2. Install CRDs
@@ -29,26 +29,20 @@ helm upgrade --install -n spire-server spire-crds ../../charts/spire-crds --crea
 helm upgrade --install -n spire-server spire ../../charts/spire --create-namespace -f spire-values.yaml
 ```
 
-4. Install `java-spiffe-helper` properties. These will be needed for the `keycloak` installation in the next step
-
-```shell
-kubectl apply -f java-spiffe-helper.yaml
-```
-
-5. Install `keycloak` (this also configures Keycloak for client certificate authentication)
+4. Install `keycloak` (this also configures Keycloak for client certificate authentication)
 
 ```shell
 helm upgrade --install keycloak oci://registry-1.docker.io/bitnamicharts/keycloak -f keycloak-values.yaml
 ```
 
-6. Install `keycloak-config-cli`
+5. Install `keycloak-config-cli`
 
 ```shell
 kubectl apply -f keycloak-config-cli.yaml
 ```
 
-7. Verify the realm config at the bottom of [keycloak-config-cli.yaml](./keycloak-config-cli.yaml) has been created!
-8. Cleanup
+6. Verify the realm config at the bottom of [keycloak-config-cli.yaml](./keycloak-config-cli.yaml) has been created!
+7. Cleanup
 
 ```shell
 kind delete cluster

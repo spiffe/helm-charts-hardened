@@ -1,3 +1,18 @@
+extraDeploy:
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: java-spiffe-helper-properties
+    data:
+      java-spiffe-helper.properties: |
+        keyStorePath=/certs/keystore.p12
+        keyStorePass=password
+        keyPass=password
+        trustStorePath=/certs/truststore.p12
+        trustStorePass=password
+        keyStoreType=pkcs12
+        keyAlias=spiffe
+        spiffeSocketPath=unix:/run/spire/agent-sockets/spire-agent.sock
 service:
   extraPorts:
     - name: https
@@ -29,7 +44,7 @@ initContainers:
           - ls
           - /certs/truststore.p12
     volumeMounts:
-      - name: java-spiffe-helper
+      - name: java-spiffe-helper-properties
         mountPath: /app/java-spiffe-helper.properties
         subPath: java-spiffe-helper.properties
       - name: spire-sockets
@@ -41,9 +56,9 @@ extraVolumeMounts:
   - name: certs
     mountPath: /certs
 extraVolumes:
-  - name: java-spiffe-helper
+  - name: java-spiffe-helper-properties
     configMap:
-      name: java-spiffe-helper
+      name: java-spiffe-helper-properties
   - name: spire-sockets
     hostPath:
       path: /run/spire/agent-sockets
