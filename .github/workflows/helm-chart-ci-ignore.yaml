@@ -62,7 +62,7 @@ jobs:
           echo "integrationtests=$integrationtests_json" >>"$GITHUB_OUTPUT"
 
     outputs:
-      examples: ${{ steps.set-matrix-example..outputs.examples }}
+      examples: ${{ steps.set-matrix-example.outputs.examples }}
       integrationtests: ${{ steps.set-matrix-integration.outputs.integrationtests }}
 
   example-test:
