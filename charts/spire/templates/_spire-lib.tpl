@@ -168,12 +168,16 @@ rules:
 {{- end }}
 
 {{- define "spire-lib.kubectl-image" }}
-{{- $root := deepCopy . }}
-{{- $tag := $root.image.tag | toString }}
-{{- if eq (len $tag) 0 }}
-{{- $_ := set $root.image "tag" (regexReplaceAll "^(v?\\d+\\.\\d+\\.\\d+).*" $root.KubeVersion "${1}") }}
-{{- end }}
-{{- include "spire-lib.image" $root }}
+{{-   $root := deepCopy . }}
+{{-   $tag := $root.image.tag | toString }}
+{{-   if eq (len $tag) 0 }}
+{{-      if dig "spire" "tools" "kubectl" "tag" "" $root.global }}
+{{-        $_ := set $root.image "tag" $root.global.spire.tools.kubectl.tag }}
+{{-      else }}
+{{-        $_ := set $root.image "tag" (regexReplaceAll "^(v?\\d+\\.\\d+\\.\\d+).*" $root.KubeVersion "${1}") }}
+{{-     end }}
+{{-   end }}
+{{-   include "spire-lib.image" $root }}
 {{- end }}
 
 {{/*
