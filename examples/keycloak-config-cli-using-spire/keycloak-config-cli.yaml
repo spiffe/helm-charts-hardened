@@ -1,0 +1,84 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: keycloak-config-cli
+  labels:
+    app: keycloak-config-cli
+spec:
+  backoffLimit: 1
+  template:
+    metadata:
+      labels:
+        app: keycloak-config-cli
+        app.kubernetes.io/instance: keycloak-config-cli # This needs to match the podSelector for the SpiffeID
+    spec:
+      initContainers:
+        - name: ghostunnel
+          image: ghostunnel/ghostunnel:v1.7.3
+          imagePullPolicy: IfNotPresent
+          restartPolicy: Always
+          args:
+            - client
+            - --use-workload-api-addr
+            - unix:///run/spire/agent-sockets/spire-agent.sock # The filename depends on what the spire-agent uses
+            - --listen
+            - localhost:8080 # Listen on local http
+            - --target
+            - keycloak:8443 # Tunnel via https
+            - --status
+            - http://0.0.0.0:6060
+          ports:
+            - containerPort: 8080
+              name: listen
+              protocol: TCP
+            - containerPort: 6060
+              name: readiness
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /_status
+              port: readiness
+          volumeMounts:
+            - name: spire-sockets
+              mountPath: /run/spire/agent-sockets
+              readOnly: true
+      containers:
+        - name: keycloak-config-cli
+          image: adorsys/keycloak-config-cli:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: KEYCLOAK_URL
+              value: "http://127.0.0.1:8080"
+            - name: KEYCLOAK_USER
+              value: "keycloak-config-cli"
+            - name: KEYCLOAK_PASSWORD
+              value: "doesn't matter, since we are authenticated via the client certificate"
+            - name: KEYCLOAK_CLIENTID
+              value: "keycloak-config-cli" # This is the client created on bootstrapping Keycloak via the keycloak-config-cli sidecar
+          volumeMounts:
+            - name: realm
+              mountPath: /config
+      restartPolicy: OnFailure
+      volumes:
+        - name: realm
+          configMap:
+            name: keycloak-config-cli
+        - name: spire-sockets
+          hostPath:
+            path: /run/spire/agent-sockets # This needs to match the path mounted by the spire-agent
+            type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-config-cli
+  labels:
+    app: keycloak-config-cli
+data:
+  keycloak-config-cli.json: |
+    {
+      "id": "keycloak-config-cli",
+      "realm": "keycloak-config-cli",
+      "enabled": true
+    }
