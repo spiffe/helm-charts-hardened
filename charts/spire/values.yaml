@@ -69,6 +69,11 @@ global:
     ## @param global.spire.ingressControllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, autodetection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""].
     ingressControllerType: ""
 
+    tools:
+      kubectl:
+        ## @param global.spire.tools.kubectl.tag Set to force the tag to use for all kubectl instances
+        tag: ""
+
   installAndUpgradeHooks:
     ## @param global.installAndUpgradeHooks.enabled Enable Helm hooks to autofix common install/upgrade issues (should be disabled when using `helm template`)
     enabled: true
