@@ -80,6 +80,8 @@ tolerations: []
 ## @param affinity [object] Node affinity
 affinity: {}
 
+## @param authorizedDelegates A list of the authorized delegates SPIFFE IDs. See Delegated Identity API for more information.
+authorizedDelegates: []
 ## @param logLevel The log level, valid values are "debug", "info", "warn", and "error"
 logLevel: info
 ## @param clusterName The name of the Kubernetes cluster (`kubeadm init --service-dns-domain`)
