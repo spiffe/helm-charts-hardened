@@ -167,7 +167,7 @@ nodeAttestor:
     ## @param nodeAttestor.k8sPsat.enabled Enable Psat k8s Node Attestor
     enabled: true
   tpmDirect:
-    ## @param nodeAttestor.tpmDirect.enabled Enable the direct TPM node attestor, a 3rd party plugin by Boxboat.
+    ## @param nodeAttestor.tpmDirect.enabled Enable the direct TPM node attestor, a 3rd party plugin by Boxboat. This plugin is experimental.
     enabled: false
     plugin:
       ## @param nodeAttestor.tpmDirect.plugin.image.registry The OCI registry to pull the image from
