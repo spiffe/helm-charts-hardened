@@ -687,7 +687,7 @@ nodeAttestor:
     ## @param nodeAttestor.joinToken.enabled Enable the join_token nodeattestor
     enabled: false
   tpmDirect:
-    ## @param nodeAttestor.tpmDirect.enabled Enable the direct TPM node attestor, a 3rd party plugin by Boxboat.
+    ## @param nodeAttestor.tpmDirect.enabled Enable the direct TPM node attestor, a 3rd party plugin by Boxboat. This plugin is experimental.
     enabled: false
     ## @param nodeAttestor.tpmDirect.image.registry The OCI registry to pull the image from
     ## @param nodeAttestor.tpmDirect.image.repository The repository within the registry
