@@ -45,7 +45,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.1.1
 
-      - id: set-matrix
+      - id: set-matrix-example
         name: Collect all examples
         run: |
           examples="$(find examples -maxdepth 2 -type f -name run-tests.sh | xargs -I % dirname %)"
@@ -53,8 +53,17 @@ jobs:
           echo "${examples_json}"
           echo "examples=$examples_json" >>"$GITHUB_OUTPUT"
 
+      - id: set-matrix-integration
+        name: Collect all integration tests
+        run: |
+          integrationtests="$(find tests/integration -maxdepth 2 -type f -name run-tests.sh | xargs -I % dirname %)"
+          integrationtests_json="$(echo "$integrationtests" | jq -c --slurp --raw-input 'split("\n") | map(select(. != ""))')"
+          echo "${integrationtests_json}"
+          echo "integrationtests=$integrationtests_json" >>"$GITHUB_OUTPUT"
+
     outputs:
-      examples: ${{ steps.set-matrix.outputs.examples }}
+      examples: ${{ steps.set-matrix-example.outputs.examples }}
+      integrationtests: ${{ steps.set-matrix-integration.outputs.integrationtests }}
 
   example-test:
     runs-on: ubuntu-22.04
@@ -73,6 +82,24 @@ jobs:
 
     steps:
       - run: 'echo "Skipping example-test"'
+
+  integration-test:
+    runs-on: ubuntu-22.04
+
+    needs:
+      - build-matrix
+
+    strategy:
+      matrix:
+        k8s:
+          - v1.28.0
+          - v1.27.3
+          - v1.26.6
+        example:
+          - ${{ fromJson(needs.build-matrix.outputs.integrationtests) }}
+
+    steps:
+      - run: 'echo "Skipping integration-test"'
 
   upgrade-test:
     runs-on: ubuntu-22.04
