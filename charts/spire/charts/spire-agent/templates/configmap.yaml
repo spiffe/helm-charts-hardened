@@ -28,6 +28,10 @@ agent:
   {{- if .Values.sockets.admin.enabled }}
   admin_socket_dir: /tmp/spire-agent/private/admin.sock
   {{- end }}
+  {{- with .Values.authorizedDelegates }}
+  authorized_delegates:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   data_dir: "/run/spire"
   log_level: {{ .Values.logLevel | quote }}
   server_address: {{ include "spire-agent.server-address" . | trim | quote }}
