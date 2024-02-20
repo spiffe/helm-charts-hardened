@@ -42,7 +42,7 @@
 server:
 {{- with .Values.adminIDs }}
   admin_ids:
-    {{ toYaml . }}
+    {{- toYaml . | nindent 4}}
 {{- end }}
   bind_address: "0.0.0.0"
   bind_port: "8081"
