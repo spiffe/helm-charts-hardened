@@ -695,7 +695,7 @@ nodeAttestor:
     ## @param nodeAttestor.externalK8sPsat.enabled Enable Psat k8s nodeattestor for external Kubernetes clusters
     enabled: false
     defaults:
-      ## @param nodeAttestor.externalK8sPsat.defaults.serviceAccountAllowList [array] Allowed service accounts for Psat nodeattestor
+      ## @param nodeAttestor.externalK8sPsat.defaults.serviceAccountAllowList [array] Allowed service accounts for PSAT node attestor
       serviceAccountAllowList: "spire-system:spire-agent-upstream"
       ## @param nodeAttestor.externalK8sPsat.defaults.audience [array] Audience for token validation. If it is set to an empty array ([]), Kubernetes API server audience is used
       audience: ["spire-server"]
