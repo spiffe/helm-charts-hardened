@@ -40,6 +40,10 @@
 {{- $keyManagerUsed := 0 }}
 {{- $root := . }}
 server:
+{{- with .Values.adminIDs }}
+  admin_ids:
+    {{ toYaml . }}
+{{- end }}
   bind_address: "0.0.0.0"
   bind_port: "8081"
   trust_domain: {{ include "spire-lib.trust-domain" . | quote }}
