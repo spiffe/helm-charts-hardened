@@ -80,7 +80,7 @@ tolerations: []
 ## @param affinity [object] Node affinity
 affinity: {}
 
-## @param authorizedDelegates A SPIFFE ID list of the authorized delegates. See Delegated Identity API for more information
+## @param authorizedDelegates A list of the authorized delegates SPIFFE IDs. See Delegated Identity API for more information.
 authorizedDelegates: []
 ## @param logLevel The log level, valid values are "debug", "info", "warn", and "error"
 logLevel: info
