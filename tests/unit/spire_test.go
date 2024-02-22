@@ -150,4 +150,17 @@ spire-server:
 			Expect(notes).Should(ContainSubstring("Installed"))
 		})
 	})
+	Describe("spire-server.credentialComposer.uniqueID", func() {
+		It("spire server off", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  credentialComposer:
+    uniqueID:
+      enabled: true
+`)
+			Expect(err).Should(Succeed())
+			notes := objs["spire/templates/NOTES.txt"]
+			Expect(notes).Should(ContainSubstring("Installed"))
+		})
+	})
 })

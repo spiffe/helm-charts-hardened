@@ -284,6 +284,11 @@ ca_subject:
   ## @param ca_subject.common_name Common Name for Spire server CA
   common_name: example.org
 
+credentialComposer:
+  uniqueID:
+    ## @param credentialComposer.uniqueID.enabled Add the x509UniqueIdentifier attribute to workload X509-SVIDs
+    enabled: false
+
 keyManager:
   disk:
     ## @param keyManager.disk.enabled Flag to enable keyManager on disk
@@ -811,18 +816,21 @@ tornjak:
 ## @skip unsupportedBuiltInPlugins
 unsupportedBuiltInPlugins:
   bundlePublisher: {}
+  credentialComposer: {}
   keyManager: {}
   nodeAttestor: {}
   upstreamAuthority: {}
   notifier: {}
 
 ## @param customPlugins.bundlePublisher Custom plugins of type BundlePublisher are configured here
+## @param customPlugins.credentialComposer Custom plugins of type CredentialComposer are configured here
 ## @param customPlugins.keyManager Custom plugins of type KeyManager are configured here
 ## @param customPlugins.nodeAttestor Custom plugins of type NodeAttestor are configured here
 ## @param customPlugins.upstreamAuthority Custom plugins of type upstreamAuthority are configured here
 ## @param customPlugins.notifier Custom plugins of type notifier are configured here
 customPlugins:
   bundlePublisher: {}
+  credentialComposer: {}
   keyManager: {}
   nodeAttestor: {}
   upstreamAuthority: {}
