@@ -1,6 +1,9 @@
 {{- if .Values.federation.enabled }}
 {{- if .Values.federation.ingress.enabled -}}
 {{- $svcName := include "spire-server.fullname" . }}
+{{- $path := "/"}}
+{{- $pathType := "Prefix" }}
+{{- $tlsSection := true }}
 {{/* Until https://github.com/spiffe/spire/issues/2202 is resolved, use ingress to implement cert-manager and externalSecret support. */}}
 {{- $federationIngress := deepCopy .Values.federation.ingress }}
 {{- if .Values.federation.tls.certManager.enabled }}
@@ -42,6 +45,6 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  {{ include "spire-lib.ingress-spec" (dict "ingress" $federationIngress "svcName" $svcName "port" .Values.federation.bundleEndpoint.port "path" "/" "pathType" "Prefix" "tlsSection" $tlsSection "Values" .Values) | nindent 2 }}
+  {{ include "spire-lib.ingress-spec" (dict "ingress" $federationIngress "svcName" $svcName "port" .Values.federation.bundleEndpoint.port "path" $path "pathType" $pathType "tlsSection" $tlsSection "Values" .Values) | nindent 2 }}
 {{- end }}
 {{- end }}
