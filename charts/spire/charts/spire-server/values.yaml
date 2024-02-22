@@ -692,7 +692,7 @@ nodeAttestor:
     ## @param nodeAttestor.k8sPsat.allowedPodLabelKeys [array] Pod label keys considered for selectors
     allowedPodLabelKeys: []
   externalK8sPsat:
-    ## @param nodeAttestor.externalK8sPsat.enabled Enable Psat k8s nodeattestor for external Kubernetes clusters
+    ## @param nodeAttestor.externalK8sPsat.enabled Enable PSAT k8s nodeattestor for external Kubernetes clusters
     enabled: false
     defaults:
       ## @param nodeAttestor.externalK8sPsat.defaults.serviceAccountAllowList [array] Allowed service accounts for PSAT node attestor
