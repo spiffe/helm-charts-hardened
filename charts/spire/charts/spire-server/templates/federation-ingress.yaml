@@ -14,7 +14,6 @@
 {{-   $_ := set $federationIngress "tlsSecret" .Values.federation.tls.externalSecret.secretName }}
 {{- end }}
 {{- $ingressControllerType := include "spire-lib.ingress-controller-type" (dict "global" .Values.global "ingress" .Values.federation.ingress) }}
-{{- $tlsSection := true }}
 {{- $annotations := deepCopy .Values.federation.ingress.annotations }}
 {{- if eq $ingressControllerType "ingress-nginx" }}
 {{-   $_ := set $annotations "nginx.ingress.kubernetes.io/ssl-redirect" "true" }}
