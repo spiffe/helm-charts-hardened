@@ -151,7 +151,7 @@ spire-server:
 		})
 	})
 	Describe("spire-server.credentialComposer.uniqueID", func() {
-		It("spire server off", func() {
+		It("spire server uniqueid credential composer", func() {
 			objs, err := ValueStringRender(chart, `
 spire-server:
   credentialComposer:
