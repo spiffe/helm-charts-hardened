@@ -1,0 +1,29 @@
+auth:
+  ## @param keycloak.auth.realm Realm name in which to create users## @param auth.adminUser Keycloak administrator user
+  ##
+  adminUser: admin
+  ## @param auth.adminPassword Keycloak administrator password for the new user
+  ##
+  adminPassword: admin
+## @param extraEnvVars.name extra argument to import tornjak realm
+extraEnvVars:
+  - name: KEYCLOAK_EXTRA_ARGS
+    value: --import-realm
+extraVolumes:
+  - name: realm-secret
+    secret:
+      secretName: realm-secret
+
+extraVolumeMounts:
+  - name: realm-secret
+    mountPath: "/opt/bitnami/keycloak/data/import"
+    readOnly: true
+
+ingress: # ingress configuration for keycloak
+  enabled: true 
+  hosts:
+    - name: keycloak.local
+      path: /
+      tls: false
+  annotations:
+    kubernetes.io/ingress.class: public

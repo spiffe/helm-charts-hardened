@@ -63,10 +63,8 @@ service:
   port: 3000
   annotations: {}
 
-## @extra nodeSelector Select specific nodes to run on (currently only amd64 is supported by Tornjak)
-nodeSelector:
-  ## @skip nodeSelector.kubernetes.io/arch
-  kubernetes.io/arch: amd64
+## @extra nodeSelector Select specific nodes to run on (currently amd64 and arm64 are supported by Tornjak)
+nodeSelector: {}
 
 ## @param affinity [object] Affinity rules
 affinity: {}
@@ -93,6 +91,13 @@ apiServerURL: ""
 spireHealthCheck:
   ## @param spireHealthCheck.enabled Enables the SPIRE Healthchecker indicator
   enabled: true
+
+# User Managment
+auth:
+  ## @param auth.enabled Enables auth for tornjak
+  enabled: false
+  ## @param authServerURL URL of the Auth service. Tornjak Frontend will redirect to the url provided to authenticate the user. 
+  authServerURL: ""
 
 ## Configure extra options for Tornjak frontend container's startup probe
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-startup-probes
