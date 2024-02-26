@@ -60,6 +60,8 @@ spec:
               mountPath: {{ include "tornjak-frontend.workingDir" . }}/node_modules/.cache
             - name: env
               mountPath: {{ include "tornjak-frontend.workingDir" . }}/build/tmp
+            - name: logs
+              mountPath: /opt/app-root/src/.npm/
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -80,4 +82,6 @@ spec:
         - name: cache
           emptyDir: {}
         - name: env
+          emptyDir: {}
+        - name: logs
           emptyDir: {}
