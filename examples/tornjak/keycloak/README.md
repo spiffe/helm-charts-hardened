@@ -70,6 +70,7 @@ See [values.yaml](./values.yaml) for more details on the chart configurations to
 ## Tornjak and Ingress with ingress-nginx
 
 Update examples/production/example-your-values.yaml with your information, most importantly, trustDomain.
+Follow the [instructions](../README.md) for installing Tornjak, either locally or in the cloud, with or without Openshift, but add the `--values examples/tornjak/values-auth.yaml` parameter that is referencing Tornjak Authentication values. E.g:
 
 ```shell
 # Deploy SPIRE with Tornjak enabled and auth enabled with ingress config
