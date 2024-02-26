@@ -1,8 +1,9 @@
 # Deploy Tornjak with Auth Enabled
 
-To install Spire with the least privileges possible we deploy spire across 2 namespaces.
+## Install SPIRE CRDs and deploy SPIRE with Tornjak Enabled
 
-- Install SPIRE CRDs and deploy SPIRE with Tornjak Enabled
+To install SPIRE with the least privileges possible we deploy it across 2 namespaces.
+
 ```shell
 # install SPIRE CRDs
 helm upgrade --install --create-namespace -n spire-mgmt spire-crds charts/spire-crds
