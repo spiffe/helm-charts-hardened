@@ -23,7 +23,7 @@ helm upgrade --install \
 helm test spire
 ```
 
-- Deploy Keycloak
+## Deploy Keycloak
 ```shell
 # create a secret from the realm json file for tornjak realm import
 kubectl create secret generic realm-secret -n spire-server --from-file=examples/tornjak/keycloak/tornjak-realm.json
