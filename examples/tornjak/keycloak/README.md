@@ -9,7 +9,8 @@ To install SPIRE with the least privileges possible we deploy it across 2 namesp
 helm upgrade --install --create-namespace -n spire-mgmt spire-crds charts/spire-crds
 
 
-# deploy SPIRE with Tornjak enabled and provide auth url to enable auth
+1. Deploy SPIRE with Tornjak enabled and provide auth URL to enable auth
+```shell
 helm upgrade --install \
 --set global.spire.namespaces.create=true \
 --values examples/production/values.yaml \
