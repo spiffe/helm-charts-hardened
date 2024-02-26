@@ -4,8 +4,8 @@
 
 To install SPIRE with the least privileges possible we deploy it across 2 namespaces.
 
+1. Install SPIRE CRDs
 ```shell
-# install SPIRE CRDs
 helm upgrade --install --create-namespace -n spire-mgmt spire-crds charts/spire-crds
 
 
