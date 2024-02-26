@@ -29,7 +29,8 @@ helm test spire
 kubectl create secret generic realm-secret -n spire-server --from-file=examples/tornjak/keycloak/tornjak-realm.json
 
 
-# deploy keycloak as an auth service
+1. deploy Keycloak as an auth service
+```shell
 helm upgrade --install --create-namespace -n spire-server keycloak --values examples/tornjak/keycloak/values.yaml oci://registry-1.docker.io/bitnamicharts/keycloak --render-subchart-notes
 ```
 
