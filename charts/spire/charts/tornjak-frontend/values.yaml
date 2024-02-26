@@ -96,7 +96,7 @@ spireHealthCheck:
 auth:
   ## @param auth.enabled Enables auth for tornjak
   enabled: false
-  ## @param authServerURL URL of the Auth service. Tornjak Frontend will redirect to the url provided to authenticate the user. 
+  ## @param authServerURL URL of the Auth service. Tornjak Frontend will redirect to this URL to authenticate the user. 
   authServerURL: ""
 
 ## Configure extra options for Tornjak frontend container's startup probe
