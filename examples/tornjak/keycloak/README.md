@@ -18,18 +18,20 @@ helm upgrade --install \
 --values examples/tornjak/values-auth.yaml \
 --render-subchart-notes spire charts/spire
 
+```
+```shell
 # test the Tornjak deployment
 helm test spire
 ```
 
 ## Deploy Keycloak
-1. Create a secret from the realm JSON file for Tornjak realm import
 ```shell
+# Create a secret from the realm JSON file for Tornjak realm import
 kubectl create secret generic realm-secret -n spire-server --from-file=examples/tornjak/keycloak/tornjak-realm.json
+```
 
-
-1. deploy Keycloak as an auth service
 ```shell
+# Deploy Keycloak as an auth service
 helm upgrade --install --create-namespace -n spire-server keycloak --values examples/tornjak/keycloak/values.yaml oci://registry-1.docker.io/bitnamicharts/keycloak --render-subchart-notes
 ```
 
@@ -39,7 +41,7 @@ To access Tornjak use port-forwarding or check the ingress option below.
 
 Run following commands from your shell, if you run with different values your namespace might differ. Consult the install notes printed when running above `helm upgrade` command in that case.
 
-Since `port-forward` is a blocking command, execute them in three different consoles (One for backend, one for frontend and one for auth):
+Since `port-forward` is a blocking command, execute them in three different consoles (one for backend, one for frontend and one for auth):
 
 - Backend Service (Terminal 1)
 ```shell
