@@ -12,7 +12,7 @@ kubectl create secret generic realm-secret -n spire-server --from-file=examples/
 
 ```shell
 # Deploy Keycloak as an auth service
-helm upgrade --install --create-namespace -n spire-server keycloak --values examples/tornjak/keycloak/values.yaml oci://registry-1.docker.io/bitnamicharts/keycloak --render-subchart-notes
+helm upgrade --install -n spire-server keycloak --values examples/tornjak/keycloak/values.yaml oci://registry-1.docker.io/bitnamicharts/keycloak --render-subchart-notes
 ```
 
 ## Install SPIRE CRDs and deploy SPIRE with Tornjak Enabled
@@ -27,7 +27,7 @@ helm upgrade --install --create-namespace -n spire-mgmt spire-crds charts/spire-
 ```shell
 # Deploy SPIRE with Tornjak enabled and provide auth config options to enable auth
 helm upgrade --install \
---set global.spire.namespaces.create=true \
+--set global.spire.namespaces.system.create=true \
 --values examples/production/values.yaml \
 --values examples/production/example-your-values.yaml \
 --values examples/tornjak/values.yaml \
