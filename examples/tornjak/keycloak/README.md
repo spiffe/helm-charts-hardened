@@ -1,15 +1,31 @@
 # Deploy Tornjak with Auth Enabled
 
+## Deploy Keycloak (Auth Service)
+```shell
+# Create a namespace to deploy keycloak and spire-server
+kubectl create namespace spire-server
+```
+```shell
+# Create a secret from the realm JSON file for Tornjak realm import
+kubectl create secret generic realm-secret -n spire-server --from-file=examples/tornjak/keycloak/tornjak-realm.json
+```
+
+```shell
+# Deploy Keycloak as an auth service
+helm upgrade --install --create-namespace -n spire-server keycloak --values examples/tornjak/keycloak/values.yaml oci://registry-1.docker.io/bitnamicharts/keycloak --render-subchart-notes
+```
+
 ## Install SPIRE CRDs and deploy SPIRE with Tornjak Enabled
 
 To install SPIRE with the least privileges possible we deploy it across 2 namespaces.
 
-1. Install SPIRE CRDs
 ```shell
+# Install SPIRE CRDs
 helm upgrade --install --create-namespace -n spire-mgmt spire-crds charts/spire-crds
 ```
-1. Deploy SPIRE with Tornjak enabled and provide auth URL to enable auth
+
 ```shell
+# Deploy SPIRE with Tornjak enabled and provide auth config options to enable auth
 helm upgrade --install \
 --set global.spire.namespaces.create=true \
 --values examples/production/values.yaml \
@@ -19,20 +35,10 @@ helm upgrade --install \
 --render-subchart-notes spire charts/spire
 
 ```
+
 ```shell
-# test the Tornjak deployment
+# Test the Tornjak deployment
 helm test spire
-```
-
-## Deploy Keycloak
-```shell
-# Create a secret from the realm JSON file for Tornjak realm import
-kubectl create secret generic realm-secret -n spire-server --from-file=examples/tornjak/keycloak/tornjak-realm.json
-```
-
-```shell
-# Deploy Keycloak as an auth service
-helm upgrade --install --create-namespace -n spire-server keycloak --values examples/tornjak/keycloak/values.yaml oci://registry-1.docker.io/bitnamicharts/keycloak --render-subchart-notes
 ```
 
 ## Access Tornjak
@@ -66,6 +72,7 @@ See [values.yaml](./values.yaml) for more details on the chart configurations to
 Update examples/production/example-your-values.yaml with your information, most importantly, trustDomain.
 
 ```shell
+# Deploy SPIRE with Tornjak enabled and auth enabled with ingress config
 helm upgrade --install \
 --set global.spire.namespaces.create=true \
 --set global.spire.ingressControllerType=ingress-nginx \
