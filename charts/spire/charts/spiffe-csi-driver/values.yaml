@@ -37,14 +37,12 @@ healthChecks:
   ## @param healthChecks.port The healthcheck port for spiffe-csi-driver
   port: 9809
 
-## @param updateStrategy.type The update strategy to use to replace existing DaemonSet pods with new pods
-## @param updateStrategy.rollingUpdate.maxUnavailable Max unavailable pods during update
-## @param updateStrategy.rollingUpdate.maxSurge Max pods that simultatiously start the update
+## @param updateStrategy.type The update strategy to use to replace existing DaemonSet pods with new pods. Can be RollingUpdate or OnDelete.
+## @param updateStrategy.rollingUpdate.maxUnavailable Max unavailable pods during update. Can be a number or a percentage.
 updateStrategy:
   type: RollingUpdate
   rollingUpdate:
     maxUnavailable: 1
-    maxSurge: 0
 
 ## @param livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
 ## @param livenessProbe.timeoutSeconds Timeout value in seconds for livenessProbe

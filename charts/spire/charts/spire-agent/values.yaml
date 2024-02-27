@@ -113,14 +113,12 @@ healthChecks:
   ## @param healthChecks.port override the host port used for health checking
   port: 9982
 
-## @param updateStrategy.type The update strategy to use to replace existing DaemonSet pods with new pods
-## @param updateStrategy.rollingUpdate.maxUnavailable Max unavailable pods during update
-## @param updateStrategy.rollingUpdate.maxSurge Max pods that simultatiously start the update
+## @param updateStrategy.type The update strategy to use to replace existing DaemonSet pods with new pods. Can be RollingUpdate or OnDelete.
+## @param updateStrategy.rollingUpdate.maxUnavailable Max unavailable pods during update. Can be a number or a percentage.
 updateStrategy:
   type: RollingUpdate
   rollingUpdate:
     maxUnavailable: 1
-    maxSurge: 0
 
 ## @param livenessProbe.initialDelaySeconds Initial delay seconds for probe
 ## @param livenessProbe.periodSeconds Period seconds for probe

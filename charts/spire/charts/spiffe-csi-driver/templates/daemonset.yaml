@@ -11,7 +11,14 @@ spec:
       {{- include "spiffe-csi-driver.selectorLabels" . | nindent 6 }}
   {{- with .Values.updateStrategy }}
   updateStrategy:
-    {{- toYaml . | nindent 4 }}
+    {{- if not (has .type (list "RollingUpdate" "OnDelete")) }}
+    {{- fail "updateStrategy.type can only be RollingUpdate or OnDelete"}}
+    {{- end }}
+    type: {{ .type }}
+    {{- if eq .type "RollingUpdate" }}
+    rollingUpdate:
+      maxUnavailable: {{ .rollingUpdate.maxUnavailable }}
+    {{- end }}
   {{- end }}
   template:
     metadata:
