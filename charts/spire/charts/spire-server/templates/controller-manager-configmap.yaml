@@ -42,4 +42,8 @@ data:
     className: {{ include "spire-server.controller-manager-class-name" . | quote}}
     watchClassless: {{ .Values.controllerManager.watchClassless | toYaml }}
     parentIDTemplate: {{ .Values.controllerManager.parentIDTemplate | quote }}
+  {{- with .Values.reconcile }}
+  reconcile:
+    {{- toYaml . | nindent 6 }}
+  {{- end }}
 {{- end }}

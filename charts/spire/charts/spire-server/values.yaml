@@ -452,7 +452,7 @@ controllerManager:
     registry: ghcr.io
     repository: spiffe/spire-controller-manager
     pullPolicy: IfNotPresent
-    tag: "0.4.2"
+    tag: "0.4.3"
 
   ## @param controllerManager.resources [object] Resource requests and limits for controller manager
   resources: {}
@@ -495,6 +495,13 @@ controllerManager:
     - kube-public
     - local-path-storage
 
+  ## @param controllerManager.reconcile.clusterSPIFFEIDs Enable reconciliation of clusterSPIFFEIDs from K8s to the SPIRE server
+  ## @param controllerManager.reconcile.clusterStaticEntries Enable reconciliation of clusterStaticEntries from K8s to the SPIRE server
+  ## @param controllerManager.reconcile.clusterFederatedTrustDomains Enable reconciliation of clusterFederatedTrustDomains from K8s to the SPIRE server
+  reconcile:
+    clusterSPIFFEIDs: true
+    clusterStaticEntries: true
+    clusterFederatedTrustDomains: true
   identities:
     clusterSPIFFEIDs:
       # NOTE you can add multiple uniquely named entries to create multiple ClusterSPIFFEID objects. See example below.
@@ -847,4 +854,4 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:f3e038a2aa6e99902949a129a97ec379ccdac87c34f9368a1a4efde8f37555cc
+      tag: latest@sha256:5c232c444e5c3bc509fdd3794534e9ff5438e9f80268218202ce6ce8c6d8e8f7
