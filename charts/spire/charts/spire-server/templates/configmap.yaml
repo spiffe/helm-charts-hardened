@@ -5,7 +5,7 @@
 {{- include "spire-lib.check-strict-mode" (list . "ca_subject.organization must be set" (eq (include "spire-server.ca-subject-organization" .) "Example"))}}
 {{- include "spire-lib.check-strict-mode" (list . "ca_subject.common_name must be set" (eq (include "spire-server.ca-subject-common-name" .) "example.org"))}}
 {{- range $type, $tvals := .Values.customPlugins }}
-{{-   if not (has $type (list "bundlePublisher" "keyManager" "nodeAttestor" "upstreamAuthority" "notifier")) }}
+{{-   if not (has $type (list "bundlePublisher" "credentialComposer" "keyManager" "nodeAttestor" "upstreamAuthority" "notifier")) }}
 {{-     fail (printf "Unknown plugin type specified: %s" $type) }}
 {{-   end }}
 {{-   range $name, $nval := $tvals }}
@@ -85,6 +85,11 @@ server:
   {{- end }}
 
 plugins:
+  {{- if .Values.credentialComposer.uniqueID.enabled }}
+  CredentialComposer:
+    uniqueid: {}
+  {{- end }}
+
   DataStore:
     sql:
       plugin_data:
