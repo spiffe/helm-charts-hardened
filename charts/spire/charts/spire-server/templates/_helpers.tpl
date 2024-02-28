@@ -264,3 +264,18 @@ The code below determines what connection type should be used.
 {{-     .Release.Namespace }}-{{ default .Release.Name .Values.crNameOverride }}
 {{-   end -}}
 {{- end -}}
+
+{{- define "spire-server.ca-subject-country" }}
+{{-   $g := dig "spire" "caSubject" "country" "" .Values.global }}
+{{-   default .Values.ca_subject.country $g }}
+{{- end }}
+
+{{- define "spire-server.ca-subject-organization" }}
+{{-   $g := dig "spire" "caSubject" "organization" "" .Values.global }}
+{{-   default .Values.ca_subject.organization $g }}
+{{- end }}
+
+{{- define "spire-server.ca-subject-common-name" }}
+{{-   $g := dig "spire" "caSubject" "commonName" "" .Values.global }}
+{{-   default .Values.ca_subject.common_name $g }}
+{{- end }}
