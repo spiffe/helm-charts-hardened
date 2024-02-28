@@ -97,6 +97,9 @@ bundleConfigMap: spire-bundle
 ## @param availabilityTarget The minimum amount of time desired to gracefully handle SPIRE Server or Agent downtime. This configurable influences how aggressively X509 SVIDs should be rotated. If set, must be at least 24h.
 availabilityTarget: ""
 
+## @param disableReattestToRenew Deprecated: Allow agent to renew certificate when it expires rather than reattest
+disableReattestToRenew: false
+
 ## @skip upstream
 upstream: false
 
