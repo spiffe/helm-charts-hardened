@@ -87,7 +87,6 @@ server:
   {{- end }}
 
 plugins:
-
   {{- if .Values.credentialComposer.uniqueID.enabled }}
   CredentialComposer:
     uniqueid: {}
