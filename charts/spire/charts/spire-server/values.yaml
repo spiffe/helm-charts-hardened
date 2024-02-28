@@ -697,7 +697,7 @@ nodeAttestor:
     enabled: true
     ## @param nodeAttestor.k8sPsat.serviceAccountAllowList [array] Allowed service accounts for Psat nodeattestor
     serviceAccountAllowList: []
-    ## @param nodeAttestor.k8sPsat.audience [array] Audience for token validation. If it is set to an empty array ([]), Kubernetes API server audience is used
+    ## @param nodeAttestor.k8sPsat.audience [array] Audience for token validation. If set to [] (empty array), Kubernetes API server audience is used
     audience: ["spire-server"]
     ## @param nodeAttestor.k8sPsat.allowedNodeLabelKeys [array] Node label keys considered for selectors
     allowedNodeLabelKeys: []
