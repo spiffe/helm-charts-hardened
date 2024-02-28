@@ -1,6 +1,8 @@
 module github.com/spiffe/helm-charts/tests
 
-go 1.20
+go 1.21
+
+toolchain go1.21.5
 
 require (
 	github.com/onsi/ginkgo/v2 v2.15.0
