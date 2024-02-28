@@ -21,6 +21,14 @@ global:
     ## @param global.spire.upstreamServerAddress Set what address to use for the upstream server when using nested spire
     upstreamServerAddress: ""
 
+    ## @param global.spire.caSubject.country Country for Spire server CA
+    ## @param global.spire.caSubject.organization Organization for Spire server CA
+    ## @param global.spire.caSubject.commonName Common Name for Spire server CA
+    caSubject:
+      country: ""
+      organization: ""
+      commonName: ""
+
     ## @param global.spire.recommendations.enabled Use recommended settings for production deployments. Default is off.
     ## @param global.spire.recommendations.namespaceLayout Set to true to use recommended values for installing across namespaces
     ## @param global.spire.recommendations.namespacePSS When chart namespace creation is enabled, label them with preffered Pod Security Standard labels

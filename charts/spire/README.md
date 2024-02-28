@@ -34,12 +34,10 @@ global:
     # Update these
     clusterName: example-cluster
     trustDomain: example.org
-spire-server:
-  ca_subject:
-    # Update these
-    country: ARPA
-    organization: Example
-    common_name: example.org
+    caSubject:
+      country: ARPA
+      organization: Example
+      commonName: example.org
 ```
 
 2. If you need a non default storageClass, append the following to the spire-server section and update:
@@ -209,6 +207,9 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `global.spire.jwtIssuer`                         | The issuer for Spire JWT tokens. Defaults to oidc-discovery.$trustDomain if unset                                                                                                                                                      | `""`              |
 | `global.spire.trustDomain`                       | The trust domain for Spire install                                                                                                                                                                                                     | `example.org`     |
 | `global.spire.upstreamServerAddress`             | Set what address to use for the upstream server when using nested spire                                                                                                                                                                | `""`              |
+| `global.spire.caSubject.country`                 | Country for Spire server CA                                                                                                                                                                                                            | `""`              |
+| `global.spire.caSubject.organization`            | Organization for Spire server CA                                                                                                                                                                                                       | `""`              |
+| `global.spire.caSubject.commonName`              | Common Name for Spire server CA                                                                                                                                                                                                        | `""`              |
 | `global.spire.recommendations.enabled`           | Use recommended settings for production deployments. Default is off.                                                                                                                                                                   | `false`           |
 | `global.spire.recommendations.namespaceLayout`   | Set to true to use recommended values for installing across namespaces                                                                                                                                                                 | `true`            |
 | `global.spire.recommendations.namespacePSS`      | When chart namespace creation is enabled, label them with preffered Pod Security Standard labels                                                                                                                                       | `true`            |
