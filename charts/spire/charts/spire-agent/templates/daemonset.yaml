@@ -79,6 +79,7 @@ spec:
             - sh
             - -ec
             - |
+              # SPIRE must be able to fork the plugin directly within its container. Copy the plugin into a volume that can be mounted where SPIRE can execute it.
               cp -a {{ .Values.nodeAttestor.tpmDirect.plugin.path }} /tpm/tpm_attestor_agent
           volumeMounts:
             - name: tpm-direct
