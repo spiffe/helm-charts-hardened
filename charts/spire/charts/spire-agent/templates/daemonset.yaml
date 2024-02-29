@@ -32,6 +32,17 @@ spec:
     matchLabels:
       {{- include "spire-agent.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: {{ $name }}
+  {{- with .Values.updateStrategy }}
+  updateStrategy:
+    {{- if not (has .type (list "RollingUpdate" "OnDelete")) }}
+    {{- fail "updateStrategy.type can only be RollingUpdate or OnDelete"}}
+    {{- end }}
+    type: {{ .type }}
+    {{- if eq .type "RollingUpdate" }}
+    rollingUpdate:
+      maxUnavailable: {{ .rollingUpdate.maxUnavailable }}
+    {{- end }}
+  {{- end }}
   template:
     metadata:
       annotations:
@@ -260,6 +271,10 @@ spec:
         - name: spire-bundle
           configMap:
             name: {{ include "spire-lib.bundle-configmap" . }}{{ $nameSuffix }}
+        {{- end }}
+        {{- if .Values.nodeAttestor.tpmDirect.enabled }}
+        - name: tpm-direct
+          emptyDir: {}
         {{- end }}
         {{- if .Values.nodeAttestor.tpmDirect.enabled }}
         - name: tpm-direct
