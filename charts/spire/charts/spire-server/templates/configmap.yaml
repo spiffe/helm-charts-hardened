@@ -95,7 +95,7 @@ plugins:
       plugin_data:
         {{ include "spire-server.datastore-config" . | nindent 10 }}
 
-  {{- if or .Values.nodeAttestor.k8sPsat.enabled .Values.nodeAttestor.joinToken.enabled }}
+  {{- if or .Values.nodeAttestor.k8sPsat.enabled .Values.nodeAttestor.joinToken.enabled .Values.nodeAttestor.tpmDirect.enabled }}
   NodeAttestor:
   {{- with .Values.nodeAttestor.k8sPsat }}
   {{- if eq (.enabled | toString) "true" }}
@@ -110,6 +110,24 @@ plugins:
   {{- if eq (.enabled | toString) "true" }}
     join_token:
       plugin_data: {}
+  {{- end }}
+  {{- end }}
+  {{- with .Values.nodeAttestor.tpmDirect }}
+  {{- if eq (.enabled | toString) "true" }}
+    tpm:
+      plugin_cmd: "/tpm/tpm_attestor_server"
+      plugin_checksum: {{ .checksum }}
+      plugin_data:
+        {{- if ne (len .cas) 0 }}
+        ca_path: /tpm-direct-cas
+        {{- else }}
+        ca_path: /run/spire/data/tpm-direct/certs
+        {{- end }}
+        {{- if ne (len .hashes) 0 }}
+        hash_path: /tmp-direct-hashes
+        {{- else }}
+        hash_path: /run/spire/data/tpm-direct/hashes
+        {{- end }}
   {{- end }}
   {{- end }}
   {{- end }}
