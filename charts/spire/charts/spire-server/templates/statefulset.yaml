@@ -53,8 +53,28 @@ spec:
       securityContext:
         {{- include "spire-lib.podsecuritycontext" . | nindent 8 }}
       {{- include "spire-lib.default_cluster_priority_class_name" . | nindent 6 }}
-      {{- if or (gt (len .Values.initContainers) 0) (and .Values.upstreamAuthority.certManager.enabled .Values.upstreamAuthority.certManager.ca.create) }}
+      {{- if or (gt (len .Values.initContainers) 0) (and .Values.upstreamAuthority.certManager.enabled .Values.upstreamAuthority.certManager.ca.create) .Values.nodeAttestor.tpmDirect.enabled }}
       initContainers:
+        {{- if .Values.nodeAttestor.tpmDirect.enabled }}
+        - name: init-tpm-direct
+          securityContext:
+            {{- include "spire-lib.securitycontext" . | nindent 12 }}
+          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.nodeAttestor.tpmDirect.image "global" .Values.global) }}
+          command:
+            - sh
+            - -ec
+            - |
+              # SPIRE must be able to fork the plugin directly within its container. Copy the plugin into a volume that can be mounted where SPIRE can execute it.
+              cp -a {{ .Values.nodeAttestor.tpmDirect.pluginPath }} /tpm/tpm_attestor_server
+              mkdir -p /run/spire/data/tpm-direct/certs
+              mkdir -p /run/spire/data/tpm-direct/hashes
+          volumeMounts:
+            - name: tpm-direct
+              mountPath: /tpm
+            - name: spire-data
+              mountPath: /run/spire/data
+          imagePullPolicy: {{ .Values.nodeAttestor.tpmDirect.image.pullPolicy }}
+      {{- end }}
       {{- if and .Values.upstreamAuthority.certManager.enabled .Values.upstreamAuthority.certManager.ca.create }}
         - name: wait
           securityContext:
@@ -163,6 +183,19 @@ spec:
               mountPath: /kubeconfigs
               readOnly: true
             {{- end }}
+            {{- if .Values.nodeAttestor.tpmDirect.enabled }}
+            - name: tpm-direct
+              mountPath: /tpm
+              readOnly: true
+            {{- if ne (len .Values.nodeAttestor.tpmDirect.cas) 0 }}
+            - name: tpm-direct-cas
+              mountPath: /tpm-direct-cas
+            {{- end }}
+            {{- if ne (len .Values.nodeAttestor.tpmDirect.hashes) 0 }}
+            - name: tpm-direct-hashes
+              mountPath: /tmp-direct-hashes
+            {{- end }}
+            {{- end }}
             {{- if eq (.Values.upstreamAuthority.disk.enabled | toString) "true" }}
             - name: upstream-ca
               mountPath: /run/spire/upstream_ca
@@ -196,6 +229,9 @@ spec:
             {{- if gt (len .Values.extraVolumeMounts) 0 }}
             {{- toYaml .Values.extraVolumeMounts | nindent 12 }}
             {{- end }}
+            - name: server-tmp
+              mountPath: /tmp
+              readOnly: false
         {{- if eq (.Values.controllerManager.enabled | toString) "true" }}
         - name: spire-controller-manager
           securityContext:
@@ -319,6 +355,8 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       volumes:
+        - name: server-tmp
+          emptyDir: {}
         - name: spire-config
           configMap:
             name: {{ include "spire-server.fullname" . }}
@@ -330,6 +368,20 @@ spec:
         - name: kubeconfigs
           secret:
             secretName: {{ include "spire-server.fullname" . }}-kubeconfigs
+        {{- end }}
+        {{- if .Values.nodeAttestor.tpmDirect.enabled }}
+        - name: tpm-direct
+          emptyDir: {}
+        {{- if ne (len .Values.nodeAttestor.tpmDirect.cas) 0 }}
+        - name: tpm-direct-cas
+          configMap:
+            name: {{ include "spire-server.fullname" . }}-tpm-direct-ca
+        {{- end }}
+        {{- if ne (len .Values.nodeAttestor.tpmDirect.hashes) 0 }}
+        - name: tpm-direct-hashes
+          configMap:
+            name: {{ include "spire-server.fullname" . }}-tpm-direct-hash
+        {{- end }}
         {{- end }}
         {{- if or (eq (include "spire-tornjak.connectionType" .) "tls") (eq (include "spire-tornjak.connectionType" .) "mtls") }}
         - name: server-cert

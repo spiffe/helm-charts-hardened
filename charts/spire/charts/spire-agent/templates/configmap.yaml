@@ -79,6 +79,15 @@ plugins:
         cluster: {{ include "spire-lib.cluster-name" . | quote }}
     {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
     {{- end }}
+    {{- with .Values.nodeAttestor.tpmDirect }}
+    {{- if eq (.enabled | toString) "true" }}
+    tpm:
+      plugin_cmd: "/tpm/tpm_attestor_agent"
+      plugin_checksum: {{ .plugin.checksum }}
+      plugin_data: {}
+    {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
+    {{- end }}
+    {{- end }}
 {{- if ne $nodeAttestorUsed 1 }}
 {{- fail (printf "You have to enable exactly one Node Attestor. There are %d enabled." $nodeAttestorUsed) }}
 {{- end }}
