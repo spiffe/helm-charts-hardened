@@ -47,6 +47,9 @@ serviceAccount:
 ## @param podAnnotations [object] Annotations to add to pods
 podAnnotations: {}
 
+## @param podLabels [object] Labels to add to pods
+podLabels: {}
+
 ## @param podSecurityContext [object] Pod security context
 podSecurityContext: {}
   # fsGroup: 2000
