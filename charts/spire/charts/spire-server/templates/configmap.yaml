@@ -201,11 +201,30 @@ plugins:
 {{- fail (printf "You have to enable exactly one Key Manager. There are %d enabled." $keyManagerUsed) }}
 {{- end }}
 
+  {{- if or .Values.notifier.k8sbundle.enabled .Values.notifier.externalK8sBundle.enabled }}
   Notifier:
     k8sbundle:
       plugin_data:
+        {{- if eq (.Values.notifier.k8sbundle.enabled | toString) "true" }}
         namespace: {{ include "spire-server.bundle-namespace" . | quote }}
         config_map: {{ include "spire-lib.bundle-configmap" . | quote }}
+        {{- end }}
+        {{- $clusters := default .Values.kubeconfigs .Values.notifier.externalK8sBundle.clusters }}
+        {{- if and (eq (.Values.notifier.externalK8sBundle.enabled | toString) "true") (ne (len $clusters) 0) }}
+        clusters:
+          {{- $clusterDefaults := .Values.notifier.externalK8sBundle.defaults }}
+          {{- range $name, $_ := $clusters }}
+          {{- $clusterSettings := dict }}
+          {{- if hasKey $root.Values.notifier.externalK8sBundle.clusters $name }}
+          {{- $clusterSettings = index $root.Values.notifier.externalK8sBundle.clusters $name }}
+          {{- end }}
+          - kube_config_file_path: /kubeconfigs/{{ $name }}
+            namespace: {{ if hasKey $clusterSettings "namespace" }}{{ $clusterSettings.namespace }}{{ else }}{{ $clusterDefaults.namespace }}{{ end }}
+            config_map: {{ if hasKey $clusterSettings "configMap" }}{{ $clusterSettings.configMap }}{{ else }}{{ $clusterDefaults.configMap }}{{ end }}
+            config_map_key: {{ if hasKey $clusterSettings "configMapKey" }}{{ $clusterSettings.configMapKey }}{{ else }}{{ $clusterDefaults.configMapKey }}{{ end }}
+          {{- end }}
+        {{- end }}
+  {{- end }}
 
   {{- with .Values.upstreamAuthority.disk }}
   {{- if eq (.enabled | toString) "true" }}

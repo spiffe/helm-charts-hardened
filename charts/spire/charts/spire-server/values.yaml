@@ -420,8 +420,25 @@ upstreamAuthority:
 
 notifier:
   k8sbundle:
+    ## @param notifier.k8sbundle.enabled Enable local k8s bundle uploader
+    enabled: true
     ## @param notifier.k8sbundle.namespace Namespace to push the bundle into, if blank will default to SPIRE Server namespace
     namespace: ""
+  externalK8sBundle:
+    ## @param notifier.externalK8sBundle.enabled Enable exernal k8s bundle uploader
+    enabled: true
+    defaults:
+      ## @param notifier.externalK8sBundle.defaults.namespace Namespace to push the bundle into on clusters
+      namespace: "spire-system"
+      ## @param notifier.externalK8sBundle.defaults.configMap ConfigMap name to push the bundle into on external clusters
+      configMap: "spire-bundle-upstream"
+      ## @param notifier.externalK8sBundle.defaults.configMapKey ConfigMap key to push the bundle into on external clusters
+      configMapKey: "bundle.crt"
+    ## @param notifier.externalK8sBundle.clusters [object] A dictionary of clusters to add with optional overrides. If empty, all clusters defined in kubeconfigs will be used.
+    clusters: {}
+    # clustera:
+    #   namespace: foo
+    # clusterb: {}
 
 controllerManager:
   ## @param controllerManager.enabled Flag to enable controller manager
@@ -705,7 +722,7 @@ nodeAttestor:
     allowedPodLabelKeys: []
   externalK8sPsat:
     ## @param nodeAttestor.externalK8sPsat.enabled Enable PSAT k8s nodeattestor for external Kubernetes clusters
-    enabled: false
+    enabled: true
     defaults:
       ## @param nodeAttestor.externalK8sPsat.defaults.serviceAccountAllowList [array] Allowed service accounts for PSAT node attestor
       serviceAccountAllowList: "spire-system:spire-agent-upstream"
