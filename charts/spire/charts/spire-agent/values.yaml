@@ -45,6 +45,9 @@ configMap:
 ## @param podAnnotations [object] Annotations to add to pods
 podAnnotations: {}
 
+## @param podLabels [object] Labels to add to pods
+podLabels: {}
+
 ## @param podSecurityContext [object] Pod security context
 podSecurityContext: {}
   # fsGroup: 2000
@@ -80,6 +83,8 @@ tolerations: []
 ## @param affinity [object] Node affinity
 affinity: {}
 
+## @param authorizedDelegates A list of the authorized delegates SPIFFE IDs. See Delegated Identity API for more information.
+authorizedDelegates: []
 ## @param logLevel The log level, valid values are "debug", "info", "warn", and "error"
 logLevel: info
 ## @param clusterName The name of the Kubernetes cluster (`kubeadm init --service-dns-domain`)
@@ -94,6 +99,9 @@ trustBundleFormat: pem
 bundleConfigMap: spire-bundle
 ## @param availabilityTarget The minimum amount of time desired to gracefully handle SPIRE Server or Agent downtime. This configurable influences how aggressively X509 SVIDs should be rotated. If set, must be at least 24h.
 availabilityTarget: ""
+
+## @param disableReattestToRenew Deprecated: Allow agent to renew certificate when it expires rather than reattest
+disableReattestToRenew: false
 
 ## @skip upstream
 upstream: false
@@ -110,6 +118,13 @@ server:
 healthChecks:
   ## @param healthChecks.port override the host port used for health checking
   port: 9982
+
+## @param updateStrategy.type The update strategy to use to replace existing DaemonSet pods with new pods. Can be RollingUpdate or OnDelete.
+## @param updateStrategy.rollingUpdate.maxUnavailable Max unavailable pods during update. Can be a number or a percentage.
+updateStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 1
 
 ## @param livenessProbe.initialDelaySeconds Initial delay seconds for probe
 ## @param livenessProbe.periodSeconds Period seconds for probe
@@ -135,7 +150,7 @@ waitForIt:
     registry: cgr.dev
     repository: chainguard/wait-for-it
     pullPolicy: IfNotPresent
-    tag: latest@sha256:64ba1b49313924643dec6a03e15a1c6cfc24046cff96b0b3c0003cabbad2f60d
+    tag: latest@sha256:caead414307e81dbdd86d30662fdfe1b999dd4ce8a10fa667dab3438d0eed193
 
   ## @param waitForIt.resources [object] Resource requests and limits
   resources: {}
@@ -152,7 +167,7 @@ fsGroupFix:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: Always
-    tag: latest@sha256:1b4e8389d2582d0b013fad55d7ad799a67bbdcbfbae0a053258ae24c8b03a19f
+    tag: latest@sha256:81f0b434b297453ff101de0b5f4f5cd8d4af1c015a1d34162e9ae9a4a9f38669
 
   ## @param fsGroupFix.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
@@ -166,6 +181,37 @@ nodeAttestor:
   k8sPsat:
     ## @param nodeAttestor.k8sPsat.enabled Enable Psat k8s Node Attestor
     enabled: true
+  tpmDirect:
+    ## @param nodeAttestor.tpmDirect.enabled Enable the direct TPM node attestor, a 3rd party plugin by Boxboat. This plugin is experimental.
+    enabled: false
+    plugin:
+      ## @param nodeAttestor.tpmDirect.plugin.image.registry The OCI registry to pull the image from
+      ## @param nodeAttestor.tpmDirect.plugin.image.repository The repository within the registry
+      ## @param nodeAttestor.tpmDirect.plugin.image.pullPolicy The image pull policy
+      ## @param nodeAttestor.tpmDirect.plugin.image.tag Overrides the image tag
+      ##
+      image:
+        registry: docker.io
+        repository: boxboat/spire-tpm-plugin-tpm-attestor-agent
+        pullPolicy: IfNotPresent
+        tag: "v1.8.7"
+      ## @param nodeAttestor.tpmDirect.plugin.checksum The sha256 checksum of the plugin binary
+      checksum: 1d7c73ccac948ee86cbd78ddde2d30128a1838b403f7bb2100d38d916a252244
+      ## @param nodeAttestor.tpmDirect.plugin.path The filename in the container of the plugin
+      path: /app/tpm_attestor_agent
+    pubHash:
+      ## @param nodeAttestor.tpmDirect.pubHash.enabled Enable Psat k8s nodeattestor
+      enabled: true
+      ## @param nodeAttestor.tpmDirect.pubHash.image.registry The OCI registry to pull the image from
+      ## @param nodeAttestor.tpmDirect.pubHash.image.repository The repository within the registry
+      ## @param nodeAttestor.tpmDirect.pubHash.image.pullPolicy The image pull policy
+      ## @param nodeAttestor.tpmDirect.pubHash.image.tag Overrides the image tag
+      ##
+      image:
+        registry: docker.io
+        repository: boxboat/spire-tpm-plugin-get-tpm-pubhash
+        pullPolicy: IfNotPresent
+        tag: "v1.8.7"
 
 # workloadAttestors determine a workload's properties and then generate a set of selectors associated with it.
 workloadAttestors:
@@ -229,7 +275,7 @@ socketAlternate:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: Always
-    tag: latest@sha256:07d2662ef699e9ceafab3f39624083193dfcb7b768ee86860dbdd5cb4473dcea
+    tag: latest@sha256:81f0b434b297453ff101de0b5f4f5cd8d4af1c015a1d34162e9ae9a4a9f38669
 
   ## @param socketAlternate.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
@@ -281,3 +327,12 @@ experimental:
   syncInterval: 5s
   ## @param experimental.featureFlags [array] List of developer feature flags
   featureFlags: []
+
+sockets:
+  ## @param sockets.hostBasePath Path on which the agent socket is made available when admin.mountOnHost is true
+  hostBasePath: /run/spire/agent/sockets
+  ## @param sockets.admin.enabled Enable the admin socket. Useful for admin tasks or the Delegated Identity API.
+  ## @param sockets.admin.mountOnHost Enable the admin socket to be visible on the host.
+  admin:
+    enabled: false
+    mountOnHost: false

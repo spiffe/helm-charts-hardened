@@ -18,8 +18,21 @@
 {{-     end }}
 {{-   end }}
 {{- end }}
+{{- if hasPrefix (.Values.socketPath | dir | clean) (.Values.sockets.hostBasePath | clean) }}
+{{- fail "The sockets.hostBasePath can not be located under the socketPath direcotry" }}
+{{- end }}
 {{- define "spire-agent.yaml-config" -}}
 agent:
+  {{- if .Values.disableReattestToRenew }}
+  disable_reattest_to_renew: true
+  {{- end }}
+  {{- if .Values.sockets.admin.enabled }}
+  admin_socket_dir: /tmp/spire-agent/private/admin.sock
+  {{- end }}
+  {{- with .Values.authorizedDelegates }}
+  authorized_delegates:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   data_dir: "/run/spire"
   log_level: {{ .Values.logLevel | quote }}
   server_address: {{ include "spire-agent.server-address" . | trim | quote }}
@@ -65,6 +78,15 @@ plugins:
       plugin_data:
         cluster: {{ include "spire-lib.cluster-name" . | quote }}
     {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
+    {{- end }}
+    {{- with .Values.nodeAttestor.tpmDirect }}
+    {{- if eq (.enabled | toString) "true" }}
+    tpm:
+      plugin_cmd: "/tpm/tpm_attestor_agent"
+      plugin_checksum: {{ .plugin.checksum }}
+      plugin_data: {}
+    {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
+    {{- end }}
     {{- end }}
 {{- if ne $nodeAttestorUsed 1 }}
 {{- fail (printf "You have to enable exactly one Node Attestor. There are %d enabled." $nodeAttestorUsed) }}

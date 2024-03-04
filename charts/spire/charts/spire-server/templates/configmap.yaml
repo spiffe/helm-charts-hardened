@@ -1,11 +1,11 @@
 {{- include "spire-lib.check-strict-mode" (list . "clusterName must be set" (eq (include "spire-lib.cluster-name" .) "example-cluster"))}}
 {{- include "spire-lib.check-strict-mode" (list . "trustDomain must be set" (eq (include "spire-lib.trust-domain" .) "example.org"))}}
 {{- include "spire-lib.check-strict-mode" (list . "jwtIssuer must be set" (eq (include "spire-lib.jwt-issuer" .) "https://oidc-discovery.example.org"))}}
-{{- include "spire-lib.check-strict-mode" (list . "ca_subject.county must be set" (eq .Values.ca_subject.country "ARPA"))}}
-{{- include "spire-lib.check-strict-mode" (list . "ca_subject.organization must be set" (eq .Values.ca_subject.organization "Example"))}}
-{{- include "spire-lib.check-strict-mode" (list . "ca_subject.common_name must be set" (eq .Values.ca_subject.common_name "example.org"))}}
+{{- include "spire-lib.check-strict-mode" (list . "ca_subject.county must be set" (eq (include "spire-server.ca-subject-country" .) "ARPA"))}}
+{{- include "spire-lib.check-strict-mode" (list . "ca_subject.organization must be set" (eq (include "spire-server.ca-subject-organization" .) "Example"))}}
+{{- include "spire-lib.check-strict-mode" (list . "ca_subject.common_name must be set" (eq (include "spire-server.ca-subject-common-name" .) "example.org"))}}
 {{- range $type, $tvals := .Values.customPlugins }}
-{{-   if not (has $type (list "bundlePublisher" "keyManager" "nodeAttestor" "upstreamAuthority" "notifier")) }}
+{{-   if not (has $type (list "bundlePublisher" "credentialComposer" "keyManager" "nodeAttestor" "upstreamAuthority" "notifier")) }}
 {{-     fail (printf "Unknown plugin type specified: %s" $type) }}
 {{-   end }}
 {{-   range $name, $nval := $tvals }}
@@ -40,12 +40,17 @@
 {{- $keyManagerUsed := 0 }}
 {{- $root := . }}
 server:
+{{- with .Values.adminIDs }}
+  admin_ids:
+    {{- toYaml . | nindent 4}}
+{{- end }}
   bind_address: "0.0.0.0"
   bind_port: "8081"
   trust_domain: {{ include "spire-lib.trust-domain" . | quote }}
   data_dir: "/run/spire/data"
   log_level: {{ .Values.logLevel | quote }}
   jwt_issuer: {{ include "spire-lib.jwt-issuer" . | quote }}
+  audit_log_enabled: {{ .Values.auditLogEnabled }}
 
   ca_key_type: {{ .Values.caKeyType | quote }}
   ca_ttl: {{ .Values.caTTL | quote }}
@@ -54,11 +59,9 @@ server:
   default_jwt_svid_ttl: {{ .Values.defaultJwtSvidTTL | quote }}
 
   ca_subject:
-    {{- with .Values.ca_subject }}
-    - country: [{{ .country | quote }}]
-      organization: [{{ .organization | quote }}]
-      common_name: {{ .common_name | quote }}
-    {{- end }}
+    - country: [{{ include "spire-server.ca-subject-country" . | quote }}]
+      organization: [{{ include "spire-server.ca-subject-organization" . | quote }}]
+      common_name: {{ include "spire-server.ca-subject-common-name" . | quote }}
 
   {{- with .Values.federation }}
   {{- if eq (.enabled | toString) "true" }}
@@ -82,12 +85,17 @@ server:
   {{- end }}
 
 plugins:
+  {{- if .Values.credentialComposer.uniqueID.enabled }}
+  CredentialComposer:
+    uniqueid: {}
+  {{- end }}
+
   DataStore:
     sql:
       plugin_data:
         {{ include "spire-server.datastore-config" . | nindent 10 }}
 
-  {{- if or .Values.nodeAttestor.k8sPsat.enabled .Values.nodeAttestor.joinToken.enabled }}
+  {{- if or .Values.nodeAttestor.k8sPsat.enabled .Values.nodeAttestor.joinToken.enabled .Values.nodeAttestor.tpmDirect.enabled }}
   NodeAttestor:
   {{- with .Values.nodeAttestor.k8sPsat }}
   {{- if eq (.enabled | toString) "true" }}
@@ -102,6 +110,24 @@ plugins:
   {{- if eq (.enabled | toString) "true" }}
     join_token:
       plugin_data: {}
+  {{- end }}
+  {{- end }}
+  {{- with .Values.nodeAttestor.tpmDirect }}
+  {{- if eq (.enabled | toString) "true" }}
+    tpm:
+      plugin_cmd: "/tpm/tpm_attestor_server"
+      plugin_checksum: {{ .checksum }}
+      plugin_data:
+        {{- if ne (len .cas) 0 }}
+        ca_path: /tpm-direct-cas
+        {{- else }}
+        ca_path: /run/spire/data/tpm-direct/certs
+        {{- end }}
+        {{- if ne (len .hashes) 0 }}
+        hash_path: /tmp-direct-hashes
+        {{- else }}
+        hash_path: /run/spire/data/tpm-direct/hashes
+        {{- end }}
   {{- end }}
   {{- end }}
   {{- end }}

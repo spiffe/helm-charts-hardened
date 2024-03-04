@@ -21,6 +21,14 @@ global:
     ## @param global.spire.upstreamServerAddress Set what address to use for the upstream server when using nested spire
     upstreamServerAddress: ""
 
+    ## @param global.spire.caSubject.country Country for Spire server CA
+    ## @param global.spire.caSubject.organization Organization for Spire server CA
+    ## @param global.spire.caSubject.commonName Common Name for Spire server CA
+    caSubject:
+      country: ""
+      organization: ""
+      commonName: ""
+
     ## @param global.spire.recommendations.enabled Use recommended settings for production deployments. Default is off.
     ## @param global.spire.recommendations.namespaceLayout Set to true to use recommended values for installing across namespaces
     ## @param global.spire.recommendations.namespacePSS When chart namespace creation is enabled, label them with preffered Pod Security Standard labels
@@ -68,6 +76,11 @@ global:
 
     ## @param global.spire.ingressControllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, autodetection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""].
     ingressControllerType: ""
+
+    tools:
+      kubectl:
+        ## @param global.spire.tools.kubectl.tag Set to force the tag to use for all kubectl instances
+        tag: ""
 
   installAndUpgradeHooks:
     ## @param global.installAndUpgradeHooks.enabled Enable Helm hooks to autofix common install/upgrade issues (should be disabled when using `helm template`)

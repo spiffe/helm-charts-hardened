@@ -17,6 +17,7 @@ volumes:
   - hostPath
   - projected
   - secret
+  - emptyDir
 allowHostDirVolumePlugin: true
 allowHostIPC: true
 allowHostNetwork: true
