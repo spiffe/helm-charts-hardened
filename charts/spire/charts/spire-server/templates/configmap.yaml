@@ -214,14 +214,15 @@ plugins:
         clusters:
           {{- $clusterDefaults := .Values.notifier.externalK8sBundle.defaults }}
           {{- range $name, $_ := $clusters }}
-          {{- $clusterSettings := dict }}
-          {{- if hasKey $root.Values.notifier.externalK8sBundle.clusters $name }}
-          {{- $clusterSettings = index $root.Values.notifier.externalK8sBundle.clusters $name }}
-          {{- end }}
-          - kube_config_file_path: /kubeconfigs/{{ $name }}
-            namespace: {{ if hasKey $clusterSettings "namespace" }}{{ $clusterSettings.namespace }}{{ else }}{{ $clusterDefaults.namespace }}{{ end }}
-            config_map: {{ if hasKey $clusterSettings "configMap" }}{{ $clusterSettings.configMap }}{{ else }}{{ $clusterDefaults.configMap }}{{ end }}
-            config_map_key: {{ if hasKey $clusterSettings "configMapKey" }}{{ $clusterSettings.configMapKey }}{{ else }}{{ $clusterDefaults.configMapKey }}{{ end }}
+          - {{ $name }}:
+            {{- $clusterSettings := dict }}
+            {{- if hasKey $root.Values.notifier.externalK8sBundle.clusters $name }}
+            {{- $clusterSettings = index $root.Values.notifier.externalK8sBundle.clusters $name }}
+            {{- end }}
+            - kube_config_file_path: /kubeconfigs/{{ $name }}
+              namespace: {{ if hasKey $clusterSettings "namespace" }}{{ $clusterSettings.namespace }}{{ else }}{{ $clusterDefaults.namespace }}{{ end }}
+              config_map: {{ if hasKey $clusterSettings "configMap" }}{{ $clusterSettings.configMap }}{{ else }}{{ $clusterDefaults.configMap }}{{ end }}
+              config_map_key: {{ if hasKey $clusterSettings "configMapKey" }}{{ $clusterSettings.configMapKey }}{{ else }}{{ $clusterDefaults.configMapKey }}{{ end }}
           {{- end }}
         {{- end }}
   {{- end }}
