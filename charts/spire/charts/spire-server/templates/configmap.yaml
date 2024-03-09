@@ -1,7 +1,7 @@
 {{- include "spire-lib.check-strict-mode" (list . "clusterName must be set" (eq (include "spire-lib.cluster-name" .) "example-cluster"))}}
 {{- include "spire-lib.check-strict-mode" (list . "trustDomain must be set" (eq (include "spire-lib.trust-domain" .) "example.org"))}}
 {{- include "spire-lib.check-strict-mode" (list . "jwtIssuer must be set" (eq (include "spire-lib.jwt-issuer" .) "https://oidc-discovery.example.org"))}}
-{{- include "spire-lib.check-strict-mode" (list . "ca_subject.county must be set" (eq (include "spire-server.ca-subject-country" .) "ARPA"))}}
+{{- include "spire-lib.check-strict-mode" (list . "ca_subject.country must be set" (eq (include "spire-server.ca-subject-country" .) "ARPA"))}}
 {{- include "spire-lib.check-strict-mode" (list . "ca_subject.organization must be set" (eq (include "spire-server.ca-subject-organization" .) "Example"))}}
 {{- include "spire-lib.check-strict-mode" (list . "ca_subject.common_name must be set" (eq (include "spire-server.ca-subject-common-name" .) "example.org"))}}
 {{- range $type, $tvals := .Values.customPlugins }}

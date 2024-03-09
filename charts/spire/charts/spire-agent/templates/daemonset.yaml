@@ -40,6 +40,9 @@ spec:
         {{- end }}
       labels:
         {{- include "spire-agent.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -105,8 +108,6 @@ spec:
           image: {{ template "spire-lib.image" (dict "image" .Values.waitForIt.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.waitForIt.image.pullPolicy }}
           args: ["-t", "30", "-h", "{{ include "spire-agent.server-address" . | trim }}", "-p", {{ .Values.server.port | quote }}]
-          securityContext:
-            {{- .Values.securityContext | toYaml | nindent 12 }}
           resources:
             {{- toYaml .Values.waitForIt.resources | nindent 12 }}
           securityContext:
