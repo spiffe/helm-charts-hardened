@@ -1,7 +1,7 @@
 {{- include "spire-lib.check-strict-mode" (list . "clusterName must be set" (eq (include "spire-lib.cluster-name" .) "example-cluster"))}}
 {{- include "spire-lib.check-strict-mode" (list . "trustDomain must be set" (eq (include "spire-lib.trust-domain" .) "example.org"))}}
 {{- include "spire-lib.check-strict-mode" (list . "jwtIssuer must be set" (eq (include "spire-lib.jwt-issuer" .) "https://oidc-discovery.example.org"))}}
-{{- include "spire-lib.check-strict-mode" (list . "ca_subject.county must be set" (eq (include "spire-server.ca-subject-country" .) "ARPA"))}}
+{{- include "spire-lib.check-strict-mode" (list . "ca_subject.country must be set" (eq (include "spire-server.ca-subject-country" .) "ARPA"))}}
 {{- include "spire-lib.check-strict-mode" (list . "ca_subject.organization must be set" (eq (include "spire-server.ca-subject-organization" .) "Example"))}}
 {{- include "spire-lib.check-strict-mode" (list . "ca_subject.common_name must be set" (eq (include "spire-server.ca-subject-common-name" .) "example.org"))}}
 {{- range $type, $tvals := .Values.customPlugins }}
@@ -103,7 +103,7 @@ plugins:
         clusters:
           {{- with .Values.nodeAttestor.k8sPsat }}
           {{- if eq (.enabled | toString) "true" }}
-          {{ include "spire-lib.cluster-name" $root }}:
+        - {{ include "spire-lib.cluster-name" $root }}:
             service_account_allow_list: {{ include "spire-server.serviceAccountAllowedList" $root | trim }}
             audience: {{ .audience }}
             allowed_node_label_keys:
@@ -113,14 +113,14 @@ plugins:
           {{- end }}
           {{- end }}
           {{- if eq (.Values.nodeAttestor.externalK8sPsat.enabled | toString) "true" }}
-          {{- $clusters := default .Values.kubeconfigs .Values.nodeAttestor.externalK8sPsat.clusters }}
+          {{- $clusters := default .Values.kubeConfigs .Values.nodeAttestor.externalK8sPsat.clusters }}
           {{- $clusterDefaults := .Values.nodeAttestor.externalK8sPsat.defaults }}
           {{- range $name, $_ := $clusters }}
           {{- $clusterSettings := dict }}
           {{- if hasKey $root.Values.nodeAttestor.externalK8sPsat.clusters $name }}
           {{- $clusterSettings = index $root.Values.nodeAttestor.externalK8sPsat.clusters $name }}
           {{- end }}
-          {{ $name }}:
+        - {{ $name }}:
             kube_config_file: /kubeconfigs/{{ $name }}
             service_account_allow_list:
               {{ if hasKey $clusterSettings "serviceAccountAllowList" }}{{ toYaml $clusterSettings.serviceAccountAllowList | nindent 14 }}{{ else }}{{ toYaml $clusterDefaults.serviceAccountAllowList | nindent 14 }}{{ end }}

@@ -60,7 +60,7 @@ KCB64="$(base64 < "${SCRIPTPATH}/kubeconfig" | tr '\n' ' ' | sed 's/ //g')"
 kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig" create namespace spire-system
 
 helm upgrade --install --create-namespace --namespace spire-server --values "${SCRIPTPATH}/values.yaml" \
-  --wait spire charts/spire --set "spire-server.kubeconfigs.other.kubeconfigBase64=$KCB64"
+  --wait spire charts/spire --set "spire-server.kubeConfigs.other.kubeConfigBase64=$KCB64"
 helm test --namespace spire-server spire
 kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig" get configmap -n spire-system spire-bundle-upstream
 
