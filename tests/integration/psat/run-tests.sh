@@ -55,7 +55,7 @@ helm upgrade --install --create-namespace spire charts/spire \
   --values "${DEPS}/spire-root-server-values.yaml" \
   --wait
 
-kind create cluster --name other --kubeconfig "${SCRIPTPATH}/kubeconfig"
+kind create cluster --name other --kubeconfig "${SCRIPTPATH}/kubeconfig" --config "${SCRIPTPATH}/kind-config.yaml"
 KCB64="$(base64 < "${SCRIPTPATH}/kubeconfig" | tr '\n' ' ' | sed 's/ //g')"
 kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig" create namespace spire-system
 kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig" create configmap -n spire-system spire-bundle-upstream
