@@ -212,9 +212,9 @@ plugins:
         {{- $clusters := default .Values.kubeConfigs .Values.notifier.externalK8sBundle.clusters }}
         {{- if and (eq (.Values.notifier.externalK8sBundle.enabled | toString) "true") (ne (len $clusters) 0) }}
         clusters:
+          - "":
           {{- $clusterDefaults := .Values.notifier.externalK8sBundle.defaults }}
           {{- range $name, $_ := $clusters }}
-          - {{ $name }}:
             {{- $clusterSettings := dict }}
             {{- if hasKey $root.Values.notifier.externalK8sBundle.clusters $name }}
             {{- $clusterSettings = index $root.Values.notifier.externalK8sBundle.clusters $name }}
