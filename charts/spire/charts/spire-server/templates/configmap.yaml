@@ -209,7 +209,7 @@ plugins:
         namespace: {{ include "spire-server.bundle-namespace" . | quote }}
         config_map: {{ include "spire-lib.bundle-configmap" . | quote }}
         {{- end }}
-        {{- $clusters := default .Values.kubeconfigs .Values.notifier.externalK8sBundle.clusters }}
+        {{- $clusters := default .Values.kubeConfigs .Values.notifier.externalK8sBundle.clusters }}
         {{- if and (eq (.Values.notifier.externalK8sBundle.enabled | toString) "true") (ne (len $clusters) 0) }}
         clusters:
           {{- $clusterDefaults := .Values.notifier.externalK8sBundle.defaults }}

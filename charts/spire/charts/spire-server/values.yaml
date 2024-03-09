@@ -437,7 +437,7 @@ notifier:
       configMap: "spire-bundle-upstream"
       ## @param notifier.externalK8sBundle.defaults.configMapKey ConfigMap key to push the bundle into on external clusters
       configMapKey: "bundle.crt"
-    ## @param notifier.externalK8sBundle.clusters [object] A dictionary of clusters to add with optional overrides. If empty, all clusters defined in kubeconfigs will be used.
+    ## @param notifier.externalK8sBundle.clusters [object] A dictionary of clusters to add with optional overrides. If empty, all clusters defined in kubeConfigs will be used.
     clusters: {}
     # clustera:
     #   namespace: foo
