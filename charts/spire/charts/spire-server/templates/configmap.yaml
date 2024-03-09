@@ -121,7 +121,11 @@ plugins:
           {{- $clusterSettings = index $root.Values.nodeAttestor.externalK8sPsat.clusters $name }}
           {{- end }}
         - {{ $name }}:
+            {{- if hasKey $clusterSettings "kubeConfigName" }}
+            kube_config_file: /kubeconfigs/{{ $clusterSettings.kubeConfigName }}
+            {{- else }}
             kube_config_file: /kubeconfigs/{{ $name }}
+            {{- end }}
             service_account_allow_list:
               {{ if hasKey $clusterSettings "serviceAccountAllowList" }}{{ toYaml $clusterSettings.serviceAccountAllowList | nindent 14 }}{{ else }}{{ toYaml $clusterDefaults.serviceAccountAllowList | nindent 14 }}{{ end }}
             audience: {{ if hasKey $clusterSettings "audience" }}{{ $clusterSettings.audience }}{{ else }}{{ $clusterDefaults.audience }}{{ end }}
