@@ -711,14 +711,14 @@ nodeAttestor:
     enabled: true
     defaults:
       ## @param nodeAttestor.externalK8sPsat.defaults.serviceAccountAllowList [array] Allowed service accounts for PSAT node attestor
-      serviceAccountAllowList: "spire-system:spire-agent-upstream"
+      serviceAccountAllowList: ["spire-system:spire-agent-upstream"]
       ## @param nodeAttestor.externalK8sPsat.defaults.audience [array] Audience for token validation. If it is set to an empty array ([]), Kubernetes API server audience is used
       audience: ["spire-server"]
       ## @param nodeAttestor.externalK8sPsat.defaults.allowedNodeLabelKeys [array] Node label keys considered for selectors
       allowedNodeLabelKeys: []
       ## @param nodeAttestor.externalK8sPsat.defaults.allowedPodLabelKeys [array] Pod label keys considered for selectors
       allowedPodLabelKeys: []
-    ## @param nodeAttestor.externalK8sPsat.clusters [object] A dictionary of clusters to add with optional overrides. If empty, all clusters defined in kubeconfigs will be used.
+    ## @param nodeAttestor.externalK8sPsat.clusters [object] A dictionary of clusters to add with optional overrides. If empty, all clusters defined in kubeConfigs will be used.
     clusters: {}
     # clustera:
     #   serviceAccountAllowList: ["other-ns:other-agent"]
@@ -911,11 +911,11 @@ tests:
       pullPolicy: IfNotPresent
       tag: latest@sha256:81f0b434b297453ff101de0b5f4f5cd8d4af1c015a1d34162e9ae9a4a9f38669
 
-## @param kubeconfigs [object] Manage additional kubeconfig files to talk to external Kubernetes clusters
-kubeconfigs: {}
+## @param kubeConfigs [object] Manage additional kubeconfig files to talk to external Kubernetes clusters
+kubeConfigs: {}
 # clustera:
-#   kubeconfig: |
+#   kubeConfig: |
 #     xxxxx
 #     xxxxx
 # clusterb:
-#   kubeconfigBase64: eXl5Cnl5eQo=
+#   kubeConfigBase64: eXl5Cnl5eQo=
