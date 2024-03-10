@@ -738,6 +738,7 @@ nodeAttestor:
     ## @param nodeAttestor.externalK8sPsat.clusters [object] A dictionary of clusters to add with optional overrides. If empty, all clusters defined in kubeConfigs will be used.
     clusters: {}
     # clustera:
+    #   kubeConfigName: foo
     #   serviceAccountAllowList: ["other-ns:other-agent"]
     # clusterb: {}
   joinToken:
