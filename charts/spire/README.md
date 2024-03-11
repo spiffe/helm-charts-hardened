@@ -1,6 +1,6 @@
 # spire
 
-![Version: 0.17.2](https://img.shields.io/badge/Version-0.17.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.8.7](https://img.shields.io/badge/AppVersion-1.8.7-informational?style=flat-square)
+![Version: 0.18.2](https://img.shields.io/badge/Version-0.18.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.9.1](https://img.shields.io/badge/AppVersion-1.9.1-informational?style=flat-square)
 [![Development Phase](https://github.com/spiffe/spiffe/blob/main/.img/maturity/dev.svg)](https://github.com/spiffe/spiffe/blob/main/MATURITY.md#development)
 
 A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
@@ -34,12 +34,10 @@ global:
     # Update these
     clusterName: example-cluster
     trustDomain: example.org
-spire-server:
-  ca_subject:
-    # Update these
-    country: ARPA
-    organization: Example
-    common_name: example.org
+    caSubject:
+      country: ARPA
+      organization: Example
+      commonName: example.org
 ```
 
 2. If you need a non default storageClass, append the following to the spire-server section and update:
@@ -76,6 +74,11 @@ kubectl delete crds clusterfederatedtrustdomains.spire.spiffe.io clusterspiffeid
 ## Upgrade notes
 
 We only support upgrading one major version at a time. Version skipping isn't supported.
+
+### 0.18.x
+
+- SPIRE no longer emits x509UniqueIdentifiers in x509-SVIDS by default. The old behavior can be reenabled with spire-server.credentialComposer.uniqueID.enabled=true. See https://github.com/spiffe/spire/pull/4862 for details.
+- SPIRE agents will now automatically reattest when they can. The old behavior can be reenabled with spire-agent.disableReattestToRenew=true. See https://github.com/spiffe/spire/pull/4791 for details.
 
 ### 0.17.X
 
@@ -209,6 +212,9 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `global.spire.jwtIssuer`                         | The issuer for Spire JWT tokens. Defaults to oidc-discovery.$trustDomain if unset                                                                                                                                                      | `""`              |
 | `global.spire.trustDomain`                       | The trust domain for Spire install                                                                                                                                                                                                     | `example.org`     |
 | `global.spire.upstreamServerAddress`             | Set what address to use for the upstream server when using nested spire                                                                                                                                                                | `""`              |
+| `global.spire.caSubject.country`                 | Country for Spire server CA                                                                                                                                                                                                            | `""`              |
+| `global.spire.caSubject.organization`            | Organization for Spire server CA                                                                                                                                                                                                       | `""`              |
+| `global.spire.caSubject.commonName`              | Common Name for Spire server CA                                                                                                                                                                                                        | `""`              |
 | `global.spire.recommendations.enabled`           | Use recommended settings for production deployments. Default is off.                                                                                                                                                                   | `false`           |
 | `global.spire.recommendations.namespaceLayout`   | Set to true to use recommended values for installing across namespaces                                                                                                                                                                 | `true`            |
 | `global.spire.recommendations.namespacePSS`      | When chart namespace creation is enabled, label them with preffered Pod Security Standard labels                                                                                                                                       | `true`            |
