@@ -63,7 +63,7 @@ service:
   port: 3000
   annotations: {}
 
-## @extra nodeSelector Select specific nodes to run on (currently amd64 and arm64 are supported by Tornjak)
+## @param nodeSelector (Optional) Select specific nodes to run on. Tornjak currently supports amd64 and arm64 architectures
 nodeSelector: {}
 
 ## @param affinity [object] Affinity rules
@@ -84,7 +84,7 @@ topologySpreadConstraints: []
 #     cpu: 100m
 #     memory: 512Mi
 
-## @param apiServerURL URL of the Tornjak APIs (backend). Since Tornjak Frontend runs in the browser, this URL must be accessible from the machine running a browser. If unset, autodetection is atempted.
+## @param apiServerURL URL of the Tornjak APIs (backend). Since Tornjak Frontend runs in the browser, this URL must be accessible from the machine running a browser. If not provided, auto-detection is attempted.
 apiServerURL: ""
 
 # SPIRE Healthchecker indicator
@@ -92,11 +92,11 @@ spireHealthCheck:
   ## @param spireHealthCheck.enabled Enables the SPIRE Healthchecker indicator
   enabled: true
 
-# User Managment
+# User Management
 auth:
-  ## @param auth.enabled Enables auth for tornjak
+  ## @param auth.enabled Enables auth for Tornjak
   enabled: false
-  ## @param authServerURL URL of the Auth service. Tornjak Frontend will redirect to this URL to authenticate the user. 
+  ## @param auth.authServerURL URL of the Auth service. Tornjak Frontend will redirect to this URL to authenticate the user
   authServerURL: ""
 
 ## Configure extra options for Tornjak frontend container's startup probe
@@ -121,7 +121,7 @@ workingDir: ""
 
 ## @param ingress.enabled Flag to enable ingress for Tornjak frontend service
 ## @param ingress.className Ingress class name for Tornjak frontend service
-## @param ingress.controllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, autodetection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""].
+## @param ingress.controllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, auto-detection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""].
 ## @param ingress.annotations [object] Annotations for Tornjak frontend service
 ingress:
   enabled: false
@@ -135,14 +135,14 @@ ingress:
   ## @param ingress.tlsSecret Secret that has the certs. If blank will use default certs. Used with host var.
   tlsSecret: ""
 
-  ## @param ingress.hosts [array] Host paths for ingress object. If emtpy, rules will be built based on the host var.
+  ## @param ingress.hosts [array] Host paths for ingress object. If empty, rules will be built based on the host var.
   hosts: []
   #   - host: tornjak-frontend.example.org
   #     paths:
   #       - path: /
   #         pathType: Prefix
 
-  ## @param ingress.tls [array] Secrets containing TLS certs to enable https on ingress. If emtpy, rules will be built based on the host and tlsSecret vars.
+  ## @param ingress.tls [array] Secrets containing TLS certs to enable https on ingress. If empty, rules will be built based on the host and tlsSecret vars.
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
