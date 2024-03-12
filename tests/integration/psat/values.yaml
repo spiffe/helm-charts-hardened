@@ -10,3 +10,14 @@ spire-server:
     country: US
     organization: Production
     common_name: production.other
+
+spire-server:
+  controllerManager:
+    reconcile:
+      clusterSPIFFEIDs: false
+      clusterStaticEntries: false
+  externalControllerManager:
+    enabled: true
+
+spiffe-oidc-discovery-provider:
+  enabled: false
