@@ -95,16 +95,46 @@ plugins:
       plugin_data:
         {{ include "spire-server.datastore-config" . | nindent 10 }}
 
-  {{- if or .Values.nodeAttestor.k8sPsat.enabled .Values.nodeAttestor.joinToken.enabled .Values.nodeAttestor.tpmDirect.enabled }}
+  {{- if or .Values.nodeAttestor.k8sPsat.enabled .Values.nodeAttestor.externalK8sPsat.enabled .Values.nodeAttestor.joinToken.enabled .Values.nodeAttestor.tpmDirect.enabled }}
   NodeAttestor:
-  {{- with .Values.nodeAttestor.k8sPsat }}
-  {{- if eq (.enabled | toString) "true" }}
+  {{- if or (eq (.Values.nodeAttestor.k8sPsat.enabled | toString) "true") (eq (.Values.nodeAttestor.externalK8sPsat.enabled | toString) "true") }}
     k8s_psat:
       plugin_data:
         clusters:
-          {{ include "spire-lib.cluster-name" $root }}:
+          {{- with .Values.nodeAttestor.k8sPsat }}
+          {{- if eq (.enabled | toString) "true" }}
+        - {{ include "spire-lib.cluster-name" $root }}:
             service_account_allow_list: {{ include "spire-server.serviceAccountAllowedList" $root | trim }}
-  {{- end }}
+            audience: {{ .audience }}
+            allowed_node_label_keys:
+              {{ toYaml .allowedNodeLabelKeys | nindent 14 }}
+            allowed_pod_label_keys:
+              {{ toYaml .allowedPodLabelKeys | nindent 14 }}
+          {{- end }}
+          {{- end }}
+          {{- if eq (.Values.nodeAttestor.externalK8sPsat.enabled | toString) "true" }}
+          {{- $clusters := default .Values.kubeConfigs .Values.nodeAttestor.externalK8sPsat.clusters }}
+          {{- $clusterDefaults := .Values.nodeAttestor.externalK8sPsat.defaults }}
+          {{- range $name, $_ := $clusters }}
+          {{- $clusterSettings := dict }}
+          {{- if hasKey $root.Values.nodeAttestor.externalK8sPsat.clusters $name }}
+          {{- $clusterSettings = index $root.Values.nodeAttestor.externalK8sPsat.clusters $name }}
+          {{- end }}
+        - {{ $name }}:
+            {{- if hasKey $clusterSettings "kubeConfigName" }}
+            kube_config_file: /kubeconfigs/{{ $clusterSettings.kubeConfigName }}
+            {{- else }}
+            kube_config_file: /kubeconfigs/{{ $name }}
+            {{- end }}
+            service_account_allow_list:
+              {{ if hasKey $clusterSettings "serviceAccountAllowList" }}{{ toYaml $clusterSettings.serviceAccountAllowList | nindent 14 }}{{ else }}{{ toYaml $clusterDefaults.serviceAccountAllowList | nindent 14 }}{{ end }}
+            audience: {{ if hasKey $clusterSettings "audience" }}{{ $clusterSettings.audience }}{{ else }}{{ $clusterDefaults.audience }}{{ end }}
+            allowed_node_label_keys:
+              {{ if hasKey $clusterSettings "allowedNodeLabelKeys" }}{{ toYaml $clusterSettings.allowedNodeLabelKeys | nindent 14 }}{{ else }}{{ toYaml $clusterDefaults.allowedNodeLabelKeys | nindent 14 }}{{ end }}
+            allowed_pod_label_keys:
+              {{ if hasKey $clusterSettings "allowedPodLabelKeys" }}{{ toYaml $clusterSettings.allowedPodLabelKeys | nindent 14 }}{{ else }}{{ toYaml $clusterDefaults.allowedPodLabelKeys | nindent 14 }}{{ end }}
+          {{- end }}
+          {{- end }}
   {{- end }}
   {{- with .Values.nodeAttestor.joinToken }}
   {{- if eq (.enabled | toString) "true" }}
