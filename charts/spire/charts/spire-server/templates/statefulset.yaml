@@ -181,6 +181,11 @@ spec:
             - name: spire-data
               mountPath: /run/spire/data
               readOnly: false
+            {{- with .Values.kubeConfigs }}
+            - name: kubeconfigs
+              mountPath: /kubeconfigs
+              readOnly: true
+            {{- end }}
             {{- if .Values.nodeAttestor.tpmDirect.enabled }}
             - name: tpm-direct
               mountPath: /tpm
@@ -362,6 +367,11 @@ spec:
           emptyDir: {}
         - name: spire-controller-manager-tmp
           emptyDir: {}
+        {{- if gt (len .Values.kubeConfigs) 0 }}
+        - name: kubeconfigs
+          secret:
+            secretName: {{ include "spire-server.fullname" . }}-kubeconfigs
+        {{- end }}
         {{- if .Values.nodeAttestor.tpmDirect.enabled }}
         - name: tpm-direct
           emptyDir: {}
