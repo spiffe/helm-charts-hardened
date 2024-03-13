@@ -423,8 +423,25 @@ upstreamAuthority:
 
 notifier:
   k8sbundle:
+    ## @param notifier.k8sbundle.enabled Enable local k8s bundle uploader
+    enabled: true
     ## @param notifier.k8sbundle.namespace Namespace to push the bundle into, if blank will default to SPIRE Server namespace
     namespace: ""
+  externalK8sBundle:
+    ## @param notifier.externalK8sBundle.enabled Enable exernal k8s bundle uploader
+    enabled: true
+    defaults:
+      ## @param notifier.externalK8sBundle.defaults.namespace Namespace to push the bundle into on clusters
+      namespace: "spire-system"
+      ## @param notifier.externalK8sBundle.defaults.configMap ConfigMap name to push the bundle into on external clusters
+      configMap: "spire-bundle-upstream"
+      ## @param notifier.externalK8sBundle.defaults.configMapKey ConfigMap key to push the bundle into on external clusters
+      configMapKey: "bundle.crt"
+    ## @param notifier.externalK8sBundle.clusters [object] A dictionary of clusters to add with optional overrides. If empty, all clusters defined in kubeConfigs will be used.
+    clusters: {}
+    # clustera:
+    #   namespace: foo
+    # clusterb: {}
 
 controllerManager:
   ## @param controllerManager.enabled Flag to enable controller manager
@@ -700,6 +717,30 @@ nodeAttestor:
     enabled: true
     ## @param nodeAttestor.k8sPsat.serviceAccountAllowList [array] Allowed service accounts for Psat nodeattestor
     serviceAccountAllowList: []
+    ## @param nodeAttestor.k8sPsat.audience [array] Audience for token validation. If set to [] (empty array), Kubernetes API server audience is used
+    audience: ["spire-server"]
+    ## @param nodeAttestor.k8sPsat.allowedNodeLabelKeys [array] Node label keys considered for selectors
+    allowedNodeLabelKeys: []
+    ## @param nodeAttestor.k8sPsat.allowedPodLabelKeys [array] Pod label keys considered for selectors
+    allowedPodLabelKeys: []
+  externalK8sPsat:
+    ## @param nodeAttestor.externalK8sPsat.enabled Enable PSAT k8s nodeattestor for external Kubernetes clusters
+    enabled: true
+    defaults:
+      ## @param nodeAttestor.externalK8sPsat.defaults.serviceAccountAllowList [array] Allowed service accounts for PSAT node attestor
+      serviceAccountAllowList: ["spire-system:spire-agent-upstream"]
+      ## @param nodeAttestor.externalK8sPsat.defaults.audience [array] Audience for token validation. If it is set to an empty array ([]), Kubernetes API server audience is used
+      audience: ["spire-server"]
+      ## @param nodeAttestor.externalK8sPsat.defaults.allowedNodeLabelKeys [array] Node label keys considered for selectors
+      allowedNodeLabelKeys: []
+      ## @param nodeAttestor.externalK8sPsat.defaults.allowedPodLabelKeys [array] Pod label keys considered for selectors
+      allowedPodLabelKeys: []
+    ## @param nodeAttestor.externalK8sPsat.clusters [object] A dictionary of clusters to add with optional overrides. If empty, all clusters defined in kubeConfigs will be used.
+    clusters: {}
+    # clustera:
+    #   kubeConfigName: foo
+    #   serviceAccountAllowList: ["other-ns:other-agent"]
+    # clusterb: {}
   joinToken:
     ## @param nodeAttestor.joinToken.enabled Enable the join_token nodeattestor
     enabled: false
@@ -887,3 +928,12 @@ tests:
       repository: chainguard/bash
       pullPolicy: IfNotPresent
       tag: latest@sha256:e4e1f63802396154706a44017f23bd3bfba4f8684374c4c981ba7567636a948e
+
+## @param kubeConfigs [object] Manage additional kubeconfig files to talk to external Kubernetes clusters
+kubeConfigs: {}
+# clustera:
+#   kubeConfig: |
+#     xxxxx
+#     xxxxx
+# clusterb:
+#   kubeConfigBase64: eXl5Cnl5eQo=
