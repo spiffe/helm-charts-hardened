@@ -45,10 +45,10 @@ teardown() {
 
 trap 'EC=$? && trap - SIGTERM && teardown $EC' SIGINT SIGTERM EXIT
 
-helm upgrade --install --create-namespace spire charts/spire \
-  --namespace spire-root-server \
-  --values "${DEPS}/spire-root-server-values.yaml" \
-  --wait
+#helm upgrade --install --create-namespace spire charts/spire \
+#  --namespace spire-root-server \
+#  --values "${DEPS}/spire-root-server-values.yaml" \
+#  --wait
 
 kind create cluster --name other --kubeconfig "${SCRIPTPATH}/kubeconfig" --config "${SCRIPTPATH}/kind-config.yaml"
 md5sum "${SCRIPTPATH}/kubeconfig"
