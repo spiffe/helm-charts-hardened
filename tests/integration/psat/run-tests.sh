@@ -70,4 +70,4 @@ helm upgrade --install --create-namespace --namespace spire-server --values "${S
 helm test --namespace spire-server spire
 kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig" get configmap -n spire-system spire-bundle-upstream
 
-kubectl exec -it -n spire-server spire-server-0 -- spire-server entry list
+kubectl exec -i -n spire-server spire-server-0 -- spire-server entry show
