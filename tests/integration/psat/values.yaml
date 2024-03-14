@@ -11,7 +11,6 @@ spire-server:
     organization: Production
     common_name: production.other
 
-spire-server:
   controllerManager:
     reconcile:
       clusterSPIFFEIDs: false

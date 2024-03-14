@@ -1,0 +1,23 @@
+apiVersion: spire.spiffe.io/v1alpha1
+kind: ClusterSPIFFEID
+metadata:
+  name: spire-mgmt-spire-oidc-discovery-provider
+spec:
+  autoPopulateDNSNames: true
+  className: spire-mgmt-spire
+  dnsNameTemplates:
+  - oidc-discovery.{{ .TrustDomain }}
+  namespaceSelector:
+    matchExpressions:
+    - key: kubernetes.io/metadata.name
+      operator: In
+      values:
+      - spire-mgmt
+      - spire-server
+      - spire-system
+  podSelector:
+    matchLabels:
+      component: oidc-discovery-provider
+      release: spire
+      release-namespace: spire-mgmt
+  spiffeIDTemplate: spiffe://{{ .TrustDomain }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
