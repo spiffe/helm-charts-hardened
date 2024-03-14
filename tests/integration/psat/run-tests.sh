@@ -45,11 +45,6 @@ teardown() {
 
 trap 'EC=$? && trap - SIGTERM && teardown $EC' SIGINT SIGTERM EXIT
 
-kubectl create namespace spire-system --dry-run=client -o yaml | kubectl apply -f -
-kubectl label namespace spire-system pod-security.kubernetes.io/enforce=privileged || true
-kubectl create namespace spire-server --dry-run=client -o yaml | kubectl apply -f -
-kubectl label namespace spire-server pod-security.kubernetes.io/enforce=restricted || true
-
 helm upgrade --install --create-namespace spire charts/spire \
   --namespace spire-root-server \
   --values "${DEPS}/spire-root-server-values.yaml" \
@@ -64,12 +59,12 @@ kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig" create configmap -n spire-system
 
 helm upgrade --kubeconfig "${SCRIPTPATH}/kubeconfig" --install --create-namespace --namespace spire-mgmt spire-crds charts/spire-crds
 kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig" apply -f "${SCRIPTPATH}/sodp-clusterspiffeid.yaml"
-helm upgrade --kubeconfig "${SCRIPTPATH}/kubeconfig" --install --create-namespace --namespace spire-server --values "${SCRIPTPATH}/child-values.yaml" \
+helm upgrade --kubeconfig "${SCRIPTPATH}/kubeconfig" --install --create-namespace --namespace spire-mgmt --values "${SCRIPTPATH}/child-values.yaml" \
   spire charts/spire
 
-helm upgrade --install --create-namespace --namespace spire-server --values "${SCRIPTPATH}/values.yaml" \
+helm upgrade --install --create-namespace --namespace spire-mgmt --values "${SCRIPTPATH}/values.yaml" \
   --wait spire charts/spire --set "spire-server.kubeConfigs.other.kubeConfigBase64=$KCB64"
-helm test --namespace spire-server spire
+helm test --namespace spire-mgmt spire
 kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig" get configmap -n spire-system spire-bundle-upstream
 
 ENTRIES="$(kubectl exec -i -n spire-server spire-server-0 -- spire-server entry show)"
