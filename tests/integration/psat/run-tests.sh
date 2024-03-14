@@ -74,8 +74,8 @@ kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig" get configmap -n spire-system sp
 
 ENTRIES="$(kubectl exec -i -n spire-server spire-server-0 -- spire-server entry show)"
 
-if [ "x$ENTRIES" == "xFound 0 entries" ]; then
-	echo "ENTRIES"
+if [[ "$ENTRIES" == "Found 0 entries" ]]; then
+	echo "$ENTRIES"
 	exit 1
 fi
 
