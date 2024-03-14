@@ -4,13 +4,12 @@ global:
       enabled: true
     clusterName: production
     trustDomain: production.other
+    caSubject:
+      country: US
+      organization: Production
+      common_name: production.other
 
 spire-server:
-  ca_subject:
-    country: US
-    organization: Production
-    common_name: production.other
-
   controllerManager:
     reconcile:
       clusterSPIFFEIDs: false
