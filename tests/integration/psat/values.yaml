@@ -7,7 +7,7 @@ global:
     caSubject:
       country: US
       organization: Production
-      common_name: production.other
+      commonName: production.other
 
 spire-server:
   controllerManager:
