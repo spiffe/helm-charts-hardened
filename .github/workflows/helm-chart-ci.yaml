@@ -301,7 +301,7 @@ jobs:
       - name: Install and test integration
         run: |
           kubectl create namespace spire-server
-          helm install -n spire-server spire-crds charts/spire-crds
+          helm install -n spire-mgmt spire-crds charts/spire-crds
           ${{ matrix.integrationtest }}/run-tests.sh
 
   upgrade-test:
