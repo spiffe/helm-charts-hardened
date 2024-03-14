@@ -14,7 +14,7 @@ spire-server:
     reconcile:
       clusterSPIFFEIDs: false
       clusterStaticEntries: false
-  externalControllerManager:
+  externalControllerManagers:
     enabled: true
 
 spiffe-oidc-discovery-provider:
