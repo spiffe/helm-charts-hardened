@@ -66,4 +66,3 @@ helm upgrade --install --create-namespace --namespace spire-server --values "${S
   --wait spire charts/spire --set "spire-server.kubeConfigs.other.kubeConfigBase64=$KCB64"
 helm test --namespace spire-server spire
 kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig" get configmap -n spire-system spire-bundle-upstream
-
