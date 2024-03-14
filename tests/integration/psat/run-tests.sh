@@ -63,7 +63,7 @@ kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig" create namespace spire-system
 kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig" create configmap -n spire-system spire-bundle-upstream
 
 helm upgrade --kubeconfig "${SCRIPTPATH}/kubeconfig" --install --create-namespace --namespace spire-mgmt spire-crds charts/spire-crds
-kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig" apply -f sodp-clusterspiffeid.yaml
+kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig" apply -f "${SCRIPTPATH}/sodp-clusterspiffeid.yaml"
 
 helm upgrade --install --create-namespace --namespace spire-server --values "${SCRIPTPATH}/values.yaml" \
   --wait spire charts/spire --set "spire-server.kubeConfigs.other.kubeConfigBase64=$KCB64"
