@@ -80,16 +80,10 @@ helm test --namespace spire-mgmt spire
 kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig-child" get configmap -n spire-system spire-bundle-upstream
 kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig-other" get configmap -n spire-system spire-bundle-upstream
 
-CHILD_ENTRIES="$(kubectl exec -i -n spire-server spire-server-0 -- spire-server entry show)"
+ENTRIES="$(kubectl exec -i -n spire-server spire-server-0 -- spire-server entry show)"
 
-if [[ "${CHILD_ENTRIES}" == "Found 0 entries" ]]; then
-	echo "${CHILD_ENTRIES}"
+if [[ "${ENTRIES}" == "Found 0 entries" ]]; then
+	echo "${ENTRIES}"
 	exit 1
 fi
 
-OTHER_ENTRIES="$(kubectl exec -i -n spire-server spire-server-0 -- spire-server entry show)"
-
-if [[ "${OTHER_ENTRIES}" == "Found 0 entries" ]]; then
-	echo "${OTHER_ENTRIES}"
-	exit 1
-fi
