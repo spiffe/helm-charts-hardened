@@ -19,9 +19,16 @@ spire-server:
       tag: "scm4"
     reconcile:
       clusterSPIFFEIDs: false
-      clusterStaticEntries: false
-  externalControllerManagers:
-    enabled: true
+      clusterStaticEntries: true
+      clusterFederatedTrustDomains: true
+    identities:
+      clusterSPIFFEIDs:
+        default:
+          enabled: false
+        oidc-discovery-provider:
+          enabled: false
+        test-keys:
+          enabled: false
 
 spiffe-oidc-discovery-provider:
   enabled: false
