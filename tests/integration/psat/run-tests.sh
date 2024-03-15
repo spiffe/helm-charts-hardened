@@ -50,7 +50,7 @@ trap 'EC=$? && trap - SIGTERM && teardown $EC' SIGINT SIGTERM EXIT
 #  --values "${DEPS}/spire-root-server-values.yaml" \
 #  --wait
 
-kind create cluster --name child --kubeconfig "${SCRIPTPATH}/kubeconfig-child" --config "${SCRIPTPATH}/kind-config.yaml"
+kind create cluster --name child --kubeconfig "${SCRIPTPATH}/kubeconfig-child" --config "${SCRIPTPATH}/child-kind-config.yaml"
 md5sum "${SCRIPTPATH}/kubeconfig-child"
 wc -l "${SCRIPTPATH}/kubeconfig-child"
 CHILD_KCB64="$(base64 < "${SCRIPTPATH}/kubeconfig-child" | tr '\n' ' ' | sed 's/ //g')"
@@ -61,7 +61,7 @@ helm upgrade --kubeconfig "${SCRIPTPATH}/kubeconfig-child" --install --namespace
   spire charts/spire
 kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig-child" create configmap -n spire-system spire-bundle-upstream
 
-kind create cluster --name other --kubeconfig "${SCRIPTPATH}/kubeconfig-other" --config "${SCRIPTPATH}/kind-config.yaml"
+kind create cluster --name other --kubeconfig "${SCRIPTPATH}/kubeconfig-other" --config "${SCRIPTPATH}/other-kind-config.yaml"
 md5sum "${SCRIPTPATH}/kubeconfig-other"
 wc -l "${SCRIPTPATH}/kubeconfig-other"
 OTHER_KCB64="$(base64 < "${SCRIPTPATH}/kubeconfig-other" | tr '\n' ' ' | sed 's/ //g')"
