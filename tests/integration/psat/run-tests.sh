@@ -77,7 +77,8 @@ helm upgrade --install --create-namespace --namespace spire-mgmt --values "${SCR
   --set "spire-server.kubeConfigs.child.kubeConfigBase64=${CHILD_KCB64}" \
   --set "spire-server.kubeConfigs.other.kubeConfigBase64=${OTHER_KCB64}"
 helm test --namespace spire-mgmt spire
-kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig" get configmap -n spire-system spire-bundle-upstream
+kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig-child" get configmap -n spire-system spire-bundle-upstream
+kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig-other" get configmap -n spire-system spire-bundle-upstream
 
 CHILD_ENTRIES="$(kubectl exec -i -n spire-server spire-server-0 -- spire-server entry show)"
 
