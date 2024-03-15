@@ -56,6 +56,7 @@ cacheNamespaces:
 {{- if .webhookEnabled }}
 validatingWebhookConfigurationName: {{ .Release.Namespace }}-{{ include "spire-controller-manager.fullname" . }}-webhook
 {{- end }}
+entryIDPrefix: {{ .clusterName }}
 clusterName: {{ .clusterName }}
 trustDomain: {{ include "spire-lib.trust-domain" . }}
 {{- $ignoreNamespaces := .defaults.ignoreNamespaces }}
