@@ -56,6 +56,13 @@ cacheNamespaces:
 {{- if .webhookEnabled }}
 validatingWebhookConfigurationName: {{ .Release.Namespace }}-{{ include "spire-controller-manager.fullname" . }}-webhook
 {{- end }}
+{{- $entryIDPrefixClean := .defaults.entryIDPrefixClean }}
+{{- if hasKey .settings "entryIDPrefixClean" }}
+{{-   $entryIDPrefixClean = .settings.entryIDPrefixClean }}
+{{- end }}
+{{- if typeIs "string" $entryIDPrefixClean }}
+entryIDPrefixClean: {{ $entryIDPrefixClean | quote }}
+{{- end }}
 entryIDPrefix: {{ .clusterName }}
 clusterName: {{ .clusterName }}
 trustDomain: {{ include "spire-lib.trust-domain" . }}

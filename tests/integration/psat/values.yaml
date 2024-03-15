@@ -13,10 +13,6 @@ global:
 
 spire-server:
   controllerManager:
-    image:
-      registry: docker.io
-      repository: kfox1111/misc
-      tag: "scm4"
     reconcile:
       clusterSPIFFEIDs: false
       clusterStaticEntries: true
