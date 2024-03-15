@@ -50,26 +50,45 @@ trap 'EC=$? && trap - SIGTERM && teardown $EC' SIGINT SIGTERM EXIT
 #  --values "${DEPS}/spire-root-server-values.yaml" \
 #  --wait
 
-kind create cluster --name other --kubeconfig "${SCRIPTPATH}/kubeconfig" --config "${SCRIPTPATH}/kind-config.yaml"
-md5sum "${SCRIPTPATH}/kubeconfig"
-wc -l "${SCRIPTPATH}/kubeconfig"
-KCB64="$(base64 < "${SCRIPTPATH}/kubeconfig" | tr '\n' ' ' | sed 's/ //g')"
+kind create cluster --name child --kubeconfig "${SCRIPTPATH}/kubeconfig-child" --config "${SCRIPTPATH}/kind-config.yaml"
+md5sum "${SCRIPTPATH}/kubeconfig-child"
+wc -l "${SCRIPTPATH}/kubeconfig-child"
+CHILD_KCB64="$(base64 < "${SCRIPTPATH}/kubeconfig-child" | tr '\n' ' ' | sed 's/ //g')"
 
-helm upgrade --kubeconfig "${SCRIPTPATH}/kubeconfig" --install --create-namespace --namespace spire-mgmt spire-crds charts/spire-crds
-kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig" apply -f "${SCRIPTPATH}/sodp-clusterspiffeid.yaml"
-helm upgrade --kubeconfig "${SCRIPTPATH}/kubeconfig" --install --namespace spire-mgmt --values "${SCRIPTPATH}/child-values.yaml" \
+helm upgrade --kubeconfig "${SCRIPTPATH}/kubeconfig-child" --install --create-namespace --namespace spire-mgmt spire-crds charts/spire-crds
+kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig-child" apply -f "${SCRIPTPATH}/sodp-clusterspiffeid.yaml"
+helm upgrade --kubeconfig "${SCRIPTPATH}/kubeconfig-child" --install --namespace spire-mgmt --values "${SCRIPTPATH}/child-values.yaml" \
   spire charts/spire
-kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig" create configmap -n spire-system spire-bundle-upstream
+kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig-child" create configmap -n spire-system spire-bundle-upstream
+
+kind create cluster --name other --kubeconfig "${SCRIPTPATH}/kubeconfig-other" --config "${SCRIPTPATH}/kind-config.yaml"
+md5sum "${SCRIPTPATH}/kubeconfig-other"
+wc -l "${SCRIPTPATH}/kubeconfig-other"
+OTHER_KCB64="$(base64 < "${SCRIPTPATH}/kubeconfig-other" | tr '\n' ' ' | sed 's/ //g')"
+
+helm upgrade --kubeconfig "${SCRIPTPATH}/kubeconfig-other" --install --create-namespace --namespace spire-mgmt spire-crds charts/spire-crds
+kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig-other" apply -f "${SCRIPTPATH}/sodp-clusterspiffeid.yaml"
+helm upgrade --kubeconfig "${SCRIPTPATH}/kubeconfig-other" --install --namespace spire-mgmt --values "${SCRIPTPATH}/child-values.yaml" \
+  spire charts/spire
+kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig-other" create configmap -n spire-system spire-bundle-upstream
 
 helm upgrade --install --create-namespace --namespace spire-mgmt --values "${SCRIPTPATH}/values.yaml" \
-  --wait spire charts/spire --set "spire-server.kubeConfigs.other.kubeConfigBase64=$KCB64"
+  --wait spire charts/spire \
+  --set "spire-server.kubeConfigs.child.kubeConfigBase64=${CHILD_KCB64}" \
+  --set "spire-server.kubeConfigs.other.kubeConfigBase64=${OTHER_KCB64}"
 helm test --namespace spire-mgmt spire
 kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig" get configmap -n spire-system spire-bundle-upstream
 
-ENTRIES="$(kubectl exec -i -n spire-server spire-server-0 -- spire-server entry show)"
+CHILD_ENTRIES="$(kubectl exec -i -n spire-server spire-server-0 -- spire-server entry show)"
 
-if [[ "$ENTRIES" == "Found 0 entries" ]]; then
-	echo "$ENTRIES"
+if [[ "${CHILD_ENTRIES}" == "Found 0 entries" ]]; then
+	echo "${CHILD_ENTRIES}"
 	exit 1
 fi
 
+OTHER_ENTRIES="$(kubectl exec -i -n spire-server spire-server-0 -- spire-server entry show)"
+
+if [[ "${OTHER_ENTRIES}" == "Found 0 entries" ]]; then
+	echo "${OTHER_ENTRIES}"
+	exit 1
+fi
