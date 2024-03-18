@@ -54,6 +54,6 @@ helm upgrade --install postgresql postgresql --version "$VERSION_POSTGRESQL" --r
   --wait
 
 helm upgrade --install --namespace "spire-server" \
-  --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/values.yaml,${SCRIPTPATH}/../../tests/integration/production/values-node-pod-antiaffinity.yaml" \
+  --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/values.yaml,${SCRIPTPATH}/../misc/values-node-pod-antiaffinity.yaml" \
   --set 'spire-server.dataStore.sql.password=sp1ff3Test' --wait spire charts/spire
 helm test --namespace "spire-server" spire
