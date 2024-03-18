@@ -47,6 +47,9 @@ serviceAccount:
 ## @param podAnnotations [object] Annotations to add to pods
 podAnnotations: {}
 
+## @param podLabels [object] Labels to add to pods
+podLabels: {}
+
 ## @param podSecurityContext [object] Pod security context
 podSecurityContext: {}
   # fsGroup: 2000
@@ -284,6 +287,11 @@ ca_subject:
   ## @param ca_subject.common_name Common Name for Spire server CA
   common_name: example.org
 
+credentialComposer:
+  uniqueID:
+    ## @param credentialComposer.uniqueID.enabled Add the x509UniqueIdentifier attribute to workload X509-SVIDs
+    enabled: false
+
 keyManager:
   disk:
     ## @param keyManager.disk.enabled Flag to enable keyManager on disk
@@ -415,8 +423,25 @@ upstreamAuthority:
 
 notifier:
   k8sbundle:
+    ## @param notifier.k8sbundle.enabled Enable local k8s bundle uploader
+    enabled: true
     ## @param notifier.k8sbundle.namespace Namespace to push the bundle into, if blank will default to SPIRE Server namespace
     namespace: ""
+  externalK8sBundle:
+    ## @param notifier.externalK8sBundle.enabled Enable exernal k8s bundle uploader
+    enabled: true
+    defaults:
+      ## @param notifier.externalK8sBundle.defaults.namespace Namespace to push the bundle into on clusters
+      namespace: "spire-system"
+      ## @param notifier.externalK8sBundle.defaults.configMap ConfigMap name to push the bundle into on external clusters
+      configMap: "spire-bundle-upstream"
+      ## @param notifier.externalK8sBundle.defaults.configMapKey ConfigMap key to push the bundle into on external clusters
+      configMapKey: "bundle.crt"
+    ## @param notifier.externalK8sBundle.clusters [object] A dictionary of clusters to add with optional overrides. If empty, all clusters defined in kubeConfigs will be used.
+    clusters: {}
+    # clustera:
+    #   namespace: foo
+    # clusterb: {}
 
 controllerManager:
   ## @param controllerManager.enabled Flag to enable controller manager
@@ -692,9 +717,54 @@ nodeAttestor:
     enabled: true
     ## @param nodeAttestor.k8sPsat.serviceAccountAllowList [array] Allowed service accounts for Psat nodeattestor
     serviceAccountAllowList: []
+    ## @param nodeAttestor.k8sPsat.audience [array] Audience for token validation. If set to [] (empty array), Kubernetes API server audience is used
+    audience: ["spire-server"]
+    ## @param nodeAttestor.k8sPsat.allowedNodeLabelKeys [array] Node label keys considered for selectors
+    allowedNodeLabelKeys: []
+    ## @param nodeAttestor.k8sPsat.allowedPodLabelKeys [array] Pod label keys considered for selectors
+    allowedPodLabelKeys: []
+  externalK8sPsat:
+    ## @param nodeAttestor.externalK8sPsat.enabled Enable PSAT k8s nodeattestor for external Kubernetes clusters
+    enabled: true
+    defaults:
+      ## @param nodeAttestor.externalK8sPsat.defaults.serviceAccountAllowList [array] Allowed service accounts for PSAT node attestor
+      serviceAccountAllowList: ["spire-system:spire-agent-upstream"]
+      ## @param nodeAttestor.externalK8sPsat.defaults.audience [array] Audience for token validation. If it is set to an empty array ([]), Kubernetes API server audience is used
+      audience: ["spire-server"]
+      ## @param nodeAttestor.externalK8sPsat.defaults.allowedNodeLabelKeys [array] Node label keys considered for selectors
+      allowedNodeLabelKeys: []
+      ## @param nodeAttestor.externalK8sPsat.defaults.allowedPodLabelKeys [array] Pod label keys considered for selectors
+      allowedPodLabelKeys: []
+    ## @param nodeAttestor.externalK8sPsat.clusters [object] A dictionary of clusters to add with optional overrides. If empty, all clusters defined in kubeConfigs will be used.
+    clusters: {}
+    # clustera:
+    #   kubeConfigName: foo
+    #   serviceAccountAllowList: ["other-ns:other-agent"]
+    # clusterb: {}
   joinToken:
     ## @param nodeAttestor.joinToken.enabled Enable the join_token nodeattestor
     enabled: false
+  tpmDirect:
+    ## @param nodeAttestor.tpmDirect.enabled Enable the direct TPM node attestor, a 3rd party plugin by Boxboat. This plugin is experimental.
+    enabled: false
+    ## @param nodeAttestor.tpmDirect.image.registry The OCI registry to pull the image from
+    ## @param nodeAttestor.tpmDirect.image.repository The repository within the registry
+    ## @param nodeAttestor.tpmDirect.image.pullPolicy The image pull policy
+    ## @param nodeAttestor.tpmDirect.image.tag Overrides the image tag
+    ##
+    image:
+      registry: docker.io
+      repository: boxboat/spire-tpm-plugin-tpm-attestor-server
+      pullPolicy: IfNotPresent
+      tag: "v1.8.7"
+    ## @param nodeAttestor.tpmDirect.checksum The sha256 checksum of the plugin binary
+    checksum: f39ef9cdd2b3dd74112bfe827b79d6721c59215d0d5f4c2e34fa09bbc60d36d2
+    ## @param nodeAttestor.tpmDirect.pluginPath The filename in the container of the plugin
+    pluginPath: /app/tpm_attestor_server
+    ## @param nodeAttestor.tpmDirect.cas A dictionary of TPM CA PEM or DER files that are allowed to connect.
+    cas: {}
+    ## @param nodeAttestor.tpmDirect.hashes A list of TPM hashes that are allowed to connect.
+    hashes: []
 
 ## @section Tornjak
 tornjak:
@@ -811,18 +881,21 @@ tornjak:
 ## @skip unsupportedBuiltInPlugins
 unsupportedBuiltInPlugins:
   bundlePublisher: {}
+  credentialComposer: {}
   keyManager: {}
   nodeAttestor: {}
   upstreamAuthority: {}
   notifier: {}
 
 ## @param customPlugins.bundlePublisher Custom plugins of type BundlePublisher are configured here
+## @param customPlugins.credentialComposer Custom plugins of type CredentialComposer are configured here
 ## @param customPlugins.keyManager Custom plugins of type KeyManager are configured here
 ## @param customPlugins.nodeAttestor Custom plugins of type NodeAttestor are configured here
 ## @param customPlugins.upstreamAuthority Custom plugins of type upstreamAuthority are configured here
 ## @param customPlugins.notifier Custom plugins of type notifier are configured here
 customPlugins:
   bundlePublisher: {}
+  credentialComposer: {}
   keyManager: {}
   nodeAttestor: {}
   upstreamAuthority: {}
@@ -854,4 +927,13 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:5c232c444e5c3bc509fdd3794534e9ff5438e9f80268218202ce6ce8c6d8e8f7
+      tag: latest@sha256:d69268f206bc7914c25f7377309a73406517678458ebccec0e6bfab7b9b7e9d2
+
+## @param kubeConfigs [object] Manage additional kubeconfig files to talk to external Kubernetes clusters
+kubeConfigs: {}
+# clustera:
+#   kubeConfig: |
+#     xxxxx
+#     xxxxx
+# clusterb:
+#   kubeConfigBase64: eXl5Cnl5eQo=

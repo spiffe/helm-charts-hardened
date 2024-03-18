@@ -23,6 +23,9 @@
 {{- end }}
 {{- define "spire-agent.yaml-config" -}}
 agent:
+  {{- if .Values.disableReattestToRenew }}
+  disable_reattest_to_renew: true
+  {{- end }}
   {{- if .Values.sockets.admin.enabled }}
   admin_socket_dir: /tmp/spire-agent/private/admin.sock
   {{- end }}
@@ -75,6 +78,15 @@ plugins:
       plugin_data:
         cluster: {{ include "spire-lib.cluster-name" . | quote }}
     {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
+    {{- end }}
+    {{- with .Values.nodeAttestor.tpmDirect }}
+    {{- if eq (.enabled | toString) "true" }}
+    tpm:
+      plugin_cmd: "/tpm/tpm_attestor_agent"
+      plugin_checksum: {{ .plugin.checksum }}
+      plugin_data: {}
+    {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
+    {{- end }}
     {{- end }}
 {{- if ne $nodeAttestorUsed 1 }}
 {{- fail (printf "You have to enable exactly one Node Attestor. There are %d enabled." $nodeAttestorUsed) }}

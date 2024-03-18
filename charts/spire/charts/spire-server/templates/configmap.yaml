@@ -1,11 +1,11 @@
 {{- include "spire-lib.check-strict-mode" (list . "clusterName must be set" (eq (include "spire-lib.cluster-name" .) "example-cluster"))}}
 {{- include "spire-lib.check-strict-mode" (list . "trustDomain must be set" (eq (include "spire-lib.trust-domain" .) "example.org"))}}
 {{- include "spire-lib.check-strict-mode" (list . "jwtIssuer must be set" (eq (include "spire-lib.jwt-issuer" .) "https://oidc-discovery.example.org"))}}
-{{- include "spire-lib.check-strict-mode" (list . "ca_subject.county must be set" (eq .Values.ca_subject.country "ARPA"))}}
-{{- include "spire-lib.check-strict-mode" (list . "ca_subject.organization must be set" (eq .Values.ca_subject.organization "Example"))}}
-{{- include "spire-lib.check-strict-mode" (list . "ca_subject.common_name must be set" (eq .Values.ca_subject.common_name "example.org"))}}
+{{- include "spire-lib.check-strict-mode" (list . "ca_subject.country must be set" (eq (include "spire-server.ca-subject-country" .) "ARPA"))}}
+{{- include "spire-lib.check-strict-mode" (list . "ca_subject.organization must be set" (eq (include "spire-server.ca-subject-organization" .) "Example"))}}
+{{- include "spire-lib.check-strict-mode" (list . "ca_subject.common_name must be set" (eq (include "spire-server.ca-subject-common-name" .) "example.org"))}}
 {{- range $type, $tvals := .Values.customPlugins }}
-{{-   if not (has $type (list "bundlePublisher" "keyManager" "nodeAttestor" "upstreamAuthority" "notifier")) }}
+{{-   if not (has $type (list "bundlePublisher" "credentialComposer" "keyManager" "nodeAttestor" "upstreamAuthority" "notifier")) }}
 {{-     fail (printf "Unknown plugin type specified: %s" $type) }}
 {{-   end }}
 {{-   range $name, $nval := $tvals }}
@@ -59,11 +59,9 @@ server:
   default_jwt_svid_ttl: {{ .Values.defaultJwtSvidTTL | quote }}
 
   ca_subject:
-    {{- with .Values.ca_subject }}
-    - country: [{{ .country | quote }}]
-      organization: [{{ .organization | quote }}]
-      common_name: {{ .common_name | quote }}
-    {{- end }}
+    - country: [{{ include "spire-server.ca-subject-country" . | quote }}]
+      organization: [{{ include "spire-server.ca-subject-organization" . | quote }}]
+      common_name: {{ include "spire-server.ca-subject-common-name" . | quote }}
 
   {{- with .Values.federation }}
   {{- if eq (.enabled | toString) "true" }}
@@ -87,26 +85,79 @@ server:
   {{- end }}
 
 plugins:
+  {{- if .Values.credentialComposer.uniqueID.enabled }}
+  CredentialComposer:
+    uniqueid: {}
+  {{- end }}
+
   DataStore:
     sql:
       plugin_data:
         {{ include "spire-server.datastore-config" . | nindent 10 }}
 
-  {{- if or .Values.nodeAttestor.k8sPsat.enabled .Values.nodeAttestor.joinToken.enabled }}
+  {{- if or .Values.nodeAttestor.k8sPsat.enabled .Values.nodeAttestor.externalK8sPsat.enabled .Values.nodeAttestor.joinToken.enabled .Values.nodeAttestor.tpmDirect.enabled }}
   NodeAttestor:
-  {{- with .Values.nodeAttestor.k8sPsat }}
-  {{- if eq (.enabled | toString) "true" }}
+  {{- if or (eq (.Values.nodeAttestor.k8sPsat.enabled | toString) "true") (eq (.Values.nodeAttestor.externalK8sPsat.enabled | toString) "true") }}
     k8s_psat:
       plugin_data:
         clusters:
-          {{ include "spire-lib.cluster-name" $root }}:
+          {{- with .Values.nodeAttestor.k8sPsat }}
+          {{- if eq (.enabled | toString) "true" }}
+        - {{ include "spire-lib.cluster-name" $root }}:
             service_account_allow_list: {{ include "spire-server.serviceAccountAllowedList" $root | trim }}
-  {{- end }}
+            audience: {{ .audience }}
+            allowed_node_label_keys:
+              {{ toYaml .allowedNodeLabelKeys | nindent 14 }}
+            allowed_pod_label_keys:
+              {{ toYaml .allowedPodLabelKeys | nindent 14 }}
+          {{- end }}
+          {{- end }}
+          {{- if eq (.Values.nodeAttestor.externalK8sPsat.enabled | toString) "true" }}
+          {{- $clusters := default .Values.kubeConfigs .Values.nodeAttestor.externalK8sPsat.clusters }}
+          {{- $clusterDefaults := .Values.nodeAttestor.externalK8sPsat.defaults }}
+          {{- range $name, $_ := $clusters }}
+          {{- $clusterSettings := dict }}
+          {{- if hasKey $root.Values.nodeAttestor.externalK8sPsat.clusters $name }}
+          {{- $clusterSettings = index $root.Values.nodeAttestor.externalK8sPsat.clusters $name }}
+          {{- end }}
+        - {{ $name }}:
+            {{- if hasKey $clusterSettings "kubeConfigName" }}
+            kube_config_file: /kubeconfigs/{{ $clusterSettings.kubeConfigName }}
+            {{- else }}
+            kube_config_file: /kubeconfigs/{{ $name }}
+            {{- end }}
+            service_account_allow_list:
+              {{ if hasKey $clusterSettings "serviceAccountAllowList" }}{{ toYaml $clusterSettings.serviceAccountAllowList | nindent 14 }}{{ else }}{{ toYaml $clusterDefaults.serviceAccountAllowList | nindent 14 }}{{ end }}
+            audience: {{ if hasKey $clusterSettings "audience" }}{{ $clusterSettings.audience }}{{ else }}{{ $clusterDefaults.audience }}{{ end }}
+            allowed_node_label_keys:
+              {{ if hasKey $clusterSettings "allowedNodeLabelKeys" }}{{ toYaml $clusterSettings.allowedNodeLabelKeys | nindent 14 }}{{ else }}{{ toYaml $clusterDefaults.allowedNodeLabelKeys | nindent 14 }}{{ end }}
+            allowed_pod_label_keys:
+              {{ if hasKey $clusterSettings "allowedPodLabelKeys" }}{{ toYaml $clusterSettings.allowedPodLabelKeys | nindent 14 }}{{ else }}{{ toYaml $clusterDefaults.allowedPodLabelKeys | nindent 14 }}{{ end }}
+          {{- end }}
+          {{- end }}
   {{- end }}
   {{- with .Values.nodeAttestor.joinToken }}
   {{- if eq (.enabled | toString) "true" }}
     join_token:
       plugin_data: {}
+  {{- end }}
+  {{- end }}
+  {{- with .Values.nodeAttestor.tpmDirect }}
+  {{- if eq (.enabled | toString) "true" }}
+    tpm:
+      plugin_cmd: "/tpm/tpm_attestor_server"
+      plugin_checksum: {{ .checksum }}
+      plugin_data:
+        {{- if ne (len .cas) 0 }}
+        ca_path: /tpm-direct-cas
+        {{- else }}
+        ca_path: /run/spire/data/tpm-direct/certs
+        {{- end }}
+        {{- if ne (len .hashes) 0 }}
+        hash_path: /tmp-direct-hashes
+        {{- else }}
+        hash_path: /run/spire/data/tpm-direct/hashes
+        {{- end }}
   {{- end }}
   {{- end }}
   {{- end }}
@@ -154,11 +205,35 @@ plugins:
 {{- fail (printf "You have to enable exactly one Key Manager. There are %d enabled." $keyManagerUsed) }}
 {{- end }}
 
+  {{- if or .Values.notifier.k8sbundle.enabled .Values.notifier.externalK8sBundle.enabled }}
   Notifier:
     k8sbundle:
       plugin_data:
+        {{- if eq (.Values.notifier.k8sbundle.enabled | toString) "true" }}
         namespace: {{ include "spire-server.bundle-namespace" . | quote }}
         config_map: {{ include "spire-lib.bundle-configmap" . | quote }}
+        {{- end }}
+        {{- $clusters := default .Values.kubeConfigs .Values.notifier.externalK8sBundle.clusters }}
+        {{- if and (eq (.Values.notifier.externalK8sBundle.enabled | toString) "true") (ne (len $clusters) 0) }}
+        clusters:
+          - "":
+          {{- $clusterDefaults := .Values.notifier.externalK8sBundle.defaults }}
+          {{- range $name, $_ := $clusters }}
+            {{- $clusterSettings := dict }}
+            {{- if hasKey $root.Values.notifier.externalK8sBundle.clusters $name }}
+            {{- $clusterSettings = index $root.Values.notifier.externalK8sBundle.clusters $name }}
+            {{- end }}
+            {{- if hasKey $clusterSettings "kubeConfigName" }}
+            - kube_config_file_path: /kubeconfigs/{{ $clusterSettings.kubeConfigName }}
+            {{- else }}
+            - kube_config_file_path: /kubeconfigs/{{ $name }}
+            {{- end }}
+              namespace: {{ if hasKey $clusterSettings "namespace" }}{{ $clusterSettings.namespace }}{{ else }}{{ $clusterDefaults.namespace }}{{ end }}
+              config_map: {{ if hasKey $clusterSettings "configMap" }}{{ $clusterSettings.configMap }}{{ else }}{{ $clusterDefaults.configMap }}{{ end }}
+              config_map_key: {{ if hasKey $clusterSettings "configMapKey" }}{{ $clusterSettings.configMapKey }}{{ else }}{{ $clusterDefaults.configMapKey }}{{ end }}
+          {{- end }}
+        {{- end }}
+  {{- end }}
 
   {{- with .Values.upstreamAuthority.disk }}
   {{- if eq (.enabled | toString) "true" }}
