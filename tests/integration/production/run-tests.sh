@@ -122,7 +122,7 @@ install_and_test() {
   # shellcheck disable=SC2086
   "${helm_install[@]}" spire "$1" \
     --namespace "${ns}" \
-    --values <(common_test_your_values) \
+    --values "${COMMON_TEST_YOUR_VALUES}" \
     --values "${SCRIPTPATH}/values-expose-spiffe-oidc-discovery-provider-ingress-nginx.yaml" \
     --values "${SCRIPTPATH}/values-expose-spire-server-ingress-nginx.yaml" \
     --values "${SCRIPTPATH}/values-expose-federation-https-web-ingress-nginx.yaml" \

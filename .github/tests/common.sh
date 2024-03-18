@@ -73,7 +73,7 @@ EOF
 
 # Used just for testing. You should provide your own values as described in the install instructions.
 common_test_your_values () {
-cat <<EOF
+cat > /tmp/$$.example-your-values.yaml <<EOF
 global:
   spire:
     recommendations:
@@ -85,4 +85,7 @@ global:
     organization: Production
     commonName: production.other
 EOF
+echo "/tmp/$$.example-your-values.yaml"
 }
+
+COMMON_TEST_YOUR_VALUES="$(common_test_your_values)"
