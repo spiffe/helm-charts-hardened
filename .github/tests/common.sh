@@ -88,4 +88,5 @@ EOF
 echo "/tmp/$$.example-your-values.yaml"
 }
 
-export COMMON_TEST_YOUR_VALUES="$(common_test_your_values)"
+COMMON_TEST_YOUR_VALUES="$(common_test_your_values)"
+export COMMON_TEST_YOUR_VALUES

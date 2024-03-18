@@ -55,7 +55,7 @@ helm upgrade --install --create-namespace spire charts/spire \
   --values "${DEPS}/spire-root-server-values.yaml" \
   --wait
 
-helm upgrade --install --create-namespace --namespace spire-server --values "${SCRIPTPATH}/values.yaml,${SCRIPTPATH}/../../tests/integration/production/values.yaml,${SCRIPTPATH}/../../tests/integration/production/values-node-pod-antiaffinity.yaml,${SCRIPTPATH}/../../tests/integration/production/example-your-values.yaml" \
+helm upgrade --install --create-namespace --namespace spire-server --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/values.yaml,${SCRIPTPATH}/../../tests/integration/production/values-node-pod-antiaffinity.yaml" \
   --wait spire charts/spire
 helm test --namespace spire-server spire
 
