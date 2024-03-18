@@ -22,6 +22,9 @@ maintainers:
     email: edwbuck@gmail.com
 kubeVersion: ">=1.21.0-0"
 dependencies:
+  - name: spire-lib
+    repository: file://./charts/spire-lib
+    version: 0.1.0
   - name: spire-server
     condition: spire-server.enabled
     repository: file://./charts/spire-server
