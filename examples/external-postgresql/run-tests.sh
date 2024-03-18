@@ -50,7 +50,7 @@ kubectl label namespace spire-server pod-security.kubernetes.io/enforce=restrict
 
 helm upgrade --install postgresql postgresql --version "$VERSION_POSTGRESQL" --repo "$HELM_REPO_POSTGRESQL" \
   --namespace spire-server \
-  --values "${DEPS}/postgresql.yaml"
+  --values "${DEPS}/postgresql.yaml" \
   --wait
 
 helm upgrade --install --namespace "spire-server" \
