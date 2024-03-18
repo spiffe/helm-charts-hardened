@@ -80,12 +80,12 @@ global:
       enabled: true
     clusterName: production
     trustDomain: production.other
-  caSubject:
-    country: US
-    organization: Production
-    commonName: production.other
+    caSubject:
+      country: US
+      organization: Production
+      commonName: production.other
 EOF
 echo "/tmp/$$.example-your-values.yaml"
 }
 
-COMMON_TEST_YOUR_VALUES="$(common_test_your_values)"
+export COMMON_TEST_YOUR_VALUES="$(common_test_your_values)"
