@@ -5,7 +5,7 @@
 
 ## Deploy Standard SPIRE
 
-Follow the standard installation of SPIRE as described in [example/production](../production/README.md) document.
+Follow the production installation of SPIRE as described in the [install instructions] (https://artifacthub.io/packages/helm/spiffe/spire) document.
 
 ## Upgrade to enable Tornjak
 
