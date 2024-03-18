@@ -21,13 +21,12 @@ Deploy SPIRE with Tornjak enabled
 ```shell
 export TORNJAK_API=http://localhost:10000
 
-helm upgrade --install --create-namespace -n spire-mgmt spire charts/spire \
---set global.spire.namespaces.create=true \
+helm upgrade --install -n spire-mgmt spire spire \
+--repo https://spiffe.github.io/helm-charts-hardened/ \
 --set tornjak-frontend.apiServerURL=$TORNJAK_API \
---values examples/production/example-your-values.yaml \
---values examples/production/values.yaml  \
---values examples/tornjak/values.yaml   \
---render-subchart-notes --debug
+--values examples/tornjak/values.yaml \
+--values your-values.yaml \
+--render-subchart-notes
 
 # test the Tornjak deployment
 helm test spire -n spire-server
@@ -58,14 +57,13 @@ See [values.yaml](./values.yaml) for more details on the chart configurations to
 Update examples/production/example-your-values.yaml with your information, most importantly, trustDomain.
 
 ```shell
-helm upgrade --install --create-namespace -n spire-mgmt spire charts/spire \
---set global.spire.namespaces.create=true \
---values examples/production/values.yaml \
+helm upgrade --install -n spire-mgmt spire spire \
+--repo https://spiffe.github.io/helm-charts-hardened/ \
 --values examples/tornjak/values.yaml \
 --values examples/tornjak/values-ingress.yaml \
 --set global.spire.ingressControllerType=ingress-nginx \
---values examples/production/example-your-values.yaml \
---render-subchart-notes --debug
+--values your-values.yaml \
+--render-subchart-notes
 ```
 
 ## Tornjak and Ingress on Openshift
@@ -81,16 +79,16 @@ echo $appdomain
 We can now use this variable during the installation of the SPIRE Helm charts.
 
 ```shell
-helm upgrade --install --create-namespace -n spire-mgmt spire charts/spire --set global.spire.namespaces.create=true \
+helm upgrade --install -n spire-mgmt spire spire \
+--repo https://spiffe.github.io/helm-charts-hardened/ \
 --set global.openshift=true \
 --set global.spire.trustDomain=$appdomain \
 --set spire-server.ca_subject.common_name=$appdomain \
 --set spire-server.ingress.host=spire-server.$appdomain \
---values examples/production/example-my-values.yaml \
---values examples/production/values.yaml  \
---values examples/tornjak/values.yaml   \
---values examples/tornjak/values-ingress.yaml  \
---render-subchart-notes --debug
+--values examples/tornjak/values.yaml \
+--values examples/tornjak/values-ingress.yaml \
+--values your-values.yaml \
+--render-subchart-notes
 ```
 
 When running on Openshift in some environments like IBM Cloud,
