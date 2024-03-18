@@ -3,32 +3,16 @@
 > [!Warning]
 > The current version of Tornjak in this chart is deployed without authentication. Therefore it is not suitable to run this version in production.
 
-## Deploy CRDs
+## Deploy Standard SPIRE
 
-To install Tornjak with the least privileges possible we deploy SPIRE across 2 namespaces.
-Create the namespaces explicitly then deploy required CRDs:
+Follow the standard installation of SPIRE as described in [example/production](../production/README.md) document.
 
-```shell
-kubectl create namespace "spire-system"
-kubectl label namespace "spire-system" pod-security.kubernetes.io/enforce=privileged
-kubectl create namespace "spire-server"
-kubectl label namespace "spire-server" pod-security.kubernetes.io/enforce=restricted
-
-helm upgrade --install -n spire-server spire-crds charts/spire-crds
-```
-
-Or use the temporary namespace for SPIRE deployment:
-
-```shell
-helm upgrade --install --create-namespace -n spire-mgmt spire-crds charts/spire-crds
-```
-
-## Deploy Tornjak
+## Upgrade to enable Tornjak
 
 Before we can deploy Tornjak with SPIRE we need to decide whether the services would be
 using direct access, Ingress, or some other method.
 
-### Direct access
+## Tornjak with Direct Access
 
 This can be done using port-forward. For example, to start Tornjak APIs on port 10000
 
@@ -49,7 +33,7 @@ helm upgrade --install --create-namespace -n spire-mgmt spire charts/spire \
 helm test spire -n spire-server
 ```
 
-## Access Tornjak
+### Access Tornjak directly
 
 To access Tornjak you will have to use port-forwarding for the time being *(until we add authentication and ingress)*.
 
@@ -134,6 +118,6 @@ oc get route -n spire-server -l=app.kubernetes.io/name=tornjak-frontend -o jsonp
 
 The value should match the following URL:
 
-```shll
+```shell
 echo "https://tornjak-frontend.$appdomain"
 ```
