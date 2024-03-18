@@ -70,3 +70,19 @@ $(helm ls -A | sed 's/\t/ | /g' | sed 's/^/| /' | sed 's/$/ |/' | sed '/^| NAME.
 
 EOF
 }
+
+# Used just for testing. You should provide your own values as described in the install instructions.
+common_test_your_values () {
+cat <<EOF
+global:
+  spire:
+    recommendations:
+      enabled: true
+    clusterName: production
+    trustDomain: production.other
+  caSubject:
+    country: US
+    organization: Production
+    commonName: production.other
+EOF
+}
