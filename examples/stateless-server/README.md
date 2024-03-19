@@ -1,6 +1,6 @@
 # Example stateless server
 
-To install Spire Server as a deployment(stateless), you need to use an external database. This allows you to run spire-server as a stateless microservice.
+To install Spire Server as a deployment(stateless), you need to use an external database. This runs spire-server as stateless microservice enabling HA.
 
 ### WARNING
 The following configurations are not supported for running spire-server as deployment.
