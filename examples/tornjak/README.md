@@ -54,7 +54,7 @@ See [values.yaml](./values.yaml) for more details on the chart configurations to
 
 ## Deploy Tornjak with ingress-nginx
 
-Update examples/production/example-your-values.yaml with your information, most importantly, trustDomain.
+Update your-values.yaml with your information, most importantly, trustDomain, and redeploy.
 
 ```shell
 helm upgrade --install -n spire-mgmt spire spire \
