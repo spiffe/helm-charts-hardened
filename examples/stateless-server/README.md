@@ -1,0 +1,23 @@
+# Example stateless server
+
+To install Spire Server as a deployment(stateless), you need to use an external database. This allows you to run spire-server as a stateless microservice.
+
+### WARNING
+The following configurations are not supported for running spire-server as deployment.
+1. spire-server.persistence.type
+2. spire-server.dataStore.sql.databaseType: "sqlite3"
+3. spire-server.keyManager.disk
+4. spire-server.tornjak
+
+If manually deploying for testing, you can create an incluster or use an external database and put the database password into an environment variable.
+
+Next, edit values.yaml with your settings. Check it into your git repo if using one.
+
+Then, deploy the chart pointing at your mysql instance like so:
+
+```shell
+helm upgrade --install --namespace spire-server spire charts/spire -f examples/stateless-server/values.yaml --set "spire-server.dataStore.sql.password=${DBPW}"
+```
+
+See the [production example](../production) for production recommendations.
+See [values.yaml](./values.yaml) for more details on the chart configurations to achieve this setup.
