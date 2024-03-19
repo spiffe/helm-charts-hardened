@@ -3,27 +3,30 @@
 {{- $configSum3 := (include (print $.Template.BasePath "/controller-manager-configmap.yaml") . | sha256sum) }}
 {{- $configSumTornjak := (include (print $.Template.BasePath "/tornjak-config.yaml") . | sha256sum) }}
 {{- $fullname := include "spire-server.fullname" . }}
-{{- if not (has .Values.persistence.type (list "pvc" "hostPath" "emptyDir")) }}
-{{- fail "persistence.type must be one of [\"pvc\", \"hostPath\", \"emptyDir\"]" }}
+{{- if (has .Values.persistence.type (list "pvc" "hostPath")) }}
+{{- fail "When running as deployment, persistence can't be set. 'persistence.type' must be [\"emptyDir\"]" }}
 {{- end }}
-{{- if eq .Values.deploymentType "statefulset" }}
+{{- if (eq .Values.dataStore.sql.databaseType "sqlite3") }}
+{{- fail "When running as deployment, sqlite3 can't be used." }}
+{{- end }}
+{{- if (eq (.Values.keyManager.disk.enabled | toString) "true") }}
+{{- fail "When running as deployment, disk keymanager can't be used. 'keyManager.disk.enabled' must be false." }}
+{{- end }}
+{{- if eq .Values.deploymentType "deployment" }}
 ---
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: {{ include "spire-server.fullname" . }}
   namespace: {{ include "spire-server.namespace" . }}
   labels:
     {{- include "spire-server.labels" . | nindent 4 }}
     app.kubernetes.io/component: server
+
 spec:
   {{- if not .Values.autoscaling.enabled }}
-  {{- if and (eq .Values.dataStore.sql.databaseType "sqlite3") (gt (int .Values.replicaCount) 1) }}
-  {{- fail "When running with sqlite3 database, you can't scale up to more then one instance. 'replicaCount' MUST be 1" }}
-  {{- end }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
-  serviceName: {{ include "spire-server.fullname" . }}
   selector:
     matchLabels:
       {{- include "spire-server.selectorLabels" . | nindent 6 }}
@@ -116,19 +119,21 @@ spec:
           {{- . | toYaml | nindent 10 }}
           {{- end }}
           {{- if ne .Values.dataStore.sql.databaseType "sqlite3" }}
-          {{- if .Values.dataStore.sql.externalSecret.enabled }}
+          {{-   if .Values.dataStore.sql.externalSecret.enabled }}
           - name: DBPW
             valueFrom:
               secretKeyRef:
                 name: {{ .Values.dataStore.sql.externalSecret.name }}
                 key: {{ .Values.dataStore.sql.externalSecret.key }}
-          {{- else }}
+          {{-   else }}
           - name: DBPW
             valueFrom:
               secretKeyRef:
                 name: {{ $fullname }}-dbpw
                 key: DBPW
-          {{- end }}
+          {{-   end }}
+          {{- else }}
+          {{-   fail "When running spire-server as deployment, you can't use sqlite3" }}
           {{- end }}
           {{- if ne .Values.keyManager.awsKMS.accessKeyID "" }}
           - name: AWS_KMS_ACCESS_KEY_ID
@@ -434,15 +439,8 @@ spec:
         {{- if gt (len .Values.extraVolumes) 0 }}
         {{- toYaml .Values.extraVolumes | nindent 8 }}
         {{- end }}
-        {{- if eq .Values.persistence.type "emptyDir" }}
         - name: spire-data
           emptyDir: {}
-        {{- else if eq .Values.persistence.type "hostPath" }}
-        - name: spire-data
-          hostPath:
-            path: {{ .Values.persistence.hostPath }}
-            type: Directory
-        {{- end }}
         {{- with .Values.upstreamAuthority.vault }}
         {{- if eq (.enabled | toString) "true" }}
         {{- if ne (.insecureSkipVerify | toString) "true" }}
@@ -470,18 +468,4 @@ spec:
         {{- end }}
         {{- end -}}
         {{- end -}}
-  {{- if eq .Values.persistence.type "pvc" }}
-  volumeClaimTemplates:
-    - metadata:
-        name: spire-data
-      spec:
-        accessModes:
-          - {{ .Values.persistence.accessMode | default "ReadWriteOnce" }}
-        resources:
-          requests:
-            storage: {{ .Values.persistence.size }}
-        {{- if .Values.persistence.storageClass }}
-        storageClassName: {{ .Values.persistence.storageClass }}
-        {{- end }}
-  {{- end }}
 {{- end }}

@@ -62,6 +62,32 @@ helm upgrade --install -n spire-mgmt spire-crds spire-crds --repo https://spiffe
 helm upgrade --install -n spire-mgmt spire spire --repo https://spiffe.github.io/helm-charts-hardened/ -f your-values.yaml
 ```
 
+### Running as Deployment (Stateless)
+> [!Warning]
+> This feature is still in development.
+> Spire Server will run in non-persistence mode even if your plugin/configurations expect persistence.
+
+1. Specify deploymentType as deployment in your-values.yaml. keyManager should be set to anything other than a disk.
+```yaml
+  deploymentType: deployment
+  persistence:
+    type: emptyDir
+  keyManager:
+    disk:
+      enabled: false
+    memory:
+      enabled: true
+  dataStore:
+    sql:
+      databaseType: TYPE
+      databaseName: DBNAME
+      host: DBHOST
+      port: DBPORT
+      username: DBUSER
+      # password: DBPASSWORD
+```
+2. Consider using external database as a datastore. Follow best practices for database password using the [examples](https://github.com/spiffe/helm-charts-hardened/tree/main/examples)
+
 ## Clean up
 
 ```shell
@@ -240,11 +266,12 @@ Now you can interact with the Spire agent socket from your own application. The 
 
 ### Spire server parameters
 
-| Name                                     | Description                                   | Value    |
-| ---------------------------------------- | --------------------------------------------- | -------- |
-| `spire-server.enabled`                   | Flag to enable Spire server                   | `true`   |
-| `spire-server.nameOverride`              | Overrides the name of Spire server pods       | `server` |
-| `spire-server.controllerManager.enabled` | Enable controller manager and provision CRD's | `true`   |
+| Name                                     | Description                                   | Value         |
+| ---------------------------------------- | --------------------------------------------- | ------------- |
+| `spire-server.enabled`                   | Flag to enable Spire server                   | `true`        |
+| `spire-server.deploymentType`            | Run spire server as deployment/statefulset    | `statefulset` |
+| `spire-server.nameOverride`              | Overrides the name of Spire server pods       | `server`      |
+| `spire-server.controllerManager.enabled` | Enable controller manager and provision CRD's | `true`        |
 
 ### Spire agent parameters
 

@@ -108,6 +108,8 @@ spire-server:
   enabled: true
   ## @param spire-server.nameOverride Overrides the name of Spire server pods
   nameOverride: server
+  ## @param spire-server.deploymentType Runs spire server as a deployment(stateless)
+  deploymentType: statefulset
   controllerManager:
     ## @param spire-server.controllerManager.enabled Enable controller manager and provision CRD's
     enabled: true
