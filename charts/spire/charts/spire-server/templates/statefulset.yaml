@@ -3,10 +3,10 @@
 {{- $configSum3 := (include (print $.Template.BasePath "/controller-manager-configmap.yaml") . | sha256sum) }}
 {{- $configSumTornjak := (include (print $.Template.BasePath "/tornjak-config.yaml") . | sha256sum) }}
 {{- $fullname := include "spire-server.fullname" . }}
+{{- if eq .Values.deploymentType "statefulset" }}
 {{- if not (has .Values.persistence.type (list "pvc" "hostPath" "emptyDir")) }}
 {{- fail "persistence.type must be one of [\"pvc\", \"hostPath\", \"emptyDir\"]" }}
 {{- end }}
-{{- if eq .Values.deploymentType "statefulset" }}
 ---
 apiVersion: apps/v1
 kind: StatefulSet

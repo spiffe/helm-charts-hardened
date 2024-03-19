@@ -3,6 +3,8 @@
 {{- $configSum3 := (include (print $.Template.BasePath "/controller-manager-configmap.yaml") . | sha256sum) }}
 {{- $configSumTornjak := (include (print $.Template.BasePath "/tornjak-config.yaml") . | sha256sum) }}
 {{- $fullname := include "spire-server.fullname" . }}
+
+{{- if eq .Values.deploymentType "deployment" }}
 {{- if (has .Values.persistence.type (list "pvc" "hostPath")) }}
 {{- fail "When running as deployment, persistence can't be set. 'persistence.type' must be [\"emptyDir\"]" }}
 {{- end }}
@@ -12,7 +14,6 @@
 {{- if (eq (.Values.keyManager.disk.enabled | toString) "true") }}
 {{- fail "When running as deployment, disk keymanager can't be used. 'keyManager.disk.enabled' must be false." }}
 {{- end }}
-{{- if eq .Values.deploymentType "deployment" }}
 ---
 apiVersion: apps/v1
 kind: Deployment
