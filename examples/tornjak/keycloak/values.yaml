@@ -5,25 +5,94 @@ auth:
   ## @param auth.adminPassword Keycloak administrator password for the new user
   ##
   adminPassword: admin
-## @param extraEnvVars.name extra argument to import tornjak realm
-extraEnvVars:
-  - name: KEYCLOAK_EXTRA_ARGS
-    value: --import-realm
-extraVolumes:
-  - name: realm-secret
-    secret:
-      secretName: realm-secret
-
-extraVolumeMounts:
-  - name: realm-secret
-    mountPath: "/opt/bitnami/keycloak/data/import"
-    readOnly: true
-
-ingress: # ingress configuration for keycloak
-  enabled: true 
-  hosts:
-    - name: keycloak.local
-      path: /
-      tls: false
-  annotations:
-    kubernetes.io/ingress.class: public
+keycloakConfigCli:
+  enabled: true
+  image: # note: keeping this for now as not working with later keycloak-config-cli image
+    registry: docker.io
+    repository: bitnami/keycloak-config-cli
+    tag: 5.10.0-debian-12-r9
+  pullPolicy: IfNotPresent
+  configuration: # tornjak realm configuration
+    tornjak.json: |
+      {
+        "realm": "tornjak",
+        "enabled": true,
+        "roles" : {
+          "realm" : [ {
+            "name" : "tornjak-viewer-realm-role"
+          }, {
+            "name" : "tornjak-admin-realm-role"
+          } ],
+          "client" : {
+            "Tornjak-React-auth" : [ {
+              "name" : "viewer",
+              "composite" : true,
+              "composites" : {
+                "realm" : [ "tornjak-viewer-realm-role" ]
+              },
+              "clientRole" : true
+            }, {
+              "name" : "admin",
+              "composite" : true,
+              "composites" : {
+                "realm" : [ "tornjak-admin-realm-role" ]
+              },
+              "clientRole" : true
+            } ]
+          }
+        },
+        "groups" : [ {
+          "name" : "admin",
+          "path" : "/admin",
+          "realmRoles" : [ "tornjak-admin-realm-role" ]
+        }, {
+          "name" : "viewer",
+          "path" : "/viewer",
+          "realmRoles" : [ "tornjak-viewer-realm-role" ]
+        } ],
+        "users" : [ {
+          "username" : "admin",
+          "enabled" : true,
+          "firstName" : "Admin",
+          "lastName" : "User",
+          "credentials" : [ {
+            "type" : "password",
+            "userLabel" : "My password",
+            "secretData" : "{\"value\":\"Y1Kcmx/XxLWtnRLyMy/zn6wWbfu2fSKdaefrXM50cva3P+kA2BqBDvTZDswGP6JZ+IWrJaitm8RKV0L9LiwaFQ==\",\"salt\":\"Mh5g1EgTo26xhzoj67bovA==\",\"additionalParameters\":{}}",
+            "credentialData" : "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\",\"additionalParameters\":{}}"
+          } ],
+          "groups" : [ "/admin" ]
+        }, {
+          "username" : "viewer",
+          "enabled" : true,
+          "firstName" : "Viewer",
+          "lastName" : "User",
+          "credentials" : [ {
+            "type" : "password",
+            "userLabel" : "My password",
+            "secretData" : "{\"value\":\"1ow3LfLDvpBRLfRbr2LtFRqje8NsKouHMw95Wwpsg5NP2Pga4ZBL7+T62bCDV6dOvy3U9xEEU4CRkhSWFaeDLg==\",\"salt\":\"qML2gBVSG7xYRZcaffW68A==\",\"additionalParameters\":{}}",
+            "credentialData" : "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\",\"additionalParameters\":{}}"
+          } ],
+          "groups" : [ "/viewer" ]
+        } ],
+        "clients" : [ {
+          "clientId" : "Tornjak-React-auth",
+          "name" : "Tornjak",
+          "enabled" : true,
+          "alwaysDisplayInConsole" : true,
+          "clientAuthenticatorType" : "client-secret",
+          "redirectUris" : [ "http://localhost:3000/*" ],
+          "webOrigins" : [ "*" ],
+          "standardFlowEnabled" : true,
+          "implicitFlowEnabled" : false,
+          "directAccessGrantsEnabled" : false,
+          "serviceAccountsEnabled" : false,
+          "publicClient" : true,
+          "frontchannelLogout" : true,
+          "protocol" : "openid-connect",
+          "attributes" : {
+            "post.logout.redirect.uris" : "http://localhost:3000/*"
+          },
+          "fullScopeAllowed" : true
+        } ]
+      }

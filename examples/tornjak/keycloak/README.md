@@ -25,11 +25,6 @@ kubectl create namespace spire-server
 ```
 
 ```shell
-# Create a secret from the realm JSON file for Tornjak realm import
-kubectl create secret generic realm-secret -n spire-server --from-file=examples/tornjak/keycloak/tornjak-realm.json
-```
-
-```shell
 # Deploy Keycloak as an authentication service
 helm upgrade --install -n spire-server keycloak --values examples/tornjak/keycloak/values.yaml oci://registry-1.docker.io/bitnamicharts/keycloak --render-subchart-notes
 ```
@@ -42,6 +37,9 @@ with addition of the User Management values `--values examples/tornjak/values-au
 For example:
 
 ```shell
+# Install SPIRE CRDs
+helm upgrade --install --create-namespace -n spire-mgmt spire-crds charts/spire-crds
+
 # Standard SPIRE and Tornjak deployment with Authentication enabled
 helm upgrade --install \
 --set global.spire.namespaces.system.create=true \
