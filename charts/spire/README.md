@@ -269,7 +269,6 @@ Now you can interact with the Spire agent socket from your own application. The 
 | Name                                     | Description                                   | Value         |
 | ---------------------------------------- | --------------------------------------------- | ------------- |
 | `spire-server.enabled`                   | Flag to enable Spire server                   | `true`        |
-| `spire-server.deploymentType`            | Run spire server as deployment/statefulset    | `statefulset` |
 | `spire-server.nameOverride`              | Overrides the name of Spire server pods       | `server`      |
 | `spire-server.controllerManager.enabled` | Enable controller manager and provision CRD's | `true`        |
 
