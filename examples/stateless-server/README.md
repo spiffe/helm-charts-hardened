@@ -19,5 +19,5 @@ Then, deploy the chart pointing at your mysql instance like so:
 helm upgrade --install --namespace spire-server spire charts/spire -f examples/stateless-server/values.yaml --set "spire-server.dataStore.sql.password=${DBPW}"
 ```
 
-See the [production example](../production) for production recommendations.
+See the [production install instructions](https://artifacthub.io/packages/helm/spiffe/spire#production) for production recommendations.
 See [values.yaml](./values.yaml) for more details on the chart configurations to achieve this setup.
