@@ -11,7 +11,7 @@ The following configurations are not supported for running spire-server as deplo
 
 If manually deploying for testing, you can create an incluster or use an external database and put the database password into an environment variable.
 
-Next, edit values.yaml with your settings. Check it into your git repo if using one.
+Next, edit your-values.yaml with your settings as described in the [production install instructions](https://artifacthub.io/packages/helm/spiffe/spire#production). Check it into your git repo if using one.
 
 Then, deploy the chart pointing at your mysql instance like so:
 
