@@ -16,7 +16,7 @@ Next, edit values.yaml with your settings. Check it into your git repo if using 
 Then, deploy the chart pointing at your mysql instance like so:
 
 ```shell
-helm upgrade --install --namespace spire-server spire charts/spire -f examples/stateless-server/values.yaml --set "spire-server.dataStore.sql.password=${DBPW}"
+helm upgrade --install --namespace spire-mgmt spire spire --repo https://spiffe.github.io/helm-charts-hardened/ -f examples/stateless-server/values.yaml --set "spire-server.dataStore.sql.password=${DBPW}" -f your-values.yaml
 ```
 
 See the [production install instructions](https://artifacthub.io/packages/helm/spiffe/spire#production) for production recommendations.
