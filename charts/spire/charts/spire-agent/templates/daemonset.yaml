@@ -277,10 +277,6 @@ spec:
         - name: tpm-direct
           emptyDir: {}
         {{- end }}
-        {{- if .Values.nodeAttestor.tpmDirect.enabled }}
-        - name: tpm-direct
-          emptyDir: {}
-        {{- end }}
         - name: spire-token
           projected:
             sources:
