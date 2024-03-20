@@ -75,7 +75,11 @@ kubectl delete crds clusterfederatedtrustdomains.spire.spiffe.io clusterspiffeid
 
 We only support upgrading one major version at a time. Version skipping isn't supported.
 
-### 0.18.x
+### 0.19.X
+
+- The spire-agent daemonset gained a new label. For those disabling the upgrade hooks, you need to delete the spire-agent daemonset before issuing the helm upgrade.
+
+### 0.18.X
 
 - SPIRE no longer emits x509UniqueIdentifiers in x509-SVIDS by default. The old behavior can be reenabled with spire-server.credentialComposer.uniqueID.enabled=true. See https://github.com/spiffe/spire/pull/4862 for details.
 - SPIRE agents will now automatically reattest when they can. The old behavior can be reenabled with spire-agent.disableReattestToRenew=true. See https://github.com/spiffe/spire/pull/4791 for details.

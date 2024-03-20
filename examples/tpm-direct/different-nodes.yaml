@@ -1,0 +1,22 @@
+spire-agent:
+  agents:
+    default:
+      nodeSelector:
+        tpm: without
+    tpm:
+      nodeSelector:
+        tpm: with
+      nodeAttestor:
+        k8sPsat:
+          enabled: false
+        tpmDirect:
+          enabled: true
+
+spire-server:
+  controllerManager:
+    # K8s labels have a 63 character limit. TPM hashes are 64 chars. So you need to label the node with two labels with half of the tpm's hash each. The 'node-restriction.kubernetes.io/' prefix is so that the
+    # nodes can't update the hash themselves, an important security constraint.
+    parentIDTemplate: 'spiffe://{{ .TrustDomain }}/spire/agent/{{if index .NodeMeta.Labels "node-restriction.kubernetes.io/tpm-pubhash"}}tpm/{{ index .NodeMeta.Labels "node-restriction.kubernetes.io/tpm-pubhash" }}{{ index .NodeMeta.Labels "node-restriction.kubernetes.io/tpm-pubhash2" }}{{ else }}spire/agent/k8s_psat/{{ .ClusterName }}/{{ .NodeMeta.UID }}{{ end }}'
+  nodeAttestor:
+    tpmDirect:
+      enabled: true
