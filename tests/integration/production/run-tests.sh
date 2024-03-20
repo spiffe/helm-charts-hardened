@@ -7,11 +7,11 @@ UPGRADE_REPO=https://spiffe.github.io/helm-charts-hardened
 
 SCRIPT="$(readlink -f "$0")"
 SCRIPTPATH="$(dirname "${SCRIPT}")"
-TESTDIR="${SCRIPTPATH}/../../.github/tests"
+TESTDIR="${SCRIPTPATH}/../../../.github/tests"
 DEPS="${TESTDIR}/dependencies"
 
 # shellcheck source=/dev/null
-source "${SCRIPTPATH}/../../.github/scripts/parse-versions.sh"
+source "${SCRIPTPATH}/../../../.github/scripts/parse-versions.sh"
 # shellcheck source=/dev/null
 source "${TESTDIR}/common.sh"
 
@@ -122,7 +122,7 @@ install_and_test() {
   # shellcheck disable=SC2086
   "${helm_install[@]}" spire "$1" \
     --namespace "${ns}" \
-    --values "${SCRIPTPATH}/values.yaml" \
+    --values "${COMMON_TEST_YOUR_VALUES}" \
     --values "${SCRIPTPATH}/values-expose-spiffe-oidc-discovery-provider-ingress-nginx.yaml" \
     --values "${SCRIPTPATH}/values-expose-spire-server-ingress-nginx.yaml" \
     --values "${SCRIPTPATH}/values-expose-federation-https-web-ingress-nginx.yaml" \
@@ -130,8 +130,6 @@ install_and_test() {
     --set spiffe-oidc-discovery-provider.tests.tls.customCA=tls-cert,spire-server.tests.tls.customCA=tls-cert \
     --set spire-agent.server.address=spire-server.production.other,spire-agent.server.port=443 \
     --set spire-server.federation.ingress.tlsSecret=tls-cert,spiffe-oidc-discovery-provider.ingress.tlsSecret=tls-cert \
-    --values "${SCRIPTPATH}/example-your-values.yaml" \
-    $2 \
     --wait
 
     helm test --namespace "${ns}" spire
