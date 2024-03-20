@@ -20,7 +20,7 @@ image:
   pullPolicy: IfNotPresent
   tag: ""
 
-## @param deploymentType Define SPIRE server deployment type. Can be statefulset/deployment. Defaults to statefulset if not set.
+## @param deploymentType Define SPIRE server deployment type. Can be statefulset/deployment. Defaults to statefulset if not set. This feature is experimental.
 deploymentType: statefulset
 
 ## @param imagePullSecrets [array] Pull secrets for images
