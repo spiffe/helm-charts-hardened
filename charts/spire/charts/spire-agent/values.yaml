@@ -328,6 +328,37 @@ experimental:
   ## @param experimental.featureFlags [array] List of developer feature flags
   featureFlags: []
 
+## @param agents Configure multiple agent DaemonSets. Useful when you have different node types and nodeAttestors
+agents: {}
+#  default:
+#   nodeSelector:
+#     tpm: without
+#  tpm:
+#    nodeSelector:
+#      tpm: with
+#    nodeAttestor:
+#      k8sPsat:
+#        enabled: false
+#      tpmDirect:
+#        enabled: true
+
+installAndUpgradeHook:
+  ## @param installAndUpgradeHook.enabled Enable Helm hook to autofix common install/upgrade issues (should be disabled when using `helm template`)
+  enabled: true
+
+tools:
+  kubectl:
+    ## @param tools.kubectl.image.registry The OCI registry to pull the image from
+    ## @param tools.kubectl.image.repository The repository within the registry
+    ## @param tools.kubectl.image.pullPolicy The image pull policy
+    ## @param tools.kubectl.image.tag Overrides the image tag whose default is the chart appVersion
+    ##
+    image:
+      registry: docker.io
+      repository: rancher/kubectl
+      pullPolicy: IfNotPresent
+      tag: ""
+
 sockets:
   ## @param sockets.hostBasePath Path on which the agent socket is made available when admin.mountOnHost is true
   hostBasePath: /run/spire/agent/sockets
