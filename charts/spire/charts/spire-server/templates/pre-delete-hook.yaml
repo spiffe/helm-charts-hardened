@@ -21,7 +21,7 @@ metadata:
     "helm.sh/hook-delete-policy": before-hook-creation, hook-succeeded, hook-failed
 rules:
   - apiGroups: ["apps"]
-    resources: ["statefulsets","deployments"]
+    resources: ["{{ include "spire-server.deploymentType" . }}s"]
     resourceNames: [{{ include "spire-server.fullname" . | quote }}]
     verbs: ["get", "delete"]
   - apiGroups: [""]
