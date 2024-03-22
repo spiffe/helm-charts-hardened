@@ -202,11 +202,9 @@ Now you can interact with the Spire agent socket from your own application. The 
 | Name                                             | Description                                                                                                                                                                                                                            | Value             |
 | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
 | `global.k8s.clusterDomain`                       | Cluster domain name configured for Spire install                                                                                                                                                                                       | `cluster.local`   |
-| `global.spire.bundleConfigMap`                   | A configmap containing the Spire bundle                                                                                                                                                                                                | `""`              |
 | `global.spire.clusterName`                       | The name of the k8s cluster for Spire install                                                                                                                                                                                          | `example-cluster` |
 | `global.spire.jwtIssuer`                         | The issuer for Spire JWT tokens. Defaults to oidc-discovery.$trustDomain if unset                                                                                                                                                      | `""`              |
 | `global.spire.trustDomain`                       | The trust domain for Spire install                                                                                                                                                                                                     | `example.org`     |
-| `global.spire.upstreamServerAddress`             | Set what address to use for the upstream server when using nested spire                                                                                                                                                                | `""`              |
 | `global.spire.caSubject.country`                 | Country for Spire server CA                                                                                                                                                                                                            | `""`              |
 | `global.spire.caSubject.organization`            | Organization for Spire server CA                                                                                                                                                                                                       | `""`              |
 | `global.spire.caSubject.commonName`              | Common Name for Spire server CA                                                                                                                                                                                                        | `""`              |
@@ -235,29 +233,31 @@ Now you can interact with the Spire agent socket from your own application. The 
 
 ### Spire server parameters
 
-| Name                                     | Description                                   | Value    |
-| ---------------------------------------- | --------------------------------------------- | -------- |
-| `spire-server.enabled`                   | Flag to enable Spire server                   | `true`   |
-| `spire-server.nameOverride`              | Overrides the name of Spire server pods       | `server` |
-| `spire-server.controllerManager.enabled` | Enable controller manager and provision CRD's | `true`   |
+| Name                                                                                                               | Description                                              | Value                            |
+| ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------- | -------------------------------- |
+| `internal-spire-server.enabled`                                                                                    | Flag to enable Spire server                              | `true`                           |
+| `internal-spire-server.nameOverride`                                                                               | Overrides the name of Spire server pods                  | `internal-server`                |
+| `internal-spire-server.controllerManager.enabled`                                                                  | Enable controller manager and provision CRD's            | `true`                           |
+| `internal-spire-server.controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.autoPopulateDNSNames` | Auto populate dns entries                                | `false`                          |
+| `internal-spire-server.upstreamAuthority.spire.enabled`                                                            | Enable upstream SPIRE server                             | `true`                           |
+| `internal-spire-server.upstreamAuthority.spire.upstreamDriver`                                                     | Use an upstream driver for authentication                | `upstream.csi.spiffe.io`         |
+| `internal-spire-server.upstreamAuthority.spire.server.address`                                                     | The address of the upstream SPIRE server                 | `spire-root-server.spire-server` |
+| `internal-spire-server.bundleConfigMap`                                                                            | The name of the configmap to store the downstream bundle | `spire-bundle-downstream`        |
 
 ### Spire agent parameters
 
-| Name                       | Description                            | Value   |
-| -------------------------- | -------------------------------------- | ------- |
-| `spire-agent.enabled`      | Flag to enable Spire agent             | `true`  |
-| `spire-agent.nameOverride` | Overrides the name of Spire agent pods | `agent` |
-
-### Upstream Spire agent and CSI driver configuration
-
-| Name               | Description                                                | Value   |
-| ------------------ | ---------------------------------------------------------- | ------- |
-| `upstream.enabled` | Enable upstream agent and driver for use with nested spire | `false` |
+| Name                                     | Description                                                   | Value                                |
+| ---------------------------------------- | ------------------------------------------------------------- | ------------------------------------ |
+| `downstream-spire-agent.enabled`         | Flag to enable Spire agent                                    | `true`                               |
+| `downstream-spire-agent.nameOverride`    | Overrides the name of Spire agent pods                        | `agent-downstream`                   |
+| `downstream-spire-agent.server.address`  | The address of the internal SPIRE server                      | `spire-internal-server.spire-server` |
+| `downstream-spire-agent.bundleConfigMap` | The name of the configmap that contains the downstream bundle | `spire-bundle-downstream`            |
 
 ### Upstream Spire agent parameters
 
 | Name                                             | Description                                        | Value                                                |
 | ------------------------------------------------ | -------------------------------------------------- | ---------------------------------------------------- |
+| `upstream-spire-agent.enabled`                   | Enable the upstream-spire-agent                    | `true`                                               |
 | `upstream-spire-agent.upstream`                  | Flag for enabling upstream Spire agent             | `true`                                               |
 | `upstream-spire-agent.nameOverride`              | Name override for upstream Spire agent             | `agent-upstream`                                     |
 | `upstream-spire-agent.bundleConfigMap`           | The configmap name for upstream Spire agent bundle | `spire-bundle-upstream`                              |
@@ -265,17 +265,21 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `upstream-spire-agent.serviceAccount.name`       | Service account name for upstream Spire agent      | `spire-agent-upstream`                               |
 | `upstream-spire-agent.healthChecks.port`         | Health check port number for upstream Spire agent  | `9981`                                               |
 | `upstream-spire-agent.telemetry.prometheus.port` | The port where prometheus metrics are available    | `9989`                                               |
+| `upstream-spire-agent.server.address`            | The address of the root SPIRE server               | `spire-root-server.spire-server`                     |
 
 ### SPIFFE CSI Driver parameters
 
-| Name                        | Description                                      | Value  |
-| --------------------------- | ------------------------------------------------ | ------ |
-| `spiffe-csi-driver.enabled` | Flag to enable spiffe-csi-driver for the cluster | `true` |
+| Name                                            | Description                                      | Value                          |
+| ----------------------------------------------- | ------------------------------------------------ | ------------------------------ |
+| `downstream-spiffe-csi-driver.enabled`          | Flag to enable spiffe-csi-driver for the cluster | `true`                         |
+| `downstream-spiffe-csi-driver.fullnameOverride` | Fullname override                                | `spiffe-csi-driver-downstream` |
 
 ### Upstream SPIFFE CSI Driver parameters
 
 | Name                                           | Description                                                 | Value                                                |
 | ---------------------------------------------- | ----------------------------------------------------------- | ---------------------------------------------------- |
+| `upstream-spiffe-csi-driver.enabled`           | Enable the upstream-spiffe-csi-rdiver                       | `true`                                               |
+| `upstream-spiffe-csi-driver.fullnameOverride`  | Fullname override                                           | `spiffe-csi-driver-upstream`                         |
 | `upstream-spiffe-csi-driver.pluginName`        | The plugin name for configuring upstream Spiffe CSI driver  | `upstream.csi.spiffe.io`                             |
 | `upstream-spiffe-csi-driver.agentSocketPath`   | The socket path where Spiffe CSI driver mounts agent socket | `/run/spire/agent-sockets-upstream/spire-agent.sock` |
 | `upstream-spiffe-csi-driver.healthChecks.port` | The port where Spiffe CSI driver health checks are exposed  | `9810`                                               |
@@ -288,6 +292,35 @@ Now you can interact with the Spire agent socket from your own application. The 
 
 ### Tornjak frontend parameters
 
-| Name                       | Description                                                    | Value   |
-| -------------------------- | -------------------------------------------------------------- | ------- |
-| `tornjak-frontend.enabled` | Enables deployment of Tornjak frontend/UI (Not for production) | `false` |
+| Name                                                                                                  | Description                                                                           | Value                            |
+| ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | -------------------------------- |
+| `tornjak-frontend.enabled`                                                                            | Enables deployment of Tornjak frontend/UI (Not for production)                        | `false`                          |
+| `root-spire-server.enabled`                                                                           | Enables deployment of a root spire-server for nested clusters.                        | `true`                           |
+| `root-spire-server.nameOverride`                                                                      | Name override                                                                         | `root-server`                    |
+| `root-spire-server.crNameOverride`                                                                    | Custom Resource name override                                                         | `root`                           |
+| `root-spire-server.controllerManager.enabled`                                                         | Enable controller manager and provision CRD's                                         | `true`                           |
+| `root-spire-server.controllerManager.validatingWebhookConfiguration.enabled`                          | Disable only when you have another instance on the k8s cluster with webhooks enabled. | `false`                          |
+| `root-spire-server.controllerManager.className`                                                       | specify to use an explicit class name.                                                | `spire-mgmt-root-server`         |
+| `root-spire-server.controllerManager.identities.clusterSPIFFEIDs.default.type`                        | The type of rule this is.                                                             | `raw`                            |
+| `root-spire-server.controllerManager.identities.clusterSPIFFEIDs.default.namespaceSelector`           | Selector for namespacs to issue identity                                              | `{}`                             |
+| `root-spire-server.controllerManager.identities.clusterSPIFFEIDs.default.podSelector`                 | Selector for pods to issue identity                                                   | `{}`                             |
+| `root-spire-server.controllerManager.identities.clusterSPIFFEIDs.default.downstream`                  | Set if this spire instance is a root server and the workloads are downstream servers. | `true`                           |
+| `root-spire-server.controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.enabled`     | Enable the test-keys identity                                                         | `false`                          |
+| `root-spire-server.controllerManager.identities.clusterSPIFFEIDs.test-keys.enabled`                   | Enable the test-keys identity                                                         | `false`                          |
+| `root-spire-server.nodeAttestor.k8sPsat.serviceAccountAllowList`                                      | Allowed service accounts for Psat nodeattestor                                        | `[]`                             |
+| `root-spire-server.bundleConfigMap`                                                                   | The name of the configmap to store the upstream bundle                                | `spire-bundle-upstream`          |
+| `external-spire-server.enabled`                                                                       | Flag to enable Spire server                                                           | `true`                           |
+| `external-spire-server.nameOverride`                                                                  | Overrides the name of Spire server pods                                               | `external-server`                |
+| `external-spire-server.crNameOverride`                                                                | Custom Resource name override                                                         | `external`                       |
+| `external-spire-server.controllerManager.enabled`                                                     | Enable controller manager and provision CRD's                                         | `true`                           |
+| `external-spire-server.controllerManager.validatingWebhookConfiguration.enabled`                      | Disable only when you have another instance on the k8s cluster with webhooks enabled. | `false`                          |
+| `external-spire-server.controllerManager.className`                                                   | specify to use an explicit class name.                                                | `spire-mgmt-external-server`     |
+| `external-spire-server.controllerManager.identities.clusterSPIFFEIDs.default.enabled`                 | Enable the default identity                                                           | `false`                          |
+| `external-spire-server.controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.enabled` | Enable the oidc-discovery-provider identity                                           | `false`                          |
+| `external-spire-server.controllerManager.identities.clusterSPIFFEIDs.test-keys.enabled`               | Enable the test-keys identity                                                         | `false`                          |
+| `external-spire-server.upstreamAuthority.spire.enabled`                                               | Enable upstream SPIRE server                                                          | `true`                           |
+| `external-spire-server.upstreamAuthority.spire.upstreamDriver`                                        | Use an upstream driver for authentication                                             | `upstream.csi.spiffe.io`         |
+| `external-spire-server.upstreamAuthority.spire.server.address`                                        | The address of the upstream SPIRE server                                              | `spire-root-server.spire-server` |
+| `external-spire-server.notifier.k8sbundle.enabled`                                                    | Enable local k8s bundle uploader                                                      | `false`                          |
+| `external-spire-server.nodeAttestor.k8sPsat.enabled`                                                  | Enable Psat k8s nodeattestor                                                          | `false`                          |
+| `external-spire-server.nodeAttestor.joinToken.enabled`                                                | Enable the join_token nodeattestor                                                    | `true`                           |
