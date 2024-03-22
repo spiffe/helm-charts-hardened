@@ -4,11 +4,11 @@ set -xe
 
 SCRIPT="$(readlink -f "$0")"
 SCRIPTPATH="$(dirname "${SCRIPT}")"
-TESTDIR="${SCRIPTPATH}/../../.github/tests"
+TESTDIR="${SCRIPTPATH}/../../../.github/tests"
 DEPS="${TESTDIR}/dependencies"
 
 # shellcheck source=/dev/null
-source "${SCRIPTPATH}/../../.github/scripts/parse-versions.sh"
+source "${SCRIPTPATH}/../../../.github/scripts/parse-versions.sh"
 # shellcheck source=/dev/null
 source "${TESTDIR}/common.sh"
 
@@ -55,7 +55,14 @@ helm upgrade --install --create-namespace spire charts/spire \
   --values "${DEPS}/spire-root-server-values.yaml" \
   --wait
 
-helm upgrade --install --create-namespace --namespace spire-server --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/values.yaml,${SCRIPTPATH}/../misc/values-node-pod-antiaffinity.yaml" \
-  --wait spire charts/spire
-helm test --namespace spire-server spire
+kind create cluster --name other --kubeconfig "${SCRIPTPATH}/kubeconfig" --config "${SCRIPTPATH}/kind-config.yaml"
+md5sum "${SCRIPTPATH}/kubeconfig"
+wc -l "${SCRIPTPATH}/kubeconfig"
+KCB64="$(base64 < "${SCRIPTPATH}/kubeconfig" | tr '\n' ' ' | sed 's/ //g')"
+kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig" create namespace spire-system
+kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig" create configmap -n spire-system spire-bundle-upstream
 
+helm upgrade --install --create-namespace --namespace spire-server --values "${SCRIPTPATH}/values.yaml" \
+  --wait spire charts/spire --set "spire-server.kubeConfigs.other.kubeConfigBase64=$KCB64"
+helm test --namespace spire-server spire
+kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig" get configmap -n spire-system spire-bundle-upstream
