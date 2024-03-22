@@ -9,10 +9,12 @@ help: ## Display this help.
 .PHONY: lint
 lint: ## Lint the charts using chart-testing
 	@echo Linting charts…
+	@helm dep up charts/spire-nested --skip-refresh
 	@ct lint --config ct.yaml --target-branch $(TARGET_BRANCH) --check-version-increment=false
 
 lint-release: ## Lint the charts using chart-testing for release
 	@echo Linting charts…
+	@helm dep up charts/spire-nested --skip-refresh
 	@ct lint --config ct.yaml --target-branch $(TARGET_BRANCH)
 
 ##@ Testing: (ensure to run on dedicated test cluster)

@@ -50,12 +50,12 @@ IP=$(kubectl get nodes kind-control-plane -o go-template='{{ range .status.addre
 helm upgrade --install ingress-nginx ingress-nginx --version "$VERSION_INGRESS_NGINX" --repo "$HELM_REPO_INGRESS_NGINX" \
   --namespace ingress-nginx \
   --create-namespace \
-  --set controller.extraArgs.enable-ssl-passthrough=,controller.admissionWebhooks.enabled=false,controller.service.type=ClusterIP,controller.service.externalIPs[0]=$IP \
+  --set "controller.extraArgs.enable-ssl-passthrough=,controller.admissionWebhooks.enabled=false,controller.service.type=ClusterIP,controller.service.externalIPs[0]=$IP" \
   --set controller.ingressClassResource.default=true \
   --wait
 
 # Test the ingress controller. Should 404 as there is no services yet.
-curl $IP
+curl "$IP"
 
 for cluster in child other; do
   KC="${SCRIPTPATH}/kubeconfig-${cluster}"
