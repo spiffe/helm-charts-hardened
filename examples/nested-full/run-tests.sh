@@ -45,6 +45,9 @@ teardown() {
 
 trap 'EC=$? && trap - SIGTERM && teardown $EC' SIGINT SIGTERM EXIT
 
+# Update deps
+helm dep up charts/spire-nested
+
 # List nodes
 kubectl get nodes
 
