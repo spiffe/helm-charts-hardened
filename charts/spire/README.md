@@ -7,6 +7,8 @@ A Helm chart for deploying the complete Spire stack including: spire-server, spi
 
 **Homepage:** <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire>
 
+## Dummy change. Dont merge
+
 ## Install Instructions
 
 ### Non Production
