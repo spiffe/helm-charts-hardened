@@ -71,7 +71,7 @@ for cluster in child other; do
   wc -l "${KC}"
 
   helm upgrade --kubeconfig "${KC}" --install --create-namespace --namespace spire-mgmt spire-crds charts/spire-crds
-  kubectl --kubeconfig "${KC}" apply -f "${SCRIPTPATH}/sodp-clusterspiffeid.yaml"
+  kubectl --kubeconfig "${KC}" apply -f "${SCRIPTPATH}/spire-server-clusterspiffeid.yaml"
   helm upgrade --kubeconfig "${KC}" --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/child-values.yaml" \
     spire charts/spire-nested
   kubectl --kubeconfig "${KC}" create configmap -n spire-system spire-bundle-upstream
