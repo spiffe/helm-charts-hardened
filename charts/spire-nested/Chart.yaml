@@ -1,0 +1,71 @@
+apiVersion: v2
+name: spire-nested
+description: >
+  A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
+type: application
+version: 0.17.2
+appVersion: "1.8.7"
+keywords: ["spiffe", "spire", "spire-server", "spire-agent", "oidc", "spire-controller-manager"]
+home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire
+sources:
+  - https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire
+icon: https://spiffe.io/img/logos/spire/icon/color/spire-icon-color.png
+maintainers:
+  - name: marcofranssen
+    email: marco.franssen@gmail.com
+    url: https://marcofranssen.nl
+  - name: kfox1111
+    email: Kevin.Fox@pnnl.gov
+  - name: faisal-memon
+    email: fymemon@yahoo.com
+kubeVersion: ">=1.21.0-0"
+dependencies:
+  - name: spire-lib
+    repository: file://../spire/charts/spire-lib
+    version: 0.1.0
+  - name: spire-server
+    alias: root-spire-server
+    condition: root-spire-server.enabled
+    repository: file://../spire/charts/spire-server
+    version: 0.1.0
+  - name: spire-server
+    alias: internal-spire-server
+    condition: internal-spire-server.enabled
+    repository: file://../spire/charts/spire-server
+    version: 0.1.0
+  - name: spire-server
+    alias: external-spire-server
+    condition: external-spire-server.enabled
+    repository: file://../spire/charts/spire-server
+    version: 0.1.0
+  - name: spire-agent
+    alias: downstream-spire-agent
+    condition: downstream-spire-agent.enabled
+    repository: file://../spire/charts/spire-agent
+    version: 0.1.0
+  - name: spire-agent
+    alias: upstream-spire-agent
+    condition: upstream-spire-agent.enabled
+    repository: file://../spire/charts/spire-agent
+    version: 0.1.0
+  - name: spiffe-csi-driver
+    alias: downstream-spiffe-csi-driver
+    condition: downstream-spiffe-csi-driver.enabled
+    repository: file://../spire/charts/spiffe-csi-driver
+    version: 0.1.0
+  - name: spiffe-csi-driver
+    alias: upstream-spiffe-csi-driver
+    condition: upstream-spiffe-csi-driver.enabled
+    repository: file://../spire/charts/spiffe-csi-driver
+    version: 0.1.0
+  - name: spiffe-oidc-discovery-provider
+    condition: spiffe-oidc-discovery-provider.enabled
+    repository: file://../spire/charts/spiffe-oidc-discovery-provider
+    version: 0.1.0
+  - name: tornjak-frontend
+    condition: tornjak-frontend.enabled
+    repository: file://../spire/charts/tornjak-frontend
+    version: 0.1.0
+annotations:
+  artifacthub.io/category: security
+  artifacthub.io/license: Apache-2.0

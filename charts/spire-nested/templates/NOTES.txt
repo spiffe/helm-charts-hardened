@@ -1,0 +1,3 @@
+{{ $settings := deepCopy . }}
+{{ $_ := set $settings "spire-server" (index .Values "internal-spire-server") }}
+{{ include "spire-lib.notes" $settings }}

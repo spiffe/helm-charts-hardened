@@ -1,0 +1,9 @@
+global:
+  spire:
+    upstreamSpireAddress: spire-server.production.other
+
+root-spire-server:
+  enabled: false
+
+external-spire-server:
+  enabled: false

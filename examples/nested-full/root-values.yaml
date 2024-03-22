@@ -1,0 +1,7 @@
+global:
+  spire:
+    ingressControllerType: ingress-nginx
+
+external-spire-server:
+  ingress:
+    enabled: true
