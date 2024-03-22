@@ -3,6 +3,8 @@
 > 1. We do not support running out of the git main branch. This is where development happens. Please use released versions via the published repo or git tags.
 > 2. All the helm charts in this repo are beta. We encourage you to try them out and contribute. The API may change as we move towards a production ready release.
 
+# Dont merge
+
 # SPIFFE Helm Charts
 
 [![Apache 2.0 License](https://img.shields.io/github/license/spiffe/helm-charts)](https://opensource.org/licenses/Apache-2.0)
