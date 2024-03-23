@@ -64,7 +64,7 @@ helm upgrade --install ingress-nginx ingress-nginx --version "$VERSION_INGRESS_N
 curl "$IP"
 
 kubectl get configmap -n kube-system coredns -o yaml | grep hosts || kubectl get configmap -n kube-system coredns -o yaml | sed "/ready/a\        hosts {\n           fallthrough\n        }" | kubectl apply -f -
-kubectl get configmap -n kube-system coredns -o yaml | grep production.other || kubectl get configmap -n kube-system coredns -o yaml | sed "/hosts/a\           $IP spire-server.production.other\n           $IP spire-server.production.other\n" | kubectl apply -f -
+kubectl get configmap -n kube-system coredns -o yaml | grep production.other || kubectl get configmap -n kube-system coredns -o yaml | sed "/hosts/a\           $IP oidc-discovery.production.other\n           $IP spire-server.production.other\n" | kubectl apply -f -
 kubectl rollout restart -n kube-system deployment/coredns
 kubectl rollout status -n kube-system -w --timeout=1m deploy/coredns
 
