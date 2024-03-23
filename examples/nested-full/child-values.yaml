@@ -1,5 +1,6 @@
 #global:
 #  spire:
+#    clusterName: changeme
 #    upstreamSpireAddress: spire-server.changeme
 
 internal-spire-server:

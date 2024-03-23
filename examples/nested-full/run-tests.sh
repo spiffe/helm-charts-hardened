@@ -75,7 +75,7 @@ for cluster in child other; do
   helm upgrade --kubeconfig "${KC}" --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/child-values.yaml" \
     --set "global.spire.upstreamSpireAddress=spire-server.production.other" \
     --set "global.spire.namespaces.create=true" \
-    --set "#global.spire.clusterName=${cluster}" \
+    --set "global.spire.clusterName=${cluster}" \
     spire charts/spire-nested
   kubectl --kubeconfig "${KC}" create configmap -n spire-system spire-bundle-upstream
 
