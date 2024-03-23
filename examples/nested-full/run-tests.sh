@@ -78,8 +78,8 @@ for cluster in child other; do
     spire charts/spire-nested
   kubectl --kubeconfig "${KC}" create configmap -n spire-system spire-bundle-upstream
 
-  kubectl get configmap --kubeconfig "${KC}" -n kube-system coredns -o yaml | grep hosts || kubectl get configmap --kubeconfig "${KC}" -n kube-system coredns -o yaml | sed "/ready/a\        hosts {\n           fallthrough\n        }" | kubectl apply -f -
-  kubectl get configmap --kubeconfig "${KC}" -n kube-system coredns -o yaml | grep production.other || kubectl get configmap --kubeconfig "${KC}" -n kube-system coredns -o yaml | sed "/hosts/a\           $IP spire-server.production.other\n           $IP spire-server.production.other\n" | kubectl apply -f -
+  kubectl get configmap --kubeconfig "${KC}" -n kube-system coredns -o yaml | grep hosts || kubectl get configmap --kubeconfig "${KC}" -n kube-system coredns -o yaml | sed "/ready/a\        hosts {\n           fallthrough\n        }" | kubectl apply --kubeconfig "${KC}" -f -
+  kubectl get configmap --kubeconfig "${KC}" -n kube-system coredns -o yaml | grep production.other || kubectl get configmap --kubeconfig "${KC}" -n kube-system coredns -o yaml | sed "/hosts/a\           $IP spire-server.production.other\n           $IP spire-server.production.other\n" | kubectl apply --kubeconfig "${KC}" -f -
   kubectl rollout restart --kubeconfig "${KC}" -n kube-system deployment/coredns
   kubectl rollout status --kubeconfig "${KC}" -n kube-system -w --timeout=1m deploy/coredns
 done
