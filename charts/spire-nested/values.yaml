@@ -222,22 +222,12 @@ root-spire-server:
     className: spire-mgmt-root-server
     identities:
       clusterSPIFFEIDs:
+        child-servers:
+          ## @param root-spire-server.controllerManager.identities.clusterSPIFFEIDs.child-servers.enabled Enable child servers
+          enabled: true
         default:
-          ## @param root-spire-server.controllerManager.identities.clusterSPIFFEIDs.default.type The type of rule this is.
-          type: raw
-          ## @param root-spire-server.controllerManager.identities.clusterSPIFFEIDs.default.namespaceSelector [object] Selector for namespacs to issue identity
-          namespaceSelector:
-            matchExpressions:
-            - key: "kubernetes.io/metadata.name"
-              operator: In
-              values: [spire-server]
-          ## @param root-spire-server.controllerManager.identities.clusterSPIFFEIDs.default.podSelector [object] Selector for pods to issue identity
-          podSelector:
-            matchLabels:
-              release-namespace: spire-mgmt
-              component: server
-          ## @param root-spire-server.controllerManager.identities.clusterSPIFFEIDs.default.downstream Set if this spire instance is a root server and the workloads are downstream servers.
-          downstream: true
+          ## @param root-spire-server.controllerManager.identities.clusterSPIFFEIDs.default.enabled Enable the default cluster spiffe id
+          enabled: false
         oidc-discovery-provider:
           ## @param root-spire-server.controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.enabled Enable the test-keys identity
           enabled: false
