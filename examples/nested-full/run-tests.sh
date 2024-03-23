@@ -93,7 +93,6 @@ helm upgrade --install --create-namespace --namespace spire-mgmt --values "${COM
   --set "global.spire.namespaces.create=true" \
   --set "external-spire-server.kubeConfigs.child.kubeConfigBase64=${CHILD_KCB64}" \
   --set "external-spire-server.kubeConfigs.other.kubeConfigBase64=${OTHER_KCB64}"
-helm test --namespace spire-mgmt spire
 
 for cluster in child other; do
   KC="${SCRIPTPATH}/kubeconfig-${cluster}"
@@ -104,10 +103,14 @@ for cluster in child other; do
   kubectl --kubeconfig "${KC}" rollout status statefulset spire-internal-server -n spire-server --timeout 60s || kubectl logs --kubeconfig "${KC}" statefulset/spire-internal-server -n spire-server --prefix --all-containers=true
   kubectl --kubeconfig "${KC}" rollout restart daemonset spire-agent-downstream -n spire-system
   kubectl --kubeconfig "${KC}" rollout status daemonset spire-agent-downstream -n spire-system --timeout 60s || kubectl logs --kubeconfig "${KC}" daemonset/spire-agent-downstream -n spire-system --prefix --all-containers=true
+  kubectl --kubeconfig "${KC}" rollout restart deployment spire-spiffe-oidc-discovery-provider -n spire-server
+  kubectl --kubeconfig "${KC}" rollout status deployment spire-spiffe-oidc-discovery-provider -n spire-server --timeout 60s || kubectl logs --kubeconfig "${KC}" deployment/spire-spiffe-oidc-discovery-provider -n spire-server --prefix --all-containers=true
 
   echo Pods on "${cluster}"
   kubectl --kubeconfig "${KC}" get pods -A
 done
+
+helm test --namespace spire-mgmt spire
 
 helm test --kubeconfig "${SCRIPTPATH}/kubeconfig-child" --namespace spire-mgmt spire
 helm test --kubeconfig "${SCRIPTPATH}/kubeconfig-other" --namespace spire-mgmt spire
