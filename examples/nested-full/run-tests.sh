@@ -63,6 +63,11 @@ helm upgrade --install ingress-nginx ingress-nginx --version "$VERSION_INGRESS_N
 # Test the ingress controller. Should 404 as there is no services yet.
 curl "$IP"
 
+kubectl get configmap -n kube-system coredns -o yaml | grep hosts || kubectl get configmap -n kube-system coredns -o yaml | sed "/ready/a\        hosts {\n           fallthrough\n        }" | kubectl apply -f -
+kubectl get configmap -n kube-system coredns -o yaml | grep production.other || kubectl get configmap -n kube-system coredns -o yaml | sed "/hosts/a\           $IP spire-server.production.other\n           $IP spire-server.production.other\n" | kubectl apply -f -
+kubectl rollout restart -n kube-system deployment/coredns
+kubectl rollout status -n kube-system -w --timeout=1m deploy/coredns
+
 for cluster in child other; do
   KC="${SCRIPTPATH}/kubeconfig-${cluster}"
 
@@ -109,7 +114,7 @@ for cluster in child other; do
   echo Pods on "${cluster}"
   kubectl --kubeconfig "${KC}" get pods -A
 
-  ENTRIES="$(kubectl exec -i -n spire-server spire-internal-server-0 -- spire-server entry show)"
+  ENTRIES="$(kubectl --kubeconfig "${KC}" exec -i -n spire-server spire-internal-server-0 -- spire-server entry show)"
 
   if [[ "${ENTRIES}" == "Found 0 entries" ]]; then
     echo "${ENTRIES}"
