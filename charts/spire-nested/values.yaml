@@ -248,7 +248,7 @@ root-spire-server:
     k8sPsat:
       ## @param root-spire-server.nodeAttestor.k8sPsat.serviceAccountAllowList [array] Allowed service accounts for Psat nodeattestor
       serviceAccountAllowList:
-        - spire-system:spire-agent-upstream
+        - spire-agent-upstream
   ## @param root-spire-server.bundleConfigMap The name of the configmap to store the upstream bundle
   bundleConfigMap: spire-bundle-upstream
 
