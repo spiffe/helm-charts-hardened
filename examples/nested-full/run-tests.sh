@@ -108,17 +108,24 @@ for cluster in child other; do
 
   echo Pods on "${cluster}"
   kubectl --kubeconfig "${KC}" get pods -A
+
+  ENTRIES="$(kubectl exec -i -n spire-server spire-internal-server-0 -- spire-server entry show)"
+
+  if [[ "${ENTRIES}" == "Found 0 entries" ]]; then
+    echo "${ENTRIES}"
+    exit 1
+  fi
 done
+
+ENTRIES="$(kubectl exec -i -n spire-server spire-external-server-0 -- spire-server entry show)"
+
+if [[ "${ENTRIES}" == "Found 0 entries" ]]; then
+  echo "${ENTRIES}"
+  exit 1
+fi
 
 helm test --namespace spire-mgmt spire
 
 helm test --kubeconfig "${SCRIPTPATH}/kubeconfig-child" --namespace spire-mgmt spire
 helm test --kubeconfig "${SCRIPTPATH}/kubeconfig-other" --namespace spire-mgmt spire
-
-ENTRIES="$(kubectl exec -i -n spire-server spire-server-0 -- spire-server entry show)"
-
-if [[ "${ENTRIES}" == "Found 0 entries" ]]; then
-	echo "${ENTRIES}"
-	exit 1
-fi
 
