@@ -89,6 +89,7 @@ OTHER_KCB64="$(base64 < "${SCRIPTPATH}/kubeconfig-other" | tr '\n' ' ' | sed 's/
 
 helm upgrade --install --create-namespace --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/root-values.yaml" \
   --wait spire charts/spire-nested \
+  --set "global.spire.namespaces.create=true" \
   --set "spire-server.kubeConfigs.child.kubeConfigBase64=${CHILD_KCB64}" \
   --set "spire-server.kubeConfigs.other.kubeConfigBase64=${OTHER_KCB64}"
 helm test --namespace spire-mgmt spire
