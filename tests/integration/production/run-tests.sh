@@ -65,7 +65,7 @@ if [[ -n "$UPGRADE_ARGS" ]]; then
   pushd "${UPGRADE_VERSION}"
   git checkout "${UPGRADE_VERSION/v/spire-}"
   helm install --create-namespace -n spire-system spire-crds charts/spire-crds
-  ./examples/production/run-tests.sh -c
+  ./tests/integration/production/run-tests.sh -c
   popd
   popd
   # Any other upgrade steps go here. (Upgrade crds, delete statefulsets without cascade, etc.)
