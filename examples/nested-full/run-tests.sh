@@ -94,14 +94,20 @@ helm upgrade --install --create-namespace --namespace spire-mgmt --values "${COM
   --set "spire-server.kubeConfigs.other.kubeConfigBase64=${OTHER_KCB64}"
 helm test --namespace spire-mgmt spire
 
-echo Pods on child
-kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig-child" get pods -A
+for cluster in child other; do
+  KC="${SCRIPTPATH}/kubeconfig-${cluster}"
+  kubectl --kubeconfig "${KC}" rollout restart daemonset spire-agent-upstream -n spire-system
+  kubectl --kubeconfig "${KC}" rollout status daemonset spire-agent-upstream -n spire-system --timeout 60s
+  kubectl --kubeconfig "${KC}" rollout restart statefulset spire-internal-server -n spire-server
+  kubectl --kubeconfig "${KC}" rollout status statefulset spire-internal-server -n spire-server --timeout 60s
+  kubectl --kubeconfig "${KC}" rollout restart daemonset spire-agent-downstream -n spire-system
+  kubectl --kubeconfig "${KC}" rollout status daemonset spire-agent-downstream -n spire-system --timeout 60s
 
-echo Pods on other
-kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig-other" get pods -A
+  echo Pods on "${cluster}"
+  kubectl --kubeconfig "${KC}" get pods -A
 
-kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig-child" get configmap -n spire-system spire-bundle-upstream
-kubectl --kubeconfig "${SCRIPTPATH}/kubeconfig-other" get configmap -n spire-system spire-bundle-upstream
+  kubectl --kubeconfig "${KC}" get configmap -n spire-system spire-bundle-upstream
+done
 
 helm test --kubeconfig "${SCRIPTPATH}/kubeconfig-child" --namespace spire-mgmt spire
 helm test --kubeconfig "${SCRIPTPATH}/kubeconfig-other" --namespace spire-mgmt spire
