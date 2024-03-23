@@ -133,8 +133,8 @@ downstream-spire-agent:
   ## @param downstream-spire-agent.nameOverride Overrides the name of Spire agent pods
   nameOverride: agent-downstream
   server:
-    ## @param downstream-spire-agent.server.address The address of the internal SPIRE server
-    address: spire-internal-server.spire-server
+    ## @param downstream-spire-agent.server.nameOverride The name override setting of the internal SPIRE server
+    nameOverride: internal-server
   ## @param downstream-spire-agent.bundleConfigMap The name of the configmap that contains the downstream bundle
   bundleConfigMap: spire-bundle-downstream
 
@@ -163,8 +163,8 @@ upstream-spire-agent:
       ## @param upstream-spire-agent.telemetry.prometheus.port The port where prometheus metrics are available
       port: 9989
   server:
-    ## @param upstream-spire-agent.server.address The address of the root SPIRE server
-    address: spire-root-server.spire-server
+    ## @param upstream-spire-agent.server.nameOverride The name override setting of the root SPIRE server
+    nameOverride: root-server
 
 ## @section SPIFFE CSI Driver parameters
 ## Parameter values for spiffe-csi-driver

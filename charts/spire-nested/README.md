@@ -246,12 +246,12 @@ Now you can interact with the Spire agent socket from your own application. The 
 
 ### Spire agent parameters
 
-| Name                                     | Description                                                   | Value                                |
-| ---------------------------------------- | ------------------------------------------------------------- | ------------------------------------ |
-| `downstream-spire-agent.enabled`         | Flag to enable Spire agent                                    | `true`                               |
-| `downstream-spire-agent.nameOverride`    | Overrides the name of Spire agent pods                        | `agent-downstream`                   |
-| `downstream-spire-agent.server.address`  | The address of the internal SPIRE server                      | `spire-internal-server.spire-server` |
-| `downstream-spire-agent.bundleConfigMap` | The name of the configmap that contains the downstream bundle | `spire-bundle-downstream`            |
+| Name                                         | Description                                                   | Value                     |
+| -------------------------------------------- | ------------------------------------------------------------- | ------------------------- |
+| `downstream-spire-agent.enabled`             | Flag to enable Spire agent                                    | `true`                    |
+| `downstream-spire-agent.nameOverride`        | Overrides the name of Spire agent pods                        | `agent-downstream`        |
+| `downstream-spire-agent.server.nameOverride` | The name override setting of the internal SPIRE server        | `internal-server`         |
+| `downstream-spire-agent.bundleConfigMap`     | The name of the configmap that contains the downstream bundle | `spire-bundle-downstream` |
 
 ### Upstream Spire agent parameters
 
@@ -265,7 +265,7 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `upstream-spire-agent.serviceAccount.name`       | Service account name for upstream Spire agent      | `spire-agent-upstream`                               |
 | `upstream-spire-agent.healthChecks.port`         | Health check port number for upstream Spire agent  | `9981`                                               |
 | `upstream-spire-agent.telemetry.prometheus.port` | The port where prometheus metrics are available    | `9989`                                               |
-| `upstream-spire-agent.server.address`            | The address of the root SPIRE server               | `spire-root-server.spire-server`                     |
+| `upstream-spire-agent.server.nameOverride`       | The name override setting of the root SPIRE server | `root-server`                                        |
 
 ### SPIFFE CSI Driver parameters
 
