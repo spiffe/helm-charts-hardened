@@ -241,7 +241,7 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `internal-spire-server.controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.autoPopulateDNSNames` | Auto populate dns entries                                | `false`                   |
 | `internal-spire-server.upstreamAuthority.spire.enabled`                                                            | Enable upstream SPIRE server                             | `true`                    |
 | `internal-spire-server.upstreamAuthority.spire.upstreamDriver`                                                     | Use an upstream driver for authentication                | `upstream.csi.spiffe.io`  |
-| `internal-spire-server.upstreamAuthority.spire.server.address`                                                     | The address of the upstream SPIRE server                 | `spire-root-server`       |
+| `internal-spire-server.upstreamAuthority.spire.server.nameOverride`                                                | The name override setting of the root SPIRE server       | `root-server`             |
 | `internal-spire-server.bundleConfigMap`                                                                            | The name of the configmap to store the downstream bundle | `spire-bundle-downstream` |
 
 ### Spire agent parameters
@@ -318,7 +318,7 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `external-spire-server.controllerManager.identities.clusterSPIFFEIDs.test-keys.enabled`               | Enable the test-keys identity                                                         | `false`                      |
 | `external-spire-server.upstreamAuthority.spire.enabled`                                               | Enable upstream SPIRE server                                                          | `true`                       |
 | `external-spire-server.upstreamAuthority.spire.upstreamDriver`                                        | Use an upstream driver for authentication                                             | `upstream.csi.spiffe.io`     |
-| `external-spire-server.upstreamAuthority.spire.server.address`                                        | The address of the upstream SPIRE server                                              | `spire-root-server`          |
+| `external-spire-server.upstreamAuthority.spire.server.nameOverride`                                   | The name override setting of the root SPIRE server                                    | `root-server`                |
 | `external-spire-server.notifier.k8sbundle.enabled`                                                    | Enable local k8s bundle uploader                                                      | `false`                      |
 | `external-spire-server.nodeAttestor.k8sPsat.enabled`                                                  | Enable Psat k8s nodeattestor                                                          | `false`                      |
 | `external-spire-server.nodeAttestor.joinToken.enabled`                                                | Enable the join_token nodeattestor                                                    | `true`                       |

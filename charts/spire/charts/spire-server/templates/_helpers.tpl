@@ -201,6 +201,8 @@ Create the name of the service account to use
 {{- define "spire-server.upstream-spire-address" }}
 {{- if ne (len (dig "spire" "upstreamSpireAddress" "" .Values.global)) 0 }}
 {{- print .Values.global.spire.upstreamSpireAddress }}
+{{- else if .Values.upstreamAuthority.spire.server.nameOverride }}
+{{ .Release.Name }}-{{ .Values.upstreamAuthority.spire.server.nameOverride }}
 {{- else }}
 {{- print .Values.upstreamAuthority.spire.server.address }}
 {{- end }}
