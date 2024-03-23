@@ -96,6 +96,7 @@ helm test --namespace spire-mgmt spire
 
 for cluster in child other; do
   KC="${SCRIPTPATH}/kubeconfig-${cluster}"
+  kubectl --kubeconfig "${KC}" get configmap -n spire-system spire-bundle-upstream -o yaml
   kubectl --kubeconfig "${KC}" rollout restart daemonset spire-agent-upstream -n spire-system
   kubectl --kubeconfig "${KC}" rollout status daemonset spire-agent-upstream -n spire-system --timeout 60s || kubectl logs --kubeconfig "${KC}" daemonset/spire-agent-upstream -n spire-system --prefix --all-containers=true
   kubectl --kubeconfig "${KC}" rollout restart statefulset spire-internal-server -n spire-server
@@ -105,8 +106,6 @@ for cluster in child other; do
 
   echo Pods on "${cluster}"
   kubectl --kubeconfig "${KC}" get pods -A
-
-  kubectl --kubeconfig "${KC}" get configmap -n spire-system spire-bundle-upstream
 done
 
 helm test --kubeconfig "${SCRIPTPATH}/kubeconfig-child" --namespace spire-mgmt spire
