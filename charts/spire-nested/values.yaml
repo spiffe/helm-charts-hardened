@@ -120,7 +120,7 @@ internal-spire-server:
       upstreamDriver: upstream.csi.spiffe.io
       server:
         ## @param internal-spire-server.upstreamAuthority.spire.server.address The address of the upstream SPIRE server
-        address: spire-root-server.spire-server
+        address: spire-root-server
   ## @param internal-spire-server.bundleConfigMap The name of the configmap to store the downstream bundle
   bundleConfigMap: spire-bundle-downstream
 
@@ -286,7 +286,7 @@ external-spire-server:
       upstreamDriver: upstream.csi.spiffe.io
       server:
         ## @param external-spire-server.upstreamAuthority.spire.server.address The address of the upstream SPIRE server
-        address: spire-root-server.spire-server
+        address: spire-root-server
   notifier:
     k8sbundle:
       ## @param external-spire-server.notifier.k8sbundle.enabled Enable local k8s bundle uploader
