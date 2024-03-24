@@ -6,6 +6,16 @@ root-spire-server:
   kind: none
   controllerManager:
     className: spire-mgmt-external-server
+    identities:
+      clusterSPIFFEIDs:
+        default:
+          enabled: true
+        child-servers:
+          enabled: false
+        oidc-discovery-provider:
+          enabled: true
+        test-keys:
+          enabled: true
 
 upstream-spire-agent:
   enabled: false

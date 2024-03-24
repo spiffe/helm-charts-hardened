@@ -10,11 +10,3 @@ external-spire-server:
       defaults:
         serviceAccountAllowList:
           - spire-system:spire-agent
-
-  controllerManager:
-    identities:
-      clusterSPIFFEIDs:
-        default:
-          enabled: true
-        child-server:
-          enabled: false
