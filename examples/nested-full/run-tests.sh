@@ -76,14 +76,14 @@ for cluster in child other; do
   wc -l "${KC}"
 
   helm upgrade --kubeconfig "${KC}" --install --create-namespace --namespace spire-mgmt spire-crds charts/spire-crds
-  kubectl --kubeconfig "${KC}" apply -f "${SCRIPTPATH}/spire-server-clusterspiffeid.yaml"
+  #kubectl --kubeconfig "${KC}" apply -f "${SCRIPTPATH}/spire-server-clusterspiffeid.yaml"
   helm upgrade --kubeconfig "${KC}" --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/child-values.yaml" \
     --set "global.spire.upstreamSpireAddress=spire-server.production.other" \
     --set "global.spire.namespaces.create=true" \
     --set "global.spire.clusterName=${cluster}" \
     spire charts/spire-nested
-  kubectl --kubeconfig "${KC}" apply -f "${SCRIPTPATH}/spire-server-role.yaml"
-  kubectl --kubeconfig "${KC}" create configmap -n spire-system spire-bundle-upstream
+  #kubectl --kubeconfig "${KC}" apply -f "${SCRIPTPATH}/spire-server-role.yaml"
+  #kubectl --kubeconfig "${KC}" create configmap -n spire-system spire-bundle-upstream
 
   kubectl get configmap --kubeconfig "${KC}" -n kube-system coredns -o yaml | grep hosts || kubectl get configmap --kubeconfig "${KC}" -n kube-system coredns -o yaml | sed "/ready/a\        hosts {\n           fallthrough\n        }" | kubectl apply --kubeconfig "${KC}" -f -
   kubectl get configmap --kubeconfig "${KC}" -n kube-system coredns -o yaml | grep production.other || kubectl get configmap --kubeconfig "${KC}" -n kube-system coredns -o yaml | sed "/hosts/a\           $IP spire-server.production.other\n           $IP spire-server.production.other\n" | kubectl apply --kubeconfig "${KC}" -f -

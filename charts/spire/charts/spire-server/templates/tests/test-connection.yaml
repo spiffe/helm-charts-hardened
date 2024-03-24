@@ -1,3 +1,4 @@
+{{- if ne .Values.kind "none" }}
 {{ $values := merge .Values }}
 apiVersion: v1
 kind: Pod
@@ -64,3 +65,4 @@ spec:
         secretName: {{ .Values.tests.tls.customCA }}
   {{- end }}
   restartPolicy: Never
+{{- end }}

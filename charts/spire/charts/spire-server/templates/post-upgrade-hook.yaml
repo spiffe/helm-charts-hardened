@@ -1,3 +1,4 @@
+{{- if ne .Values.kind "none" }}
 {{- if eq ((dig "installAndUpgradeHooks" "enabled" .Values.controllerManager.installAndUpgradeHook.enabled .Values.global) | toString) "true" }}
 {{- if and (eq (.Values.controllerManager.enabled | toString) "true") .Values.controllerManager.validatingWebhookConfiguration.enabled }}
 {{- if eq .Values.controllerManager.validatingWebhookConfiguration.failurePolicy "Fail" }}
@@ -84,6 +85,7 @@ spec:
                 }
               ]
             }
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}

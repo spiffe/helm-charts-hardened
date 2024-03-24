@@ -6,6 +6,7 @@
 {{- if not (has .Values.persistence.type (list "pvc" "hostPath" "emptyDir")) }}
 {{- fail "persistence.type must be one of [\"pvc\", \"hostPath\", \"emptyDir\"]" }}
 {{- end }}
+{{- if ne .Values.kind "none" }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -440,3 +441,4 @@ spec:
         storageClassName: {{ .Values.persistence.storageClass }}
         {{- end }}
   {{- end }}
+{{- end }}
