@@ -5,6 +5,10 @@ spiffe-oidc-discovery-provider:
 external-spire-server:
   ingress:
     enabled: true
+  nodeAttestor:
+    k8sPsat:
+      serviceAccountAllowList:
+        - spire-agent
   controllerManager:
     identities:
       clusterSPIFFEIDs:
