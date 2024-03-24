@@ -68,6 +68,8 @@ kubectl get configmap -n kube-system coredns -o yaml | grep production.other || 
 kubectl rollout restart -n kube-system deployment/coredns
 kubectl rollout status -n kube-system -w --timeout=1m deploy/coredns
 
+# The check is being too pedantic.
+# shellcheck shell=bash disable=SC2043
 for cluster in child; do
   KC="${SCRIPTPATH}/kubeconfig-${cluster}"
 
@@ -97,6 +99,8 @@ helm upgrade --install --create-namespace --namespace spire-mgmt --values "${COM
   --set "global.spire.ingressControllerType=ingress-nginx" \
   --set "external-spire-server.kubeConfigs.child.kubeConfigBase64=${CHILD_KCB64}"
 
+# The check is being too pedantic.
+# shellcheck shell=bash disable=SC2043
 for cluster in child; do
   KC="${SCRIPTPATH}/kubeconfig-${cluster}"
   kubectl --kubeconfig "${KC}" get configmap -n spire-system spire-bundle-upstream -o yaml
