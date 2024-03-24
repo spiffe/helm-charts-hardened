@@ -1,0 +1,25 @@
+# global:
+#   spire:
+#     clusterName: changeme
+
+root-spire-server:
+  kind: none
+  controllerManager:
+    className: spire-mgmt-external-server
+
+upstream-spire-agent:
+  enabled: false
+
+upstream-spiffe-csi-driver:
+  enabled: false
+
+internal-spire-server:
+  enabled: false
+
+downstream-spire-agent:
+  bundleConfigMap: spire-bundle-upstream
+#   server:
+#     address: spire-server.changeme
+
+external-spire-server:
+  enabled: false

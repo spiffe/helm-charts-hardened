@@ -1,7 +1,3 @@
-global:
-  spire:
-    ingressControllerType: ingress-nginx
-
 spiffe-oidc-discovery-provider:
   ingress:
     enabled: true

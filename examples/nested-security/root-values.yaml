@@ -1,0 +1,14 @@
+spiffe-oidc-discovery-provider:
+  ingress:
+    enabled: true
+
+external-spire-server:
+  ingress:
+    enabled: true
+  controllerManager:
+    identities:
+      clusterSPIFFEIDs:
+        default:
+          enabled: true
+        child-server:
+          enabled: false
