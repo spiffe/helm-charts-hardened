@@ -6,9 +6,11 @@ external-spire-server:
   ingress:
     enabled: true
   nodeAttestor:
-    k8sPsat:
+    externalK8sPsat:
+    defaults:
       serviceAccountAllowList:
         - spire-agent
+
   controllerManager:
     identities:
       clusterSPIFFEIDs:
