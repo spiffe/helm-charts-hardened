@@ -7,9 +7,9 @@ external-spire-server:
     enabled: true
   nodeAttestor:
     externalK8sPsat:
-    defaults:
-      serviceAccountAllowList:
-        - spire-agent
+      defaults:
+        serviceAccountAllowList:
+          - spire-system:spire-agent
 
   controllerManager:
     identities:
