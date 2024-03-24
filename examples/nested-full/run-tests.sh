@@ -91,8 +91,8 @@ for cluster in child other; do
   kubectl rollout status --kubeconfig "${KC}" -n kube-system -w --timeout=1m deploy/coredns
 done
 
-docker exec -it child-control-plane bash -c 'kubeadm kubeconfig user --client-name=spire-root' > "${SCRIPTPATH}/child-spire-root.kubeconfig"
-docker exec -it other-control-plane bash -c 'kubeadm kubeconfig user --client-name=spire-root' > "${SCRIPTPATH}/other-spire-root.kubeconfig"
+docker exec -i child-control-plane bash -c 'kubeadm kubeconfig user --client-name=spire-root' > "${SCRIPTPATH}/child-spire-root.kubeconfig"
+docker exec -i other-control-plane bash -c 'kubeadm kubeconfig user --client-name=spire-root' > "${SCRIPTPATH}/other-spire-root.kubeconfig"
 CHILD_KCB64="$(base64 < "${SCRIPTPATH}/child-spire-root.kubeconfig" | tr '\n' ' ' | sed 's/ //g')"
 OTHER_KCB64="$(base64 < "${SCRIPTPATH}/other-spire-root.kubeconfig" | tr '\n' ' ' | sed 's/ //g')"
 
