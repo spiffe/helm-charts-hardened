@@ -197,6 +197,8 @@ upstream-spiffe-csi-driver:
 spiffe-oidc-discovery-provider:
   ## @param spiffe-oidc-discovery-provider.enabled Flag to enable spiffe-oidc-discovery-provider for the cluster
   enabled: true
+  ## @param spiffe-oidc-discovery-provider.fullnameOverride Fullname override
+  fullnameOverride: spiffe-oidc-discovery-provider
 
 ## @section Tornjak frontend parameters
 ## Parameter values for Tornjak frontend

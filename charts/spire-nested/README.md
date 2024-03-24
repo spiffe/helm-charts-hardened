@@ -14,7 +14,7 @@ To do a quick install suitable for testing in something like minikube:
 
 ```shell
 helm upgrade --install -n spire-server spire-crds spire-crds --repo https://spiffe.github.io/helm-charts-hardened/ --create-namespace
-helm upgrade --install -n spire-server spire spire --repo https://spiffe.github.io/helm-charts-hardened/
+helm upgrade --install -n spire-server spire spire-nested --repo https://spiffe.github.io/helm-charts-hardened/
 ```
 
 ### Production
@@ -59,7 +59,7 @@ In particular, consider using an external database.
 
 ```shell
 helm upgrade --install -n spire-mgmt spire-crds spire-crds --repo https://spiffe.github.io/helm-charts-hardened/ --create-namespace
-helm upgrade --install -n spire-mgmt spire spire --repo https://spiffe.github.io/helm-charts-hardened/ -f your-values.yaml
+helm upgrade --install -n spire-mgmt spire spire-nested --repo https://spiffe.github.io/helm-charts-hardened/ -f your-values.yaml
 ```
 
 ## Clean up
@@ -286,9 +286,10 @@ Now you can interact with the Spire agent socket from your own application. The 
 
 ### SPIFFE oidc discovery provider parameters
 
-| Name                                     | Description                                                   | Value  |
-| ---------------------------------------- | ------------------------------------------------------------- | ------ |
-| `spiffe-oidc-discovery-provider.enabled` | Flag to enable spiffe-oidc-discovery-provider for the cluster | `true` |
+| Name                                              | Description                                                   | Value                            |
+| ------------------------------------------------- | ------------------------------------------------------------- | -------------------------------- |
+| `spiffe-oidc-discovery-provider.enabled`          | Flag to enable spiffe-oidc-discovery-provider for the cluster | `true`                           |
+| `spiffe-oidc-discovery-provider.fullnameOverride` | Fullname override                                             | `spiffe-oidc-discovery-provider` |
 
 ### Tornjak frontend parameters
 
