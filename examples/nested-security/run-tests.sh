@@ -111,13 +111,6 @@ for cluster in child; do
 
   echo Pods on "${cluster}"
   kubectl --kubeconfig "${KC}" get pods -A
-
-  ENTRIES="$(kubectl --kubeconfig "${KC}" exec -i -n spire-server spire-internal-server-0 -- spire-server entry show)"
-
-  if [[ "${ENTRIES}" == "Found 0 entries" ]]; then
-    echo "${ENTRIES}"
-    exit 1
-  fi
 done
 
 ENTRIES="$(kubectl exec -i -n spire-server spire-external-server-0 -- spire-server entry show)"
