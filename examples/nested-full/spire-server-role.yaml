@@ -58,7 +58,7 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: default-abcd-internal-server
+  name: spire-mgmt-spire-root-server
 subjects:
 - apiGroup: rbac.authorization.k8s.io
   kind: User
