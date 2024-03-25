@@ -57,7 +57,7 @@ A Helm chart to install the SPIFFE CSI driver.
 | `nodeDriverRegistrar.image.registry`          | The OCI registry to pull the image from                                                                        | `registry.k8s.io`                           |
 | `nodeDriverRegistrar.image.repository`        | The repository within the registry                                                                             | `sig-storage/csi-node-driver-registrar`     |
 | `nodeDriverRegistrar.image.pullPolicy`        | The image pull policy                                                                                          | `IfNotPresent`                              |
-| `nodeDriverRegistrar.image.tag`               | Overrides the image tag                                                                                        | `v2.9.3`                                    |
+| `nodeDriverRegistrar.image.tag`               | Overrides the image tag                                                                                        | `v2.9.4`                                    |
 | `nodeDriverRegistrar.resources`               | Resource requests and limits for CSI driver pods                                                               | `{}`                                        |
 | `agentSocketPath`                             | The unix socket path to the spire-agent                                                                        | `/run/spire/agent-sockets/spire-agent.sock` |
 | `kubeletPath`                                 | Path to kubelet file                                                                                           | `/var/lib/kubelet`                          |
