@@ -135,9 +135,9 @@ readinessProbe:
   periodSeconds: 5
 
 ## @param persistence.type What type of volume to use for persistence. Valid options pvc (recommended), hostPath, emptyDir (testing only)
-## @param persistence.size What type of volume to use for persistence. Valid options pvc (recommended), hostPath, emptyDir (testing only)
-## @param persistence.accessMode What type of volume to use for persistence. Valid options pvc (recommended), hostPath, emptyDir (testing only)
-## @param persistence.storageClass What type of volume to use for persistence. Valid options pvc (recommended), hostPath, emptyDir (testing only)
+## @param persistence.size What size volume to use for persistence
+## @param persistence.accessMode What access mode to use for persistence. Valid options are ReadWriteOnce (recommended), ReadWriteOncePod, ReadWriteMany (not recommended)
+## @param persistence.storageClass What storage class to use for persistence
 ## @param persistence.hostPath Which path to use on the host when type = hostPath
 ##
 persistence:
