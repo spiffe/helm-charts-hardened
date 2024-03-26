@@ -9,9 +9,9 @@ metadata:
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
-    {{- if eq .Values.deploymentType "statefulset" }}
+    {{- if eq .Values.kind "statefulset" }}
     kind: StatefulSet
-    {{- else if eq .Values.deploymentType "deployment" }}
+    {{- else if eq .Values.kind "deployment" }}
     kind: Deployment
     {{- end }}
     name: {{ include "spire-server.fullname" . }}

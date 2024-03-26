@@ -4,11 +4,11 @@
 {{- $configSumTornjak := (include (print $.Template.BasePath "/tornjak-config.yaml") . | sha256sum) }}
 {{- $fullname := include "spire-server.fullname" . }}
 
-{{- if eq .Values.deploymentType "statefulset" }}
+{{- if eq .Values.kind "statefulset" }}
 {{-   if not (has .Values.persistence.type (list "pvc" "hostPath" "emptyDir")) }}
 {{-     fail "persistence.type must be one of [\"pvc\", \"hostPath\", \"emptyDir\"]" }}
 {{-   end }}
-{{- else if eq .Values.deploymentType "deployment" }}
+{{- else if eq .Values.kind "deployment" }}
 {{-   if (has .Values.persistence.type (list "pvc" "hostPath")) }}
 {{-     fail "When running as deployment, persistence can't be set. 'persistence.type' must be [\"emptyDir\"]" }}
 {{-   end }}
@@ -19,12 +19,12 @@
 {{-     fail "When running as deployment, disk keymanager can't be used. 'keyManager.disk.enabled' must be false." }}
 {{-   end }}
 {{- else }}
-{{-   fail "Unsupported deploymentType." }}
+{{-   fail "Unsupported kind." }}
 {{- end }}
 apiVersion: apps/v1
-{{- if eq .Values.deploymentType "statefulset" }}
+{{- if eq .Values.kind "statefulset" }}
 kind: StatefulSet
-{{- else if eq .Values.deploymentType "deployment" }}
+{{- else if eq .Values.kind "deployment" }}
 kind: Deployment
 {{- end }}
 metadata:
@@ -40,7 +40,7 @@ spec:
   {{- end }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
-  {{- if eq .Values.deploymentType "statefulset" }}
+  {{- if eq .Values.kind "statefulset" }}
   serviceName: {{ include "spire-server.fullname" . }}
   {{- end }}
   selector:

@@ -8,11 +8,11 @@ Expand the name of the chart.
 {{/*
 Spire Server deployment/statefulset
 */}}
-{{- define "spire-server.deploymentType" -}}
-{{- if not (has .Values.deploymentType (list "statefulset" "deployment")) -}}
+{{- define "spire-server.kind" -}}
+{{- if not (has .Values.kind (list "statefulset" "deployment")) -}}
   {{- fail "Unsupported deployment type" -}}
 {{- else -}}
-  {{- .Values.deploymentType -}}
+  {{- .Values.kind -}}
 {{- end -}}
 {{- end }}
 
