@@ -18,7 +18,7 @@
 {{-   if (eq (.Values.keyManager.disk.enabled | toString) "true") }}
 {{-     fail "When running as deployment, disk keymanager can't be used. 'keyManager.disk.enabled' must be false." }}
 {{-   end }}
-{{- else }}
+{{- else if ne .Values.kind "none" }}
 {{-   fail "Unsupported kind." }}
 {{- end }}
 {{- if ne .Values.kind "none" }}
