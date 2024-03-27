@@ -1,3 +1,4 @@
+{{- if ne .Values.kind "none" }}
 {{- if eq (.Values.controllerManager.enabled | toString) "true" }}
 apiVersion: v1
 kind: Service
@@ -19,4 +20,5 @@ spec:
       protocol: TCP
   selector:
     {{- include "spire-server.selectorLabels" . | nindent 4 }}
+{{- end }}
 {{- end }}

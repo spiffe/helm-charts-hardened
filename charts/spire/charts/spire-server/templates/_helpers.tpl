@@ -290,3 +290,16 @@ The code below determines what connection type should be used.
 {{-   $g := dig "spire" "caSubject" "commonName" "" .Values.global }}
 {{-   default .Values.ca_subject.common_name $g }}
 {{- end }}
+
+{{- define "spire-server.subject" }}
+subjects:
+{{-   if ne .Values.kind "none" }}
+- kind: ServiceAccount
+  name: {{ include "spire-server.serviceAccountName" . }}
+  namespace: {{ include "spire-server.namespace" . }}
+{{-   else }}
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: spire-root
+{{-   end }}
+{{- end }}

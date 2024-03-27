@@ -1,3 +1,4 @@
+{{- $subject := include "spire-server.subject" . }}
 {{- $namespace := include "spire-server.namespace" . }}
 {{- $bundleNamespace := include "spire-server.bundle-namespace" . }}
 # Role to be able to push certificate bundles to a configmap
@@ -39,10 +40,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: {{ include "spire-server.fullname" . }}-cm
   namespace: {{ $namespace }}
-subjects:
-  - kind: ServiceAccount
-    name: {{ include "spire-server.serviceAccountName" . }}
-    namespace: {{ $namespace }}
+{{ $subject }}
 roleRef:
   kind: Role
   name: {{ include "spire-server.fullname" . }}-cm
@@ -54,10 +52,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: {{ include "spire-lib.bundle-configmap" . }}
   namespace: {{ $bundleNamespace }}
-subjects:
-  - kind: ServiceAccount
-    name: {{ include "spire-server.serviceAccountName" . }}
-    namespace: {{ $namespace }}
+{{ $subject }}
 roleRef:
   kind: Role
   name: {{ include "spire-lib.bundle-configmap" . }}
@@ -89,10 +84,7 @@ kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: {{ .Release.Namespace}}-{{ include "spire-server.fullname" . }}
-subjects:
-  - kind: ServiceAccount
-    name: {{ include "spire-server.serviceAccountName" . }}
-    namespace: {{ $namespace }}
+{{ $subject }}
 roleRef:
   kind: ClusterRole
   name: {{ .Release.Namespace}}-{{ include "spire-server.fullname" . }}
