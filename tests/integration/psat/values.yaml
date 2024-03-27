@@ -2,11 +2,22 @@ global:
   spire:
     recommendations:
       enabled: true
+    namespaces:
+      create: true
     clusterName: production
     trustDomain: production.other
+    caSubject:
+      country: US
+      organization: Production
+      commonName: production.other
 
 spire-server:
-  ca_subject:
-    country: US
-    organization: Production
-    common_name: production.other
+  controllerManager:
+    reconcile:
+      clusterSPIFFEIDs: false
+      clusterStaticEntries: false
+  externalControllerManagers:
+    enabled: true
+
+spiffe-oidc-discovery-provider:
+  enabled: false

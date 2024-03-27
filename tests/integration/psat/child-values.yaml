@@ -1,0 +1,20 @@
+global:
+  spire:
+    recommendations:
+      enabled: true
+    namespaces:
+      create: true
+    clusterName: production
+    trustDomain: production.other
+
+spire-server:
+  enabled: false
+
+spire-agent:
+  enabled: false
+
+spiffe-csi-drvier:
+  enabled: false
+
+spiffe-oidc-discovery-provider:
+  enabled: true
