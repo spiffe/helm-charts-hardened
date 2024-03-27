@@ -37,6 +37,7 @@ agent:
   {{- end }}
   data_dir: "/run/spire"
   log_level: {{ .Values.logLevel | quote }}
+  retry_bootstrap: true
   server_address: {{ include "spire-agent.server-address" . | trim | quote }}
   server_port: {{ .Values.server.port | quote }}
   socket_path: /tmp/spire-agent/public/{{ include "spire-agent.socket-path" . | base }}

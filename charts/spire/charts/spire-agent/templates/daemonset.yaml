@@ -115,17 +115,6 @@ spec:
               mountPath: /tpm
           imagePullPolicy: {{ .Values.nodeAttestor.tpmDirect.plugin.image.pullPolicy }}
         {{- end }}
-        - name: init
-          # This is a small image with wait-for-it, choose whatever image
-          # you prefer that waits for a service to be up. This image is built
-          # from https://github.com/vishnubob/wait-for-it
-          image: {{ template "spire-lib.image" (dict "image" .Values.waitForIt.image "global" .Values.global) }}
-          imagePullPolicy: {{ .Values.waitForIt.image.pullPolicy }}
-          args: ["-t", "30", "-h", "{{ include "spire-agent.server-address" . | trim }}", "-p", {{ .Values.server.port | quote }}]
-          resources:
-            {{- toYaml .Values.waitForIt.resources | nindent 12 }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
         {{- if gt (len $socketAlternateNames) 0 }}
         - name: ensure-alternate-names
           image: {{ template "spire-lib.image" (dict "image" .Values.socketAlternate.image "global" .Values.global) }}
