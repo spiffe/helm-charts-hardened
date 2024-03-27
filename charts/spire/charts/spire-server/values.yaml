@@ -20,7 +20,7 @@ image:
   pullPolicy: IfNotPresent
   tag: ""
 
-## @param kind Define SPIRE server deployment type. Can be statefulset/deployment. Defaults to statefulset if not set. This feature is experimental.
+## @param kind Define SPIRE server kind. Can be one of [statefulset, deployment, none]. Setting to deployment is experimental.
 kind: statefulset
 
 ## @param imagePullSecrets [array] Pull secrets for images

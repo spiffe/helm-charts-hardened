@@ -1,3 +1,4 @@
+{{- if ne .Values.kind "none" }}
 {{- if eq (.Values.controllerManager.enabled | toString) "true" }}
 apiVersion: v1
 kind: ConfigMap
@@ -46,4 +47,5 @@ data:
   reconcile:
     {{- toYaml . | nindent 6 }}
   {{- end }}
+{{- end }}
 {{- end }}
