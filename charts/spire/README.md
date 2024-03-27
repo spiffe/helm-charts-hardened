@@ -250,7 +250,7 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `spire-server.nameOverride`                       | Overrides the name of Spire server pods                                   | `server`      |
 | `spire-server.kind`                               | Run spire server as deployment/statefulset. This feature is experimental. | `statefulset` |
 | `spire-server.controllerManager.enabled`          | Enable controller manager and provision CRD's                             | `true`        |
-| `spire-server.externalControllerManagers.enabled` | Enable external controller manager support                                | `true`   |
+| `spire-server.externalControllerManagers.enabled` | Enable external controller manager support                                | `true`        |
 
 ### Spire agent parameters
 
