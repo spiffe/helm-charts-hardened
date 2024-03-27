@@ -1,0 +1,18 @@
+spire-server:
+  deploymentType: deployment
+  replicaCount: 2
+  persistence:
+    type: emptyDir
+  keyManager:
+    disk:
+      enabled: false
+    memory:
+      enabled: true
+  dataStore:
+    sql:
+      databaseType: mysql
+      databaseName: spire-server
+      host: mysql
+      port: 3306
+      username: spire
+      # password: CHANGE_ME

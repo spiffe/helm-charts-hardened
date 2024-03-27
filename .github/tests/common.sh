@@ -55,6 +55,7 @@ print_spire_workload_status () {
 | Namespace | Workload                                       | Status |
 | --------- | ---------------------------------------------- | ------ |
 | ${ns1}    | ${release_name}-server                         | <pre>$(k_rollout_status "${ns1}" statefulset "${release_name}-server")</pre> |
+| ${ns1}    | ${release_name}-server                         | <pre>$(k_rollout_status "${ns1}" deployments.apps "${release_name}-server")</pre> |
 | ${ns2}    | ${release_name}-spiffe-csi-driver              | <pre>$(k_rollout_status "${ns2}" daemonset "${release_name}-spiffe-csi-driver")</pre> |
 | ${ns2}    | ${release_name}-agent                          | <pre>$(k_rollout_status "${ns2}" daemonset "${release_name}-agent")</pre> |
 | ${ns1}    | ${release_name}-spiffe-oidc-discovery-provider | <pre>$(k_rollout_status "${ns1}" deployments.apps "${release_name}-spiffe-oidc-discovery-provider")</pre> |

@@ -6,6 +6,17 @@ Expand the name of the chart.
 {{- end }}
 
 {{/*
+Spire Server deployment/statefulset
+*/}}
+{{- define "spire-server.kind" -}}
+{{- if not (has .Values.kind (list "statefulset" "deployment")) -}}
+  {{- fail "Unsupported deployment type" -}}
+{{- else -}}
+  {{- .Values.kind -}}
+{{- end -}}
+{{- end }}
+
+{{/*
 Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.

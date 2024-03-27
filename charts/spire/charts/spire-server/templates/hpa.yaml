@@ -10,7 +10,11 @@ metadata:
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
+    {{- if eq .Values.kind "statefulset" }}
     kind: StatefulSet
+    {{- else if eq .Values.kind "deployment" }}
+    kind: Deployment
+    {{- end }}
     name: {{ include "spire-server.fullname" . }}
   minReplicas: {{ .Values.autoscaling.minReplicas }}
   {{- if and (eq .Values.dataStore.sql.databaseType "sqlite3") .Values.autoscaling.enabled (gt (int .Values.autoscaling.maxReplicas) 1) }}
