@@ -41,23 +41,6 @@
 {{-       if gt $reconcileFederation 1 }}
 {{-         fail "You can only have one controller-manager with reconcile.clusterFederatedTrustDomains set to true" }}
 {{-       end }}
-{{-       $entryFound := false }}
-{{-       if and (hasKey $reconcile "clusterSPIFFEIDs") $reconcile.clusterSPIFFEIDs }}
-{{-         $entryFound = true }}
-{{-       else if $clusterDefaults.reconcile.clusterSPIFFEIDs }}
-{{-         $entryFound = true }}
-{{-       end }}
-{{-       if and (hasKey $reconcile "clusterStaticEntries") $reconcile.clusterStaticEntries }}
-{{-         $entryFound = true }}
-{{-       else if $clusterDefaults.reconcile.clusterStaticEntries }}
-{{-         $entryFound = true }}
-{{-       end }}
-{{-       if $entryFound }}
-{{-         $reconcileEntries = add $reconcileEntries 1 }}
-{{-       end }}
-{{-       if gt $reconcileEntries 1 }}
-{{-         fail "You can only have one controller-manager reconciling entries with either reconcile.clusterSPIFFEIDs or clusterStaticEntries" }}
-{{-       end }}
 {{-       include "spire-controller-manager.container" (dict "Values" $root.Values "Chart" $root.Chart "startPort" $startPort "suffix" $suffix "settings" $clusterSettings "defaults" $clusterDefaults "webhooksEnabled" false "kubeConfig" $kubeConfig ) }}
 {{-     end }}
 {{-   end }}
