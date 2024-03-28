@@ -75,6 +75,11 @@ kubectl delete crds clusterfederatedtrustdomains.spire.spiffe.io clusterspiffeid
 
 We only support upgrading one major version at a time. Version skipping isn't supported.
 
+### 0.20.X
+
+- The default service port for the spire-server was changed to be port 443 to allow easier switching between internal access and external access through an ingress controller. For most users, this will be a transparent
+change.
+
 ### 0.19.X
 
 - The spire-agent daemonset gained a new label. For those disabling the upgrade hooks, you need to delete the spire-agent daemonset before issuing the helm upgrade.
