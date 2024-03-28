@@ -112,7 +112,7 @@ upstream: false
 ##
 server:
   address: ""
-  port: 8081
+  port: 443
   namespaceOverride: ""
 
 healthChecks:
