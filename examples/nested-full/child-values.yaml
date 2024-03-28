@@ -8,15 +8,5 @@ root-spire-server:
   controllerManager:
     className: spire-mgmt-external-server
 
-upstream-spire-agent:
-  server:
-    port: 443
-
-internal-spire-server:
-  upstreamAuthority:
-    spire:
-      server:
-        port: 443
-
 external-spire-server:
   enabled: false

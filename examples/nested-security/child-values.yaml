@@ -28,8 +28,7 @@ internal-spire-server:
 
 downstream-spire-agent:
   bundleConfigMap: spire-bundle-upstream
-  server:
-    port: 443
+#   server:
 #     address: spire-server.changeme
 
 external-spire-server:
