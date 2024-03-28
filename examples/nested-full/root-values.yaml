@@ -1,0 +1,7 @@
+spiffe-oidc-discovery-provider:
+  ingress:
+    enabled: true
+
+external-spire-server:
+  ingress:
+    enabled: true

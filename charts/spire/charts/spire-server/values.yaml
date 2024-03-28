@@ -20,7 +20,7 @@ image:
   pullPolicy: IfNotPresent
   tag: ""
 
-## @param kind Define SPIRE server deployment type. Can be statefulset/deployment. Defaults to statefulset if not set. This feature is experimental.
+## @param kind Define SPIRE server kind. Can be one of [statefulset, deployment, none]. Setting to deployment is experimental.
 kind: statefulset
 
 ## @param imagePullSecrets [array] Pull secrets for images
@@ -75,7 +75,7 @@ priorityClassName: ""
 ##
 service:
   type: ClusterIP
-  port: 8081
+  port: 443
   annotations: {}
 
 configMap:
@@ -390,10 +390,12 @@ upstreamAuthority:
     upstreamDriver: ""
     ## @extra upstreamAuthority.spire.server Server details for the Spire instance use as upstream CA
     server:
+      ## @param upstreamAuthority.spire.server.nameOverride Override the name for upstream Spire server
+      nameOverride: ""
       ## @param upstreamAuthority.spire.server.address Address for upstream Spire server
       address: ""
       ## @param upstreamAuthority.spire.server.port Port for upstream Spire server
-      port: 8081
+      port: 443
   vault:
     ## @param upstreamAuthority.vault.enabled Enable Hashicorp Vault as upstream CA
     enabled: false
@@ -573,6 +575,14 @@ controllerManager:
         ## @param controllerManager.identities.clusterSPIFFEIDs.default.autoPopulateDNSNames Auto populate DNS names from services attached to pods
         autoPopulateDNSNames: false
 
+      child-servers:
+        ## @param controllerManager.identities.clusterSPIFFEIDs.child-servers.enabled Enable this identity for controller manager
+        enabled: true
+        ## @param controllerManager.identities.clusterSPIFFEIDs.child-servers.type The type of rule this is.
+        type: child-servers
+        ## @param controllerManager.identities.clusterSPIFFEIDs.child-servers.downstream Set if this spire instance is a root server and the workloads are downstream servers.
+        downstream: true
+
       oidc-discovery-provider:
         ## @param controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.enabled Enable this identity for controller manager
         enabled: true
@@ -641,7 +651,7 @@ controllerManager:
 
 externalControllerManagers:
   ## @param externalControllerManagers.enabled Flag to enable external controller managers
-  enabled: false
+  enabled: true
   defaults:
     ## @param externalControllerManagers.defaults.reconcile.clusterSPIFFEIDs Enable reconciliation of clusterSPIFFEIDs from K8s to the SPIRE server
     ## @param externalControllerManagers.defaults.reconcile.clusterStaticEntries Enable reconciliation of clusterStaticEntries from K8s to the SPIRE server

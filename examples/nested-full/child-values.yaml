@@ -1,0 +1,12 @@
+#global:
+#  spire:
+#    clusterName: changeme
+#    upstreamSpireAddress: spire-server.changeme
+
+root-spire-server:
+  kind: none
+  controllerManager:
+    className: spire-mgmt-external-server
+
+external-spire-server:
+  enabled: false

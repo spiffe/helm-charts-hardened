@@ -145,10 +145,19 @@ Create the name of the service account to use
 {{- end }}
 
 {{- define "spire-server.serviceAccountAllowedList" }}
+{{- $releaseNamespace := include "spire-server.agent-namespace" . }}
 {{- if ne (len .Values.nodeAttestor.k8sPsat.serviceAccountAllowList) 0 }}
-{{- .Values.nodeAttestor.k8sPsat.serviceAccountAllowList | toJson }}
+{{-   $list := list }}
+{{-   range .Values.nodeAttestor.k8sPsat.serviceAccountAllowList }}
+{{-     if contains ":" . }}
+{{-       $list = append $list . }}
+{{-     else }}
+{{-       $list = append $list ( printf "%s:%s" $releaseNamespace . ) | }}
+{{-     end }}
+{{-   end }}
+{{-   $list | toJson }}
 {{- else }}
-[{{ printf "%s:%s-agent" (include "spire-server.agent-namespace" .) .Release.Name | quote }}]
+[{{ printf "%s:%s-agent" $releaseNamespace .Release.Name | quote }}]
 {{- end }}
 {{- end }}
 
@@ -203,6 +212,8 @@ Create the name of the service account to use
 {{- define "spire-server.upstream-spire-address" }}
 {{- if ne (len (dig "spire" "upstreamSpireAddress" "" .Values.global)) 0 }}
 {{- print .Values.global.spire.upstreamSpireAddress }}
+{{- else if .Values.upstreamAuthority.spire.server.nameOverride }}
+{{- printf "%s-%s" .Release.Name .Values.upstreamAuthority.spire.server.nameOverride }}
 {{- else }}
 {{- print .Values.upstreamAuthority.spire.server.address }}
 {{- end }}
@@ -293,4 +304,17 @@ The code below determines what connection type should be used.
 {{- define "spire-server.ca-subject-common-name" }}
 {{-   $g := dig "spire" "caSubject" "commonName" "" .Values.global }}
 {{-   default .Values.ca_subject.common_name $g }}
+{{- end }}
+
+{{- define "spire-server.subject" }}
+subjects:
+{{-   if ne .Values.kind "none" }}
+- kind: ServiceAccount
+  name: {{ include "spire-server.serviceAccountName" . }}
+  namespace: {{ include "spire-server.namespace" . }}
+{{-   else }}
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: spire-root
+{{-   end }}
 {{- end }}

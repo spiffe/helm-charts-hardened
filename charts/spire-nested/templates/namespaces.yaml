@@ -1,0 +1,3 @@
+{{- include "spire-lib.namespace.system" . }}
+---
+{{- include "spire-lib.namespace.server" . }}
