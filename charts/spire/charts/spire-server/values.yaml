@@ -519,7 +519,7 @@ controllerManager:
   ##
   service:
     type: ClusterIP
-    port: 8443
+    port: 443
     annotations: {}
 
   configMap:
