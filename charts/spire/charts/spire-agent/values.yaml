@@ -140,21 +140,6 @@ readinessProbe:
   initialDelaySeconds: 10
   periodSeconds: 30
 
-waitForIt:
-  ## @param waitForIt.image.registry The OCI registry to pull the image from
-  ## @param waitForIt.image.repository The repository within the registry
-  ## @param waitForIt.image.pullPolicy The image pull policy
-  ## @param waitForIt.image.tag Overrides the image tag whose default is the chart appVersion
-  ##
-  image:
-    registry: cgr.dev
-    repository: chainguard/wait-for-it
-    pullPolicy: IfNotPresent
-    tag: latest@sha256:1f449e8972f7ffc876cafae20f58e2ff9015141b02cfc637a71ce9a5dddd73ba
-
-  ## @param waitForIt.resources [object] Resource requests and limits
-  resources: {}
-
 # When running as non root, needed to ensure the socket path has the correct permissions.
 # Set runAsUser to a non-zero value in podSecurityContext to run as non-root user.
 fsGroupFix:
@@ -167,7 +152,7 @@ fsGroupFix:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: Always
-    tag: latest@sha256:d69268f206bc7914c25f7377309a73406517678458ebccec0e6bfab7b9b7e9d2
+    tag: latest@sha256:3b5e8046bc76624f645b97684845c3aef3c27d001db0f3f71d1ffbdf885edea7
 
   ## @param fsGroupFix.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
@@ -275,7 +260,7 @@ socketAlternate:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: Always
-    tag: latest@sha256:d69268f206bc7914c25f7377309a73406517678458ebccec0e6bfab7b9b7e9d2
+    tag: latest@sha256:3b5e8046bc76624f645b97684845c3aef3c27d001db0f3f71d1ffbdf885edea7
 
   ## @param socketAlternate.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}

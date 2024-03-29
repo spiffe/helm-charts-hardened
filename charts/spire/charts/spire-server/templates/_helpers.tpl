@@ -6,6 +6,17 @@ Expand the name of the chart.
 {{- end }}
 
 {{/*
+Spire Server deployment/statefulset
+*/}}
+{{- define "spire-server.kind" -}}
+{{- if not (has .Values.kind (list "statefulset" "deployment")) -}}
+  {{- fail "Unsupported deployment type" -}}
+{{- else -}}
+  {{- .Values.kind -}}
+{{- end -}}
+{{- end }}
+
+{{/*
 Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
@@ -134,10 +145,19 @@ Create the name of the service account to use
 {{- end }}
 
 {{- define "spire-server.serviceAccountAllowedList" }}
+{{- $releaseNamespace := include "spire-server.agent-namespace" . }}
 {{- if ne (len .Values.nodeAttestor.k8sPsat.serviceAccountAllowList) 0 }}
-{{- .Values.nodeAttestor.k8sPsat.serviceAccountAllowList | toJson }}
+{{-   $list := list }}
+{{-   range .Values.nodeAttestor.k8sPsat.serviceAccountAllowList }}
+{{-     if contains ":" . }}
+{{-       $list = append $list . }}
+{{-     else }}
+{{-       $list = append $list ( printf "%s:%s" $releaseNamespace . ) | }}
+{{-     end }}
+{{-   end }}
+{{-   $list | toJson }}
 {{- else }}
-[{{ printf "%s:%s-agent" (include "spire-server.agent-namespace" .) .Release.Name | quote }}]
+[{{ printf "%s:%s-agent" $releaseNamespace .Release.Name | quote }}]
 {{- end }}
 {{- end }}
 

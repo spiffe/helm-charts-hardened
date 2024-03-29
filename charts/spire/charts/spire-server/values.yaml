@@ -20,6 +20,9 @@ image:
   pullPolicy: IfNotPresent
   tag: ""
 
+## @param kind Define SPIRE server deployment type. Can be statefulset/deployment. Defaults to statefulset if not set. This feature is experimental.
+kind: statefulset
+
 ## @param imagePullSecrets [array] Pull secrets for images
 imagePullSecrets: []
 
@@ -135,9 +138,9 @@ readinessProbe:
   periodSeconds: 5
 
 ## @param persistence.type What type of volume to use for persistence. Valid options pvc (recommended), hostPath, emptyDir (testing only)
-## @param persistence.size What type of volume to use for persistence. Valid options pvc (recommended), hostPath, emptyDir (testing only)
-## @param persistence.accessMode What type of volume to use for persistence. Valid options pvc (recommended), hostPath, emptyDir (testing only)
-## @param persistence.storageClass What type of volume to use for persistence. Valid options pvc (recommended), hostPath, emptyDir (testing only)
+## @param persistence.size What size volume to use for persistence
+## @param persistence.accessMode What access mode to use for persistence. Valid options are ReadWriteOnce (recommended), ReadWriteOncePod, ReadWriteMany (not recommended)
+## @param persistence.storageClass What storage class to use for persistence
 ## @param persistence.hostPath Which path to use on the host when type = hostPath
 ##
 persistence:
@@ -715,7 +718,7 @@ nodeAttestor:
   k8sPsat:
     ## @param nodeAttestor.k8sPsat.enabled Enable Psat k8s nodeattestor
     enabled: true
-    ## @param nodeAttestor.k8sPsat.serviceAccountAllowList [array] Allowed service accounts for Psat nodeattestor
+    ## @param nodeAttestor.k8sPsat.serviceAccountAllowList [array] Allowed service accounts for Psat nodeattestor. If namespace isn't specified, release namespace will be used.
     serviceAccountAllowList: []
     ## @param nodeAttestor.k8sPsat.audience [array] Audience for token validation. If set to [] (empty array), Kubernetes API server audience is used
     audience: ["spire-server"]
@@ -927,7 +930,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:d69268f206bc7914c25f7377309a73406517678458ebccec0e6bfab7b9b7e9d2
+      tag: latest@sha256:3b5e8046bc76624f645b97684845c3aef3c27d001db0f3f71d1ffbdf885edea7
 
 ## @param kubeConfigs [object] Manage additional kubeconfig files to talk to external Kubernetes clusters
 kubeConfigs: {}
