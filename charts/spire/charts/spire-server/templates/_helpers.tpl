@@ -145,10 +145,19 @@ Create the name of the service account to use
 {{- end }}
 
 {{- define "spire-server.serviceAccountAllowedList" }}
+{{- $releaseNamespace := include "spire-server.agent-namespace" . }}
 {{- if ne (len .Values.nodeAttestor.k8sPsat.serviceAccountAllowList) 0 }}
-{{- .Values.nodeAttestor.k8sPsat.serviceAccountAllowList | toJson }}
+{{-   $list := list }}
+{{-   range .Values.nodeAttestor.k8sPsat.serviceAccountAllowList }}
+{{-     if contains ":" . }}
+{{-       $list = append $list . }}
+{{-     else }}
+{{-       $list = append $list ( printf "%s:%s" $releaseNamespace . ) | }}
+{{-     end }}
+{{-   end }}
+{{-   $list | toJson }}
 {{- else }}
-[{{ printf "%s:%s-agent" (include "spire-server.agent-namespace" .) .Release.Name | quote }}]
+[{{ printf "%s:%s-agent" $releaseNamespace .Release.Name | quote }}]
 {{- end }}
 {{- end }}
 
