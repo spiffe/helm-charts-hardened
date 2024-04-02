@@ -328,7 +328,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:3b5e8046bc76624f645b97684845c3aef3c27d001db0f3f71d1ffbdf885edea7
+      tag: latest@sha256:5921884408efe50b77796675dc109ad2126f54476fe7403c37d8898a5ceb2e76
 
   toolkit:
     ## @param tests.toolkit.image.registry The OCI registry to pull the image from
@@ -352,7 +352,7 @@ tests:
       registry: "docker.io"
       repository: smallstep/step-cli
       pullPolicy: IfNotPresent
-      tag: 0.25.2
+      tag: 0.26.0
 
   busybox:
     ## @param tests.busybox.image.registry The OCI registry to pull the image from
