@@ -911,6 +911,10 @@ experimental:
   enabled: false
   ## @param experimental.cacheReloadInterval The amount of time between two reloads of the in-memory entry cache.
   cacheReloadInterval: 5s
+  ## @param experimental.eventsBasedCache Use events to update the cache with what's changed since the last update.
+  eventsBasedCache: false
+  ## @param experimental.pruneEventsOlderThan How old an event can be before being deleted. Used with events based cache.
+  pruneEventsOlderThan: 12h
   ## @param experimental.featureFlags [array] List of developer feature flags
   featureFlags: []
 
