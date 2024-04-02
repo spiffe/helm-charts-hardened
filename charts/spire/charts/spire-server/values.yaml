@@ -390,7 +390,7 @@ upstreamAuthority:
     upstreamDriver: ""
     ## @extra upstreamAuthority.spire.server Server details for the Spire instance use as upstream CA
     server:
-      ## @param upstreamAuthority.spire.server.nameOverride Override the name for upstream Spire server
+      ## @param upstreamAuthority.spire.server.nameOverride Override the name for upstream Spire server. Should only be changed when building your own nested chart to ensure names align.
       nameOverride: ""
       ## @param upstreamAuthority.spire.server.address Address for upstream Spire server
       address: ""
