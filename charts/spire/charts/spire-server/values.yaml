@@ -480,14 +480,11 @@ controllerManager:
   ## @param controllerManager.image.tag Overrides the image tag whose default is the chart appVersion
   ##
   image:
-    # FIXME Changed for testing until release
-    # registry: ghcr.io
-    # repository: spiffe/spire-controller-manager
+    registry: ghcr.io
+    repository: spiffe/spire-controller-manager
     pullPolicy: IfNotPresent
-    # tag: "0.4.3"
-    registry: docker.io
-    repository: kfox1111/misc
-    tag: "scm5"
+    # FIXME Changed for testing until release
+    tag: "nightly"
 
   ## @param controllerManager.resources [object] Resource requests and limits for controller manager
   resources: {}
