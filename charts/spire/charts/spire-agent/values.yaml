@@ -109,11 +109,13 @@ upstream: false
 ## @param server.address Address for Spire server
 ## @param server.port Port number for Spire server
 ## @param server.namespaceOverride Override the namespace for Spire server
+## @param server.nameOverride Override the name for Spire server. Should only be changed when building your own nested chart to ensure names align.
 ##
 server:
   address: ""
   port: 8081
   namespaceOverride: ""
+  nameOverride: ""
 
 healthChecks:
   ## @param healthChecks.port override the host port used for health checking
