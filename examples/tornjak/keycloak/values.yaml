@@ -24,7 +24,7 @@ keycloakConfigCli:
             "name" : "tornjak-admin-realm-role"
           } ],
           "client" : {
-            "tornjak" : [ {
+            "Tornjak-React-auth" : [ {
               "name" : "viewer",
               "composite" : true,
               "composites" : {
@@ -76,7 +76,7 @@ keycloakConfigCli:
           "groups" : [ "/viewer" ]
         } ],
         "clients" : [ {
-          "clientId" : "tornjak",
+          "clientId" : "Tornjak-React-auth",
           "name" : "Tornjak",
           "enabled" : true,
           "alwaysDisplayInConsole" : true,
