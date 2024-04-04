@@ -56,12 +56,12 @@ cacheNamespaces:
 {{- if .webhookEnabled }}
 validatingWebhookConfigurationName: {{ .Release.Namespace }}-{{ include "spire-controller-manager.fullname" . }}-webhook
 {{- end }}
-{{- $entryIDPrefixClean := .defaults.entryIDPrefixClean }}
-{{- if hasKey .settings "entryIDPrefixClean" }}
-{{-   $entryIDPrefixClean = .settings.entryIDPrefixClean }}
+{{- $entryIDPrefixCleanup := .defaults.entryIDPrefixCleanup }}
+{{- if hasKey .settings "entryIDPrefixCleanup" }}
+{{-   $entryIDPrefixCleanup = .settings.entryIDPrefixCleanup }}
 {{- end }}
-{{- if typeIs "string" $entryIDPrefixClean }}
-entryIDPrefixClean: {{ $entryIDPrefixClean | quote }}
+{{- if typeIs "string" $entryIDPrefixCleanup }}
+entryIDPrefixCleanup: {{ $entryIDPrefixCleanup | quote }}
 {{- end }}
 entryIDPrefix: {{ .clusterName }}
 clusterName: {{ .clusterName }}

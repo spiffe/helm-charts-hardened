@@ -457,8 +457,8 @@ controllerManager:
   ## @param controllerManager.watchClassless specify to process custom resources without class name specified. Useful to slowly migrate to class names from classless installs. Do not have two installs on the same k8s cluster both set to true.
   watchClassless: false
 
-  ## @param controllerManager.entryIDPrefixClean consult the spiffe.io docs about this option before changing. Its unlikely you will need to ever change it.
-  entryIDPrefixClean: ""
+  ## @param controllerManager.entryIDPrefixCleanup consult the spiffe.io docs about this option before changing. Its unlikely you will need to ever change it.
+  entryIDPrefixCleanup: ""
 
   ## @param controllerManager.parentIDTemplate The template that is used to register workloads.
   parentIDTemplate: "spiffe://{{ .TrustDomain }}/spire/agent/k8s_psat/{{ .ClusterName }}/{{ .NodeMeta.UID }}"
@@ -653,8 +653,8 @@ externalControllerManagers:
     className: ""
     ## @param externalControllerManagers.defaults.watchClassless specify to process custom resources without class name specified. Useful to slowly migrate to class names from classless installs. Do not have two installs on the same k8s cluster both set to true.
     watchClassless: false
-    ## @param externalControllerManagers.defaults.entryIDPrefixClean consult the spiffe.io docs about this option before changing. Its unlikely you will need to ever change it.
-    entryIDPrefixClean: false
+    ## @param externalControllerManagers.defaults.entryIDPrefixCleanup consult the spiffe.io docs about this option before changing. Its unlikely you will need to ever change it.
+    entryIDPrefixCleanup: false
     ## @param externalControllerManagers.defaults.parentIDTemplate The template that is used to register workloads.
     parentIDTemplate: "spiffe://{{ .TrustDomain }}/spire/agent/k8s_psat/{{ .ClusterName }}/{{ .NodeMeta.UID }}"
     ## @param externalControllerManagers.defaults.expandEnv Set to true to enable environment variable substitution of config file options
