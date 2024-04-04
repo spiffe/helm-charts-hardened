@@ -35,6 +35,9 @@
 {{- if ne $tlsFederationCount 1 }}
 {{-   fail "You must enable one and only one federation TLS configuration" }}
 {{- end }}
+{{- if and (ne .Values.keyManager.awsKMS.key_identifier_file "") (ne .Values.keyManager.awsKMS.key_identifier_value "") }}
+{{-   fail "You can only set one of key_identifier_file or key_identifier_value" }}
+{{- end }}
 {{- define "spire-server.yaml-config" -}}
 {{- $upstreamAuthorityUsed := 0 }}
 {{- $keyManagerUsed := 0 }}
@@ -190,7 +193,13 @@ plugins:
     aws_kms:
       plugin_data:
         region: {{ .region | quote }}
+        {{- if ne .key_identifier_file "" }}
+        key_identifier_file: {{ .key_identifier_file }}
+        {{- else if ne .key_identifier_value "" }}
+        key_identifier_value: {{ .key_identifier_value }}
+        {{- else }}
         key_metadata_file: "/run/spire/data/aws-kms-key-metadata"
+        {{- end }}
         {{- if ne .accessKeyID "" }}
         access_key_id: "${AWS_KMS_ACCESS_KEY_ID}"
         {{- end }}
