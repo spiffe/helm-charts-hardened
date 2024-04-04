@@ -196,7 +196,7 @@ plugins:
         {{- if eq (.keyIdentifierFile.enabled | toString) "true" }}
         key_identifier_file: "/run/spire/data/aws-kms-key-identifier"
         {{- else if eq (.keyIdentifierValue.enabled | toString) "true" }}
-        key_identifier_value: {{ .keyIdentifierValue.identifier }}
+        key_identifier_value: {{ .keyIdentifierValue.identifier | quote }}
         {{- else }}
         key_metadata_file: "/run/spire/data/aws-kms-key-metadata"
         {{- end }}
