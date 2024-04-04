@@ -308,7 +308,7 @@ keyManager:
     ## @param keyManager.awsKMS.region Specify the region for AWS KMS
     region: ""
     keyIdentifierFile:
-      ## @param keyManager.awsKMS.keyIdentifierFile.enabled Flag to enable key_identifier_file in persistent storage.
+      ## @param keyManager.awsKMS.keyIdentifierFile.enabled Enable key identifier data to be stored in a file in persistent storage.
       enabled: false
     keyIdentifierValue:
       ## @param keyManager.awsKMS.keyIdentifierValue.enabled Enable specifying a key identifier value for AWS KMS
