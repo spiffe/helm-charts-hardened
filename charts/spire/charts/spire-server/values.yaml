@@ -307,10 +307,14 @@ keyManager:
     enabled: false
     ## @param keyManager.awsKMS.region Specify the region for AWS KMS
     region: ""
-    ## @param keyManager.awsKMS.key_identifier_file Specify key_identifier_file path in memory for AWS KMS
-    key_identifier_file: ""
-    ## @param keyManager.awsKMS.key_identifier_value Specify key_identifier_value for AWS KMS
-    key_identifier_value: ""
+    keyIdentifierFile:
+      ## @param keyManager.awsKMS.keyIdentifierFile.enabled Flag to enable key_identifier_file in persistent storage.
+      enabled: false
+    keyIdentifierValue:
+      ## @param keyManager.awsKMS.keyIdentifierValue.enabled Flag to enable key_identifier_value for AWS KMS
+      enabled: false
+      ## @param keyManager.awsKMS.keyIdentifierValue.identifier Static identifier for the SPIRE server instance
+      identifier: ""
     ## @extra keyManager.awsKMS.keyPolicy Policy to use when creating keys. If no policy is specified, a default policy will be used.
     keyPolicy:
       ## @param keyManager.awsKMS.keyPolicy.policy [nullable] Key policy in JSON format.
