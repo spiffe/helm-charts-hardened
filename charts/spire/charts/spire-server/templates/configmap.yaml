@@ -36,7 +36,7 @@
 {{-   fail "You must enable one and only one federation TLS configuration" }}
 {{- end }}
 {{- if and (eq (.Values.keyManager.awsKMS.keyIdentifierFile.enabled | toString) "true") (eq (.Values.keyManager.awsKMS.keyIdentifierValue.enabled | toString ) "true") }}
-{{-   fail "You can only set one of key_identifier_file or key_identifier_value" }}
+{{-   fail "You can only enable one of keyIdentifierFile or keyIdentifierValue at a time" }}
 {{- end }}
 {{- define "spire-server.yaml-config" -}}
 {{- $upstreamAuthorityUsed := 0 }}
