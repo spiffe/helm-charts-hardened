@@ -311,7 +311,7 @@ keyManager:
       ## @param keyManager.awsKMS.keyIdentifierFile.enabled Flag to enable key_identifier_file in persistent storage.
       enabled: false
     keyIdentifierValue:
-      ## @param keyManager.awsKMS.keyIdentifierValue.enabled Flag to enable key_identifier_value for AWS KMS
+      ## @param keyManager.awsKMS.keyIdentifierValue.enabled Enable specifying a key identifier value for AWS KMS
       enabled: false
       ## @param keyManager.awsKMS.keyIdentifierValue.identifier Static identifier for the SPIRE server instance
       identifier: ""
