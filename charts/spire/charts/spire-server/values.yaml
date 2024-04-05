@@ -457,6 +457,9 @@ controllerManager:
   ## @param controllerManager.watchClassless specify to process custom resources without class name specified. Useful to slowly migrate to class names from classless installs. Do not have two installs on the same k8s cluster both set to true.
   watchClassless: false
 
+  ## @param controllerManager.entryIDPrefixCleanup consult the spiffe.io docs about this option before changing. Its unlikely you will need to ever change it.
+  entryIDPrefixCleanup: ""
+
   ## @param controllerManager.parentIDTemplate The template that is used to register workloads.
   parentIDTemplate: "spiffe://{{ .TrustDomain }}/spire/agent/k8s_psat/{{ .ClusterName }}/{{ .NodeMeta.UID }}"
 
@@ -482,7 +485,9 @@ controllerManager:
     registry: ghcr.io
     repository: spiffe/spire-controller-manager
     pullPolicy: IfNotPresent
-    tag: "0.4.3"
+    # FIXME Changed for testing until release
+    # tag: "0.4.3"
+    tag: nightly
 
   ## @param controllerManager.resources [object] Resource requests and limits for controller manager
   resources: {}
