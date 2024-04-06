@@ -109,11 +109,13 @@ upstream: false
 ## @param server.address Address for Spire server
 ## @param server.port Port number for Spire server
 ## @param server.namespaceOverride Override the namespace for Spire server
+## @param server.nameOverride Override the name for Spire server. Should only be changed when building your own nested chart to ensure names align.
 ##
 server:
   address: ""
   port: 8081
   namespaceOverride: ""
+  nameOverride: ""
 
 healthChecks:
   ## @param healthChecks.port override the host port used for health checking
@@ -152,7 +154,7 @@ fsGroupFix:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: Always
-    tag: latest@sha256:3b5e8046bc76624f645b97684845c3aef3c27d001db0f3f71d1ffbdf885edea7
+    tag: latest@sha256:5921884408efe50b77796675dc109ad2126f54476fe7403c37d8898a5ceb2e76
 
   ## @param fsGroupFix.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
@@ -260,7 +262,7 @@ socketAlternate:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: Always
-    tag: latest@sha256:3b5e8046bc76624f645b97684845c3aef3c27d001db0f3f71d1ffbdf885edea7
+    tag: latest@sha256:5921884408efe50b77796675dc109ad2126f54476fe7403c37d8898a5ceb2e76
 
   ## @param socketAlternate.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}

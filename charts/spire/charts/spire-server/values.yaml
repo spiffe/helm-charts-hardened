@@ -390,6 +390,8 @@ upstreamAuthority:
     upstreamDriver: ""
     ## @extra upstreamAuthority.spire.server Server details for the Spire instance use as upstream CA
     server:
+      ## @param upstreamAuthority.spire.server.nameOverride Override the name for upstream Spire server. Should only be changed when building your own nested chart to ensure names align.
+      nameOverride: ""
       ## @param upstreamAuthority.spire.server.address Address for upstream Spire server
       address: ""
       ## @param upstreamAuthority.spire.server.port Port for upstream Spire server
@@ -480,7 +482,7 @@ controllerManager:
     registry: ghcr.io
     repository: spiffe/spire-controller-manager
     pullPolicy: IfNotPresent
-    tag: "0.4.3"
+    tag: "0.4.4"
 
   ## @param controllerManager.resources [object] Resource requests and limits for controller manager
   resources: {}
@@ -909,6 +911,10 @@ experimental:
   enabled: false
   ## @param experimental.cacheReloadInterval The amount of time between two reloads of the in-memory entry cache.
   cacheReloadInterval: 5s
+  ## @param experimental.eventsBasedCache Use events to update the cache with what's changed since the last update.
+  eventsBasedCache: false
+  ## @param experimental.pruneEventsOlderThan How old an event can be before being deleted. Used with events based cache.
+  pruneEventsOlderThan: 12h
   ## @param experimental.featureFlags [array] List of developer feature flags
   featureFlags: []
 
