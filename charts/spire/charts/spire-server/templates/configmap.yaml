@@ -75,6 +75,8 @@ server:
   {{- if eq (.enabled | toString) "true" }}
   experimental:
     cache_reload_interval: {{ .cacheReloadInterval | quote }}
+    events_based_cache: {{ .eventsBasedCache }}
+    prune_events_older_than: {{ .pruneEventsOlderThan | quote }}
     {{- if gt (len .featureFlags) 0 }}
     feature_flags:
       {{- range .featureFlags }}
@@ -97,7 +99,8 @@ plugins:
 
   {{- if or .Values.nodeAttestor.k8sPsat.enabled .Values.nodeAttestor.externalK8sPsat.enabled .Values.nodeAttestor.joinToken.enabled .Values.nodeAttestor.tpmDirect.enabled }}
   NodeAttestor:
-  {{- if or (eq (.Values.nodeAttestor.k8sPsat.enabled | toString) "true") (eq (.Values.nodeAttestor.externalK8sPsat.enabled | toString) "true") }}
+  {{- $clusters := default .Values.kubeConfigs .Values.nodeAttestor.externalK8sPsat.clusters }}
+  {{- if or (eq (.Values.nodeAttestor.k8sPsat.enabled | toString) "true") (and (eq (.Values.nodeAttestor.externalK8sPsat.enabled | toString) "true") (gt (len $clusters) 0)) }}
     k8s_psat:
       plugin_data:
         clusters:
@@ -113,7 +116,6 @@ plugins:
           {{- end }}
           {{- end }}
           {{- if eq (.Values.nodeAttestor.externalK8sPsat.enabled | toString) "true" }}
-          {{- $clusters := default .Values.kubeConfigs .Values.nodeAttestor.externalK8sPsat.clusters }}
           {{- $clusterDefaults := .Values.nodeAttestor.externalK8sPsat.defaults }}
           {{- range $name, $_ := $clusters }}
           {{- $clusterSettings := dict }}
@@ -205,7 +207,8 @@ plugins:
 {{- fail (printf "You have to enable exactly one Key Manager. There are %d enabled." $keyManagerUsed) }}
 {{- end }}
 
-  {{- if or .Values.notifier.k8sbundle.enabled .Values.notifier.externalK8sBundle.enabled }}
+  {{- $externalK8sBundleClusters := default .Values.kubeConfigs .Values.notifier.externalK8sBundle.clusters }}
+  {{- if or .Values.notifier.k8sbundle.enabled (and .Values.notifier.externalK8sBundle.enabled (ne (len $externalK8sBundleClusters) 0)) }}
   Notifier:
     k8sbundle:
       plugin_data:
@@ -213,12 +216,11 @@ plugins:
         namespace: {{ include "spire-server.bundle-namespace" . | quote }}
         config_map: {{ include "spire-lib.bundle-configmap" . | quote }}
         {{- end }}
-        {{- $clusters := default .Values.kubeConfigs .Values.notifier.externalK8sBundle.clusters }}
-        {{- if and (eq (.Values.notifier.externalK8sBundle.enabled | toString) "true") (ne (len $clusters) 0) }}
+        {{- if and (eq (.Values.notifier.externalK8sBundle.enabled | toString) "true") (ne (len $externalK8sBundleClusters) 0) }}
         clusters:
           - "":
           {{- $clusterDefaults := .Values.notifier.externalK8sBundle.defaults }}
-          {{- range $name, $_ := $clusters }}
+          {{- range $name, $_ := $externalK8sBundleClusters }}
             {{- $clusterSettings := dict }}
             {{- if hasKey $root.Values.notifier.externalK8sBundle.clusters $name }}
             {{- $clusterSettings = index $root.Values.notifier.externalK8sBundle.clusters $name }}
