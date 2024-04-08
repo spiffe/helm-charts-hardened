@@ -77,7 +77,7 @@ spec:
           - {{ include "spire-server.fullname" . }}
           - --wait
         resources:
-          {{- toYaml .Values.deleteHooks.resources | nindent 10 }}
+          {{- toYaml .Values.global.deleteHooks.resources | nindent 10 }}
       - name: pre-delete-check
         securityContext:
           {{- include "spire-lib.securitycontext" . | nindent 10 }}
