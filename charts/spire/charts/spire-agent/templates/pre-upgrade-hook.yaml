@@ -73,5 +73,7 @@ spec:
           - {{ include "spire-agent.fullname" . }}
           - -n
           - {{ include "spire-agent.namespace" . }}
+        resources:
+          {{- toYaml .Values.installAndUpgradeHooks.resources | nindent 10 }}
 {{- end }}
 {{- end }}
