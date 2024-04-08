@@ -91,6 +91,6 @@ spec:
           - -n
           - {{ include "spire-server.namespace" . }}
         resources:
-          {{- toYaml .Values.deleteHooks.resources | nindent 10 }}
+          {{- toYaml .Values.global.deleteHooks.resources | nindent 10 }}
 {{- end }}
 {{- end }}
