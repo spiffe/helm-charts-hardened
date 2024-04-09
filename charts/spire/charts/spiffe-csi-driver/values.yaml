@@ -116,7 +116,7 @@ nodeDriverRegistrar:
     registry: registry.k8s.io
     repository: sig-storage/csi-node-driver-registrar
     pullPolicy: IfNotPresent
-    tag: v2.9.3
+    tag: v2.9.4
   ## @param nodeDriverRegistrar.resources Resource requests and limits for CSI driver pods
   resources: {}
     # We usually recommend not to specify default resources and to leave this as a conscious

@@ -10,14 +10,12 @@ If manually deploying for testing, you can safely put the password into an envir
 source ../bin/readpw.sh
 ```
 
-Next, edit values.yaml with your settings. Check it into your git repo if using one.
+Follow the instructions as described at https://artifacthub.io/packages/helm/spiffe/spire, and copy in the settings from
+examples/external-postgresql/values.yaml into your values file.
 
-Then, deploy the chart pointing at your postgresql instance like so:
+You can add the password at install runtime like so:
 
 ```shell
-helm upgrade --install --namespace spire-server spire charts/spire -f examples/external-postgresql/values.yaml --set "spire-server.dataStore.sql.password=${DBPW}"
+helm upgrade --install --namespace spire-mgmt spire spire -f your-values.yaml --set "spire-server.dataStore.sql.password=${DBPW}" --repo https://spiffe.github.io/helm-charts-hardened/
 
 ```
-
-See the [production example](../production) for production recommendations.
-See [values.yaml](./values.yaml) for more details on the chart configurations to achieve this setup.

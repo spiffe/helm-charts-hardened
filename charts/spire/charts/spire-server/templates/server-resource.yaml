@@ -3,11 +3,30 @@
 {{- $configSum3 := (include (print $.Template.BasePath "/controller-manager-configmap.yaml") . | sha256sum) }}
 {{- $configSumTornjak := (include (print $.Template.BasePath "/tornjak-config.yaml") . | sha256sum) }}
 {{- $fullname := include "spire-server.fullname" . }}
-{{- if not (has .Values.persistence.type (list "pvc" "hostPath" "emptyDir")) }}
-{{- fail "persistence.type must be one of [\"pvc\", \"hostPath\", \"emptyDir\"]" }}
+
+{{- if eq .Values.kind "statefulset" }}
+{{-   if not (has .Values.persistence.type (list "pvc" "hostPath" "emptyDir")) }}
+{{-     fail "persistence.type must be one of [\"pvc\", \"hostPath\", \"emptyDir\"]" }}
+{{-   end }}
+{{- else if eq .Values.kind "deployment" }}
+{{-   if (has .Values.persistence.type (list "pvc" "hostPath")) }}
+{{-     fail "When running as deployment, persistence can't be set. 'persistence.type' must be [\"emptyDir\"]" }}
+{{-   end }}
+{{-   if (eq .Values.dataStore.sql.databaseType "sqlite3") }}
+{{-     fail "When running as deployment, sqlite3 can't be used." }}
+{{-   end }}
+{{-   if (eq (.Values.keyManager.disk.enabled | toString) "true") }}
+{{-     fail "When running as deployment, disk keymanager can't be used. 'keyManager.disk.enabled' must be false." }}
+{{-   end }}
+{{- else }}
+{{-   fail "Unsupported kind." }}
 {{- end }}
 apiVersion: apps/v1
+{{- if eq .Values.kind "statefulset" }}
 kind: StatefulSet
+{{- else if eq .Values.kind "deployment" }}
+kind: Deployment
+{{- end }}
 metadata:
   name: {{ include "spire-server.fullname" . }}
   namespace: {{ include "spire-server.namespace" . }}
@@ -21,7 +40,9 @@ spec:
   {{- end }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
+  {{- if eq .Values.kind "statefulset" }}
   serviceName: {{ include "spire-server.fullname" . }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "spire-server.selectorLabels" . | nindent 6 }}
@@ -488,7 +509,8 @@ spec:
         resources:
           requests:
             storage: {{ .Values.persistence.size }}
-        {{- if .Values.persistence.storageClass }}
-        storageClassName: {{ .Values.persistence.storageClass }}
+        {{- $storageClass := (dig "spire" "persistence" "storageClass" nil .Values.global) | default .Values.persistence.storageClass }}
+        {{- if $storageClass }}
+        storageClassName: {{ $storageClass }}
         {{- end }}
   {{- end }}
