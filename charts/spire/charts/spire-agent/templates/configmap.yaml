@@ -1,3 +1,4 @@
+{{- define "spire-agent.check-config-values" -}}
 {{- include "spire-lib.check-strict-mode" (list . "clusterName must be set" (eq (include "spire-lib.cluster-name" .) "example-cluster"))}}
 {{- include "spire-lib.check-strict-mode" (list . "trustDomain must be set" (eq (include "spire-lib.trust-domain" .) "example.org"))}}
 {{- range $type, $tvals := .Values.customPlugins }}
@@ -21,6 +22,7 @@
 {{- if hasPrefix (.Values.socketPath | dir | clean) (.Values.sockets.hostBasePath | clean) }}
 {{- fail "The sockets.hostBasePath can not be located under the socketPath direcotry" }}
 {{- end }}
+{{- end }}
 {{- define "spire-agent.yaml-config" -}}
 agent:
   {{- if .Values.disableReattestToRenew }}
@@ -35,6 +37,7 @@ agent:
   {{- end }}
   data_dir: "/run/spire"
   log_level: {{ .Values.logLevel | quote }}
+  retry_bootstrap: true
   server_address: {{ include "spire-agent.server-address" . | trim | quote }}
   server_port: {{ .Values.server.port | quote }}
   socket_path: /tmp/spire-agent/public/{{ include "spire-agent.socket-path" . | base }}
@@ -132,10 +135,22 @@ telemetry:
         port: {{ .Values.telemetry.prometheus.port }}
 {{- end }}
 {{- end }}
+{{- $root := . }}
+{{- range $name := (concat (list "default") (keys .Values.agents)) | uniq }}
+{{- with (dict "Release" $root.Release "Chart" $root.Chart "Values" (deepCopy $root.Values)) }}
+{{- $nameSuffix := "" }}
+{{- if ne $name "default" }}
+{{-   $nameSuffix = printf "-%s" $name }}
+{{- end }}
+{{- if hasKey $root.Values.agents $name }}
+{{-   $_ := set . "Values" (mergeOverwrite .Values (index $root.Values.agents $name)) }}
+{{- end }}
+{{- include "spire-agent.check-config-values" . }}
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "spire-agent.fullname" . }}
+  name: {{ include "spire-agent.fullname" . }}{{ $nameSuffix }}
   namespace: {{ include "spire-agent.namespace" . }}
   {{- with .Values.configMap.annotations }}
   annotations:
@@ -144,3 +159,5 @@ metadata:
 data:
   agent.conf: |
     {{- include "spire-lib.reformat-and-yaml2json" (dict "config" (include "spire-agent.yaml-config" .) "root" .) | nindent 4 }}
+{{- end }}
+{{- end }}

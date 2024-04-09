@@ -29,6 +29,10 @@ global:
       organization: ""
       commonName: ""
 
+    persistence:
+      ## @param global.spire.persistence.storageClass What storage class to use for persistence
+      storageClass: null
+
     ## @param global.spire.recommendations.enabled Use recommended settings for production deployments. Default is off.
     ## @param global.spire.recommendations.namespaceLayout Set to true to use recommended values for installing across namespaces
     ## @param global.spire.recommendations.namespacePSS When chart namespace creation is enabled, label them with preffered Pod Security Standard labels
@@ -108,6 +112,8 @@ spire-server:
   enabled: true
   ## @param spire-server.nameOverride Overrides the name of Spire server pods
   nameOverride: server
+  ## @param spire-server.kind Run spire server as deployment/statefulset. This feature is experimental.
+  kind: statefulset
   controllerManager:
     ## @param spire-server.controllerManager.enabled Enable controller manager and provision CRD's
     enabled: true

@@ -1,4 +1,14 @@
 {{- $configSum := (include (print $.Template.BasePath "/configmap.yaml") . | sha256sum) }}
+{{- $root := . }}
+{{- range $name := (concat (list "default") (keys .Values.agents)) | uniq }}
+{{- with (dict "Release" $root.Release "Chart" $root.Chart "Values" (deepCopy $root.Values)) }}
+{{- $nameSuffix := "" }}
+{{- if ne $name "default" }}
+{{-   $nameSuffix = printf "-%s" $name }}
+{{- end }}
+{{- if hasKey $root.Values.agents $name }}
+{{-   $_ := set . "Values" (mergeOverwrite .Values (index $root.Values.agents $name)) }}
+{{- end }}
 {{- $podSecurityContext := fromYaml (include "spire-lib.podsecuritycontext" .) }}
 {{- $mainSecurityContext := deepCopy .Values.securityContext }}
 {{- if .Values.nodeAttestor.tpmDirect.enabled }}
@@ -8,17 +18,20 @@
 {{- $cbh := eq (include "spire-agent.connect-by-hostname" .) "true" }}
 {{- $socketAlternateNames := index (include "spire-agent.socket-alternate-names" . | fromYaml) "names" }}
 {{- $socketPath := include "spire-agent.socket-path" . }}
+---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: {{ include "spire-agent.fullname" . }}
+  name: {{ include "spire-agent.fullname" . }}{{ $nameSuffix }}
   namespace: {{ include "spire-agent.namespace" . }}
   labels:
     {{- include "spire-agent.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $name }}
 spec:
   selector:
     matchLabels:
       {{- include "spire-agent.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ $name }}
   {{- with .Values.updateStrategy }}
   updateStrategy:
     {{- if not (has .type (list "RollingUpdate" "OnDelete")) }}
@@ -40,6 +53,7 @@ spec:
         {{- end }}
       labels:
         {{- include "spire-agent.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ $name }}
         {{- with .Values.podLabels }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -101,17 +115,6 @@ spec:
               mountPath: /tpm
           imagePullPolicy: {{ .Values.nodeAttestor.tpmDirect.plugin.image.pullPolicy }}
         {{- end }}
-        - name: init
-          # This is a small image with wait-for-it, choose whatever image
-          # you prefer that waits for a service to be up. This image is built
-          # from https://github.com/vishnubob/wait-for-it
-          image: {{ template "spire-lib.image" (dict "image" .Values.waitForIt.image "global" .Values.global) }}
-          imagePullPolicy: {{ .Values.waitForIt.image.pullPolicy }}
-          args: ["-t", "30", "-h", "{{ include "spire-agent.server-address" . | trim }}", "-p", {{ .Values.server.port | quote }}]
-          resources:
-            {{- toYaml .Values.waitForIt.resources | nindent 12 }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
         {{- if gt (len $socketAlternateNames) 0 }}
         - name: ensure-alternate-names
           image: {{ template "spire-lib.image" (dict "image" .Values.socketAlternate.image "global" .Values.global) }}
@@ -257,7 +260,7 @@ spec:
         {{- if eq (len .Values.trustBundleURL) 0 }}
         - name: spire-bundle
           configMap:
-            name: {{ include "spire-lib.bundle-configmap" . }}
+            name: {{ include "spire-lib.bundle-configmap" . }}{{ $nameSuffix }}
         {{- end }}
         {{- if .Values.nodeAttestor.tpmDirect.enabled }}
         - name: tpm-direct
@@ -287,3 +290,5 @@ spec:
         {{- if gt (len .Values.extraVolumes) 0 }}
         {{- toYaml .Values.extraVolumes | nindent 8 }}
         {{- end }}
+{{- end }}
+{{- end }}
