@@ -307,6 +307,14 @@ keyManager:
     enabled: false
     ## @param keyManager.awsKMS.region Specify the region for AWS KMS
     region: ""
+    keyIdentifierFile:
+      ## @param keyManager.awsKMS.keyIdentifierFile.enabled Enable key identifier data to be stored in a file in persistent storage.
+      enabled: false
+    keyIdentifierValue:
+      ## @param keyManager.awsKMS.keyIdentifierValue.enabled Enable specifying a key identifier value for AWS KMS
+      enabled: false
+      ## @param keyManager.awsKMS.keyIdentifierValue.identifier Static identifier for the SPIRE server instance
+      identifier: ""
     ## @extra keyManager.awsKMS.keyPolicy Policy to use when creating keys. If no policy is specified, a default policy will be used.
     keyPolicy:
       ## @param keyManager.awsKMS.keyPolicy.policy [nullable] Key policy in JSON format.
@@ -482,7 +490,7 @@ controllerManager:
     registry: ghcr.io
     repository: spiffe/spire-controller-manager
     pullPolicy: IfNotPresent
-    tag: "0.4.3"
+    tag: "0.4.4"
 
   ## @param controllerManager.resources [object] Resource requests and limits for controller manager
   resources: {}
