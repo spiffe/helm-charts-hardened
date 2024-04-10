@@ -75,6 +75,12 @@ kubectl delete crds clusterfederatedtrustdomains.spire.spiffe.io clusterspiffeid
 
 We only support upgrading one major version at a time. Version skipping isn't supported.
 
+### 0.20.X
+
+This release configures the entries managed by the spire-controller-manager to move into their own managed space within SPIRE. This should be transparent. In a future release, we will disable cleanup
+by default of the old space. This release lays the groundwork for future support for manually created entries in the SPIRE database without the spire-controller-manager destroying them. It is supported
+in this release by manually setting spire-server.controllerManager.entryIDPrefixCleanup=false after successfully upgrading to the chart without the setting and waiting for a spire-controller-manager sync.
+
 ### 0.19.X
 
 - The spire-agent daemonset gained a new label. For those disabling the upgrade hooks, you need to delete the spire-agent daemonset before issuing the helm upgrade.
