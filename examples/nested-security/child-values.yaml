@@ -28,6 +28,8 @@ internal-spire-server:
 
 downstream-spire-agent:
   bundleConfigMap: spire-bundle-upstream
+  serviceAccount:
+    name: spire-agent-upstream
 #   server:
 #     address: spire-server.changeme
 

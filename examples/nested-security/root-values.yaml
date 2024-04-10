@@ -5,8 +5,3 @@ spiffe-oidc-discovery-provider:
 external-spire-server:
   ingress:
     enabled: true
-  nodeAttestor:
-    externalK8sPsat:
-      defaults:
-        serviceAccountAllowList:
-          - spire-system:spire-agent
