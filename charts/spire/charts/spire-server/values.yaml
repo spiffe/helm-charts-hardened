@@ -493,8 +493,7 @@ controllerManager:
     registry: ghcr.io
     repository: spiffe/spire-controller-manager
     pullPolicy: IfNotPresent
-    # FIXME Changed for testing until release
-    tag: "nightly"
+    tag: "0.5.0"
 
   ## @param controllerManager.resources [object] Resource requests and limits for controller manager
   resources: {}
