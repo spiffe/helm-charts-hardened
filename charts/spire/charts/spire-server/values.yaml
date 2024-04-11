@@ -75,7 +75,7 @@ priorityClassName: ""
 ##
 service:
   type: ClusterIP
-  port: 8081
+  port: 443
   annotations: {}
 
 configMap:
@@ -307,6 +307,14 @@ keyManager:
     enabled: false
     ## @param keyManager.awsKMS.region Specify the region for AWS KMS
     region: ""
+    keyIdentifierFile:
+      ## @param keyManager.awsKMS.keyIdentifierFile.enabled Enable key identifier data to be stored in a file in persistent storage.
+      enabled: false
+    keyIdentifierValue:
+      ## @param keyManager.awsKMS.keyIdentifierValue.enabled Enable specifying a key identifier value for AWS KMS
+      enabled: false
+      ## @param keyManager.awsKMS.keyIdentifierValue.identifier Static identifier for the SPIRE server instance
+      identifier: ""
     ## @extra keyManager.awsKMS.keyPolicy Policy to use when creating keys. If no policy is specified, a default policy will be used.
     keyPolicy:
       ## @param keyManager.awsKMS.keyPolicy.policy [nullable] Key policy in JSON format.
@@ -395,7 +403,7 @@ upstreamAuthority:
       ## @param upstreamAuthority.spire.server.address Address for upstream Spire server
       address: ""
       ## @param upstreamAuthority.spire.server.port Port for upstream Spire server
-      port: 8081
+      port: 443
   vault:
     ## @param upstreamAuthority.vault.enabled Enable Hashicorp Vault as upstream CA
     enabled: false
@@ -457,6 +465,9 @@ controllerManager:
   ## @param controllerManager.watchClassless specify to process custom resources without class name specified. Useful to slowly migrate to class names from classless installs. Do not have two installs on the same k8s cluster both set to true.
   watchClassless: false
 
+  ## @param controllerManager.entryIDPrefixCleanup Sets which entry prefixes to remove for migrations. Consult the spiffe.io docs about this option before changing. Its unlikely you will need to ever change it.
+  entryIDPrefixCleanup: ""
+
   ## @param controllerManager.parentIDTemplate The template that is used to register workloads.
   parentIDTemplate: "spiffe://{{ .TrustDomain }}/spire/agent/k8s_psat/{{ .ClusterName }}/{{ .NodeMeta.UID }}"
 
@@ -482,7 +493,7 @@ controllerManager:
     registry: ghcr.io
     repository: spiffe/spire-controller-manager
     pullPolicy: IfNotPresent
-    tag: "0.4.4"
+    tag: "0.5.0"
 
   ## @param controllerManager.resources [object] Resource requests and limits for controller manager
   resources: {}
