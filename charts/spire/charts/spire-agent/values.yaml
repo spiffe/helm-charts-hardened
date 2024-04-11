@@ -113,7 +113,7 @@ upstream: false
 ##
 server:
   address: ""
-  port: 8081
+  port: 443
   namespaceOverride: ""
   nameOverride: ""
 
@@ -328,10 +328,6 @@ agents: {}
 #        enabled: false
 #      tpmDirect:
 #        enabled: true
-
-installAndUpgradeHook:
-  ## @param installAndUpgradeHook.enabled Enable Helm hook to autofix common install/upgrade issues (should be disabled when using `helm template`)
-  enabled: true
 
 tools:
   kubectl:
