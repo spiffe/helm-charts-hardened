@@ -1,6 +1,6 @@
 # spire
 
-![Version: 0.19.2](https://img.shields.io/badge/Version-0.19.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.9.3](https://img.shields.io/badge/AppVersion-1.9.3-informational?style=flat-square)
+![Version: 0.20.0](https://img.shields.io/badge/Version-0.20.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.9.4](https://img.shields.io/badge/AppVersion-1.9.4-informational?style=flat-square)
 [![Development Phase](https://github.com/spiffe/spiffe/blob/main/.img/maturity/dev.svg)](https://github.com/spiffe/spiffe/blob/main/MATURITY.md#development)
 
 A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
@@ -77,7 +77,10 @@ We only support upgrading one major version at a time. Version skipping isn't su
 
 ### 0.20.X
 
-This release configures the entries managed by the spire-controller-manager to move into their own managed space within SPIRE. This should be transparent. In a future release, we will
+- The default service port for the spire-server was changed to be port 443 to allow easier switching between internal access and external access through an ingress controller. For most users, this will be a transparent
+change.
+
+- This release configures the entries managed by the spire-controller-manager to move into their own managed space within SPIRE. This should be transparent. In a future release, we will
 disable cleanup by default of the old space. This release lays the groundwork for future support for manually created entries in the SPIRE database without the spire-controller-manager
 destroying them. It is supported in this release by manually setting spire-server.controllerManager.entryIDPrefixCleanup=false after successfully upgrading to the chart without the
 setting and waiting for a spire-controller-manager sync.
