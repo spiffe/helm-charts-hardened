@@ -33,6 +33,10 @@ data:
     {{- if .Values.controllerManager.validatingWebhookConfiguration.enabled }}
     validatingWebhookConfigurationName: {{ .Release.Namespace }}-{{ include "spire-controller-manager.fullname" . }}-webhook
     {{- end }}
+    {{- if typeIs "string" .Values.controllerManager.entryIDPrefixCleanup }}
+    entryIDPrefixCleanup: {{ .Values.controllerManager.entryIDPrefixCleanup | quote }}
+    {{- end }}
+    entryIDPrefix: {{ include "spire-lib.cluster-name" . }}
     clusterName: {{ include "spire-lib.cluster-name" . }}
     trustDomain: {{ include "spire-lib.trust-domain" . }}
     ignoreNamespaces:
