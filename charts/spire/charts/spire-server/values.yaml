@@ -581,7 +581,7 @@ controllerManager:
 
       child-servers:
         ## @param controllerManager.identities.clusterSPIFFEIDs.child-servers.enabled Enable this identity for controller manager
-        enabled: true
+        enabled: false
         ## @param controllerManager.identities.clusterSPIFFEIDs.child-servers.type The type of rule this is.
         type: child-servers
         ## @param controllerManager.identities.clusterSPIFFEIDs.child-servers.downstream Set if this spire instance is a root server and the workloads are downstream servers.
