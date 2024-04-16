@@ -1,5 +1,14 @@
+{{/* Takes in a dictionary with keys:
+ * controllerManagerEnabled - enabled setting for the controller manager
+ * releaseName - chart release name
+ * releaseNamespace - chart release namespace
+ * crNameOverride - custom resource name override setting
+ * className - class name
+ * clusterStaticEntries - cluster static entries
+*/}}
+{{- define "spire-lib.cluster-static-entries" }}
 {{- $root := . }}
-{{- range $key, $value := .Values.controllerManager.identities.clusterStaticEntries }}
+{{- range $key, $value := .clusterStaticEntries }}
 {{-   range $skey, $svalue := $value }}
 {{-     if not (has $skey (list "name" "annotations" "labels" "enabled" "admin" "dnsNames" "downstream" "federatesWith" "hint" "jwtSVIDTTL" "parentID" "selectors" "spiffeID" "x509SVIDTTL")) }}
 {{-       fail (printf "Unsupported property specified: %s" $skey) }}
@@ -10,13 +19,13 @@
 {{-       fail (printf "Required property %s was not specified" $rprop) }}
 {{-     end }}
 {{-   end }}
-{{-   if eq ($root.Values.controllerManager.enabled | toString) "true" }}
+{{-   if .controllerManagerEnabled }}
 {{-     if or (not (hasKey $value "enabled")) (eq ($value.enabled | toString) "true") }}
 ---
 apiVersion: spire.spiffe.io/v1alpha1
 kind: ClusterStaticEntry
 metadata:
-  name: {{ $root.Release.Namespace }}-{{ default $root.Release.Name $root.Values.crNameOverride }}-{{ $key }}
+  name: {{ $root.releaseNamespace }}-{{ default $root.releaseName $root.crNameOverride }}-{{ $key }}
   {{- with $value.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -26,7 +35,7 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  className: {{ include "spire-server.controller-manager-class-name" $root | quote }}
+  className: {{ $root.className | quote }}
   spiffeID: {{ $value.spiffeID | quote }}
   {{- with $value.federatesWith }}
   federatesWith:
@@ -60,4 +69,5 @@ spec:
   {{- end }}
 {{-     end }}
 {{-   end }}
+{{- end }}
 {{- end }}

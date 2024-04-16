@@ -1,9 +1,18 @@
-{{- if eq (.Values.controllerManager.enabled | toString) "true" }}
+{{/* Takes in a dictionary with keys:
+ * fullName - the full name of the controller manager
+ * releaseNamespace - the namespace the release was made into
+ * namespace - the namespace the server is installed into
+ * subject - subject of the role bindings
+ * controllerManagerEnabled - enabled setting for the controller manager
+ * validatingWebhookConfigurationEnabled - enabled setting for the validating webhook configuration
+*/}}
+{{- define "spire-lib.controller-manager-roles" }}
+{{- if .controllerManagerEnabled }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ include "spire-controller-manager.fullname" . }}-leader-election
-  namespace: {{ include "spire-server.namespace" . }}
+  name: {{ .fullName }}-leader-election
+  namespace: {{ .namespace }}
 rules:
   - apiGroups: [""]
     resources: ["configmaps"]
@@ -18,26 +27,24 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ include "spire-controller-manager.fullname" . }}-leader-election
-  namespace: {{ include "spire-server.namespace" . }}
+  name: {{ .fullName }}-leader-election
+  namespace: {{ .namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: {{ include "spire-controller-manager.fullname" . }}-leader-election
+  name: {{ .fullName }}-leader-election
 subjects:
-- kind: ServiceAccount
-  name: {{ include "spire-server.serviceAccountName" . }}
-  namespace: {{ include "spire-server.namespace" . }}
+  - {{ .subject | toYaml | nindent 4 | trim }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ .Release.Namespace }}-{{ include "spire-controller-manager.fullname" . }}
+  name: {{ .releaseNamespace }}-{{ .fullName }}
 rules:
   - apiGroups: [""]
     resources: ["namespaces"]
     verbs: ["get", "list", "watch"]
-{{- if .Values.controllerManager.validatingWebhookConfiguration.enabled }}
+{{- if .validatingWebhookConfigurationEnabled }}
   - apiGroups: ["admissionregistration.k8s.io"]
     resources: ["validatingwebhookconfigurations"]
     verbs: ["get", "list", "patch", "watch"]
@@ -82,13 +89,12 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: {{ .Release.Namespace }}-{{ include "spire-controller-manager.fullname" . }}
+  name: {{ .releaseNamespace }}-{{ .fullName }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: {{ .Release.Namespace}}-{{ include "spire-controller-manager.fullname" . }}
+  name: {{ .releaseNamespace }}-{{ .fullName }}
 subjects:
-- kind: ServiceAccount
-  name: {{ include "spire-server.serviceAccountName" . }}
-  namespace: {{ include "spire-server.namespace" . }}
+  - {{ .subject | toYaml | nindent 4 | trim }}
+{{- end }}
 {{- end }}

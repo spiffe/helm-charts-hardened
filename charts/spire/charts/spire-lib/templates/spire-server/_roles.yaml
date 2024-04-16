@@ -1,0 +1,70 @@
+{{/* Takes in a dictionary with keys:
+ * fullName - the full name of the spire-server
+ * releaseNamespace - the namespace the release was made into
+ * serviceAccountName - name of the service account
+ * subject - subject of the role bindings
+ * bundleName - the name of the bundle configmap
+ * bundleNamespace - the namespace of the bundle configmap
+ * k8sPsatEnabled - enabled setting for psat
+*/}}
+{{- define "spire-lib.server-roles" }}
+# Role to be able to push certificate bundles to a configmap
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ .bundleName }}
+  namespace: {{ .bundleNamespace }}
+rules:
+  - apiGroups: [""]
+    resources: [configmaps]
+    resourceNames: [{{ .bundleName }}]
+    verbs:
+      - get
+      - patch
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ .bundleName }}
+  namespace: {{ .bundleNamespace }}
+subjects:
+  - {{ .subject | toYaml | nindent 4 | trim }}
+roleRef:
+  kind: Role
+  name: {{ .serviceAccountName }}
+  apiGroup: rbac.authorization.k8s.io
+
+{{- if .k8sPsatEnabled }}
+---
+# ClusterRole to allow spire-server node attestor to query Token Review API
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ .releaseNamespace }}-{{ .fullName }}
+rules:
+  - apiGroups: [authentication.k8s.io]
+    resources: [tokenreviews]
+    verbs:
+      - get
+      - watch
+      - list
+      - create
+  - apiGroups: [""]
+    resources: [nodes, pods]
+    verbs:
+      - get
+      - list
+---
+# Binds above cluster role to spire-server service account
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ .releaseNamespace}}-{{ .fullName }}
+subjects:
+  - {{ .subject | toYaml | nindent 4 | trim }}
+roleRef:
+  kind: ClusterRole
+  name: {{ .releaseNamespace }}-{{ .fullName }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
+{{- end }}

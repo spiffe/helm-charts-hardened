@@ -1,0 +1,2 @@
+{{ include "spire-lib.bundle-configmap-resource" (dict "name" (include "spire-lib.bundle-configmap" .) "namespace" (include "spire-server.bundle-namespace" .) "annotations" .Values.configMap.annotations) }}
+

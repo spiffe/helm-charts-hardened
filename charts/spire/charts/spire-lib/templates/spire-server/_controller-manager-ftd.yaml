@@ -1,5 +1,14 @@
+{{/* Takes in a dictionary with keys:
+ * controllerManagerEnabled - enabled setting for the controller manager
+ * releaseName - chart release name
+ * releaseNamespace - chart release namespace
+ * crNameOverride - custom resource name override setting
+ * className - class name
+ * clusterFederatedTrustDomains - cluster federated trust domains
+*/}}
+{{- define "spire-lib.cluster-federated-trust-domains" }}
 {{- $root := . }}
-{{- range $key, $value := .Values.controllerManager.identities.clusterFederatedTrustDomains }}
+{{- range $key, $value := .clusterFederatedTrustDomains }}
 {{-   range $skey, $svalue := $value }}
 {{-     if not (has $skey (list "name" "annotations" "labels" "enabled" "bundleEndpointProfile" "bundleEndpointURL" "trustDomain" "trustDomainBundle")) }}
 {{-       fail (printf "Unsupported property specified: %s" $skey) }}
@@ -10,13 +19,13 @@
 {{-       fail (printf "Required property %s was not specified" $rprop) }}
 {{-     end }}
 {{-   end }}
-{{-   if eq ($root.Values.controllerManager.enabled | toString) "true" }}
+{{-   if $root.controllerManagerEnabled }}
 {{-     if or (not (hasKey $value "enabled")) (eq ($value.enabled | toString) "true") }}
 ---
 apiVersion: spire.spiffe.io/v1alpha1
 kind: ClusterFederatedTrustDomain
 metadata:
-  name: {{ $root.Release.Namespace }}-{{ default $root.Release.Name $root.Values.crNameOverride }}-{{ $key }}
+  name: {{ $root.releaseNamespace }}-{{ default $root.releaseName $root.crNameOverride }}-{{ $key }}
   {{- with $value.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -26,7 +35,7 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  className: {{ include "spire-server.controller-manager-class-name" $root | quote }}
+  className: {{ $root.className | quote }}
   {{- with $value.bundleEndpointProfile }}
   bundleEndpointProfile:
     {{- toYaml . | nindent 4 }}
@@ -42,4 +51,5 @@ spec:
   {{- end }}
 {{-     end }}
 {{-   end }}
+{{- end }}
 {{- end }}

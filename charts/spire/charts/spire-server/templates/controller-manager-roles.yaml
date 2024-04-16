@@ -1,0 +1,4 @@
+{{- $namespace := include "spire-server.namespace" . }}
+{{- $serviceAccountName := include "spire-server.serviceAccountName" . }}
+{{- $subject := dict "kind" "ServiceAccount" "name" $serviceAccountName "namespace" $namespace }}
+{{- include "spire-lib.controller-manager-roles" (dict "fullName" (include "spire-controller-manager.fullname" .) "releaseNamespace" .Release.Namespace "namespace" $namespace "subject" $subject "controllerManagerEnabled" .Values.controllerManager.enabled "validatingWebhookConfigurationEnabled" .Values.controllerManager.validatingWebhookConfiguration.enabled) }}

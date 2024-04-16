@@ -1,0 +1,16 @@
+{{/* Takes in a dictionary with keys:
+ * namespace - the namespace to put the bundle configmap in
+ * name - the name of the bundle configmap
+ * annotations - annotations to add to the bundle configmap
+*/}}
+{{- define "spire-lib.bundle-configmap-resource" }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .name }}
+  namespace: {{ .namespace }}
+  {{- with .annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

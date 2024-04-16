@@ -1,0 +1,1 @@
+{{- include "spire-lib.cluster-static-entries" (dict "controllerManagerEnabled" .Values.controllerManager.enabled "releaseName" .Release.Name "releaseNamespace" .Release.Namespace "crNameOverride" .Values.crNameOverride "className" (include "spire-server.controller-manager-class-name" .) "clusterStaticEntries" .Values.controllerManager.identities.clusterStaticEntries ) }}
