@@ -9,7 +9,10 @@ values:
   {{ .namespaces | toYaml | nindent 2 }}
 {{- end }}
 {{- define "spire-lib.spire-controller-manager-identity-podselector" }}
-{{-   if eq .type "oidc-discovery-provider" }}
+{{-   if eq .type "child-servers" }}
+matchLabels:
+  component: server
+{{-   else if eq .type "oidc-discovery-provider" }}
 matchLabels:
   release: {{ .releaseName }}
   release-namespace: {{ .releaseNamespace }}
@@ -44,8 +47,8 @@ matchLabels:
 {{-   if eq ($root.controllerManagerEnabled | toString) "true" }}
 {{-     if or (not (hasKey $value "enabled")) (eq ($value.enabled | toString) "true") }}
 {{-       $type := dig "type" "base" $value }}
-{{-       if not (has $type (list "base" "raw" "oidc-discovery-provider" "test-keys")) }}
-{{-         fail (printf "Type given: %s, must be one of [base, raw, oidc-discovery-provider, test-keys]" $type) }}
+{{-       if not (has $type (list "base" "raw" "child-servers" "oidc-discovery-provider" "test-keys")) }}
+{{-         fail (printf "Type given: %s, must be one of [base, raw, child-servers, oidc-discovery-provider, test-keys]" $type) }}
 {{-       end }}
 {{-       $namespaceSelector := deepCopy (dig "namespaceSelector" (dict) $value) }}
 {{-       if ne $type "raw" }}
