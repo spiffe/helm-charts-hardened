@@ -579,6 +579,14 @@ controllerManager:
         ## @param controllerManager.identities.clusterSPIFFEIDs.default.autoPopulateDNSNames Auto populate DNS names from services attached to pods
         autoPopulateDNSNames: false
 
+      child-servers:
+        ## @param controllerManager.identities.clusterSPIFFEIDs.child-servers.enabled Enable this identity for controller manager
+        enabled: false
+        ## @param controllerManager.identities.clusterSPIFFEIDs.child-servers.type The type of rule this is.
+        type: child-servers
+        ## @param controllerManager.identities.clusterSPIFFEIDs.child-servers.downstream Set if this spire instance is a root server and the workloads are downstream servers.
+        downstream: true
+
       oidc-discovery-provider:
         ## @param controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.enabled Enable this identity for controller manager
         enabled: true
