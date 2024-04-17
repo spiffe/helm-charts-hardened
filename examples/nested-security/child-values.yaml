@@ -5,7 +5,7 @@
 tags:
   nestedChildSecurity: true
 
-downstream-spire-agent:
+downstream-spire-agent-security:
 # serviceAccount:
 #   server:
 #     address: spire-server.changeme

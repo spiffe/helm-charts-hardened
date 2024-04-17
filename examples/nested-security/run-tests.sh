@@ -79,7 +79,7 @@ for cluster in child; do
 
   helm upgrade --kubeconfig "${KC}" --install --create-namespace --namespace spire-mgmt spire-crds charts/spire-crds
   helm upgrade --kubeconfig "${KC}" --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/child-values.yaml" \
-    --set "downstream-spire-agent.server.address=spire-server.production.other" \
+    --set "downstream-spire-agent-security.server.address=spire-server.production.other" \
     --set "global.spire.namespaces.create=true" \
     --set "global.spire.clusterName=${cluster}" \
     spire charts/spire-nested
