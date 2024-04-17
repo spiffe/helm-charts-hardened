@@ -95,8 +95,11 @@ global:
 #        labels: {}
 
 tags:
+  ## @param tags.nestedRoot Set the chart architecture to root nested
   nestedRoot: false
+  ## @param tags.nestedChildFull Set the chart mode to a child cluster with its own nested server
   nestedChildFull: false
+  ## @param tags.nestedChildSecurity Set the chart mode to a child cluster for use with a security cluster
   nestedChildSecurity: false
 
 ## subcharts
@@ -216,6 +219,7 @@ spiffe-oidc-discovery-provider:
 ## Parameter values for Tornjak frontend
 ##
 tornjak-frontend:
+  ## @param tornjak-frontend.enabled Enables deployment of Tornjak frontend/UI (Not for production)
   enabled: false
 
 root-spire-server:
@@ -259,7 +263,7 @@ external-root-spire-server-full:
   kind: none
   ## @param external-root-spire-server-full.nameOverride Name override
   nameOverride: root-server
-  ## @param exernal-root-spire-server-full.crNameOverride Custom Resource name override
+  ## @param external-root-spire-server-full.crNameOverride Custom Resource name override
   crNameOverride: root
   controllerManager:
     ## @param external-root-spire-server-full.controllerManager.enabled Enable controller manager and provision CRD's
@@ -296,7 +300,7 @@ external-root-spire-server-security:
   kind: none
   ## @param external-root-spire-server-security.nameOverride Name override
   nameOverride: root-server
-  ## @param exernal-root-spire-server-security.crNameOverride Custom Resource name override
+  ## @param external-root-spire-server-security.crNameOverride Custom Resource name override
   crNameOverride: root
   controllerManager:
     ## @param external-root-spire-server-security.controllerManager.enabled Enable controller manager and provision CRD's
