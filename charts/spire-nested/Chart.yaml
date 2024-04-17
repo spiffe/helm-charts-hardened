@@ -26,40 +26,85 @@ dependencies:
   - name: spire-server
     alias: root-spire-server
     condition: root-spire-server.enabled
+    tags:
+    - nestedRoot
+    repository: file://../spire/charts/spire-server
+    version: 0.1.0
+  - name: spire-server
+    alias: external-root-spire-server-full
+    condition: external-root-spire-server-full.enabled
+    tags:
+    - nestedChildFull
+    repository: file://../spire/charts/spire-server
+    version: 0.1.0
+  - name: spire-server
+    alias: external-root-spire-server-security
+    condition: external-root-spire-server-security.enabled
+    tags:
+    - nestedChildSecurity
     repository: file://../spire/charts/spire-server
     version: 0.1.0
   - name: spire-server
     alias: internal-spire-server
     condition: internal-spire-server.enabled
+    tags:
+    - nestedRoot
+    - nestedChildFull
     repository: file://../spire/charts/spire-server
     version: 0.1.0
   - name: spire-server
     alias: external-spire-server
     condition: external-spire-server.enabled
+    tags:
+    - nestedRoot
     repository: file://../spire/charts/spire-server
     version: 0.1.0
   - name: spire-agent
-    alias: downstream-spire-agent
-    condition: downstream-spire-agent.enabled
+    alias: downstream-spire-agent-full
+    condition: downstream-spire-agent-full.enabled
+    tags:
+    - nestedRoot
+    - nestedChildFull
+    repository: file://../spire/charts/spire-agent
+    version: 0.1.0
+  - name: spire-agent
+    alias: downstream-spire-agent-security
+    condition: downstream-spire-agent-security.enabled
+    tags:
+    - nestedChildSecurity
     repository: file://../spire/charts/spire-agent
     version: 0.1.0
   - name: spire-agent
     alias: upstream-spire-agent
     condition: upstream-spire-agent.enabled
+    tags:
+    - nestedRoot
+    - nestedChildFull
     repository: file://../spire/charts/spire-agent
     version: 0.1.0
   - name: spiffe-csi-driver
     alias: downstream-spiffe-csi-driver
     condition: downstream-spiffe-csi-driver.enabled
+    tags:
+    - nestedRoot
+    - nestedChildFull
+    - nestedChildSecurity
     repository: file://../spire/charts/spiffe-csi-driver
     version: 0.1.0
   - name: spiffe-csi-driver
     alias: upstream-spiffe-csi-driver
     condition: upstream-spiffe-csi-driver.enabled
+    tags:
+    - nestedRoot
+    - nestedChildFull
     repository: file://../spire/charts/spiffe-csi-driver
     version: 0.1.0
   - name: spiffe-oidc-discovery-provider
     condition: spiffe-oidc-discovery-provider.enabled
+    tags:
+    - nestedRoot
+    - nestedChildFull
+    - nestedChildSecurity
     repository: file://../spire/charts/spiffe-oidc-discovery-provider
     version: 0.1.0
   - name: tornjak-frontend

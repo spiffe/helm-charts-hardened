@@ -3,10 +3,6 @@
 #    clusterName: changeme
 #    upstreamSpireAddress: spire-server.changeme
 
-root-spire-server:
-  kind: none
-  controllerManager:
-    className: spire-mgmt-external-server
+tags:
+  nestedChildFull: true
 
-external-spire-server:
-  enabled: false
