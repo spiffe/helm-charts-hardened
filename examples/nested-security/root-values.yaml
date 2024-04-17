@@ -1,3 +1,6 @@
+tags:
+  nestedRoot: true
+
 spiffe-oidc-discovery-provider:
   ingress:
     enabled: true
