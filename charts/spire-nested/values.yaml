@@ -301,8 +301,7 @@ external-root-spire-server-security:
 ## Parameter values for Spire server
 ##
 internal-spire-server:
-  ## @param internal-spire-server.enabled Flag to enable Spire server
-  enabled: true
+  # enabled: true
   ## @param internal-spire-server.nameOverride Overrides the name of Spire server pods
   nameOverride: internal-server
   controllerManager:
