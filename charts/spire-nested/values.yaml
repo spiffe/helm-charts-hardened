@@ -272,7 +272,7 @@ external-root-spire-server-full:
       ## @param external-root-spire-server-full.controllerManager.validatingWebhookConfiguration.enabled Disable only when you have another instance on the k8s cluster with webhooks enabled.
       enabled: false
     ## @param external-root-spire-server-full.controllerManager.className specify to use an explicit class name.
-    className: spire-mgmt-root-server
+    className: spire-mgmt-external-server
     identities:
       clusterSPIFFEIDs:
         child-servers:
