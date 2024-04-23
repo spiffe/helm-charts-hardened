@@ -10,11 +10,8 @@ Tornjak UI (Frontend)
   pull policy: {{ .Values.image.pullPolicy }}
   Tornjak API (Backend): {{ include "tornjak-frontend.apiURL" . }}
   SPIRE health check enabled:  "{{ .Values.spireHealthCheck.enabled }}"
-
-### WARNING ###
-
-Tornjak runs without authentication and is therefore NOT suitable to run in production environments.
-Only use in test environments!
+  User Managemenet enabled:  "{{ .Values.auth.enabled }}"
+  User Managemenet API:  "{{ .Values.auth.authServerURL }}"
 
 Access Tornjak:
 
