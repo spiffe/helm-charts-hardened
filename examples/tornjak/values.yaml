@@ -4,6 +4,10 @@ spire-server:
 
 tornjak-frontend:
   enabled: true
+  apiServerURL: "http://localhost:10000"
+  auth:
+    enabled: true
+    authServerURL: "http://localhost:8080"
   service:
     type: ClusterIP
     port: 3000

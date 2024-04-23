@@ -7,7 +7,7 @@ auth:
   adminPassword: admin
 keycloakConfigCli:
   enabled: true
-  image: # note: keeping this for now as not working with later keycloak-config-cli image
+  image: # note: temporary - not working with later keycloak-config-cli image
     registry: docker.io
     repository: bitnami/keycloak-config-cli
     tag: 5.10.0-debian-12-r9

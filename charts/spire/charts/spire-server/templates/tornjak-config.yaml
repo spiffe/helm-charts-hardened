@@ -42,5 +42,12 @@ data:
         }
       }
     {{- end }}
+    {{- if .Values.tornjak.config.userManagement }}
+      UserManagement "KeycloakAuth" {
+        plugin_data {
+          issuer = "{{ .Values.tornjak.config.userManagement.issuer }}"
+        }
+      }
+    {{- end }}
     }
 {{- end }}
