@@ -74,7 +74,7 @@ To access Tornjak use port-forwarding or check the ingress option below.
 
 Run following commands from your shell, if you run with different values your namespace might differ. Consult the install notes printed when running above `helm upgrade` command in that case.
 
-Since `port-forward` is a blocking command, execute them in three different consoles (one for backend, one for frontend and one for auth):
+Since `port-forward` is a blocking command, execute them in three different consoles (one for backend, one for frontend and one for auth that you already started in the previous step):
 
 ```shell
 # Start a backend Service (Terminal 1)
