@@ -1,17 +1,10 @@
 spire-server:
   tornjak:
     enabled: true
-    config:
-      ## @extra tornjak.config.userManagement [object] UserManagement config
-      userManagement:
-        issuer: "http://host.docker.internal:8080/realms/tornjak"
 
 tornjak-frontend:
   enabled: true
   apiServerURL: "http://localhost:10000"
-  auth:
-    enabled: true
-    authServerURL: "http://localhost:8080"
   service:
     type: ClusterIP
     port: 3000

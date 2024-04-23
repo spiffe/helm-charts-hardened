@@ -1,3 +1,10 @@
+spire-server:
+  tornjak:
+    config:
+      ## @extra tornjak.config.userManagement [object] UserManagement config
+      userManagement:
+        issuer: "http://host.docker.internal:8080/realms/tornjak"
+        
 tornjak-frontend:
   auth:
     enabled: true

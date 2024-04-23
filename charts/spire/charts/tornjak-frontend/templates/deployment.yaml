@@ -35,11 +35,11 @@ spec:
           env:
             - name: REACT_APP_API_SERVER_URI
               value: {{ include "tornjak-frontend.apiURL" . }}
-            {{- if eq (.Values.spireHealthCheck.enabled | toString) "true" }}
+            {{- if .Values.spireHealthCheck.enabled }}
             - name: REACT_APP_SPIRE_HEALTH_CHECK_ENABLE
               value: "{{ .Values.spireHealthCheck.enabled }}"
             {{- end }}
-            {{- if eq (.Values.auth.enabled | toString) "true" }}
+            {{- if .Values.auth.enabled }}
             - name: REACT_APP_AUTH_SERVER_URI
               value:  "{{ .Values.auth.authServerURL }}"
             {{- end }}

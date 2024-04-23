@@ -3,6 +3,10 @@
 This example demonstrates Tornjak's capability to control access to the Frontend Application using
 User Management via [Keycloak](https://www.keycloak.org/).
 
+Tested on:
+- Keycloak Application Version - 24.0.3
+- Keycloak Chart Version - 21.0.3
+
 For more information regarding Tornjak User Management, please refer to the following documentation:
 
 * [Tornjak User Management](https://github.com/spiffe/tornjak/blob/main/docs/keycloak-configuration.md)
@@ -29,6 +33,12 @@ kubectl create namespace spire-server
 helm upgrade --install -n spire-server keycloak --values examples/tornjak/keycloak/values.yaml oci://registry-1.docker.io/bitnamicharts/keycloak --render-subchart-notes
 ```
 
+* It's important to start the service before configuring Tornjak with auth. 
+
+```shell
+# Start an auth Service [Keycloak] (Terminal 3)
+kubectl -n spire-server port-forward service/keycloak 8080:80
+```
 ## Deploy SPIRE with Tornjak User Management Enabled
 
 Please follow the instructions for deploying Tornjak as specified in Tornjak Example [here](../README.md)
@@ -39,12 +49,13 @@ For example:
 ```shell
 # Install SPIRE CRDs
 helm upgrade --install --create-namespace -n spire-mgmt spire-crds charts/spire-crds
+```
 
+```shell
 # Standard SPIRE and Tornjak deployment with Authentication enabled
 helm upgrade --install \
 --set global.spire.namespaces.system.create=true \
---values examples/production/values.yaml \
---values examples/production/example-your-values.yaml \
+--values tests/integration/psat/values.yaml \
 --values examples/tornjak/values.yaml \
 --values examples/tornjak/values-auth.yaml \
 --render-subchart-notes spire charts/spire
@@ -65,27 +76,19 @@ Run following commands from your shell, if you run with different values your na
 
 Since `port-forward` is a blocking command, execute them in three different consoles (one for backend, one for frontend and one for auth):
 
-* Backend Service (Terminal 1)
-
 ```shell
+# Start a backend Service (Terminal 1)
 kubectl -n spire-server port-forward service/spire-tornjak-backend 10000:10000
 ```
 
-* Frontend Service (Terminal 2)
-
 ```shell
+# Start a frontend Service (Terminal 2)
 kubectl -n spire-server port-forward service/spire-tornjak-frontend 3000:3000
 ```
 
-* Auth Service [Keycloak] (Terminal 3)
+* You can now access Tornjak at [localhost:3000](http://localhost:3000).
 
-```shell
-kubectl -n spire-server port-forward service/keycloak 8080:80
-```
-
-You can now access Tornjak at [localhost:3000](http://localhost:3000).
-
-This will redirect to the auth service for authentication [localhost:8080](http://localhost:8080)
+* This will redirect to the auth service for authentication to [localhost:8080](http://localhost:8080)
 
 See [values.yaml](./values.yaml) for more details on the chart configurations to customize authentication config.
 
@@ -103,8 +106,7 @@ E.g:
 helm upgrade --install \
 --set global.spire.namespaces.create=true \
 --set global.spire.ingressControllerType=ingress-nginx \
---values examples/production/values.yaml \
---values examples/production/example-your-values.yaml \
+--values tests/integration/psat/values.yaml \
 --values examples/tornjak/values.yaml \
 --values examples/tornjak/values-auth.yaml \
 --values examples/tornjak/values-ingress.yaml \
