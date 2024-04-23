@@ -46,6 +46,7 @@ data:
       UserManagement "KeycloakAuth" {
         plugin_data {
           issuer = "{{ .Values.tornjak.config.userManagement.issuer }}"
+          audience = "{{ .Values.tornjak.config.userManagement.audience }}"
         }
       }
     {{- end }}

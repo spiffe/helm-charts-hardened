@@ -88,6 +88,40 @@ keycloakConfigCli:
           "attributes" : {
             "post.logout.redirect.uris" : "http://localhost:3000/*"
           },
-          "fullScopeAllowed" : true
-        } ]
+          "fullScopeAllowed" : true,
+          "defaultClientScopes": [
+            "role_list",
+            "profile",
+            "email",
+            "roles",
+            "web-origins",
+            "acr",
+            "tornjak-backend",
+          ]
+        }],
+        "clientScopes": [{
+          "name": "tornjak-backend",
+          "description": "tornjak backend audience check",
+          "protocol": "openid-connect",
+          "attributes": {
+            "include.in.token.scope": "false",
+            "display.on.consent.screen": "false",
+            "gui.order": "",
+            "consent.screen.text": ""
+          },
+          "protocolMappers": [{
+            "name": "tornjak-backend",
+            "protocol": "openid-connect",
+            "protocolMapper": "oidc-audience-mapper",
+            "consentRequired": false,
+            "config": {
+              "introspection.token.claim": "true",
+              "included.custom.audience": "tornjak-backend",
+              "userinfo.token.claim": "false",
+              "id.token.claim": "false",
+              "lightweight.claim": "false",
+              "access.token.claim": "true"
+            }
+          }]
+        }]
       }

@@ -853,6 +853,8 @@ tornjak:
     userManagement:
       ## @param tornjak.config.userManagement.issuer UserManagement issuer url
       issuer: ""
+      ## @param tornjak.config.userManagement.audience UserManagement audience check
+      audience: ""
       
     # Tornjak supports 3 connection types: `http`, `tls`, and `mtls`.
     # The connections are determined based on provided configuration
