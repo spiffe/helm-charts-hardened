@@ -164,7 +164,7 @@ insecureScheme:
       registry: docker.io
       repository: nginxinc/nginx-unprivileged
       pullPolicy: IfNotPresent
-      tag: 1.25.4-alpine
+      tag: 1.25.5-alpine
     ## @param insecureScheme.nginx.resources Resource requests and limits
     resources: {}
       # We usually recommend not to specify default resources and to leave this as a conscious
@@ -328,7 +328,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:5921884408efe50b77796675dc109ad2126f54476fe7403c37d8898a5ceb2e76
+      tag: latest@sha256:a0383e176104e7840387deb9fda1782660e903654f39acf62931e2c9a60b7fe1
 
   toolkit:
     ## @param tests.toolkit.image.registry The OCI registry to pull the image from
@@ -338,9 +338,9 @@ tests:
     ##
     image:
       registry: cgr.dev
-      repository: chainguard/slim-toolkit-debug
+      repository: chainguard/min-toolkit-debug
       pullPolicy: IfNotPresent
-      tag: latest@sha256:803995505bc612174a9594a85493916a5234b6a8e0fa619763eceaf2d189cd75
+      tag: latest@sha256:cbcc74f3a614ebb5455ce4a1c3cf311ffb2ce857833a827e3d0dc07f77760383
 
   step:
     ## @param tests.step.image.registry The OCI registry to pull the image from
