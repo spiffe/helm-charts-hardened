@@ -7,11 +7,11 @@ auth:
   adminPassword: admin
 keycloakConfigCli:
   enabled: true
-  image: # note: temporary - not working with later keycloak-config-cli image
-    registry: docker.io
-    repository: bitnami/keycloak-config-cli
-    tag: 5.10.0-debian-12-r9
-  pullPolicy: IfNotPresent
+  # image: # note: temporary - not working with later keycloak-config-cli image
+  #   registry: docker.io
+  #   repository: bitnami/keycloak-config-cli
+  #   tag: 5.10.0-debian-12-r9
+  # pullPolicy: IfNotPresent
   configuration: # tornjak realm configuration
     tornjak.json: |
       {

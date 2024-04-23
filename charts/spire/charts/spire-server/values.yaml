@@ -852,7 +852,7 @@ tornjak:
     ## @extra tornjak.config.userManagement [object] UserManagement config
     userManagement:
       ## @param tornjak.config.userManagement.issuer UserManagement issuer url
-      issuer: "http://host.docker.internal:8080/realms/tornjak"
+      issuer: ""
       
     # Tornjak supports 3 connection types: `http`, `tls`, and `mtls`.
     # The connections are determined based on provided configuration
