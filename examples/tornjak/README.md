@@ -1,8 +1,5 @@
 # Recommended setup to deploy Tornjak
 
-> [!Warning]
-> The current version of Tornjak in this chart is deployed without authentication. Therefore it is not suitable to run this version in production.
-
 To install Spire with the least privileges possible we deploy spire across 2 namespaces.
 
 ```shell
@@ -13,7 +10,7 @@ kubectl label namespace "spire-server" pod-security.kubernetes.io/enforce=restri
 
 # deploy SPIRE with Tornjak enabled
 helm upgrade --install --namespace spire-server spire charts/spire \
---values examples/production/values.yaml \
+--values tests/integration/psat/values.yaml \
 --values examples/tornjak/values.yaml \
 --render-subchart-notes
 
@@ -48,11 +45,10 @@ Update examples/production/example-your-values.yaml with your information, most 
 
 ```shell
 helm upgrade --install --namespace spire-server spire charts/spire \
---values examples/production/values.yaml \
+--values tests/integration/psat/values.yaml \
 --values examples/tornjak/values.yaml \
 --values examples/tornjak/values-ingress.yaml \
 --set global.spire.ingressControllerType=ingress-nginx \
---values examples/production/example-your-values.yaml \
 --render-subchart-notes --debug
 ```
 
