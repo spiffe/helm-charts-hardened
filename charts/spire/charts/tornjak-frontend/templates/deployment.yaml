@@ -35,9 +35,13 @@ spec:
           env:
             - name: REACT_APP_API_SERVER_URI
               value: {{ include "tornjak-frontend.apiURL" . }}
-            {{- if eq (.Values.spireHealthCheck.enabled | toString) "true" }}
+            {{- if .Values.spireHealthCheck.enabled }}
             - name: REACT_APP_SPIRE_HEALTH_CHECK_ENABLE
               value: "{{ .Values.spireHealthCheck.enabled }}"
+            {{- end }}
+            {{- if .Values.auth.enabled }}
+            - name: REACT_APP_AUTH_SERVER_URI
+              value:  "{{ .Values.auth.serverURL }}"
             {{- end }}
           {{- if .Values.startupProbe.enabled }}
           startupProbe:
@@ -57,7 +61,7 @@ spec:
             - name: env
               mountPath: {{ include "tornjak-frontend.workingDir" . }}/build/tmp
             - name: logs
-              mountPath: /opt/app-root/src/.npm/
+              mountPath: {{ .Values.logsDir }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

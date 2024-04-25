@@ -805,7 +805,7 @@ tornjak:
     repository: spiffe/tornjak-backend
     pullPolicy: IfNotPresent
     tag: ""
-    defaultTag: "v1.4.2"
+    defaultTag: "v1.6.0"
 
   service:
     ## @param tornjak.service.type Type of service resource
@@ -868,7 +868,13 @@ tornjak:
       driver: "sqlite3"
       ## @param tornjak.config.dataStore.file File path for sqlite3 file
       file: "/run/spire/data/tornjak.sqlite3"
-
+    ## @extra tornjak.config.userManagement [object] UserManagement config
+    userManagement:
+      ## @param tornjak.config.userManagement.issuer UserManagement issuer URL
+      issuer: ""
+      ## @param tornjak.config.userManagement.audience UserManagement audience check
+      audience: ""
+      
     # Tornjak supports 3 connection types: `http`, `tls`, and `mtls`.
     # The connections are determined based on provided configuration
     # When `tlsSecret` is created in this chart namespace, the TLS connection is started
