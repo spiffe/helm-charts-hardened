@@ -268,7 +268,7 @@ spec:
           startupProbe:
             httpGet:
               scheme: HTTP
-              path: /api/tornjak/serverinfo
+              path: /
               port: 10000
             {{- toYaml .Values.tornjak.startupProbe | nindent 12 }}
           {{- end }}
