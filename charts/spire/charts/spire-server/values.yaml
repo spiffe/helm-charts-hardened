@@ -870,7 +870,7 @@ tornjak:
       file: "/run/spire/data/tornjak.sqlite3"
     ## @extra tornjak.config.userManagement [object] UserManagement config
     userManagement:
-      ## @param tornjak.config.userManagement.issuer UserManagement issuer url
+      ## @param tornjak.config.userManagement.issuer UserManagement issuer URL
       issuer: ""
       ## @param tornjak.config.userManagement.audience UserManagement audience check
       audience: ""

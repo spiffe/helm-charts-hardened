@@ -9,4 +9,4 @@ spire-server:
 tornjak-frontend:
   auth:
     enabled: true
-    authServerURL: http://localhost:8080/ # enable auth by providing url
+    serverURL: http://localhost:8080/ # enable auth by providing url

@@ -9,6 +9,13 @@ Installed {{ .Chart.Name }}…
 
 Installed {{ include "spire-tornjak.fullname" . }}…
 
+{{- if eq .Values.tornjak.config.userManagement.issuer "" }}
+  ### WARNING ###
+
+  Tornjak is configured to run without authentication and is therefore NOT suitable to run in production environments.
+  Only use in test environments!
+{{- end }}
+
 Access Tornjak:
    kubectl -n {{ include "spire-server.namespace" . }} port-forward service/{{ include "spire-tornjak.servicename" . }} {{ .Values.tornjak.service.ports.http }}:10000
 {{- if eq (include "spire-tornjak.connectionType" .) "http" }}

@@ -96,8 +96,8 @@ spireHealthCheck:
 auth:
   ## @param auth.enabled Enables auth for Tornjak
   enabled: false
-  ## @param auth.authServerURL URL of the Auth service. Tornjak Frontend will redirect to this URL to authenticate the user
-  authServerURL: ""
+  ## @param auth.serverURL URL of the Auth service. Tornjak Frontend will redirect to this URL to authenticate the user
+  serverURL: ""
 
 ## Configure extra options for Tornjak frontend container's startup probe
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-startup-probes
