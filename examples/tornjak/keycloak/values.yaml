@@ -5,6 +5,7 @@ auth:
   ## @param auth.adminPassword Keycloak administrator password for the new user
   ##
   adminPassword: admin
+proxy: edge # for https proxy reverse mode
 keycloakConfigCli:
   enabled: true
   configuration: # tornjak realm configuration
