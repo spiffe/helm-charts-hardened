@@ -3,7 +3,7 @@ spire-server:
     config:
       ## @extra tornjak.config.userManagement [object] UserManagement config
       userManagement:
-        issuer: "http://host.docker.internal:8080/realms/tornjak"
+        issuer: "http://keycloak:80/realms/tornjak"
         audience: "tornjak-backend"
         
 tornjak-frontend:
