@@ -32,6 +32,7 @@ data:
 {{- end }}
 {{- end }}
 {{- end }}
+{{- end }}
 {{- define "spire-controller-manager.config" }}
 {{- $promPort := .startPort }}
 {{- $healthPort := add $promPort 1 }}
@@ -87,5 +88,4 @@ reconcile:
   clusterSPIFFEIDs: {{ if hasKey $reconcile "clusterSPIFFEIDs" }}{{ toYaml $reconcile.clusterSPIFFEIDs }}{{ else }}{{ toYaml .defaults.reconcile.clusterSPIFFEIDs }}{{ end }}
   clusterStaticEntries: {{ if hasKey $reconcile "clusterStaticEntries" }}{{ toYaml $reconcile.clusterStaticEntries }}{{ else }}{{ toYaml .defaults.reconcile.clusterStaticEntries }}{{ end }}
   clusterFederatedTrustDomains: {{ if hasKey $reconcile "clusterFederatedTrustDomains" }}{{ toYaml $reconcile.clusterFederatedTrustDomains }}{{ else }}{{ toYaml .defaults.reconcile.clusterFederatedTrustDomains }}{{ end }}
-{{- end }}
 {{- end }}
