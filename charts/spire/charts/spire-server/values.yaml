@@ -658,7 +658,7 @@ controllerManager:
 
 externalControllerManagers:
   ## @param externalControllerManagers.enabled Flag to enable external controller managers
-  enabled: true
+  enabled: false
   defaults:
     ## @param externalControllerManagers.defaults.reconcile.clusterSPIFFEIDs Enable reconciliation of clusterSPIFFEIDs from K8s to the SPIRE server
     ## @param externalControllerManagers.defaults.reconcile.clusterStaticEntries Enable reconciliation of clusterStaticEntries from K8s to the SPIRE server
