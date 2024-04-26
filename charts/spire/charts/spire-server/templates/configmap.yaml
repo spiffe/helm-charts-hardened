@@ -361,6 +361,7 @@ telemetry:
         port: 9988
 {{- end }}
 {{- end }}
+{{- if not .Values.externalServer }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -373,3 +374,4 @@ metadata:
 data:
   server.conf: |
     {{- include "spire-lib.reformat-and-yaml2json" (dict "config" (include "spire-server.yaml-config" .) "root" .) | nindent 4 }}
+{{- end }}

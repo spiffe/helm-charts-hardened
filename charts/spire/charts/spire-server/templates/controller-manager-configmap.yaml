@@ -2,6 +2,7 @@
 {{- $startPort := 8082 }}
 {{- $clusters := default .Values.kubeConfigs .Values.externalControllerManagers.clusters }}
 {{- $clusterDefaults := .Values.externalControllerManagers.defaults }}
+{{- if not .Values.externalServer }}
 {{- if or (eq (.Values.controllerManager.enabled | toString) "true") (and .Values.externalControllerManagers.enabled (gt (len $clusters) 0)) }}
 apiVersion: v1
 kind: ConfigMap
@@ -86,4 +87,5 @@ reconcile:
   clusterSPIFFEIDs: {{ if hasKey $reconcile "clusterSPIFFEIDs" }}{{ toYaml $reconcile.clusterSPIFFEIDs }}{{ else }}{{ toYaml .defaults.reconcile.clusterSPIFFEIDs }}{{ end }}
   clusterStaticEntries: {{ if hasKey $reconcile "clusterStaticEntries" }}{{ toYaml $reconcile.clusterStaticEntries }}{{ else }}{{ toYaml .defaults.reconcile.clusterStaticEntries }}{{ end }}
   clusterFederatedTrustDomains: {{ if hasKey $reconcile "clusterFederatedTrustDomains" }}{{ toYaml $reconcile.clusterFederatedTrustDomains }}{{ else }}{{ toYaml .defaults.reconcile.clusterFederatedTrustDomains }}{{ end }}
+{{- end }}
 {{- end }}
