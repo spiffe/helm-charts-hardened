@@ -1,4 +1,4 @@
-{{- if ne .Values.kind "none" }}
+{{- if not .Values.externalServer }}
 {{- if .Values.autoscaling.enabled }}
 apiVersion: {{ include "spire-lib.autoscalingVersion" . }}
 kind: HorizontalPodAutoscaler

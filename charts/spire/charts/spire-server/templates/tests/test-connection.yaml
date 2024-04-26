@@ -1,4 +1,4 @@
-{{- if ne .Values.kind "none" }}
+{{- if not .Values.externalServer }}
 {{ $values := merge .Values }}
 apiVersion: v1
 kind: Pod

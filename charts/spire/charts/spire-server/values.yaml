@@ -20,8 +20,11 @@ image:
   pullPolicy: IfNotPresent
   tag: ""
 
-## @param kind Define SPIRE server kind. Can be one of [statefulset, deployment, none]. Setting to deployment is experimental.
+## @param kind Define SPIRE server deployment type. Can be statefulset/deployment. Defaults to statefulset if not set. This feature is experimental.
 kind: statefulset
+
+## @param externalServer Set to true to setup the bundle configmap, rbac rules, and identity documents but doesn't deploy the server locally. Useful for external servers>
+externalServer: false
 
 ## @param imagePullSecrets [array] Pull secrets for images
 imagePullSecrets: []

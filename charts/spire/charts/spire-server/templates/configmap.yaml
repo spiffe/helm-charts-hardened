@@ -361,7 +361,7 @@ telemetry:
         port: 9988
 {{- end }}
 {{- end }}
-{{- if ne .Values.kind "none" }}
+{{- if not .Values.externalServer }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
