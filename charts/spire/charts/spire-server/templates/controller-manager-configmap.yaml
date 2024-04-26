@@ -32,7 +32,6 @@ data:
 {{- end }}
 {{- end }}
 {{- end }}
-{{- end }}
 {{- define "spire-controller-manager.config" }}
 {{- $promPort := .startPort }}
 {{- $healthPort := add $promPort 1 }}

@@ -1,4 +1,3 @@
-{{- if .Values.notifier.k8sbundle.enabled }}
 {{- $namespace := include "spire-server.bundle-namespace" . }}
 apiVersion: v1
 kind: ConfigMap
@@ -9,4 +8,3 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-{{- end }}
