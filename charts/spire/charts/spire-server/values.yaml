@@ -23,7 +23,7 @@ image:
 ## @param kind Define SPIRE server deployment type. Can be statefulset/deployment. Defaults to statefulset if not set. This feature is experimental.
 kind: statefulset
 
-## @param externalServer Set to true to setup the bundle configmap, rbac rules, and identity documents but doesn't deploy the server locally. Useful for external servers>
+## @param externalServer Deploy only the bundle ConfigMap, RBAC rules, and identity documents but not the server. Use in a nested setup where the server is external.
 externalServer: false
 
 ## @param imagePullSecrets [array] Pull secrets for images
