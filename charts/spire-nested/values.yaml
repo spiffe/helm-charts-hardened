@@ -238,8 +238,8 @@ root-spire-server:
   bundleConfigMap: spire-bundle-upstream
 
 external-root-spire-server-full:
-  ## @param external-root-spire-server-full.kind Kind
-  kind: none
+  ## @param external-root-spire-server-full.externalServer Set to true to setup the bundle configmap, rbac rules, and identity documents but doesn't deploy the server locally. Useful for external servers.
+  externalServer: true
   ## @param external-root-spire-server-full.nameOverride Name override
   nameOverride: root-server
   ## @param external-root-spire-server-full.crNameOverride Custom Resource name override
@@ -275,8 +275,8 @@ external-root-spire-server-full:
   bundleConfigMap: spire-bundle-upstream
 
 external-root-spire-server-security:
-  ## @param external-root-spire-server-security.kind Kind
-  kind: none
+  ## @param external-root-spire-server-security.externalServer Set to true to setup the bundle configmap, rbac rules, and identity documents but doesn't deploy the server locally. Useful for external servers.
+  externalServer: true
   ## @param external-root-spire-server-security.nameOverride Name override
   nameOverride: root-server
   ## @param external-root-spire-server-security.crNameOverride Custom Resource name override
