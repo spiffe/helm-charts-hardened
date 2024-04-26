@@ -2,7 +2,7 @@
 {{- $startPort := 8082 }}
 {{- $clusters := default .Values.kubeConfigs .Values.externalControllerManagers.clusters }}
 {{- $clusterDefaults := .Values.externalControllerManagers.defaults }}
-{{- if ne .Values.kind "none" }}
+{{- if not .Values.externalServer }}
 {{- if or (eq (.Values.controllerManager.enabled | toString) "true") (and .Values.externalControllerManagers.enabled (gt (len $clusters) 0)) }}
 apiVersion: v1
 kind: ConfigMap

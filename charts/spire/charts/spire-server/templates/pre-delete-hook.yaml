@@ -1,4 +1,4 @@
-{{- if ne .Values.kind "none" }}
+{{- if not .Values.externalServer }}
 {{- if eq ((dig "deleteHooks" "enabled" .Values.controllerManager.deleteHook.enabled .Values.global) | toString) "true" }}
 {{- if .Values.upstreamAuthority.spire.enabled }}
 apiVersion: v1

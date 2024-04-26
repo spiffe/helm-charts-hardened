@@ -308,13 +308,13 @@ The code below determines what connection type should be used.
 
 {{- define "spire-server.subject" }}
 subjects:
-{{-   if ne .Values.kind "none" }}
-- kind: ServiceAccount
-  name: {{ include "spire-server.serviceAccountName" . }}
-  namespace: {{ include "spire-server.namespace" . }}
-{{-   else }}
+{{-   if .Values.externalServer }}
 - apiGroup: rbac.authorization.k8s.io
   kind: User
   name: spire-root
+{{-   else }}
+- kind: ServiceAccount
+  name: {{ include "spire-server.serviceAccountName" . }}
+  namespace: {{ include "spire-server.namespace" . }}
 {{-   end }}
 {{- end }}

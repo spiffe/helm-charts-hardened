@@ -1,4 +1,4 @@
-{{- if ne .Values.kind "none" }}
+{{- if not .Values.externalServer }}
 {{- if (dig "telemetry" "prometheus" "podMonitor" "enabled" .Values.telemetry.prometheus.podMonitor.enabled .Values.global) }}
 {{- $namespace := include "spire-server.podMonitor.namespace" . }}
 {{- $podNamespace := ( include "spire-server.namespace" . ) }}

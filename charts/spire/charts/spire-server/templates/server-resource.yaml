@@ -18,10 +18,10 @@
 {{-   if (eq (.Values.keyManager.disk.enabled | toString) "true") }}
 {{-     fail "When running as deployment, disk keymanager can't be used. 'keyManager.disk.enabled' must be false." }}
 {{-   end }}
-{{- else if ne .Values.kind "none" }}
+{{- else }}
 {{-   fail "Unsupported kind." }}
 {{- end }}
-{{- if ne .Values.kind "none" }}
+{{- if not .Values.externalServer }}
 apiVersion: apps/v1
 {{- if eq .Values.kind "statefulset" }}
 kind: StatefulSet
