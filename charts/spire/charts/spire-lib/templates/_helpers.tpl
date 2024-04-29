@@ -94,7 +94,7 @@
 */}}
 {{ define "spire-lib.ingress-calculated-name" }}
 {{- $host := .ingress.host }}
-{{- if not (contains $host ".") }}
+{{- if not (contains "." $host) }}
 {{-   $host = printf "%s.%s" $host (include "spire-lib.trust-domain" .) }}
 {{- end }}
 {{- $host }}

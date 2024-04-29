@@ -301,3 +301,16 @@ The code below determines what connection type should be used.
 {{-   $g := dig "spire" "caSubject" "commonName" "" .Values.global }}
 {{-   default .Values.ca_subject.common_name $g }}
 {{- end }}
+
+{{- define "spire-server.subject" }}
+subjects:
+{{-   if .Values.externalServer }}
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: spire-root
+{{-   else }}
+- kind: ServiceAccount
+  name: {{ include "spire-server.serviceAccountName" . }}
+  namespace: {{ include "spire-server.namespace" . }}
+{{-   end }}
+{{- end }}

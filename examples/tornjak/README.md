@@ -1,29 +1,16 @@
 # Recommended setup to deploy Tornjak
 
-> [!Warning]
-> The current version of Tornjak in this chart is deployed without authentication. Therefore it is not suitable to run this version in production.
-
-## Deploy Standard SPIRE
-
-Follow the production installation of SPIRE as described in the [install instructions] (https://artifacthub.io/packages/helm/spiffe/spire) document.
-
-## Upgrade to enable Tornjak
-
-Before we can deploy Tornjak with SPIRE we need to decide whether the services would be
-using direct access, Ingress, or some other method.
-
-## Tornjak with Direct Access
-
-This can be done using port-forward. For example, to start Tornjak APIs on port 10000
-
-Deploy SPIRE with Tornjak enabled
+To install Spire with the least privileges possible we deploy spire across 2 namespaces.
 
 ```shell
-export TORNJAK_API=http://localhost:10000
+kubectl create namespace "spire-system"
+kubectl label namespace "spire-system" pod-security.kubernetes.io/enforce=privileged
+kubectl create namespace "spire-server"
+kubectl label namespace "spire-server" pod-security.kubernetes.io/enforce=restricted
 
-helm upgrade --install -n spire-mgmt spire spire \
---repo https://spiffe.github.io/helm-charts-hardened/ \
---set tornjak-frontend.apiServerURL=$TORNJAK_API \
+# deploy SPIRE with Tornjak enabled
+helm upgrade --install --namespace spire-server spire charts/spire \
+--values tests/integration/psat/values.yaml \
 --values examples/tornjak/values.yaml \
 --values your-values.yaml \
 --render-subchart-notes
@@ -57,13 +44,12 @@ See [values.yaml](./values.yaml) for more details on the chart configurations to
 Update your-values.yaml with your information, most importantly, trustDomain, and redeploy.
 
 ```shell
-helm upgrade --install -n spire-mgmt spire spire \
---repo https://spiffe.github.io/helm-charts-hardened/ \
+helm upgrade --install --namespace spire-server spire charts/spire \
+--values tests/integration/psat/values.yaml \
 --values examples/tornjak/values.yaml \
 --values examples/tornjak/values-ingress.yaml \
 --set global.spire.ingressControllerType=ingress-nginx \
---values your-values.yaml \
---render-subchart-notes
+--render-subchart-notes --debug
 ```
 
 ## Tornjak and Ingress on Openshift

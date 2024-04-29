@@ -21,6 +21,7 @@
 {{- else }}
 {{-   fail "Unsupported kind." }}
 {{- end }}
+{{- if not .Values.externalServer }}
 apiVersion: apps/v1
 {{- if eq .Values.kind "statefulset" }}
 kind: StatefulSet
@@ -319,7 +320,7 @@ spec:
           startupProbe:
             httpGet:
               scheme: HTTP
-              path: /api/tornjak/serverinfo
+              path: /
               port: 10000
             {{- toYaml .Values.tornjak.startupProbe | nindent 12 }}
           {{- end }}
@@ -514,3 +515,4 @@ spec:
         storageClassName: {{ $storageClass }}
         {{- end }}
   {{- end }}
+{{- end }}

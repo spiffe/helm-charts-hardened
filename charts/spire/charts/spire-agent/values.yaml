@@ -113,7 +113,7 @@ upstream: false
 ##
 server:
   address: ""
-  port: 8081
+  port: 443
   namespaceOverride: ""
   nameOverride: ""
 
@@ -154,7 +154,7 @@ fsGroupFix:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: Always
-    tag: latest@sha256:5921884408efe50b77796675dc109ad2126f54476fe7403c37d8898a5ceb2e76
+    tag: latest@sha256:a0383e176104e7840387deb9fda1782660e903654f39acf62931e2c9a60b7fe1
 
   ## @param fsGroupFix.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
@@ -262,7 +262,7 @@ socketAlternate:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: Always
-    tag: latest@sha256:5921884408efe50b77796675dc109ad2126f54476fe7403c37d8898a5ceb2e76
+    tag: latest@sha256:a0383e176104e7840387deb9fda1782660e903654f39acf62931e2c9a60b7fe1
 
   ## @param socketAlternate.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
@@ -328,10 +328,6 @@ agents: {}
 #        enabled: false
 #      tpmDirect:
 #        enabled: true
-
-installAndUpgradeHook:
-  ## @param installAndUpgradeHook.enabled Enable Helm hook to autofix common install/upgrade issues (should be disabled when using `helm template`)
-  enabled: true
 
 tools:
   kubectl:
