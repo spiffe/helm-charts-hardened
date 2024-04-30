@@ -1,16 +1,30 @@
 # Recommended setup to deploy Tornjak
 
-To install Spire with the least privileges possible we deploy spire across 2 namespaces.
+> [!WARNING]
+> The default version of Tornjak in this chart is deployed without authentication. Therefore it is not suitable to run this version in production. In order to enable the user authentication,
+> follow [Keycloak instructions](keycloak/README.md)
+
+## Deploy Standard SPIRE
+
+Follow the production installation of SPIRE as described in the [install instructions] (https://artifacthub.io/packages/helm/spiffe/spire) document.
+
+## Upgrade to enable Tornjak
+
+Before we can deploy Tornjak with SPIRE we need to decide whether the services would be
+using direct access, Ingress, or some other method.
+
+## Tornjak with Direct Access
+
+This can be done using port-forward. For example, to start Tornjak APIs on port 10000
+
+Deploy SPIRE with Tornjak enabled
 
 ```shell
-kubectl create namespace "spire-system"
-kubectl label namespace "spire-system" pod-security.kubernetes.io/enforce=privileged
-kubectl create namespace "spire-server"
-kubectl label namespace "spire-server" pod-security.kubernetes.io/enforce=restricted
+export TORNJAK_API=http://localhost:10000
 
-# deploy SPIRE with Tornjak enabled
-helm upgrade --install --namespace spire-server spire charts/spire \
---values tests/integration/psat/values.yaml \
+helm upgrade --install -n spire-mgmt spire spire \
+--repo https://spiffe.github.io/helm-charts-hardened/ \
+--set tornjak-frontend.apiServerURL=$TORNJAK_API \
 --values examples/tornjak/values.yaml \
 --values your-values.yaml \
 --render-subchart-notes
@@ -19,11 +33,9 @@ helm upgrade --install --namespace spire-server spire charts/spire \
 helm test spire -n spire-server
 ```
 
-### Access Tornjak directly
-
-To access Tornjak you will have to use port-forwarding for the time being *(until we add authentication and ingress)*.
-
-Run following commands from your shell, if you ran with different values your namespace might differ. Consult the install notes printed when running above `helm upgrade` command in that case.
+Run following commands from your shell, to start port forwarding for Tornjak backend (APIs)
+and Tornjak frontend (UI) services.
+ If you deployed in different namespace, your values might differ. Consult the install notes printed when running above `helm upgrade` command in that case.
 
 Since `port-forward` is a blocking command, execute them in two different consoles:
 
@@ -35,7 +47,7 @@ kubectl -n spire-server port-forward service/spire-tornjak-backend 10000:10000
 kubectl -n spire-server port-forward service/spire-tornjak-frontend 3000:3000
 ```
 
-You can now access Tornjak at [localhost:3000](http://localhost:3000).
+You can now access Tornjak with your browser at [localhost:3000](http://localhost:3000).
 
 See [values.yaml](./values.yaml) for more details on the chart configurations to achieve this setup.
 
@@ -44,12 +56,13 @@ See [values.yaml](./values.yaml) for more details on the chart configurations to
 Update your-values.yaml with your information, most importantly, trustDomain, and redeploy.
 
 ```shell
-helm upgrade --install --namespace spire-server spire charts/spire \
---values tests/integration/psat/values.yaml \
+helm upgrade --install -n spire-mgmt spire spire \
+--repo https://spiffe.github.io/helm-charts-hardened/ \
 --values examples/tornjak/values.yaml \
 --values examples/tornjak/values-ingress.yaml \
 --set global.spire.ingressControllerType=ingress-nginx \
---render-subchart-notes --debug
+--values your-values.yaml \
+--render-subchart-notes
 ```
 
 ## Tornjak and Ingress on Openshift
