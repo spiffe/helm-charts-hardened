@@ -23,7 +23,8 @@ correct credentials. Authorization is based on these credentials and occurs at t
 
 ## Deploy Keycloak Instance (Authentication Service)
 
-We will deploy the instance of Keycloak in the same namespace as the SPIRE Server
+We will deploy the instance of Keycloak in the same namespace as the SPIRE Server,
+to simplify the communication between them.
 
 ```shell
 # If does not exist, create a namespace to deploy Keycloak and SPIRE-server
@@ -56,6 +57,9 @@ See the helm Notes for more information about accessing Keycloak
 
 Please follow the instructions for [deploying Tornjak](../README.md)
 with addition of the User Management values `--values examples/tornjak/values-auth.yaml`.
+
+> [!TIP]
+> Keep in mind, when redeploying Tornjak, you might have to recreate port forwarding for that service.
 
 The sample [examples/tornjak/values-auth.yaml](../values-auth.yaml) assumes local
 Keycloak deployment using port forwarding. When using Ingress, update the URLs accordingly.
