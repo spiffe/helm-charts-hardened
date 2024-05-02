@@ -23,21 +23,23 @@ correct credentials. Authorization is based on these credentials and occurs at t
 
 ## Deploy Keycloak Instance (Authentication Service)
 
-We will deploy the instance of Keycloak in the same namespace as the SPIRE Server,
-to simplify the communication between them.
+We will deploy the instance of Keycloak in a dedicated namespace
 
 ```shell
-# If does not exist, create a namespace to deploy Keycloak and SPIRE-server
-kubectl create namespace spire-server
+# If does not exist, create a namespace to deploy Keycloak
+kubectl create namespace keycloak
 ```
 
 > [!IMPORTANT]
-> The example uses default userid and password (`admin`,`admin`). You must change these values in
-> [Keycloak configuration](./values.yaml) file. See the instructions provided in links above
+> The example uses default userid and password (`admin`,`admin`). You must change these values
+> by setting `auth.adminUser` and `auth.adminPassword` as shown below.
 
 ```shell
 # Deploy most recent Keycloak instance as an authentication service
-helm upgrade --install -n spire-server keycloak --values examples/tornjak/keycloak/values.yaml oci://registry-1.docker.io/bitnamicharts/keycloak --render-subchart-notes
+helm upgrade --install -n keycloak keycloak \
+--values examples/tornjak/keycloak/values.yaml \
+--set auth.adminUser=your-userid \ --set auth.adminPassword=your-password \
+oci://registry-1.docker.io/bitnamicharts/keycloak --render-subchart-notes
 ```
 
 > [!IMPORTANT]
@@ -48,7 +50,7 @@ enable Ingress to the Keycloak service accordingly.
 
 ```shell
 # Start an auth Service [Keycloak] in separate terminal
-kubectl -n spire-server port-forward service/keycloak 8080:80
+kubectl -n keycloak port-forward service/keycloak 8080:80
 ```
 
 See the helm Notes for more information about accessing Keycloak
@@ -58,6 +60,16 @@ See the helm Notes for more information about accessing Keycloak
 Please follow the instructions for [deploying Tornjak](../README.md)
 with addition of the User Management values `--values examples/tornjak/values-auth.yaml`.
 
+> [!IMPORTANT]
+> Make sure Tornjak backend User Management issuer points to the correct Keycloak issuer URL. Which is in format
+> `http://<your-keycloakServicename>.<keycloak-namespace>:<your-keycloak-portnumber>/realms/tornjak`.
+> For the example above it will be: `http://keycloak.keycloak:8080/realms/tornjak`
+> You can set the issuer URL using `--set spire-server.tornjak.config.userManagement.issuer=http://tornjak.tornjak:8080/realms/tornjak`
+>
+> [!IMPORTANT]
+> If audience is set, make sure the Tornjak backend `audience` is set correctly. You can set it using:
+> `--set spire-server.tornjak.config.userManagement.audience=your-audience`
+>
 > [!TIP]
 > Keep in mind, when redeploying Tornjak, you might have to recreate port forwarding for that service.
 
