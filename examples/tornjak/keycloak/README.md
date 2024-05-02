@@ -10,7 +10,7 @@ Tested on:
 
 For more information regarding Tornjak User Management, please refer to the following documentation:
 
-- [Tornjak User Management](https://github.com/spiffe/tornjak/blob/main/docs/keycloak-configuration.md)
+- [Tornjak User Management](https://github.com/spiffe/tornjak/blob/main/docs/user-management.md)
 - [Keycloak Configuration for Tornjak](https://github.com/spiffe/tornjak/blob/main/docs/keycloak-configuration.md)
 - [Detailed Blogs on Tornjak User Management](https://github.com/spiffe/tornjak/blob/main/docs/blogs.md)
 
