@@ -100,3 +100,13 @@ Create URL for accessing Tornjak APIs
 {{- printf "/usr/src/app" }}
 {{- end }}
 {{- end }}
+
+{{- define "tornjak-frontend.logsDir" }}
+{{- if .Values.logsDir }}
+{{- .Values.logsDir }}
+{{- else if (dig "openshift" true .Values.global) }}
+{{- printf "/opt/app-root/src/.npm/_cacache/" }}
+{{- else }}
+{{- printf "/home/node/" }}
+{{- end }}
+{{- end }}
