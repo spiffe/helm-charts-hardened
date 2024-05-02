@@ -210,6 +210,8 @@ federation:
     port: 8443
     ## @param federation.bundleEndpoint.address Address for trust bundle federation
     address: "0.0.0.0"
+    ## @param federation.bundleEndpoint.refresh_hint Hint used by federated servers on how often to refresh the bundle. CA TTL must be 3-5x the duration of this value to ensure public keys are loaded on federated servers prior to private key rotation on remote server.
+    refresh_hint: "5m"
 
   tls:
     spire:
@@ -697,6 +699,7 @@ externalControllerManagers:
   ## @param externalControllerManagers.clusters [object] A dictionary of clusters to add with optional overrides. If empty, all clusters defined in kubeConfigs will be used.
   clusters: {}
   # clustera:
+      # Should match the name of the config in the kubeConfigs section
   #   kubeConfigName: foo
   #   reconcile:
   #     clusterStaticEntries: true
@@ -923,7 +926,7 @@ tornjak:
       issuer: ""
       ## @param tornjak.config.userManagement.audience UserManagement audience check
       audience: ""
-      
+
     # Tornjak supports 3 connection types: `http`, `tls`, and `mtls`.
     # The connections are determined based on provided configuration
     # When `tlsSecret` is created in this chart namespace, the TLS connection is started
