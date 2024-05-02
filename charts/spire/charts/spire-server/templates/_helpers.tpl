@@ -280,8 +280,12 @@ The code below determines what connection type should be used.
 {{- end -}}
 
 {{- define "spire-server.controller-manager-class-name" -}}
-{{-   if .Values.controllerManager.className }}
-{{-     .Values.controllerManager.className }}
+{{-   if and (hasKey . "settings") (hasKey .settings "className") }}
+{{-       .settings.className }}
+{{-   else if and (hasKey . "defaults") .defaults.className }}
+{{-       .defaults.className }}
+{{-   else if .Values.controllerManager.className }}
+{{-       .Values.controllerManager.className }}
 {{-   else }}
 {{-     .Release.Namespace }}-{{ default .Release.Name .Values.crNameOverride }}
 {{-   end -}}
