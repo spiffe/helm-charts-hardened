@@ -697,6 +697,7 @@ externalControllerManagers:
   ## @param externalControllerManagers.clusters [object] A dictionary of clusters to add with optional overrides. If empty, all clusters defined in kubeConfigs will be used.
   clusters: {}
   # clustera:
+      # Should match the name of the config in the kubeConfigs section
   #   kubeConfigName: foo
   #   reconcile:
   #     clusterStaticEntries: true
