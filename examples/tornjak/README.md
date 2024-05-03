@@ -53,45 +53,35 @@ See [values.yaml](./values.yaml) for more details on the chart configurations to
 
 ## Deploy Tornjak with ingress-nginx
 
-Update your-values.yaml with your information, most importantly, trustDomain, and redeploy.
+Update your-values.yaml with your ingress information, most importantly, trustDomain, and redeploy
+adding the following:
 
 ```shell
-helm upgrade --install -n spire-mgmt spire spire \
---repo https://spiffe.github.io/helm-charts-hardened/ \
---values examples/tornjak/values.yaml \
---values examples/tornjak/values-ingress.yaml \
 --set global.spire.ingressControllerType=ingress-nginx \
---values your-values.yaml \
---render-subchart-notes
+--values examples/tornjak/values-ingress.yaml
 ```
 
-## Tornjak and Ingress on Openshift
+## Deploy Tornjak with Ingress on Openshift
 
-Obtain the OpenShift Apps Subdomain for Ingress
-We will be using the OpenShift application subdomain during our deployment, so let's capture it now and create environment variable by executing the following command:
+Obtain the OpenShift Apps Subdomain for Ingress and assign it to environment variable:
 
 ```shell
 export appdomain=$(oc get cm -n openshift-config-managed  console-public -o go-template="{{ .data.consoleURL }}" | sed 's@https://@@; s/^[^.]*\.//')
 echo $appdomain
 ```
 
-We can now use this variable during the installation of the SPIRE Helm charts.
+So it can be passed as follow:
 
 ```shell
-helm upgrade --install -n spire-mgmt spire spire \
---repo https://spiffe.github.io/helm-charts-hardened/ \
 --set global.openshift=true \
 --set global.spire.trustDomain=$appdomain \
 --set spire-server.ca_subject.common_name=$appdomain \
 --set spire-server.ingress.host=spire-server.$appdomain \
---values examples/tornjak/values.yaml \
 --values examples/tornjak/values-ingress.yaml \
---values your-values.yaml \
---render-subchart-notes
 ```
 
 When running on Openshift in some environments like IBM Cloud,
-you might need to add the following configurations:
+you might need to also add the following configurations:
 
 ```shell
 --values examples/openshift/values-ibm-cloud.yaml
