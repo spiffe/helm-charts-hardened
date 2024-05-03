@@ -61,7 +61,7 @@ spec:
             - name: env
               mountPath: {{ include "tornjak-frontend.workingDir" . }}/build/tmp
             - name: logs
-              mountPath: {{ .Values.logsDir }}
+              mountPath: {{ include "tornjak-frontend.logsDir" . }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
