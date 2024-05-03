@@ -38,6 +38,9 @@
 {{- if and (eq (.Values.keyManager.awsKMS.keyIdentifierFile.enabled | toString) "true") (eq (.Values.keyManager.awsKMS.keyIdentifierValue.enabled | toString ) "true") }}
 {{-   fail "You can only enable one of keyIdentifierFile or keyIdentifierValue at a time" }}
 {{- end }}
+{{- if hasKey .Values.federation.bundleEndpoint "profile" }}
+{{-   fail "It is currently not supported to configure the federation bundle endpoint profile directly. You can specify the setings via federation.tls" }}
+{{- end }}
 {{- define "spire-server.yaml-config" -}}
 {{- $upstreamAuthorityUsed := 0 }}
 {{- $keyManagerUsed := 0 }}
