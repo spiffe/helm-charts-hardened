@@ -120,7 +120,7 @@ startupProbe:
 workingDir: ""
 
 ## @param logsDir Directory path for NPM logs
-logsDir: "/home/node/"
+logsDir: ""
 
 ## @param ingress.enabled Flag to enable ingress for Tornjak frontend service
 ## @param ingress.className Ingress class name for Tornjak frontend service
