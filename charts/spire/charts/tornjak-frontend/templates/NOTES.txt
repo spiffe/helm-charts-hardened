@@ -11,9 +11,9 @@ Tornjak UI (Frontend)
   Tornjak API (Backend): {{ include "tornjak-frontend.apiURL" . }}
   SPIRE health check enabled:  "{{ .Values.spireHealthCheck.enabled }}"
   User Management enabled:  "{{ .Values.auth.enabled }}"
-{{- if not .Values.auth.enabled }}
+{{- if .Values.auth.enabled }}
   User Management API:  "{{ .Values.auth.serverURL }}"
-  
+{{- else }}
   ### WARNING ###
 
   Tornjak is configured to run without authentication and is therefore NOT suitable to run in production environments.
