@@ -471,7 +471,7 @@ controllerManager:
   watchClassless: false
 
   ## @param controllerManager.entryIDPrefixCleanup Sets which entry prefixes to remove for migrations. Consult the spiffe.io docs about this option before changing. Its unlikely you will need to ever change it.
-  entryIDPrefixCleanup: ""
+  entryIDPrefixCleanup: false
 
   ## @param controllerManager.parentIDTemplate The template that is used to register workloads.
   parentIDTemplate: "spiffe://{{ .TrustDomain }}/spire/agent/k8s_psat/{{ .ClusterName }}/{{ .NodeMeta.UID }}"

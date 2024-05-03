@@ -73,7 +73,14 @@ kubectl delete crds clusterfederatedtrustdomains.spire.spiffe.io clusterspiffeid
 
 ## Upgrade notes
 
-We only support upgrading one major version at a time. Version skipping isn't supported.
+We only support upgrading one major/minor version at a time. Version skipping isn't supported. Please see https://spiffe.io/docs/latest/spire-helm-charts-hardened-about/upgrading/ for details.
+
+### 0.21.X
+
+- If your doing upgrades as recommended, there should be no special actions needed.
+
+- The default value for spire-server.controllerManager.entryIDPrefixCleanup has been changed from "" to false. Upgrades through 0.20.X will have cleaned up old entries in the database and after upgrading to 0.21.X, you may now have
+entries managed manually not get overwritten or cleared out by the spire-controller-manager. If you skipped 0.20.0 right to 0.21.X (unsupported), you will need to manually set the value back to "" to get it to cleanup.
 
 ### 0.20.X
 
