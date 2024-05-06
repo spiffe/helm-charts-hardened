@@ -39,7 +39,7 @@
 {{-   fail "You can only enable one of keyIdentifierFile or keyIdentifierValue at a time" }}
 {{- end }}
 {{- if hasKey .Values.federation.bundleEndpoint "profile" }}
-{{-   fail "It is currently not supported to configure the federation bundle endpoint profile directly. You can specify the setings via federation.tls" }}
+{{-   fail "Configuring the federation bundle endpoint profile directly isn't supported. You can specify the settings via federation.tls" }}
 {{- end }}
 {{- define "spire-server.yaml-config" -}}
 {{- $upstreamAuthorityUsed := 0 }}
