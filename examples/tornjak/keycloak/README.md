@@ -38,7 +38,7 @@ kubectl create namespace keycloak
 # Deploy most recent Keycloak instance as an authentication service
 helm upgrade --install -n keycloak keycloak \
 --values examples/tornjak/keycloak/values.yaml \
---set auth.adminUser=your-userid \ --set auth.adminPassword=your-password \
+--set auth.adminUser=your-userid --set auth.adminPassword=your-password \
 oci://registry-1.docker.io/bitnamicharts/keycloak --render-subchart-notes
 ```
 
