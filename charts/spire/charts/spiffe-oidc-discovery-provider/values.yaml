@@ -328,7 +328,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:a0383e176104e7840387deb9fda1782660e903654f39acf62931e2c9a60b7fe1
+      tag: latest@sha256:0aaead0a1bfc92e8d5888b7cb7b77be321fb2aed52526168b107ce26cf0ecfda
 
   toolkit:
     ## @param tests.toolkit.image.registry The OCI registry to pull the image from
@@ -340,7 +340,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/min-toolkit-debug
       pullPolicy: IfNotPresent
-      tag: latest@sha256:773ae9342541de6efc71425dbeeb863fc6cf9856c0dac89266ae3fd8d14a4528
+      tag: latest@sha256:de4a5424d61065ccfc444176c6dc34578210500c9466b0f317f83404fd94d2b6
 
   step:
     ## @param tests.step.image.registry The OCI registry to pull the image from
