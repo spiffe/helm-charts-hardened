@@ -3,6 +3,7 @@
 #     clusterName: changeme
 
 tags:
+  simple: false
   nestedChildSecurity: true
 
 # downstream-spire-agent-security:

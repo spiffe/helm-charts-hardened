@@ -4,5 +4,6 @@
 #    upstreamSpireAddress: spire-server.changeme
 
 tags:
+  simple: false
   nestedChildFull: true
 

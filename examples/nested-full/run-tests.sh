@@ -80,7 +80,7 @@ for cluster in child other; do
     --set "global.spire.upstreamSpireAddress=spire-server.production.other" \
     --set "global.spire.namespaces.create=true" \
     --set "global.spire.clusterName=${cluster}" \
-    spire charts/spire-nested
+    spire charts/spire
 
   kubectl get configmap --kubeconfig "${KC}" -n kube-system coredns -o yaml | grep hosts || kubectl get configmap --kubeconfig "${KC}" -n kube-system coredns -o yaml | sed "/ready/a\        hosts {\n           fallthrough\n        }" | kubectl apply --kubeconfig "${KC}" -f -
   kubectl get configmap --kubeconfig "${KC}" -n kube-system coredns -o yaml | grep production.other || kubectl get configmap --kubeconfig "${KC}" -n kube-system coredns -o yaml | sed "/hosts/a\           $IP spire-server.production.other\n           $IP spire-server.production.other\n" | kubectl apply --kubeconfig "${KC}" -f -
@@ -94,7 +94,7 @@ CHILD_KCB64="$(base64 < "${SCRIPTPATH}/child-spire-root.kubeconfig" | tr '\n' ' 
 OTHER_KCB64="$(base64 < "${SCRIPTPATH}/other-spire-root.kubeconfig" | tr '\n' ' ' | sed 's/ //g')"
 
 helm upgrade --install --create-namespace --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/root-values.yaml" \
-  --wait spire charts/spire-nested \
+  --wait spire charts/spire \
   --set "global.spire.namespaces.create=true" \
   --set "global.spire.ingressControllerType=ingress-nginx" \
   --set "external-spire-server.kubeConfigs.child.kubeConfigBase64=${CHILD_KCB64}" \
