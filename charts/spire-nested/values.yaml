@@ -107,6 +107,7 @@ tags:
 ## @section Spire agent parameters
 ## Parameter values for Spire agent
 ##
+# Used with tags [nestedRoot, nestedChildFull]
 downstream-spire-agent-full:
   # enabled: true
   ## @param downstream-spire-agent-full.nameOverride Overrides the name of Spire agent pods
@@ -120,6 +121,7 @@ downstream-spire-agent-full:
 ## @section Spire agent parameters
 ## Parameter values for Spire agent
 ##
+# Used with tags [nestedChildSecurity]
 downstream-spire-agent-security:
   # enabled: true
   ## @param downstream-spire-agent-security.nameOverride Overrides the name of Spire agent pods
@@ -133,6 +135,7 @@ downstream-spire-agent-security:
 ## @section Upstream Spire agent parameters
 ## Parameter values for upstream Spire agent
 ##
+# Used with tags [nestedRoot, nestedChildFull]
 upstream-spire-agent:
   # enabled: true
   ## @param upstream-spire-agent.upstream Flag for enabling upstream Spire agent
@@ -160,6 +163,7 @@ upstream-spire-agent:
 ## @section SPIFFE CSI Driver parameters
 ## Parameter values for spiffe-csi-driver
 ##
+# Used with tags [nestedRoot, nestedChildFull, nestedChildSecurity]
 downstream-spiffe-csi-driver:
   # enabled: true
   ## @param downstream-spiffe-csi-driver.fullnameOverride Fullname override
@@ -168,6 +172,7 @@ downstream-spiffe-csi-driver:
 ## @section Upstream SPIFFE CSI Driver parameters
 ## Parameter values for upstream spiffe-csi-driver
 ##
+# Used with tags [nestedRoot, nestedChildFull]
 upstream-spiffe-csi-driver:
   # enabled: true
   ## @param upstream-spiffe-csi-driver.fullnameOverride Fullname override
@@ -183,6 +188,7 @@ upstream-spiffe-csi-driver:
 ## @section SPIFFE oidc discovery provider parameters
 ## Parameter values for spiffe-oidc-discovery-provider
 ##
+# Used with tags [nestedRoot, nestedChildFull, nestedChildSecurity]
 spiffe-oidc-discovery-provider:
   # enabled: true
   ## @param spiffe-oidc-discovery-provider.fullnameOverride Fullname override
@@ -195,6 +201,7 @@ tornjak-frontend:
   ## @param tornjak-frontend.enabled Enables deployment of Tornjak frontend/UI (Not for production)
   enabled: false
 
+# Used with tags [nestedRoot]
 root-spire-server:
   # enabled: true
   ## @param root-spire-server.nameOverride Name override
@@ -237,6 +244,7 @@ root-spire-server:
   ## @param root-spire-server.bundleConfigMap The name of the configmap to store the upstream bundle
   bundleConfigMap: spire-bundle-upstream
 
+# Used with tags [nestedChildFull]
 external-root-spire-server-full:
   ## @param external-root-spire-server-full.externalServer Set to true to setup the bundle configmap, rbac rules, and identity documents but doesn't deploy the server locally. Useful for external servers.
   externalServer: true
@@ -274,6 +282,7 @@ external-root-spire-server-full:
   ## @param external-root-spire-server-full.bundleConfigMap The name of the configmap to store the upstream bundle
   bundleConfigMap: spire-bundle-upstream
 
+# Used with tags [nestedChildSecurity]
 external-root-spire-server-security:
   ## @param external-root-spire-server-security.externalServer Set to true to setup the bundle configmap, rbac rules, and identity documents but doesn't deploy the server locally. Useful for external servers.
   externalServer: true
@@ -300,6 +309,7 @@ external-root-spire-server-security:
 ## @section Spire server parameters
 ## Parameter values for Spire server
 ##
+# Used with tags [nestedRoot, nestedChildFull]
 internal-spire-server:
   # enabled: true
   ## @param internal-spire-server.nameOverride Overrides the name of Spire server pods
@@ -327,6 +337,7 @@ internal-spire-server:
   ## @param internal-spire-server.bundleConfigMap The name of the configmap to store the downstream bundle
   bundleConfigMap: spire-bundle-downstream
 
+# Used with tags [nestedRoot]
 external-spire-server:
   # enabled: true
   ## @param external-spire-server.nameOverride Overrides the name of Spire server pods
