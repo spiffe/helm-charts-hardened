@@ -144,9 +144,14 @@ spire-agent:
 # spiffe-csi-driver:
   # enabled: true
 
-# Used with tags [simple, nestedRoot, nestedChildFull, nestedChildSecurity]
-# spiffe-oidc-discovery-provider:
+## @section SPIFFE oidc discovery provider parameters
+## Parameter values for spiffe-oidc-discovery-provider
+##
+# Used with tags [nestedRoot, nestedChildFull, nestedChildSecurity]
+spiffe-oidc-discovery-provider:
   # enabled: true
+  ## @param spiffe-oidc-discovery-provider.fullnameOverride Fullname override
+  fullnameOverride: spiffe-oidc-discovery-provider
 
 ## @section Tornjak frontend parameters
 ## Parameter values for Tornjak frontend
