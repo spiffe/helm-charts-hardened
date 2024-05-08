@@ -75,7 +75,7 @@ So it can be passed as follow:
 ```shell
 --set global.openshift=true \
 --set global.spire.trustDomain=$appdomain \
---set spire-server.ca_subject.common_name=$appdomain \
+--set global.spire.caSubject.commonName=$appdomain \
 --set spire-server.ingress.host=spire-server.$appdomain \
 --values examples/tornjak/values-ingress.yaml \
 ```
