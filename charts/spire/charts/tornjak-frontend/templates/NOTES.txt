@@ -6,14 +6,15 @@ Your release is named: {{ .Release.Name }}
 Namespace: {{ include "tornjak-frontend.namespace" . }}
 
 Tornjak UI (Frontend)
-  image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.image "global" .Values.global) }}
-  pull policy: {{ .Values.image.pullPolicy }}
+  Image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.image "global" .Values.global) }}
+  Image pull policy: {{ .Values.image.pullPolicy }}
+  Ingress enabled: {{ .Values.ingress.enabled }}
   Tornjak API (Backend): {{ include "tornjak-frontend.apiURL" . }}
-  SPIRE health check enabled:  "{{ .Values.spireHealthCheck.enabled }}"
-  User Managemenet enabled:  "{{ .Values.auth.enabled }}"
-  User Managemenet API:  "{{ .Values.auth.serverURL }}"
-
-{{- if not .Values.auth.enabled }}
+  SPIRE health check enabled: {{ .Values.spireHealthCheck.enabled }}
+  User Management enabled:    {{ .Values.auth.enabled }}
+{{- if .Values.auth.enabled }}
+  User Management API:  "{{ .Values.auth.serverURL }}"
+{{- else }}
   ### WARNING ###
 
   Tornjak is configured to run without authentication and is therefore NOT suitable to run in production environments.
