@@ -105,9 +105,9 @@ for cluster in child; do
   KC="${SCRIPTPATH}/kubeconfig-${cluster}"
   kubectl --kubeconfig "${KC}" get configmap -n spire-system spire-bundle-upstream -o yaml
   kubectl --kubeconfig "${KC}" rollout restart daemonset spire-agent-downstream -n spire-system
-  kubectl --kubeconfig "${KC}" rollout restart deployment spiffe-oidc-discovery-provider -n spire-server
+  kubectl --kubeconfig "${KC}" rollout restart deployment spire-spiffe-oidc-discovery-provider -n spire-server
   kubectl --kubeconfig "${KC}" rollout status daemonset spire-agent-downstream -n spire-system --timeout 60s || kubectl logs --kubeconfig "${KC}" daemonset/spire-agent-downstream -n spire-system --prefix --all-containers=true
-  kubectl --kubeconfig "${KC}" rollout status deployment spiffe-oidc-discovery-provider -n spire-server --timeout 60s || kubectl logs --kubeconfig "${KC}" deployment/spiffe-oidc-discovery-provider -n spire-server --prefix --all-containers=true
+  kubectl --kubeconfig "${KC}" rollout status deployment spire-spiffe-oidc-discovery-provider -n spire-server --timeout 60s || kubectl logs --kubeconfig "${KC}" deployment/spire-spiffe-oidc-discovery-provider -n spire-server --prefix --all-containers=true
 
   echo Pods on "${cluster}"
   kubectl --kubeconfig "${KC}" get pods -A

@@ -270,9 +270,6 @@ Now you can interact with the Spire agent socket from your own application. The 
 
 ### SPIFFE oidc discovery provider parameters
 
-| Name                                              | Description       | Value                            |
-| ------------------------------------------------- | ----------------- | -------------------------------- |
-| `spiffe-oidc-discovery-provider.fullnameOverride` | Fullname override | `spiffe-oidc-discovery-provider` |
 
 ### Tornjak frontend parameters
 
