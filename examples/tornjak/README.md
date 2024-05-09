@@ -63,7 +63,8 @@ adding the following:
 
 ## Deploy Tornjak with Ingress on Openshift
 
-Obtain the OpenShift Apps Subdomain for Ingress and assign it to environment variable:
+Obtain the OpenShift Apps Subdomain for Ingress and assign it to the `trustDomain`
+environment variable:
 
 ```shell
 export appdomain=$(oc get cm -n openshift-config-managed  console-public -o go-template="{{ .data.consoleURL }}" | sed 's@https://@@; s/^[^.]*\.//')
@@ -75,8 +76,6 @@ So it can be passed as follow:
 ```shell
 --set global.openshift=true \
 --set global.spire.trustDomain=$appdomain \
---set global.spire.caSubject.commonName=$appdomain \
---set spire-server.ingress.host=spire-server.$appdomain \
 --values examples/tornjak/values-ingress.yaml \
 ```
 
