@@ -15,19 +15,27 @@ Tornjak UI (Frontend)
 {{- if .Values.auth.enabled }}
   User Management API:  "{{ .Values.auth.serverURL }}"
 {{- else }}
+
   ### WARNING ###
 
   Tornjak is configured to run without authentication and is therefore NOT suitable to run in production environments.
   Only use in test environments!
 {{- end }}
 
-Access Tornjak:
+Access Tornjak UI:
+
+{{- if .Values.ingress.enabled }}
+
+Open browser to:
+{{ printf "https://tornjak-frontend.%s" (include "spire-lib.trust-domain" .) }}
+{{- else }}
 
   kubectl -n {{ include "tornjak-frontend.namespace" . }} port-forward service/{{ include "tornjak-frontend.fullname" . }} {{ .Values.service.port }}:3000
 
 Ensure you have port-forwarding for tornjak-backend as well.
 
 Open browser to: http://localhost:{{ .Values.service.port }}
+{{- end }}
 
 To learn more about the release, try:
 
