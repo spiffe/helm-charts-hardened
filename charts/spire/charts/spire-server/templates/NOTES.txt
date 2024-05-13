@@ -1,8 +1,8 @@
 Installed {{ .Chart.Name }}…
 
-1. Get the currently registered SPIFFE entries from the server:
+Get the currently registered SPIFFE entries from the server:
 
-  kubectl exec -n {{ .Release.Namespace }} {{ include "spire-server.fullname" . }}-0 -c spire-server -- \
+  kubectl exec -n {{ include "spire-server.namespace" . }} {{ include "spire-server.fullname" . }}-0 -c spire-server -- \
     spire-server entry show
 
 {{- if eq (.Values.tornjak.enabled | toString) "true" }}
