@@ -114,6 +114,8 @@ plugins:
         # can authenticate the kubelet cert, so skip validation.
         skip_kubelet_verification: {{ .Values.workloadAttestors.k8s.skipKubeletVerification }}
         disable_container_selectors: {{ .Values.workloadAttestors.k8s.disableContainerSelectors }}
+        use_new_container_locator: {{ .Values.workloadAttestors.k8s.useNewContainerLocator }}
+        verbose_container_locator_logs: {{ .Values.workloadAttestors.k8s.verboseContainerLocatorLogs }}
   {{- end }}
 
   {{- if .Values.workloadAttestors.unix.enabled }}
