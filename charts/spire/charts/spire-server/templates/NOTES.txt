@@ -19,7 +19,7 @@ Installed {{ include "spire-tornjak.fullname" . }}…
 
 Access Tornjak API (Backend):
 
-{{- if .Values.ingress.enabled }}
+{{- if .Values.tornjak.ingress.enabled }}
 
   Connect to: {{ printf "https://tornjak-backend.%s" (include "spire-lib.trust-domain" .) }}
 
