@@ -79,8 +79,7 @@ We only support upgrading one major/minor version at a time. Version skipping is
 
 - If you're doing upgrades as recommended, no special actions should be needed.
 
-- The default value for spire-server.controllerManager.entryIDPrefixCleanup has been changed from "" to false. Upgrades through 0.20.X will have cleaned up old entries in the database and after upgrading to 0.21.X, you may now have
-entries managed manually not get overwritten or cleared out by the spire-controller-manager. If you skipped 0.20.0 right to 0.21.X (unsupported), you will need to manually set the value back to "" to get it to cleanup.
+- spire-server.controllerManager.entryIDPrefixCleanup's default changed from "" to false. Upgrades through 0.20.X clean up old entries in the database. After upgrading to 0.21.X, manual entries will not be overridden by the spire-controller-manager. Skipping over chart releases (unsupported), requires manual setting of this value to "" to trigger the cleanup.
 
 ### 0.20.X
 
