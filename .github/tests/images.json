@@ -8,7 +8,7 @@
   ],
   "spire-agent/values.yaml": [
     {
-      "query": "waitForIt.image",
+      "query": "socketAlternate.image",
       "filter": "LATESTSHA",
       "sort-flags": []
     },

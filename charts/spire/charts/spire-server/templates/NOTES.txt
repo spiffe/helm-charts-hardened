@@ -1,25 +1,36 @@
 Installed {{ .Chart.Name }}…
 
-1. Get the currently registered SPIFFE entries from the server:
+Get the currently registered SPIFFE entries from the server:
 
-  kubectl exec -n {{ .Release.Namespace }} {{ include "spire-server.fullname" . }}-0 -c spire-server -- \
+  kubectl exec -n {{ include "spire-server.namespace" . }} {{ include "spire-server.fullname" . }}-0 -c spire-server -- \
     spire-server entry show
 
 {{- if eq (.Values.tornjak.enabled | toString) "true" }}
 
 Installed {{ include "spire-tornjak.fullname" . }}…
 
-### WARNING ###
+{{- if eq .Values.tornjak.config.userManagement.issuer "" }}
 
-Tornjak runs without authentication and is therefore NOT suitable to run in production environments.
-Only use in test environments!
+  ### WARNING ###
 
-Access Tornjak:
-   kubectl -n {{ include "spire-server.namespace" . }} port-forward service/{{ include "spire-tornjak.servicename" . }} {{ .Values.tornjak.service.ports.http }}:10000
+  Tornjak is configured to run without authentication and is therefore NOT suitable to run in production environments.
+  Only use in test environments!
+{{- end }}
+
+Access Tornjak API (Backend):
+
+{{- if .Values.tornjak.ingress.enabled }}
+
+  Connect to: {{ printf "https://tornjak-backend.%s" (include "spire-lib.trust-domain" .) }}
+
+{{- else }}
+  kubectl -n {{ include "spire-server.namespace" . }} port-forward service/{{ include "spire-tornjak.servicename" . }} {{ .Values.tornjak.service.ports.http }}:10000
 {{- if eq (include "spire-tornjak.connectionType" .) "http" }}
-  Open browser to: http://localhost:{{ .Values.tornjak.service.ports.http }}
+
+  Connect to:  http://localhost:{{ .Values.tornjak.service.ports.http }}
 {{- else if eq (include "spire-tornjak.connectionType" .) "tls" }}
-  Open browser to: https://localhost:{{ .Values.tornjak.service.ports.https }}
+
+  Connect to: https://localhost:{{ .Values.tornjak.service.ports.https }}
 
   *** NOTE: You might get a security warning if using self-signed certificate
   or use curl:
@@ -33,5 +44,6 @@ Access Tornjak:
   {{- end }}
 {{- else }}
   ERROR! Incorrect value selected for "Values.tornjak.config.connectionType"
+{{- end }}
 {{- end }}
 {{- end }}

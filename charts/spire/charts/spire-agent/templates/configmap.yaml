@@ -1,3 +1,4 @@
+{{- define "spire-agent.check-config-values" -}}
 {{- include "spire-lib.check-strict-mode" (list . "clusterName must be set" (eq (include "spire-lib.cluster-name" .) "example-cluster"))}}
 {{- include "spire-lib.check-strict-mode" (list . "trustDomain must be set" (eq (include "spire-lib.trust-domain" .) "example.org"))}}
 {{- range $type, $tvals := .Values.customPlugins }}
@@ -18,13 +19,28 @@
 {{-     end }}
 {{-   end }}
 {{- end }}
+{{- if hasPrefix (.Values.socketPath | dir | clean) (.Values.sockets.hostBasePath | clean) }}
+{{- fail "The sockets.hostBasePath can not be located under the socketPath direcotry" }}
+{{- end }}
+{{- end }}
 {{- define "spire-agent.yaml-config" -}}
 agent:
+  {{- if .Values.disableReattestToRenew }}
+  disable_reattest_to_renew: true
+  {{- end }}
+  {{- if .Values.sockets.admin.enabled }}
+  admin_socket_dir: /tmp/spire-agent/private/admin.sock
+  {{- end }}
+  {{- with .Values.authorizedDelegates }}
+  authorized_delegates:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   data_dir: "/run/spire"
   log_level: {{ .Values.logLevel | quote }}
+  retry_bootstrap: true
   server_address: {{ include "spire-agent.server-address" . | trim | quote }}
   server_port: {{ .Values.server.port | quote }}
-  socket_path: {{ include "spire-agent.socket-path" . | quote }}
+  socket_path: /tmp/spire-agent/public/{{ include "spire-agent.socket-path" . | base }}
   {{- if ne (len .Values.trustBundleURL) 0 }}
   trust_bundle_url: {{ .Values.trustBundleURL | quote }}
   trust_bundle_format: {{ .Values.trustBundleFormat | quote }}
@@ -66,6 +82,15 @@ plugins:
         cluster: {{ include "spire-lib.cluster-name" . | quote }}
     {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
     {{- end }}
+    {{- with .Values.nodeAttestor.tpmDirect }}
+    {{- if eq (.enabled | toString) "true" }}
+    tpm:
+      plugin_cmd: "/tpm/tpm_attestor_agent"
+      plugin_checksum: {{ .plugin.checksum }}
+      plugin_data: {}
+    {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
+    {{- end }}
+    {{- end }}
 {{- if ne $nodeAttestorUsed 1 }}
 {{- fail (printf "You have to enable exactly one Node Attestor. There are %d enabled." $nodeAttestorUsed) }}
 {{- end }}
@@ -89,6 +114,8 @@ plugins:
         # can authenticate the kubelet cert, so skip validation.
         skip_kubelet_verification: {{ .Values.workloadAttestors.k8s.skipKubeletVerification }}
         disable_container_selectors: {{ .Values.workloadAttestors.k8s.disableContainerSelectors }}
+        use_new_container_locator: {{ .Values.workloadAttestors.k8s.useNewContainerLocator }}
+        verbose_container_locator_logs: {{ .Values.workloadAttestors.k8s.verboseContainerLocatorLogs }}
   {{- end }}
 
   {{- if .Values.workloadAttestors.unix.enabled }}
@@ -110,10 +137,22 @@ telemetry:
         port: {{ .Values.telemetry.prometheus.port }}
 {{- end }}
 {{- end }}
+{{- $root := . }}
+{{- range $name := (concat (list "default") (keys .Values.agents)) | uniq }}
+{{- with (dict "Release" $root.Release "Chart" $root.Chart "Values" (deepCopy $root.Values)) }}
+{{- $nameSuffix := "" }}
+{{- if ne $name "default" }}
+{{-   $nameSuffix = printf "-%s" $name }}
+{{- end }}
+{{- if hasKey $root.Values.agents $name }}
+{{-   $_ := set . "Values" (mergeOverwrite .Values (index $root.Values.agents $name)) }}
+{{- end }}
+{{- include "spire-agent.check-config-values" . }}
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "spire-agent.fullname" . }}
+  name: {{ include "spire-agent.fullname" . }}{{ $nameSuffix }}
   namespace: {{ include "spire-agent.namespace" . }}
   {{- with .Values.configMap.annotations }}
   annotations:
@@ -122,3 +161,5 @@ metadata:
 data:
   agent.conf: |
     {{- include "spire-lib.reformat-and-yaml2json" (dict "config" (include "spire-agent.yaml-config" .) "root" .) | nindent 4 }}
+{{- end }}
+{{- end }}

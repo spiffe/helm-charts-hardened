@@ -103,6 +103,8 @@ Create the name of the service account to use
 {{- print .Values.global.spire.upstreamSpireAddress }}
 {{- else if .Values.server.address }}
 {{- .Values.server.address }}
+{{- else if .Values.server.nameOverride }}
+{{ .Release.Name }}-{{ .Values.server.nameOverride }}.{{ include "spire-agent.server.namespace" . }}
 {{- else }}
 {{ .Release.Name }}-server.{{ include "spire-agent.server.namespace" . }}
 {{- end }}
@@ -124,4 +126,12 @@ Create the name of the service account to use
 {{-   else }}
 {{-     printf "false" }}
 {{-   end }}
+{{- end }}
+
+{{- define "spire-agent.socket-alternate-names" -}}
+{{-   $sockName := .Values.socketPath | base }}
+{{-   $l := deepCopy .Values.socketAlternate.names }}
+{{-   $l = without $l $sockName }}
+names:
+{{ $l | toYaml }}
 {{- end }}

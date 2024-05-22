@@ -2,27 +2,27 @@
   {
     "name": "kube-prometheus-stack",
     "repo": "https://prometheus-community.github.io/helm-charts",
-    "version": "56.6.2"
+    "version": "58.6.0"
   },
   {
     "name": "cert-manager",
     "repo": "https://charts.jetstack.io",
-    "version": "v1.14.1"
+    "version": "v1.14.5"
   },
   {
     "name": "ingress-nginx",
     "repo": "https://kubernetes.github.io/ingress-nginx",
-    "version": "4.9.1"
+    "version": "4.10.1"
   },
   {
     "name": "mysql",
     "repo": "https://charts.bitnami.com/bitnami",
-    "version": "9.19.1"
+    "version": "10.2.4"
   },
   {
     "name": "postgresql",
     "repo": "https://charts.bitnami.com/bitnami",
-    "version": "14.0.1"
+    "version": "15.3.3"
   },
   {
     "name": "kyverno",

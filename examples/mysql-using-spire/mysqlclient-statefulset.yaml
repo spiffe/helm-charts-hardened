@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysqlclient
+spec:
+  replicas: 1
+  #serviceName: mysqlclient
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: mysqlclient
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: mysqlclient
+    spec:
+      terminationGracePeriodSeconds: 0
+      initContainers:
+      - name: init-tls
+        image: ghcr.io/spiffe/spiffe-helper:nightly@sha256:8cee346ffdcee5c996d394f1c3bb761c2c06834a0e779a78db6dc6a46fd13ae6
+        imagePullPolicy: Always
+        command:
+        - /spiffe-helper
+        - -config
+        - /etc/spiffe-helper.conf
+        - -exitWhenReady
+        securityContext:
+          runAsUser: 1001
+          runAsGroup: 1001
+        volumeMounts:
+        - name: spiffe-workload-api
+          mountPath: /spiffe-workload-api
+          readOnly: true
+        - name: spiffe-helper-configmap
+          mountPath: /etc/spiffe-helper.conf
+          subPath: spiffe-helper.conf
+          readOnly: true
+        - name: certdir
+          mountPath: /certs
+      containers:
+      - name: main
+        image: docker.io/bitnami/mysql:8.0.35-debian-11-r0
+        command: [sleep, inf]
+        securityContext:
+          runAsUser: 1001
+          runAsGroup: 1001
+        volumeMounts:
+        - name: certdir
+          mountPath: /certs
+      - name: refresh-tls
+        image: ghcr.io/spiffe/spiffe-helper:nightly@sha256:8cee346ffdcee5c996d394f1c3bb761c2c06834a0e779a78db6dc6a46fd13ae6
+        imagePullPolicy: Always
+        command:
+        - /spiffe-helper
+        - -config
+        - /etc/spiffe-helper.conf
+        securityContext:
+          runAsUser: 1001
+          runAsGroup: 1001
+        volumeMounts:
+        - name: spiffe-workload-api
+          mountPath: /spiffe-workload-api
+          readOnly: true
+        - name: spiffe-helper-configmap
+          mountPath: /etc/spiffe-helper.conf
+          subPath: spiffe-helper.conf
+          readOnly: true
+        - name: certdir
+          mountPath: /certs
+      volumes:
+      - name: certdir
+        emptyDir: {}
+      - name: spiffe-helper-configmap
+        configMap:
+          name: mysqlclient
+      - name: spiffe-workload-api
+        csi:
+          driver: "csi.spiffe.io"
+          readOnly: true
