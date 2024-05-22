@@ -34,6 +34,14 @@ helm install -n spire-server spire-crds spire-crds --repo https://spiffe.github.
 helm install -n spire-server spire spire --repo https://spiffe.github.io/helm-charts-hardened/
 ```
 
+## Build Instructions
+
+Until there is an official release of this chart, before you can use it out of git, you have to run
+```
+cd charts/spiffe-helper-csi-driver
+helm dep up
+```
+
 ## Install Instructions
 ```
 helm install -n spire-server spiffe-helper-csi-driver charts/spiffe-helper-csi-driver

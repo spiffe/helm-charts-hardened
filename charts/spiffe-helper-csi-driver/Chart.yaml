@@ -20,3 +20,7 @@ maintainers:
     email: fymemon@yahoo.com
   - name: edwbuck
     email: edwbuck@gmail.com
+dependencies:
+  - name: spire-lib
+    repository: file://../spire/charts/spire-lib
+    version: 0.1.0
