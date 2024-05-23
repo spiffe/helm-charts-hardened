@@ -70,7 +70,7 @@ clusterName: {{ .clusterName }}
 trustDomain: {{ include "spire-lib.trust-domain" . }}
 {{- $ignoreNamespaces := .defaults.ignoreNamespaces }}
 {{- if hasKey .settings "ignoreNamespaces" }}
-{{-   $ignoreNamespaces = .settings.ingoreNamespaces }}
+{{-   $ignoreNamespaces = .settings.ignoreNamespaces }}
 {{- end }}
 {{- with $ignoreNamespaces }}
 ignoreNamespaces:
