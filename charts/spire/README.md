@@ -75,6 +75,11 @@ kubectl delete crds clusterfederatedtrustdomains.spire.spiffe.io clusterspiffeid
 
 We only support upgrading one major version at a time. Version skipping isn't supported.
 
+### 0.21.X
+
+- In previous versions, spire-server.upstreamAuthority.certManager.issuer_name would incorrectly have '-ca' appended. Starting with this version, that is no longer the case. If you previously set this
+value, you likely want to update your value to include the '-ca' suffix in the value to have your deployment continue to function properly.
+
 ### 0.20.X
 
 - The default service port for the spire-server was changed to be port 443 to allow easier switching between internal access and external access through an ingress controller. For most users, this will be a transparent
