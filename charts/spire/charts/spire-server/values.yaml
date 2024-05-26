@@ -540,6 +540,31 @@ controllerManager:
     - kube-system
     - kube-public
     - local-path-storage
+    # openshift related namespaces that should be typically ignored
+    - openshift-cluster-node-tuning-operator
+    - openshift-cluster-samples-operator
+    - openshift-cluster-storage-operator
+    - openshift-console-operator
+    - openshift-console
+    - openshift-dns
+    - openshift-dns-operator
+    - openshift-image-registry
+    - openshift-ingress
+    - openshift-kube-storage-version-migrator
+    - openshift-kube-storage-version-migrator-operator
+    - openshift-kube-proxy
+    - openshift-marketplace
+    - openshift-monitoring
+    - openshift-multus
+    - openshift-network-diagnostics
+    - openshift-network-operator
+    - openshift-operator-lifecycle-manager
+    - openshift-roks-metrics
+    - openshift-service-ca-operator
+    - openshift-service-ca
+    # ibmcloud specific namespaces
+    - ibm-odf-validation-webhook
+    - ibm-system
 
   ## @param controllerManager.reconcile.clusterSPIFFEIDs Enable reconciliation of clusterSPIFFEIDs from K8s to the SPIRE server
   ## @param controllerManager.reconcile.clusterStaticEntries Enable reconciliation of clusterStaticEntries from K8s to the SPIRE server
@@ -693,6 +718,31 @@ externalControllerManagers:
       - kube-system
       - kube-public
       - local-path-storage
+      # openshift related namespaces that should be typically ignored
+      - openshift-cluster-node-tuning-operator
+      - openshift-cluster-samples-operator
+      - openshift-cluster-storage-operator
+      - openshift-console-operator
+      - openshift-console
+      - openshift-dns
+      - openshift-dns-operator
+      - openshift-image-registry
+      - openshift-ingress
+      - openshift-kube-storage-version-migrator
+      - openshift-kube-storage-version-migrator-operator
+      - openshift-kube-proxy
+      - openshift-marketplace
+      - openshift-monitoring
+      - openshift-multus
+      - openshift-network-diagnostics
+      - openshift-network-operator
+      - openshift-operator-lifecycle-manager
+      - openshift-roks-metrics
+      - openshift-service-ca-operator
+      - openshift-service-ca
+      # ibmcloud specific namespaces
+      - ibm-odf-validation-webhook
+      - ibm-system
     ## @param externalControllerManagers.defaults.cacheNamespaces [object] If specified restricts the manager's cache to watch objects in the desired namespaces. Defaults to all namespaces.
     cacheNamespaces: {}
 
