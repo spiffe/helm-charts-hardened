@@ -23,6 +23,9 @@ image:
 ## @param kind Define SPIRE server deployment type. Can be statefulset/deployment. Defaults to statefulset if not set. This feature is experimental.
 kind: statefulset
 
+## @param externalServer Deploy only the bundle ConfigMap, RBAC rules, and identity documents but not the server. Use in a nested setup where the server is external.
+externalServer: false
+
 ## @param imagePullSecrets [array] Pull secrets for images
 imagePullSecrets: []
 
@@ -75,7 +78,7 @@ priorityClassName: ""
 ##
 service:
   type: ClusterIP
-  port: 8081
+  port: 443
   annotations: {}
 
 configMap:
@@ -207,6 +210,8 @@ federation:
     port: 8443
     ## @param federation.bundleEndpoint.address Address for trust bundle federation
     address: "0.0.0.0"
+    ## @param federation.bundleEndpoint.refresh_hint Hint used by federated servers on how often to refresh the bundle. CA TTL must be 3-5x the duration of this value to ensure public keys are loaded on federated servers prior to private key rotation on remote server.
+    refresh_hint: "5m"
 
   tls:
     spire:
@@ -307,6 +312,14 @@ keyManager:
     enabled: false
     ## @param keyManager.awsKMS.region Specify the region for AWS KMS
     region: ""
+    keyIdentifierFile:
+      ## @param keyManager.awsKMS.keyIdentifierFile.enabled Enable key identifier data to be stored in a file in persistent storage.
+      enabled: false
+    keyIdentifierValue:
+      ## @param keyManager.awsKMS.keyIdentifierValue.enabled Enable specifying a key identifier value for AWS KMS
+      enabled: false
+      ## @param keyManager.awsKMS.keyIdentifierValue.identifier Static identifier for the SPIRE server instance
+      identifier: ""
     ## @extra keyManager.awsKMS.keyPolicy Policy to use when creating keys. If no policy is specified, a default policy will be used.
     keyPolicy:
       ## @param keyManager.awsKMS.keyPolicy.policy [nullable] Key policy in JSON format.
@@ -395,7 +408,7 @@ upstreamAuthority:
       ## @param upstreamAuthority.spire.server.address Address for upstream Spire server
       address: ""
       ## @param upstreamAuthority.spire.server.port Port for upstream Spire server
-      port: 8081
+      port: 443
   vault:
     ## @param upstreamAuthority.vault.enabled Enable Hashicorp Vault as upstream CA
     enabled: false
@@ -457,6 +470,9 @@ controllerManager:
   ## @param controllerManager.watchClassless specify to process custom resources without class name specified. Useful to slowly migrate to class names from classless installs. Do not have two installs on the same k8s cluster both set to true.
   watchClassless: false
 
+  ## @param controllerManager.entryIDPrefixCleanup Sets which entry prefixes to remove for migrations. Consult the spiffe.io docs about this option before changing. Its unlikely you will need to ever change it.
+  entryIDPrefixCleanup: ""
+
   ## @param controllerManager.parentIDTemplate The template that is used to register workloads.
   parentIDTemplate: "spiffe://{{ .TrustDomain }}/spire/agent/k8s_psat/{{ .ClusterName }}/{{ .NodeMeta.UID }}"
 
@@ -482,7 +498,7 @@ controllerManager:
     registry: ghcr.io
     repository: spiffe/spire-controller-manager
     pullPolicy: IfNotPresent
-    tag: "0.4.4"
+    tag: "0.5.0"
 
   ## @param controllerManager.resources [object] Resource requests and limits for controller manager
   resources: {}
@@ -524,6 +540,31 @@ controllerManager:
     - kube-system
     - kube-public
     - local-path-storage
+    # openshift related namespaces that should be typically ignored
+    - openshift-cluster-node-tuning-operator
+    - openshift-cluster-samples-operator
+    - openshift-cluster-storage-operator
+    - openshift-console-operator
+    - openshift-console
+    - openshift-dns
+    - openshift-dns-operator
+    - openshift-image-registry
+    - openshift-ingress
+    - openshift-kube-storage-version-migrator
+    - openshift-kube-storage-version-migrator-operator
+    - openshift-kube-proxy
+    - openshift-marketplace
+    - openshift-monitoring
+    - openshift-multus
+    - openshift-network-diagnostics
+    - openshift-network-operator
+    - openshift-operator-lifecycle-manager
+    - openshift-roks-metrics
+    - openshift-service-ca-operator
+    - openshift-service-ca
+    # ibmcloud specific namespaces
+    - ibm-odf-validation-webhook
+    - ibm-system
 
   ## @param controllerManager.reconcile.clusterSPIFFEIDs Enable reconciliation of clusterSPIFFEIDs from K8s to the SPIRE server
   ## @param controllerManager.reconcile.clusterStaticEntries Enable reconciliation of clusterStaticEntries from K8s to the SPIRE server
@@ -567,6 +608,14 @@ controllerManager:
         downstream: false
         ## @param controllerManager.identities.clusterSPIFFEIDs.default.autoPopulateDNSNames Auto populate DNS names from services attached to pods
         autoPopulateDNSNames: false
+
+      child-servers:
+        ## @param controllerManager.identities.clusterSPIFFEIDs.child-servers.enabled Enable this identity for controller manager
+        enabled: false
+        ## @param controllerManager.identities.clusterSPIFFEIDs.child-servers.type The type of rule this is.
+        type: child-servers
+        ## @param controllerManager.identities.clusterSPIFFEIDs.child-servers.downstream Set if this spire instance is a root server and the workloads are downstream servers.
+        downstream: true
 
       oidc-discovery-provider:
         ## @param controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.enabled Enable this identity for controller manager
@@ -633,6 +682,78 @@ controllerManager:
   #       lName: l1
   #    fieldSelectors:
   #       fName: f1
+
+externalControllerManagers:
+  ## @param externalControllerManagers.enabled Flag to enable external controller managers
+  enabled: false
+  defaults:
+    ## @param externalControllerManagers.defaults.reconcile.clusterSPIFFEIDs Enable reconciliation of clusterSPIFFEIDs from K8s to the SPIRE server
+    ## @param externalControllerManagers.defaults.reconcile.clusterStaticEntries Enable reconciliation of clusterStaticEntries from K8s to the SPIRE server
+    ## @param externalControllerManagers.defaults.reconcile.clusterFederatedTrustDomains Enable reconciliation of clusterFederatedTrustDomains from K8s to the SPIRE server
+    reconcile:
+      clusterSPIFFEIDs: true
+      clusterStaticEntries: false
+      clusterFederatedTrustDomains: false
+    ## @param externalControllerManagers.defaults.className specify to use an explicit class name. If empty, it will be automatically set to Release.Namespace-Release.Name to not conflict with other installs, enabling parallel installs.
+    className: ""
+    ## @param externalControllerManagers.defaults.watchClassless specify to process custom resources without class name specified. Useful to slowly migrate to class names from classless installs. Do not have two installs on the same k8s cluster both set to true.
+    watchClassless: false
+    ## @param externalControllerManagers.defaults.entryIDPrefixCleanup consult the spiffe.io docs about this option before changing. Its unlikely you will need to ever change it.
+    entryIDPrefixCleanup: false
+    ## @param externalControllerManagers.defaults.parentIDTemplate The template that is used to register workloads.
+    parentIDTemplate: "spiffe://{{ .TrustDomain }}/spire/agent/k8s_psat/{{ .ClusterName }}/{{ .NodeMeta.UID }}"
+    ## @param externalControllerManagers.defaults.expandEnv Set to true to enable environment variable substitution of config file options
+    expandEnv: false
+    ## @param externalControllerManagers.defaults.extraEnv [array] Extra environment variables to add to the controller manager
+    extraEnv: []
+    ## @param externalControllerManagers.defaults.resources [object] Resource requests and limits for controller manager
+    resources: {}
+    ## @param externalControllerManagers.defaults.securityContext [object] Security context
+    securityContext: {}
+    configMap:
+      ## @param externalControllerManagers.defaults.configMap.annotations [object] Annotations to add to the Controller Manager ConfigMap
+      annotations: {}
+    ## @param externalControllerManagers.defaults.ignoreNamespaces [array] These namespaces are ignored by controller manager
+    ignoreNamespaces:
+      - kube-system
+      - kube-public
+      - local-path-storage
+      # openshift related namespaces that should be typically ignored
+      - openshift-cluster-node-tuning-operator
+      - openshift-cluster-samples-operator
+      - openshift-cluster-storage-operator
+      - openshift-console-operator
+      - openshift-console
+      - openshift-dns
+      - openshift-dns-operator
+      - openshift-image-registry
+      - openshift-ingress
+      - openshift-kube-storage-version-migrator
+      - openshift-kube-storage-version-migrator-operator
+      - openshift-kube-proxy
+      - openshift-marketplace
+      - openshift-monitoring
+      - openshift-multus
+      - openshift-network-diagnostics
+      - openshift-network-operator
+      - openshift-operator-lifecycle-manager
+      - openshift-roks-metrics
+      - openshift-service-ca-operator
+      - openshift-service-ca
+      # ibmcloud specific namespaces
+      - ibm-odf-validation-webhook
+      - ibm-system
+    ## @param externalControllerManagers.defaults.cacheNamespaces [object] If specified restricts the manager's cache to watch objects in the desired namespaces. Defaults to all namespaces.
+    cacheNamespaces: {}
+
+  ## @param externalControllerManagers.clusters [object] A dictionary of clusters to add with optional overrides. If empty, all clusters defined in kubeConfigs will be used.
+  clusters: {}
+  # clustera:
+      # Should match the name of the config in the kubeConfigs section
+  #   kubeConfigName: foo
+  #   reconcile:
+  #     clusterStaticEntries: true
+  # other: {}
 
 tools:
   kubectl:
@@ -786,7 +907,7 @@ tornjak:
     repository: spiffe/tornjak-backend
     pullPolicy: IfNotPresent
     tag: ""
-    defaultTag: "v1.4.2"
+    defaultTag: "v1.6.0"
 
   service:
     ## @param tornjak.service.type Type of service resource
@@ -849,6 +970,12 @@ tornjak:
       driver: "sqlite3"
       ## @param tornjak.config.dataStore.file File path for sqlite3 file
       file: "/run/spire/data/tornjak.sqlite3"
+    ## @extra tornjak.config.userManagement [object] UserManagement config
+    userManagement:
+      ## @param tornjak.config.userManagement.issuer UserManagement issuer URL
+      issuer: ""
+      ## @param tornjak.config.userManagement.audience UserManagement audience check
+      audience: ""
 
     # Tornjak supports 3 connection types: `http`, `tls`, and `mtls`.
     # The connections are determined based on provided configuration
@@ -936,7 +1063,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:3b5e8046bc76624f645b97684845c3aef3c27d001db0f3f71d1ffbdf885edea7
+      tag: latest@sha256:a996ae2a4dc5601e29821e8f1bfc3ea886f3e544204042b0ed103be697a2b0eb
 
 ## @param kubeConfigs [object] Manage additional kubeconfig files to talk to external Kubernetes clusters
 kubeConfigs: {}

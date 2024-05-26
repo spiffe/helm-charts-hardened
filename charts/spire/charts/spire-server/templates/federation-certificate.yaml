@@ -20,7 +20,7 @@ secretName: {{ $issuerFullName }}-cert
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: {{ include "spire-server.fullname" . }}
+  name: {{ include "spire-server.fullname" . }}-fed
   namespace: {{ include "spire-server.namespace" . }}
 spec:
   {{ merge (include "spire-server.federation-cert-manager-default-cert" . | fromYaml) .Values.federation.tls.certManager.certificate | toYaml | nindent 2 }}

@@ -249,7 +249,7 @@ jobs:
 
       - name: Install and test example
         run: |
-          if [ "${{ matrix.example }}" = "examples/federation" ]; then
+          if [ "${{ matrix.example }}" = "examples/federation" -o "${{ matrix.example }}" = "examples/nested-full" -o "${{ matrix.example }}" = "examples/nested-security" ]; then
             kubectl create namespace spire-mgmt
             helm install -n spire-mgmt spire-crds charts/spire-crds
           else
@@ -300,8 +300,7 @@ jobs:
 
       - name: Install and test integration
         run: |
-          kubectl create namespace spire-server
-          helm install -n spire-server spire-crds charts/spire-crds
+          helm install --create-namespace -n spire-mgmt spire-crds charts/spire-crds
           ${{ matrix.integrationtest }}/run-tests.sh
 
   upgrade-test:

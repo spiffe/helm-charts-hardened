@@ -1,0 +1,8 @@
+#global:
+#  spire:
+#    clusterName: changeme
+#    upstreamSpireAddress: spire-server.changeme
+
+tags:
+  nestedChildFull: true
+

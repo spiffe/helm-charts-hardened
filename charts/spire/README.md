@@ -1,6 +1,6 @@
 # spire
 
-![Version: 0.19.2](https://img.shields.io/badge/Version-0.19.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.9.3](https://img.shields.io/badge/AppVersion-1.9.3-informational?style=flat-square)
+![Version: 0.20.0](https://img.shields.io/badge/Version-0.20.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.9.6](https://img.shields.io/badge/AppVersion-1.9.6-informational?style=flat-square)
 [![Development Phase](https://github.com/spiffe/spiffe/blob/main/.img/maturity/dev.svg)](https://github.com/spiffe/spiffe/blob/main/MATURITY.md#development)
 
 A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
@@ -74,6 +74,21 @@ kubectl delete crds clusterfederatedtrustdomains.spire.spiffe.io clusterspiffeid
 ## Upgrade notes
 
 We only support upgrading one major version at a time. Version skipping isn't supported.
+
+### 0.21.X
+
+- In previous versions, spire-server.upstreamAuthority.certManager.issuer_name would incorrectly have '-ca' appended. Starting with this version, that is no longer the case. If you previously set this
+value, you likely want to update your value to include the '-ca' suffix in the value to have your deployment continue to function properly.
+
+### 0.20.X
+
+- The default service port for the spire-server was changed to be port 443 to allow easier switching between internal access and external access through an ingress controller. For most users, this will be a transparent
+change.
+
+- This release configures the entries managed by the spire-controller-manager to move into their own managed space within SPIRE. This should be transparent. In a future release, we will
+disable cleanup by default of the old space. This release lays the groundwork for future support for manually created entries in the SPIRE database without the spire-controller-manager
+destroying them. It is supported in this release by manually setting spire-server.controllerManager.entryIDPrefixCleanup=false after successfully upgrading to the chart without the
+setting and waiting for a spire-controller-manager sync.
 
 ### 0.19.X
 
@@ -247,12 +262,13 @@ Now you can interact with the Spire agent socket from your own application. The 
 
 ### Spire server parameters
 
-| Name                                     | Description                                                               | Value         |
-| ---------------------------------------- | ------------------------------------------------------------------------- | ------------- |
-| `spire-server.enabled`                   | Flag to enable Spire server                                               | `true`        |
-| `spire-server.nameOverride`              | Overrides the name of Spire server pods                                   | `server`      |
-| `spire-server.kind`                      | Run spire server as deployment/statefulset. This feature is experimental. | `statefulset` |
-| `spire-server.controllerManager.enabled` | Enable controller manager and provision CRD's                             | `true`        |
+| Name                                              | Description                                                               | Value         |
+| ------------------------------------------------- | ------------------------------------------------------------------------- | ------------- |
+| `spire-server.enabled`                            | Flag to enable Spire server                                               | `true`        |
+| `spire-server.nameOverride`                       | Overrides the name of Spire server pods                                   | `server`      |
+| `spire-server.kind`                               | Run spire server as deployment/statefulset. This feature is experimental. | `statefulset` |
+| `spire-server.controllerManager.enabled`          | Enable controller manager and provision CRD's                             | `true`        |
+| `spire-server.externalControllerManagers.enabled` | Enable external controller manager support                                | `true`        |
 
 ### Spire agent parameters
 

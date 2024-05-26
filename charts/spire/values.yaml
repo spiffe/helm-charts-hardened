@@ -141,6 +141,9 @@ spire-server:
   controllerManager:
     ## @param spire-server.controllerManager.enabled Enable controller manager and provision CRD's
     enabled: true
+  externalControllerManagers:
+    ## @param spire-server.externalControllerManagers.enabled Enable external controller manager support
+    enabled: true
 
 ## @section Spire agent parameters
 ## Parameter values for Spire agent
