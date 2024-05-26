@@ -201,8 +201,8 @@ gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C
 gopkg.in/yaml.v3 v3.0.0/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
 gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
-helm.sh/helm/v3 v3.15.0 h1:gcLxHeFp0Hfo7lYi6KIZ84ZyvlAnfFRSJ8lTL3zvG5U=
-helm.sh/helm/v3 v3.15.0/go.mod h1:fvfoRcB8UKRUV5jrIfOTaN/pG1TPhuqSb56fjYdTKXg=
+helm.sh/helm/v3 v3.15.1 h1:22ztacHz4gMqhXNqCQ9NAg6BFWoRUryNLvnkz6OVyw0=
+helm.sh/helm/v3 v3.15.1/go.mod h1:fvfoRcB8UKRUV5jrIfOTaN/pG1TPhuqSb56fjYdTKXg=
 k8s.io/api v0.30.0 h1:siWhRq7cNjy2iHssOB9SCGNCl2spiF1dO3dABqZ8niA=
 k8s.io/api v0.30.0/go.mod h1:OPlaYhoHs8EQ1ql0R/TsUgaRPhpKNxIMrKQfWUp8QSE=
 k8s.io/apiextensions-apiserver v0.30.0 h1:jcZFKMqnICJfRxTgnC4E+Hpcq8UEhT8B2lhBcQ+6uAs=
