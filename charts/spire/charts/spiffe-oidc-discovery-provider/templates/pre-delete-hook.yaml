@@ -72,6 +72,8 @@ spec:
           - deployment
           - {{ include "spiffe-oidc-discovery-provider.fullname" . }}
           - --wait
+        {{- with (((.Values).global).deleteHooks).resources }}
         resources:
-          {{- toYaml .Values.global.deleteHooks.resources | nindent 10 }}
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
 {{- end }}
