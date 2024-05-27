@@ -2,7 +2,7 @@
   {
     "name": "kube-prometheus-stack",
     "repo": "https://prometheus-community.github.io/helm-charts",
-    "version": "58.6.0"
+    "version": "58.7.2"
   },
   {
     "name": "cert-manager",
@@ -17,12 +17,12 @@
   {
     "name": "mysql",
     "repo": "https://charts.bitnami.com/bitnami",
-    "version": "10.2.4"
+    "version": "11.0.0"
   },
   {
     "name": "postgresql",
     "repo": "https://charts.bitnami.com/bitnami",
-    "version": "15.3.3"
+    "version": "15.4.0"
   },
   {
     "name": "kyverno",
