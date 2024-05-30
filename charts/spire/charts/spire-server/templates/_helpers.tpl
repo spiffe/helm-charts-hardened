@@ -280,8 +280,12 @@ The code below determines what connection type should be used.
 {{- end -}}
 
 {{- define "spire-server.controller-manager-class-name" -}}
-{{-   if .Values.controllerManager.className }}
-{{-     .Values.controllerManager.className }}
+{{-   if and (hasKey . "settings") (hasKey .settings "className") }}
+{{-       .settings.className }}
+{{-   else if and (hasKey . "defaults") .defaults.className }}
+{{-       .defaults.className }}
+{{-   else if .Values.controllerManager.className }}
+{{-       .Values.controllerManager.className }}
 {{-   else }}
 {{-     .Release.Namespace }}-{{ default .Release.Name .Values.crNameOverride }}
 {{-   end -}}
@@ -300,4 +304,17 @@ The code below determines what connection type should be used.
 {{- define "spire-server.ca-subject-common-name" }}
 {{-   $g := dig "spire" "caSubject" "commonName" "" .Values.global }}
 {{-   default .Values.ca_subject.common_name $g }}
+{{- end }}
+
+{{- define "spire-server.subject" }}
+subjects:
+{{-   if .Values.externalServer }}
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: spire-root
+{{-   else }}
+- kind: ServiceAccount
+  name: {{ include "spire-server.serviceAccountName" . }}
+  namespace: {{ include "spire-server.namespace" . }}
+{{-   end }}
 {{- end }}

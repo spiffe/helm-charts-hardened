@@ -1,0 +1,128 @@
+auth:
+  ## @param keycloak.auth.realm Realm name in which to create users## @param auth.adminUser Keycloak administrator user
+  ##
+  adminUser: admin
+  ## @param auth.adminPassword Keycloak administrator password for the new user
+  ##
+  adminPassword: admin
+proxy: edge # for https proxy reverse mode
+keycloakConfigCli:
+  enabled: true
+  configuration: # tornjak realm configuration
+    tornjak.json: |
+      {
+        "realm": "tornjak",
+        "enabled": true,
+        "roles" : {
+          "realm" : [ {
+            "name" : "tornjak-viewer-realm-role"
+          }, {
+            "name" : "tornjak-admin-realm-role"
+          } ],
+          "client" : {
+            "tornjak" : [ {
+              "name" : "viewer",
+              "composite" : true,
+              "composites" : {
+                "realm" : [ "tornjak-viewer-realm-role" ]
+              },
+              "clientRole" : true
+            }, {
+              "name" : "admin",
+              "composite" : true,
+              "composites" : {
+                "realm" : [ "tornjak-admin-realm-role" ]
+              },
+              "clientRole" : true
+            } ]
+          }
+        },
+        "groups" : [ {
+          "name" : "admin",
+          "path" : "/admin",
+          "realmRoles" : [ "tornjak-admin-realm-role" ]
+        }, {
+          "name" : "viewer",
+          "path" : "/viewer",
+          "realmRoles" : [ "tornjak-viewer-realm-role" ]
+        } ],
+        "users" : [ {
+          "username" : "admin",
+          "enabled" : true,
+          "firstName" : "Admin",
+          "lastName" : "User",
+          "credentials" : [ {
+            "type" : "password",
+            "userLabel" : "My password",
+            "secretData" : "{\"value\":\"Y1Kcmx/XxLWtnRLyMy/zn6wWbfu2fSKdaefrXM50cva3P+kA2BqBDvTZDswGP6JZ+IWrJaitm8RKV0L9LiwaFQ==\",\"salt\":\"Mh5g1EgTo26xhzoj67bovA==\",\"additionalParameters\":{}}",
+            "credentialData" : "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\",\"additionalParameters\":{}}"
+          } ],
+          "groups" : [ "/admin" ]
+        }, {
+          "username" : "viewer",
+          "enabled" : true,
+          "firstName" : "Viewer",
+          "lastName" : "User",
+          "credentials" : [ {
+            "type" : "password",
+            "userLabel" : "My password",
+            "secretData" : "{\"value\":\"1ow3LfLDvpBRLfRbr2LtFRqje8NsKouHMw95Wwpsg5NP2Pga4ZBL7+T62bCDV6dOvy3U9xEEU4CRkhSWFaeDLg==\",\"salt\":\"qML2gBVSG7xYRZcaffW68A==\",\"additionalParameters\":{}}",
+            "credentialData" : "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\",\"additionalParameters\":{}}"
+          } ],
+          "groups" : [ "/viewer" ]
+        } ],
+        "clients" : [ {
+          "clientId" : "tornjak",
+          "name" : "Tornjak",
+          "enabled" : true,
+          "alwaysDisplayInConsole" : true,
+          "clientAuthenticatorType" : "client-secret",
+          "redirectUris" : [ "http://localhost:3000/*" ],
+          "webOrigins" : [ "*" ],
+          "standardFlowEnabled" : true,
+          "implicitFlowEnabled" : false,
+          "directAccessGrantsEnabled" : false,
+          "serviceAccountsEnabled" : false,
+          "publicClient" : true,
+          "frontchannelLogout" : true,
+          "protocol" : "openid-connect",
+          "attributes" : {
+            "post.logout.redirect.uris" : "http://localhost:3000/*"
+          },
+          "fullScopeAllowed" : true,
+          "defaultClientScopes": [
+            "role_list",
+            "profile",
+            "email",
+            "roles",
+            "web-origins",
+            "acr",
+            "tornjak-backend",
+          ]
+        }],
+        "clientScopes": [{
+          "name": "tornjak-backend",
+          "description": "tornjak backend audience check",
+          "protocol": "openid-connect",
+          "attributes": {
+            "include.in.token.scope": "false",
+            "display.on.consent.screen": "false",
+            "gui.order": "",
+            "consent.screen.text": ""
+          },
+          "protocolMappers": [{
+            "name": "tornjak-backend",
+            "protocol": "openid-connect",
+            "protocolMapper": "oidc-audience-mapper",
+            "consentRequired": false,
+            "config": {
+              "introspection.token.claim": "true",
+              "included.custom.audience": "tornjak-backend",
+              "userinfo.token.claim": "false",
+              "id.token.claim": "false",
+              "lightweight.claim": "false",
+              "access.token.claim": "true"
+            }
+          }]
+        }]
+      }

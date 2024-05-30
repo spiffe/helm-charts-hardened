@@ -1,3 +1,4 @@
+{{- if not .Values.externalServer }}
 {{- if (dig "telemetry" "prometheus" "podMonitor" "enabled" .Values.telemetry.prometheus.podMonitor.enabled .Values.global) }}
 {{- $namespace := include "spire-server.podMonitor.namespace" . }}
 {{- $podNamespace := ( include "spire-server.namespace" . ) }}
@@ -24,4 +25,5 @@ spec:
   namespaceSelector:
     kubernetes.io/metadata.name: {{ $podNamespace }}
   {{- end }}  
+{{- end }}
 {{- end }}

@@ -38,6 +38,9 @@
 {{- if and (eq (.Values.keyManager.awsKMS.keyIdentifierFile.enabled | toString) "true") (eq (.Values.keyManager.awsKMS.keyIdentifierValue.enabled | toString ) "true") }}
 {{-   fail "You can only enable one of keyIdentifierFile or keyIdentifierValue at a time" }}
 {{- end }}
+{{- if hasKey .Values.federation.bundleEndpoint "profile" }}
+{{-   fail "Configuring the federation bundle endpoint profile directly isn't supported. You can specify the settings via federation.tls" }}
+{{- end }}
 {{- define "spire-server.yaml-config" -}}
 {{- $upstreamAuthorityUsed := 0 }}
 {{- $keyManagerUsed := 0 }}
@@ -266,7 +269,7 @@ plugins:
   UpstreamAuthority:
     cert-manager:
       plugin_data:
-        issuer_name: {{ default (include "spire-server.fullname" $root) .issuer_name }}-ca
+        issuer_name: {{ default (printf "%s-ca" (include "spire-server.fullname" $root)) .issuer_name }}
         issuer_kind: {{ .issuer_kind | quote }}
         issuer_group: {{ .issuer_group | quote }}
         namespace: {{ default $root.Release.Namespace .namespace | quote }}
@@ -361,6 +364,7 @@ telemetry:
         port: 9988
 {{- end }}
 {{- end }}
+{{- if not .Values.externalServer }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -373,3 +377,4 @@ metadata:
 data:
   server.conf: |
     {{- include "spire-lib.reformat-and-yaml2json" (dict "config" (include "spire-server.yaml-config" .) "root" .) | nindent 4 }}
+{{- end }}

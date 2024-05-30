@@ -154,7 +154,7 @@ fsGroupFix:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: Always
-    tag: latest@sha256:5921884408efe50b77796675dc109ad2126f54476fe7403c37d8898a5ceb2e76
+    tag: latest@sha256:8c9e5cbb641ced8112c637eb3611dab29bf65448a9d884a03938baf1b352dc4d
 
   ## @param fsGroupFix.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
@@ -213,6 +213,10 @@ workloadAttestors:
     skipKubeletVerification: true
     ## @param workloadAttestors.k8s.disableContainerSelectors Set to true if using holdApplicationUntilProxyStarts in Istio
     disableContainerSelectors: false
+    ## @param workloadAttestors.k8s.useNewContainerLocator If true, enables the new container locator algorithm that has support for cgroups v2. Defaults to false
+    useNewContainerLocator: false
+    ## @param workloadAttestors.k8s.verboseContainerLocatorLogs If true, enables verbose logging of mountinfo and cgroup information used to locate containers. Defaults to false
+    verboseContainerLocatorLogs: false
 
 sds:
   ## @param sds.enabled Enables Envoy SDS configuration
@@ -262,7 +266,7 @@ socketAlternate:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: Always
-    tag: latest@sha256:5921884408efe50b77796675dc109ad2126f54476fe7403c37d8898a5ceb2e76
+    tag: latest@sha256:8c9e5cbb641ced8112c637eb3611dab29bf65448a9d884a03938baf1b352dc4d
 
   ## @param socketAlternate.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
