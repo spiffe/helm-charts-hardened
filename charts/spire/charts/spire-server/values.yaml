@@ -697,9 +697,9 @@ externalControllerManagers:
       - kube-public
       - local-path-storage
       # openshift creates many namespaces that should be typically ignored:
-      - openshift-*
+      - openshift-.*
       # ibmcloud specific namespaces:
-      - ibm-*
+      - ibm-.*
     ## @param externalControllerManagers.defaults.cacheNamespaces [object] If specified restricts the manager's cache to watch objects in the desired namespaces. Defaults to all namespaces.
     cacheNamespaces: {}
 
