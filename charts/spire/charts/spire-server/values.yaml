@@ -101,7 +101,7 @@ resources: {}
 ## @param autoscaling.enabled Flag to enable autoscaling
 ## @param autoscaling.minReplicas Minimum replicas for autoscaling
 ## @param autoscaling.maxReplicas Maximum replicas for autoscaling
-## @param autoscaling.targetCPUUtilizationPercentage Target CPU utlization that triggers autoscaling
+## @param autoscaling.targetCPUUtilizationPercentage Target CPU utilization that triggers autoscaling
 ##
 autoscaling:
   enabled: false
@@ -273,14 +273,14 @@ federation:
     ## @param federation.ingress.tlsSecret Secret that has the certs. If blank will use default certs. Used with host var.
     tlsSecret: ""
 
-    ## @param federation.ingress.hosts [array] Host paths for ingress object. If emtpy, rules will be built based on the host var.
+    ## @param federation.ingress.hosts [array] Host paths for ingress object. If empty, rules will be built based on the host var.
     hosts: []
     #  - host: spire-server-federation.example.org
     #    paths:
     #      - path: /
     #        pathType: Prefix
 
-    ## @param federation.ingress.tls [array] Secrets containining TLS certs to enable https on ingress. If emtpy, rules will be built based on the host and tlsSecret vars.
+    ## @param federation.ingress.tls [array] Secrets containing TLS certs to enable https on ingress. If empty, rules will be built based on the host and tlsSecret vars.
     tls: []
     #  - hosts:
     #      - spire-server-federation.example.org
@@ -446,7 +446,7 @@ notifier:
     ## @param notifier.k8sbundle.namespace Namespace to push the bundle into, if blank will default to SPIRE Server namespace
     namespace: ""
   externalK8sBundle:
-    ## @param notifier.externalK8sBundle.enabled Enable exernal k8s bundle uploader
+    ## @param notifier.externalK8sBundle.enabled Enable external k8s bundle uploader
     enabled: true
     defaults:
       ## @param notifier.externalK8sBundle.defaults.namespace Namespace to push the bundle into on clusters
@@ -540,32 +540,10 @@ controllerManager:
     - kube-system
     - kube-public
     - local-path-storage
-    # openshift related namespaces that should be typically ignored
-    - openshift-cluster-node-tuning-operator
-    - openshift-cluster-samples-operator
-    - openshift-cluster-storage-operator
-    - openshift-console-operator
-    - openshift-console
-    - openshift-dns
-    - openshift-dns-operator
-    - openshift-image-registry
-    - openshift-ingress
-    - openshift-kube-storage-version-migrator
-    - openshift-kube-storage-version-migrator-operator
-    - openshift-kube-proxy
-    - openshift-marketplace
-    - openshift-monitoring
-    - openshift-multus
-    - openshift-network-diagnostics
-    - openshift-network-operator
-    - openshift-operator-lifecycle-manager
-    - openshift-roks-metrics
-    - openshift-service-ca-operator
-    - openshift-service-ca
-    # ibmcloud specific namespaces
-    - ibm-odf-validation-webhook
-    - ibm-system
-
+    # openshift creates many namespaces that should be typically ignored:
+    - openshift-*
+    # ibmcloud specific namespaces:
+    - ibm-*
   ## @param controllerManager.reconcile.clusterSPIFFEIDs Enable reconciliation of clusterSPIFFEIDs from K8s to the SPIRE server
   ## @param controllerManager.reconcile.clusterStaticEntries Enable reconciliation of clusterStaticEntries from K8s to the SPIRE server
   ## @param controllerManager.reconcile.clusterFederatedTrustDomains Enable reconciliation of clusterFederatedTrustDomains from K8s to the SPIRE server
@@ -585,7 +563,7 @@ controllerManager:
         podSelector: {}
           # matchLabels:
           #   spiffe.io/spiffe-id: "true"
-        ## @param controllerManager.identities.clusterSPIFFEIDs.default.namespaceSelector [object] Selector for namespacs to issue identity
+        ## @param controllerManager.identities.clusterSPIFFEIDs.default.namespaceSelector [object] Selector for namespaces to issue identity
         namespaceSelector: {}
           # matchLabels:
           #   spiffe.io/spiffe-id: "true"
@@ -718,31 +696,10 @@ externalControllerManagers:
       - kube-system
       - kube-public
       - local-path-storage
-      # openshift related namespaces that should be typically ignored
-      - openshift-cluster-node-tuning-operator
-      - openshift-cluster-samples-operator
-      - openshift-cluster-storage-operator
-      - openshift-console-operator
-      - openshift-console
-      - openshift-dns
-      - openshift-dns-operator
-      - openshift-image-registry
-      - openshift-ingress
-      - openshift-kube-storage-version-migrator
-      - openshift-kube-storage-version-migrator-operator
-      - openshift-kube-proxy
-      - openshift-marketplace
-      - openshift-monitoring
-      - openshift-multus
-      - openshift-network-diagnostics
-      - openshift-network-operator
-      - openshift-operator-lifecycle-manager
-      - openshift-roks-metrics
-      - openshift-service-ca-operator
-      - openshift-service-ca
-      # ibmcloud specific namespaces
-      - ibm-odf-validation-webhook
-      - ibm-system
+      # openshift creates many namespaces that should be typically ignored:
+      - openshift-*
+      # ibmcloud specific namespaces:
+      - ibm-*
     ## @param externalControllerManagers.defaults.cacheNamespaces [object] If specified restricts the manager's cache to watch objects in the desired namespaces. Defaults to all namespaces.
     cacheNamespaces: {}
 
@@ -800,14 +757,14 @@ ingress:
   ## @param ingress.tlsSecret Secret that has the certs. If blank will use default certs. Used with host var.
   tlsSecret: ""
 
-  ## @param ingress.hosts [array] Host paths for ingress object. If emtpy, rules will be built based on the host var.
+  ## @param ingress.hosts [array] Host paths for ingress object. If empty, rules will be built based on the host var.
   hosts: []
   #   - host: spire-server.example.org
   #     paths:
   #       - path: /
   #         pathType: Prefix
 
-  ## @param ingress.tls [array] Secrets containining TLS certs to enable https on ingress. If emtpy, rules will be built based on the host and tlsSecret vars.
+  ## @param ingress.tls [array] Secrets containing TLS certs to enable https on ingress. If empty, rules will be built based on the host and tlsSecret vars.
   tls: []
   #  - secretName: spire-server-tls
   #    hosts:
@@ -936,7 +893,7 @@ tornjak:
     ## @param tornjak.ingress.tlsSecret Secret that has the certs. If blank will use default certs. Used with host var.
     tlsSecret: ""
 
-    ## @param tornjak.ingress.hosts [array] Host paths for ingress object. If emtpy, rules will be built based on the host var.
+    ## @param tornjak.ingress.hosts [array] Host paths for ingress object. If empty, rules will be built based on the host var.
     hosts: []
     #   - host: tornjak-backend.example.org
     #     paths:
