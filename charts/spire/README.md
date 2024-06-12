@@ -1,6 +1,6 @@
 # spire
 
-![Version: 0.20.0](https://img.shields.io/badge/Version-0.20.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.9.6](https://img.shields.io/badge/AppVersion-1.9.6-informational?style=flat-square)
+![Version: 0.21.0](https://img.shields.io/badge/Version-0.21.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.9.6](https://img.shields.io/badge/AppVersion-1.9.6-informational?style=flat-square)
 [![Development Phase](https://github.com/spiffe/spiffe/blob/main/.img/maturity/dev.svg)](https://github.com/spiffe/spiffe/blob/main/MATURITY.md#development)
 
 A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
@@ -73,12 +73,14 @@ kubectl delete crds clusterfederatedtrustdomains.spire.spiffe.io clusterspiffeid
 
 ## Upgrade notes
 
-We only support upgrading one major version at a time. Version skipping isn't supported.
+We only support upgrading one major/minor version at a time. Version skipping isn't supported. Please see https://spiffe.io/docs/latest/spire-helm-charts-hardened-about/upgrading/ for details.
 
 ### 0.21.X
 
 - In previous versions, spire-server.upstreamAuthority.certManager.issuer_name would incorrectly have '-ca' appended. Starting with this version, that is no longer the case. If you previously set this
 value, you likely want to update your value to include the '-ca' suffix in the value to have your deployment continue to function properly.
+
+- The default value of spire-server.controllerManager.entryIDPrefixCleanup changed from "" to false. Prior to this release upgrades cleaned up old entries in the database. After upgrading to 0.21.X, manual entries will not be overridden by the spire-controller-manager. Skipping over chart releases (unsupported), requires manual setting of this value to "" to trigger the cleanup.
 
 ### 0.20.X
 
