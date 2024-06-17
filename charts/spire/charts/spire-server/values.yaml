@@ -723,7 +723,7 @@ tools:
       registry: docker.io
       repository: rancher/kubectl
       pullPolicy: IfNotPresent
-      tag: ""
+      tag: "v1.23.3"
 
 telemetry:
   prometheus:

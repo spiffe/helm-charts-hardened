@@ -344,7 +344,7 @@ tools:
       registry: docker.io
       repository: rancher/kubectl
       pullPolicy: IfNotPresent
-      tag: ""
+      tag: "v1.23.3"
 
 sockets:
   ## @param sockets.hostBasePath Path on which the agent socket is made available when admin.mountOnHost is true
