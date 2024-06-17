@@ -12,7 +12,7 @@
 {{-       $_ := set $labels "security.openshift.io/scc.podSecurityLabelSync" "false" }}
 {{-     end }}
 {{-   end }}
-{{-   $labels = mergeOverwrite $labels .Values.global.spire.namespaces.server.labels }}
+{{-   $labels = mergeOverwrite $labels .Values.global.spire.namespaces.system.labels }}
 apiVersion: v1
 kind: Namespace
 metadata:
