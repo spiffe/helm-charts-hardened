@@ -258,7 +258,9 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `global.spire.ingressControllerType`             | Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, autodetection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""]. | `""`              |
 | `global.spire.tools.kubectl.tag`                 | Set to force the tag to use for all kubectl instances                                                                                                                                                                                  | `""`              |
 | `global.installAndUpgradeHooks.enabled`          | Enable Helm hooks to autofix common install/upgrade issues (should be disabled when using `helm template`)                                                                                                                             | `true`            |
+| `global.installAndUpgradeHooks.resources`        | Resource requests and limits for installAndUpgradeHooks                                                                                                                                                                                | `{}`              |
 | `global.deleteHooks.enabled`                     | Enable Helm hooks to autofix common delete issues (should be disabled when using `helm template`)                                                                                                                                      | `true`            |
+| `global.deleteHooks.resources`                   | Resource requests and limits for deleteHooks                                                                                                                                                                                           | `{}`              |
 
 ### Spire server parameters
 
