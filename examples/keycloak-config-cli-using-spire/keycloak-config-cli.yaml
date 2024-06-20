@@ -6,7 +6,7 @@ metadata:
   labels:
     app: keycloak-config-cli
 spec:
-  backoffLimit: 1
+  backoffLimit: 10
   template:
     metadata:
       labels:

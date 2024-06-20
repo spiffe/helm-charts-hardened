@@ -1,5 +1,10 @@
 # keycloak-config-cli using spire
 
+> [!WARNING]
+> This example uses
+> the [`SidecarContainers`](https://kubernetes.io/docs/concepts/workloads/pods/sidecar-containers/#enabling-sidecar-containers)
+> feature. This is only enabled by default in Kubernetes 1.29+.
+
 This example shows how to leverage SPIRE in establishing an mTLS connection
 between [Keycloak (>= 24.0.0)](https://www.keycloak.org/) and [keycloak-config-cli](https://github.com/adorsys/keycloak-config-cli),
 a tool to configure Keycloak.
@@ -9,7 +14,7 @@ a tool to configure Keycloak.
 1. Create a local cluster for testing
 
 ```shell
-kind create cluster
+kind create cluster --image kindest/node:v1.29.0
 ```
 
 2. Install CRDs

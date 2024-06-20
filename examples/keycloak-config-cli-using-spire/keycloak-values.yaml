@@ -4,6 +4,8 @@ service:
       port: 8443
       targetPort: 8443
 extraEnvVars:
+  - name: KC_HTTPS_CLIENT_AUTH
+    value: "request"
   - name: KC_HTTPS_CERTIFICATE_FILE
     value: "/spire-certificates/svid.0.pem"
   - name: KC_HTTPS_CERTIFICATE_KEY_FILE
