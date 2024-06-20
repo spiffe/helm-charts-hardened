@@ -1,69 +1,62 @@
-extraDeploy:
-  - apiVersion: v1
-    kind: ConfigMap
-    metadata:
-      name: java-spiffe-helper-properties
-    data:
-      java-spiffe-helper.properties: |
-        keyStorePath=/certs/keystore.p12
-        keyStorePass=password
-        keyPass=password
-        trustStorePath=/certs/truststore.p12
-        trustStorePass=password
-        keyStoreType=pkcs12
-        keyAlias=spiffe
-        spiffeSocketPath=unix:/run/spire/agent-sockets/spire-agent.sock
 service:
   extraPorts:
     - name: https
       port: 8443
       targetPort: 8443
 extraEnvVars:
-  - name: KC_HTTPS_CLIENT_AUTH
-    value: "request"
-  - name: KC_HTTPS_KEY_STORE_FILE
-    value: "/certs/keystore.p12"
-  - name: KC_HTTPS_KEY_STORE_PASSWORD
-    value: "password"
-  - name: KC_HTTPS_KEY_STORE_TYPE
-    value: "pkcs12"
-  - name: KC_HTTPS_TRUST_STORE_FILE
-    value: "/certs/truststore.p12"
-  - name: KC_HTTPS_TRUST_STORE_PASSWORD
-    value: "password"
-  - name: KC_HTTPS_TRUST_STORE_TYPE
-    value: "pkcs12"
+  - name: KC_HTTPS_CERTIFICATE_FILE
+    value: "/spire-certificates/svid.0.pem"
+  - name: KC_HTTPS_CERTIFICATE_KEY_FILE
+    value: "/spire-certificates/svid.0.key"
 initContainers:
-  - name: java-spiffe-helper
-    image: ghcr.io/spiffe/java-spiffe-helper:0.8.5
-    imagePullPolicy: IfNotPresent
-    restartPolicy: Always
-    readinessProbe:
-      exec:
-        command:
-          - ls
-          - /certs/truststore.p12
+  - name: spire-agent-cli
+    image: ghcr.io/spiffe/spire-agent:1.9.6
+    securityContext:
+      runAsUser: 1001
+      runAsGroup: 1001
+    command:
+      - /opt/spire/bin/spire-agent
+    args:
+      - api
+      - fetch
+      - x509
+      - -socketPath=/run/spire/agent-sockets/spire-agent.sock
+      - -write=/spire-certificates
     volumeMounts:
-      - name: java-spiffe-helper-properties
-        mountPath: /app/java-spiffe-helper.properties
-        subPath: java-spiffe-helper.properties
+      - name: spire-certificates
+        mountPath: /spire-certificates
       - name: spire-sockets
         mountPath: /run/spire/agent-sockets
         readOnly: true
-      - name: certs
-        mountPath: /certs
+  - name: move
+    image: busybox:1.36
+    securityContext:
+      runAsUser: 1001
+      runAsGroup: 1001
+    args:
+      - mv
+      - /spire-certificates/bundle.0.pem
+      - /opt/bitnami/keycloak/conf/truststores/keycloak-config-cli/
+    volumeMounts:
+      - name: spire-certificates
+        mountPath: /spire-certificates
+      - name: truststores
+        mountPath: /opt/bitnami/keycloak/conf/truststores/keycloak-config-cli
 extraVolumeMounts:
-  - name: certs
-    mountPath: /certs
+  - name: spire-certificates
+    mountPath: /spire-certificates
+    readOnly: true
+  - name: truststores
+    mountPath: /opt/bitnami/keycloak/conf/truststores/keycloak-config-cli
+    readOnly: true
 extraVolumes:
-  - name: java-spiffe-helper-properties
-    configMap:
-      name: java-spiffe-helper-properties
   - name: spire-sockets
     hostPath:
       path: /run/spire/agent-sockets
       type: DirectoryOrCreate
-  - name: certs
+  - name: spire-certificates
+    emptyDir: {}
+  - name: truststores
     emptyDir: {}
 auth:
   adminPassword: "password"
