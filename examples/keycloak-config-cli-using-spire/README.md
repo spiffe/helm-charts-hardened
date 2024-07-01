@@ -6,7 +6,7 @@
 > feature. This is only enabled by default in Kubernetes 1.29+.
 
 This example shows how to leverage SPIRE in establishing an mTLS connection
-between [Keycloak](https://www.keycloak.org/) and [keycloak-config-cli](https://github.com/adorsys/keycloak-config-cli),
+between [Keycloak (>= 24.0.0)](https://www.keycloak.org/) and [keycloak-config-cli](https://github.com/adorsys/keycloak-config-cli),
 a tool to configure Keycloak.
 
 ## Setup
@@ -32,7 +32,7 @@ helm upgrade --install -n spire-server spire ../../charts/spire --create-namespa
 4. Install `keycloak` (this also configures Keycloak for client certificate authentication)
 
 ```shell
-helm upgrade --install keycloak oci://registry-1.docker.io/bitnamicharts/keycloak -f keycloak-values.yaml
+helm upgrade --install keycloak oci://registry-1.docker.io/bitnamicharts/keycloak -f keycloak-values.yaml --version 21.4.4
 ```
 
 5. Install `keycloak-config-cli`
