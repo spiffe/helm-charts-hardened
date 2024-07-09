@@ -45,16 +45,10 @@ global:
       country: ARPA
       organization: Example
       commonName: example.org
-spire-server:
-  tools:
-    kubectl:
-      image:
-        tag: "v1.23.3"
-spiffe-oidc-discovery-provider:
-  tools:
-    kubectl:
-      image:
-        tag: "v1.23.3"
+# If rancher/kubectl doesn't have a version that matches your cluster, uncomment and update:
+#    tools:
+#       kubectl:
+#         tag: "v1.23.3"
 ```
 
 2. If you need a non default storageClass, append the following to the global.spire section and update:
