@@ -3,7 +3,7 @@ name: spiffe-oidc-discovery-provider
 description: A Helm chart to install the SPIFFE OIDC discovery provider.
 type: application
 version: 0.1.0
-appVersion: "1.9.6"
+appVersion: "1.10.0"
 keywords: ["spiffe", "oidc"]
 home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire
 sources:
