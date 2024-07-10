@@ -10,6 +10,7 @@ A Helm chart for deploying the complete Spire stack including: spire-server, spi
 ## Install Instructions
 
 ### Non Production
+
 To do a quick install suitable for testing in something like minikube:
 
 ```shell
@@ -22,6 +23,12 @@ helm upgrade --install -n spire-server spire spire --repo https://spiffe.github.
 Preparing a production deployment requires a few steps.
 
 1. Save the following to your-values.yaml, ideally in your git repo.
+
+> [!NOTE]
+> Please note that `rancher/kubectl` image does not always correspond to the most
+> recent version of Kubernetes. In order to find the most up-to-date version,
+> please visit their [releases](https://github.com/rancher/kubectl/releases) page.
+
 ```yaml
 global:
   openshift: false # If running on openshift, set to true
@@ -38,15 +45,21 @@ global:
       country: ARPA
       organization: Example
       commonName: example.org
+# If rancher/kubectl doesn't have a version that matches your cluster, uncomment and update:
+#    tools:
+#       kubectl:
+#         tag: "v1.23.3"
 ```
 
 2. If you need a non default storageClass, append the following to the global.spire section and update:
+
 ```
     persistence:
       storageClass: your-storage-class
 ```
 
 3. If your Kubernetes cluster is OpenShift based, use the output of the following command to update the trustDomain setting:
+
 ```shell
 oc get cm -n openshift-config-managed  console-public -o go-template="{{ .data.consoleURL }}" | sed 's@https://@@; s/^[^.]*\.//'
 ```
@@ -73,7 +86,7 @@ kubectl delete crds clusterfederatedtrustdomains.spire.spiffe.io clusterspiffeid
 
 ## Upgrade notes
 
-We only support upgrading one major/minor version at a time. Version skipping isn't supported. Please see https://spiffe.io/docs/latest/spire-helm-charts-hardened-about/upgrading/ for details.
+We only support upgrading one major/minor version at a time. Version skipping isn't supported. Please see <https://spiffe.io/docs/latest/spire-helm-charts-hardened-about/upgrading/> for details.
 
 ### 0.21.X
 
@@ -98,8 +111,8 @@ setting and waiting for a spire-controller-manager sync.
 
 ### 0.18.X
 
-- SPIRE no longer emits x509UniqueIdentifiers in x509-SVIDS by default. The old behavior can be reenabled with spire-server.credentialComposer.uniqueID.enabled=true. See https://github.com/spiffe/spire/pull/4862 for details.
-- SPIRE agents will now automatically reattest when they can. The old behavior can be reenabled with spire-agent.disableReattestToRenew=true. See https://github.com/spiffe/spire/pull/4791 for details.
+- SPIRE no longer emits x509UniqueIdentifiers in x509-SVIDS by default. The old behavior can be reenabled with spire-server.credentialComposer.uniqueID.enabled=true. See <https://github.com/spiffe/spire/pull/4862> for details.
+- SPIRE agents will now automatically reattest when they can. The old behavior can be reenabled with spire-agent.disableReattestToRenew=true. See <https://github.com/spiffe/spire/pull/4791> for details.
 
 ### 0.17.X
 
