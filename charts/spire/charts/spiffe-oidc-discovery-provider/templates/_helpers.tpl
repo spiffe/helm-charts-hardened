@@ -99,3 +99,17 @@ Create the name of the service account to use
 {{-     false }}
 {{-   end }}
 {{- end }}
+
+{{- define "spiffe-oidc-discovery-provider.podSecurityContext" -}}
+{{-   $podSecurityContext := include "spire-lib.podsecuritycontext" . | fromYaml }}
+{{-   $openshift := ((.Values).global).openshift | default false }}
+{{-   if and .Values.tls.spire.enabled (not $openshift) }}
+{{-     if not (hasKey $podSecurityContext "runAsUser") }}
+{{-       $_ := set $podSecurityContext "runAsUser" 1000 }}
+{{-     end }}
+{{-     if not (hasKey $podSecurityContext "runAsGroup") }}
+{{-       $_ := set $podSecurityContext "runAsGroup" 1000 }}
+{{-     end }}
+{{-   end }}
+{{-   toYaml $podSecurityContext }}
+{{- end }}

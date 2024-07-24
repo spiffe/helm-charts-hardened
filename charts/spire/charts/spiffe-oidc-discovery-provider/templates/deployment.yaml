@@ -37,7 +37,7 @@ spec:
       {{- end }}
       serviceAccountName: {{ include "spiffe-oidc-discovery-provider.serviceAccountName" . }}
       securityContext:
-        {{- include "spire-lib.podsecuritycontext" . | nindent 8 }}
+        {{- include "spiffe-oidc-discovery-provider.podSecurityContext" . | nindent 8 }}
       initContainers:
         {{- if .Values.tls.spire.enabled }}
         - name: init
