@@ -22,3 +22,21 @@ jq -r ".[].name" "${CHARTJSON}" | while read -r CHART; do
     mv /tmp/$$ "${CHARTJSON}"
   fi
 done
+
+CHARTJSON="${SCRIPTPATH}/../tests/oci-charts.json"
+
+jq -r ".[].name" "${CHARTJSON}" | while read -r NAME; do
+  ENTRYQUERY='.[] | select(.name == "'$NAME'")'
+  REGISTRY="$(jq -r "$ENTRYQUERY | .registry" "${CHARTJSON}")"
+  VERSION="$(jq -r "$ENTRYQUERY | .version" "${CHARTJSON}")"
+  echo Processing: "${NAME}"
+  echo "  chart: ${REGISTRY}"
+  echo "  current version: ${VERSION}"
+  LATEST_VERSION=$(crane ls "$REGISTRY" | grep 'v[0-9]*\.[0-9]*\.[0-9]\.*$' | sort -V -r | head -n 1)
+  echo "  latest version: ${LATEST_VERSION}"
+  if [ "x${VERSION}" != "x${LATEST_VERSION}" ]; then
+    echo "  New version found!"
+    jq "(${ENTRYQUERY}).version |= \"${LATEST_VERSION}\"" "${CHARTJSON}" > /tmp/$$
+    mv /tmp/$$ "${CHARTJSON}"
+  fi
+done
