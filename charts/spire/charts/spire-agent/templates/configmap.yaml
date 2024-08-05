@@ -26,7 +26,7 @@
 {{- define "spire-agent.yaml-config" -}}
 agent:
   {{- if .Values.sockets.admin.enabled }}
-  admin_socket_dir: /tmp/spire-agent/private/admin.sock
+  admin_socket_path: /tmp/spire-agent/private/admin.sock
   {{- end }}
   {{- with .Values.authorizedDelegates }}
   authorized_delegates:
