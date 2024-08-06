@@ -79,6 +79,17 @@ plugins:
         cluster: {{ include "spire-lib.cluster-name" . | quote }}
     {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
     {{- end }}
+    {{- with .Values.nodeAttestor.httpChallenge }}
+    http_challenge:
+      agentname: {{ .Values.nodeAttestor.httpChallenge.agentname | quote }}
+      {{- if ne .Values.nodeAttestor.httpChallenge.port 0 }}
+      port: {{ .Values.nodeAttestor.httpChallenge.port }}
+      {{- end }}
+      {{- if ne .Values.nodeAttestor.httpChallenge.advertisedPort 0 }}
+      advertisedPort: {{ .Values.nodeAttestor.httpChallenge.advertisedPort }}
+      {{- end }}
+    {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
+    {{- end }}
     {{- with .Values.nodeAttestor.tpmDirect }}
     {{- if eq (.enabled | toString) "true" }}
     tpm:
