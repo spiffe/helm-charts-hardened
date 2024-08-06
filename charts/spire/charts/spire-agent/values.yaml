@@ -100,9 +100,6 @@ bundleConfigMap: spire-bundle
 ## @param availabilityTarget The minimum amount of time desired to gracefully handle SPIRE Server or Agent downtime. This configurable influences how aggressively X509 SVIDs should be rotated. If set, must be at least 24h.
 availabilityTarget: ""
 
-## @param disableReattestToRenew Deprecated: Allow agent to renew certificate when it expires rather than reattest
-disableReattestToRenew: false
-
 ## @skip upstream
 upstream: false
 
@@ -154,7 +151,7 @@ fsGroupFix:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: Always
-    tag: latest@sha256:8c9e5cbb641ced8112c637eb3611dab29bf65448a9d884a03938baf1b352dc4d
+    tag: latest@sha256:1309073808bd2313c28d52ac617db405d1a00346484a2a600ada2eaf918123fd
 
   ## @param fsGroupFix.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
@@ -266,7 +263,7 @@ socketAlternate:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: Always
-    tag: latest@sha256:8c9e5cbb641ced8112c637eb3611dab29bf65448a9d884a03938baf1b352dc4d
+    tag: latest@sha256:1309073808bd2313c28d52ac617db405d1a00346484a2a600ada2eaf918123fd
 
   ## @param socketAlternate.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}

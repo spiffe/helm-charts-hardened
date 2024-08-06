@@ -25,11 +25,8 @@
 {{- end }}
 {{- define "spire-agent.yaml-config" -}}
 agent:
-  {{- if .Values.disableReattestToRenew }}
-  disable_reattest_to_renew: true
-  {{- end }}
   {{- if .Values.sockets.admin.enabled }}
-  admin_socket_dir: /tmp/spire-agent/private/admin.sock
+  admin_socket_path: /tmp/spire-agent/private/admin.sock
   {{- end }}
   {{- with .Values.authorizedDelegates }}
   authorized_delegates:
@@ -116,6 +113,9 @@ plugins:
         disable_container_selectors: {{ .Values.workloadAttestors.k8s.disableContainerSelectors }}
         use_new_container_locator: {{ .Values.workloadAttestors.k8s.useNewContainerLocator }}
         verbose_container_locator_logs: {{ .Values.workloadAttestors.k8s.verboseContainerLocatorLogs }}
+        {{- if eq (include "spire-agent.connect-by-hostname" .) "true" }}
+        node_name_env: "MY_NODE_NAME"
+        {{- end }}
   {{- end }}
 
   {{- if .Values.workloadAttestors.unix.enabled }}
