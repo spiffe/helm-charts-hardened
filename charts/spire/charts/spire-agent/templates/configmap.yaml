@@ -80,15 +80,18 @@ plugins:
     {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
     {{- end }}
     {{- with .Values.nodeAttestor.httpChallenge }}
+    {{- if eq (.enabled | toString) "true" }}
     http_challenge:
-      agentname: {{ .Values.nodeAttestor.httpChallenge.agentname | quote }}
-      {{- if ne .Values.nodeAttestor.httpChallenge.port 0 }}
-      port: {{ .Values.nodeAttestor.httpChallenge.port }}
-      {{- end }}
-      {{- if ne .Values.nodeAttestor.httpChallenge.advertisedPort 0 }}
-      advertisedPort: {{ .Values.nodeAttestor.httpChallenge.advertisedPort }}
-      {{- end }}
+      plugin_data:
+        agentname: {{ .agentname | quote }}
+        {{- if ne (int .port) 0 }}
+        port: {{ .port }}
+        {{- end }}
+        {{- if ne (int .advertisedPort) 0 }}
+        advertisedPort: {{ .advertisedPort }}
+        {{- end }}
     {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
+    {{- end }}
     {{- end }}
     {{- with .Values.nodeAttestor.tpmDirect }}
     {{- if eq (.enabled | toString) "true" }}
