@@ -351,3 +351,10 @@ sockets:
   admin:
     enabled: false
     mountOnHost: false
+
+## @param persistence.type What type of volume to use for persistence. Valid options emptyDir (stateless node attestors) or hostPath (stateful node attestors)
+## @param persistence.hostPath Which path to use on the host when type = hostPath
+##
+persistence:
+  type: emptyDir
+  hostPath: /var/lib/spire/k8s
