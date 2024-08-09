@@ -208,6 +208,8 @@ workloadAttestors:
     enabled: true
     ## @param workloadAttestors.k8s.skipKubeletVerification If true, kubelet certificate verification is skipped
     skipKubeletVerification: true
+    ## @param workloadAttestors.k8s.kubeletCaPath Path to the file containing CA certificates used to verify the kubelet certificate 
+    kubeletCaPath: /run/secrets/kubernetes.io/serviceaccount/ca.crt
     ## @param workloadAttestors.k8s.disableContainerSelectors Set to true if using holdApplicationUntilProxyStarts in Istio
     disableContainerSelectors: false
     ## @param workloadAttestors.k8s.useNewContainerLocator If true, enables the new container locator algorithm that has support for cgroups v2. Defaults to false
