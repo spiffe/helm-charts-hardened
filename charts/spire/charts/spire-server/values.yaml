@@ -990,18 +990,6 @@ customPlugins:
   upstreamAuthority: {}
   notifier: {}
 
-experimental:
-  ## @param experimental.enabled Allow configuration of experimental features
-  enabled: false
-  ## @param experimental.cacheReloadInterval The amount of time between two reloads of the in-memory entry cache.
-  cacheReloadInterval: 5s
-  ## @param experimental.eventsBasedCache Use events to update the cache with what's changed since the last update.
-  eventsBasedCache: false
-  ## @param experimental.pruneEventsOlderThan How old an event can be before being deleted. Used with events based cache.
-  pruneEventsOlderThan: 12h
-  ## @param experimental.featureFlags [array] List of developer feature flags
-  featureFlags: []
-
 # When upgrading from a previous version, sometimes we need to change the user and requires updating permissions.
 chown:
   ## @param chown.image.registry The OCI registry to pull the image from
@@ -1017,6 +1005,18 @@ chown:
 
   ## @param chown.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
+
+experimental:
+  ## @param experimental.enabled Allow configuration of experimental features
+  enabled: false
+  ## @param experimental.cacheReloadInterval The amount of time between two reloads of the in-memory entry cache.
+  cacheReloadInterval: 5s
+  ## @param experimental.eventsBasedCache Use events to update the cache with what's changed since the last update.
+  eventsBasedCache: false
+  ## @param experimental.pruneEventsOlderThan How old an event can be before being deleted. Used with events based cache.
+  pruneEventsOlderThan: 12h
+  ## @param experimental.featureFlags [array] List of developer feature flags
+  featureFlags: []
 
 tests:
   ## @param tests.hostAliases [array] List of host aliases for testing
