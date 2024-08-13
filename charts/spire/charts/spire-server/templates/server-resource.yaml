@@ -1,3 +1,6 @@
+{{- $rawPodSecurityContext := fromYaml (include "spire-lib.podsecuritycontext" .) }}
+{{- $podSecurityContext := fromYaml (include "spire-server.podSecurityContext" .) }}
+{{- $needsChown := and (not (hasKey $rawPodSecurityContext "runAsUser")) (not (dig "openshift" false .Values.global)) }}
 {{- $configSum := (include (print $.Template.BasePath "/configmap.yaml") . | sha256sum) }}
 {{- $configSum2 := (include (print $.Template.BasePath "/secret.yaml") . | sha256sum) }}
 {{- $configSum3 := (include (print $.Template.BasePath "/controller-manager-configmap.yaml") . | sha256sum) }}
@@ -76,9 +79,9 @@ spec:
       serviceAccountName: {{ include "spire-server.serviceAccountName" . }}
       shareProcessNamespace: true
       securityContext:
-        {{- include "spire-lib.podsecuritycontext" . | nindent 8 }}
+        {{- $podSecurityContext | toYaml | nindent 8 }}
       {{- include "spire-lib.default_cluster_priority_class_name" . | nindent 6 }}
-      {{- if or (gt (len .Values.initContainers) 0) (and .Values.upstreamAuthority.certManager.enabled .Values.upstreamAuthority.certManager.ca.create) .Values.nodeAttestor.tpmDirect.enabled }}
+      {{- if or (gt (len .Values.initContainers) 0) (and .Values.upstreamAuthority.certManager.enabled .Values.upstreamAuthority.certManager.ca.create) .Values.nodeAttestor.tpmDirect.enabled $needsChown }}
       initContainers:
         {{- if .Values.nodeAttestor.tpmDirect.enabled }}
         - name: init-tpm-direct
@@ -99,6 +102,23 @@ spec:
             - name: spire-data
               mountPath: /run/spire/data
           imagePullPolicy: {{ .Values.nodeAttestor.tpmDirect.image.pullPolicy }}
+      {{- end }}
+      {{- if $needsChown }}
+      - name: chown
+        image: {{ template "spire-lib.image" (dict "image" .Values.chown.image "global" .Values.global) }}
+        imagePullPolicy: {{ .Values.chown.image.pullPolicy }}
+        command: ["bash", "-c"]
+        args:
+          - |
+            chown -R {{ $podSecurityContext.runAsUser }}:{{ $podSecurityContext.runAsGroup }} /var/lib/spire
+        resources:
+          {{- toYaml .Values.chown.resources | nindent 12 }}
+        volumeMounts:
+          - name: spire-data
+            mountPath: /var/lib/spire
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
       {{- end }}
       {{- if and .Values.upstreamAuthority.certManager.enabled .Values.upstreamAuthority.certManager.ca.create }}
         - name: wait

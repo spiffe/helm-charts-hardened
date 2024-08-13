@@ -1002,6 +1002,22 @@ experimental:
   ## @param experimental.featureFlags [array] List of developer feature flags
   featureFlags: []
 
+# When upgrading from a previous version, sometimes we need to change the user and requires updating permissions.
+chown:
+  ## @param chown.image.registry The OCI registry to pull the image from
+  ## @param chown.image.repository The repository within the registry
+  ## @param chown.image.pullPolicy The image pull policy
+  ## @param chown.image.tag Overrides the image tag whose default is the chart appVersion
+  ##
+  image:
+    registry: cgr.dev
+    repository: chainguard/bash
+    pullPolicy: Always
+    tag: latest@sha256:27dc752a2ebacd10571c4045d3e1732f4bbb764446373ac85626602b69132776
+
+  ## @param chown.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+  resources: {}
+
 tests:
   ## @param tests.hostAliases [array] List of host aliases for testing
   hostAliases: []
