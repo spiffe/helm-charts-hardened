@@ -110,7 +110,6 @@ plugins:
         # Minikube does not have a cert in the cluster CA bundle that
         # can authenticate the kubelet cert, so skip validation.
         skip_kubelet_verification: {{ .Values.workloadAttestors.k8s.skipKubeletVerification }}
-        kubelet_ca_path: {{ .Values.workloadAttestors.k8s.kubeletCaPath }}
         disable_container_selectors: {{ .Values.workloadAttestors.k8s.disableContainerSelectors }}
         use_new_container_locator: {{ .Values.workloadAttestors.k8s.useNewContainerLocator }}
         verbose_container_locator_logs: {{ .Values.workloadAttestors.k8s.verboseContainerLocatorLogs }}
