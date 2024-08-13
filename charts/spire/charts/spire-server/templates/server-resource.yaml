@@ -104,21 +104,21 @@ spec:
           imagePullPolicy: {{ .Values.nodeAttestor.tpmDirect.image.pullPolicy }}
       {{- end }}
       {{- if $needsChown }}
-      - name: chown
-        image: {{ template "spire-lib.image" (dict "image" .Values.chown.image "global" .Values.global) }}
-        imagePullPolicy: {{ .Values.chown.image.pullPolicy }}
-        command: ["bash", "-c"]
-        args:
-          - |
-            chown -R {{ $podSecurityContext.runAsUser }}:{{ $podSecurityContext.runAsGroup }} /var/lib/spire
-        resources:
-          {{- toYaml .Values.chown.resources | nindent 12 }}
-        volumeMounts:
-          - name: spire-data
-            mountPath: /var/lib/spire
-        securityContext:
-          runAsUser: 0
-          runAsGroup: 0
+        - name: chown
+          image: {{ template "spire-lib.image" (dict "image" .Values.chown.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.chown.image.pullPolicy }}
+          command: ["bash", "-c"]
+          args:
+            - |
+              chown -R {{ $podSecurityContext.runAsUser }}:{{ $podSecurityContext.runAsGroup }} /var/lib/spire
+          resources:
+            {{- toYaml .Values.chown.resources | nindent 12 }}
+          volumeMounts:
+            - name: spire-data
+              mountPath: /var/lib/spire
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
       {{- end }}
       {{- if and .Values.upstreamAuthority.certManager.enabled .Values.upstreamAuthority.certManager.ca.create }}
         - name: wait
