@@ -88,6 +88,12 @@ kubectl delete crds clusterfederatedtrustdomains.spire.spiffe.io clusterspiffeid
 
 We only support upgrading one major/minor version at a time. Version skipping isn't supported. Please see <https://spiffe.io/docs/latest/spire-helm-charts-hardened-about/upgrading/> for details.
 
+### 0.22.X
+
+In previous versions, the setting spire-agent.workloadAttestors.k8s.skipKubeletVerification was set to false by default. Starting in 0.22.x, we removed that setting and replaced it with
+spire-agent.workloadAttestors.k8s.verification.type. It now defaults to something that should work on most clusters out of the box, providing better security. To skip verification,
+you can set spire-agent.workloadAttestors.k8s.verification.type to "skip".
+
 ### 0.21.X
 
 - In previous versions, spire-server.upstreamAuthority.certManager.issuer_name would incorrectly have '-ca' appended. Starting with this version, that is no longer the case. If you previously set this

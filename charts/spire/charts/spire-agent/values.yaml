@@ -206,8 +206,14 @@ workloadAttestors:
   k8s:
     ## @param workloadAttestors.k8s.enabled Enables the Kubernetes workload attestor
     enabled: true
-    ## @param workloadAttestors.k8s.skipKubeletVerification If true, kubelet certificate verification is skipped
-    skipKubeletVerification: true
+    verification:
+      ## @param workloadAttestors.k8s.verification.type What kind of verification to do against kubelet. Valid options are [hostCert, apiServerCA, skip]
+      type: hostCert
+      hostCert:
+        ## @param workloadAttestors.k8s.verification.hostCert.basePath Path where kubelet places its certificates
+        basePath: /var/lib/kubelet/pki
+        ## @param workloadAttestors.k8s.verification.hostCert.fileName File name where kubelet places its certificates. If blank, it will be auto detected.
+        fileName: ""
     ## @param workloadAttestors.k8s.disableContainerSelectors Set to true if using holdApplicationUntilProxyStarts in Istio
     disableContainerSelectors: false
     ## @param workloadAttestors.k8s.useNewContainerLocator If true, enables the new container locator algorithm that has support for cgroups v2. Defaults to false

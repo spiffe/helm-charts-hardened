@@ -74,6 +74,36 @@ spec:
         {{- toYaml .Values.hostAliases | nindent 8 }}
       {{- end }}
       initContainers:
+        {{- if eq .Values.workloadAttestors.k8s.verification.type "hostCert" }}
+        - name: gather-host-cert
+          securityContext:
+            {{- $mainSecurityContext | toYaml | nindent 12 }}
+          #FIXME socketAlternate
+          #image: {{ template "spire-lib.image" (dict "image" .Values.socketAlternate.image "global" .Values.global) }}
+          image: chainguard/min-toolkit-debug:latest@sha256:eb1c3f94b5a2303d74a804c1bfd5adc9c98e55e344bbe1adcd6522d6e80d5733
+          imagePullPolicy: {{ .Values.socketAlternate.image.pullPolicy }}
+          command: ["bash", "-xec"]
+          args:
+            - |
+              {{- if ne .Values.workloadAttestors.k8s.verification.hostCert.fileName "" }}
+              openssl x509 -in /host/{{ .Values.workloadAttestors.k8s.verification.hostCert.fileName | quote }} -out /hostCert/kubelet.crt
+              {{- else }}
+              if [ -f /host/kubelet-server-current.pem ]; then
+                openssl x509 -in /host/kubelet-server-current.pem -out /hostCert/kubelet.crt
+              elif [ -f /host/kubelet.crt ]; then
+                openssl x509 -in /host/kubelet.crt -out /hostCert/kubelet.crt
+              else
+                echo Could not find certificate.
+                exit 1
+              fi
+              {{- end }}
+              chmod 644 /hostCert/kubelet.crt
+          volumeMounts:
+          - name: host-cert-isolated
+            mountPath: /hostCert
+          - name: host-cert
+            mountPath: /host
+        {{- end }}
         {{- if .Values.nodeAttestor.tpmDirect.enabled }}
         {{- if .Values.nodeAttestor.tpmDirect.pubHash.enabled }}
         - name: fingerprint-tpm
@@ -220,6 +250,10 @@ spec:
               readOnly: false
             - name: spire-token
               mountPath: /var/run/secrets/tokens
+            {{- if eq .Values.workloadAttestors.k8s.verification.type "hostCert" }}
+            - name: host-cert-isolated
+              mountPath: /hostCert
+            {{- end }}
             {{- if gt (len .Values.extraVolumeMounts) 0 }}
             {{- toYaml .Values.extraVolumeMounts | nindent 12 }}
             {{- end }}
@@ -301,6 +335,13 @@ spec:
           hostPath:
             path: /dev/kmsg
             type: CharDevice
+        {{- end }}
+        {{- if eq .Values.workloadAttestors.k8s.verification.type "hostCert" }}
+        - name: host-cert-isolated
+          emptyDir: {}
+        - name: host-cert
+          hostPath:
+            path: {{ .Values.workloadAttestors.k8s.verification.hostCert.basePath }}
         {{- end }}
         {{- if gt (len .Values.extraVolumes) 0 }}
         {{- toYaml .Values.extraVolumes | nindent 8 }}
