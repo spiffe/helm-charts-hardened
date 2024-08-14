@@ -4,6 +4,11 @@
       "query": "tests.bash.image",
       "filter": "LATESTSHA",
       "sort-flags": []
+    },
+    {
+      "query": "chown.image",
+      "filter": "LATESTSHA",
+      "sort-flags": []
     }
   ],
   "spire-agent/values.yaml": [
