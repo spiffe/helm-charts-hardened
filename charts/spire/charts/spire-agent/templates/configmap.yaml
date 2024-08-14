@@ -111,7 +111,7 @@ plugins:
         {{- else if eq .Values.workloadAttestors.k8s.verification.type "apiServerCA" }}
         kubelet_ca_path: /run/secrets/kubernetes.io/serviceaccount/ca.crt
         {{- end }}
-        skip_kubelet_verification: {{ eq  .Values.workloadAttestors.k8s.verification.type "skip" }}
+        skip_kubelet_verification: {{ eq .Values.workloadAttestors.k8s.verification.type "skip" }}
         disable_container_selectors: {{ .Values.workloadAttestors.k8s.disableContainerSelectors }}
         use_new_container_locator: {{ .Values.workloadAttestors.k8s.useNewContainerLocator }}
         verbose_container_locator_logs: {{ .Values.workloadAttestors.k8s.verboseContainerLocatorLogs }}
