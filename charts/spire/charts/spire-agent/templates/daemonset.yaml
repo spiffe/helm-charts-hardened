@@ -146,12 +146,16 @@ spec:
           imagePullPolicy: {{ .Values.fsGroupFix.image.pullPolicy }}
           command: ["bash", "-c"]
           args:
-            - "chown -R {{ $podSecurityContext.runAsUser }}:{{ $podSecurityContext.fsGroup }} {{ $socketPath | dir }} /tmp/spire-agent/private"
+            - |
+              chown -R {{ $podSecurityContext.runAsUser }}:{{ $podSecurityContext.fsGroup }} {{ $socketPath | dir }} /tmp/spire-agent/private
+              chown -R {{ $podSecurityContext.runAsUser }}:{{ $podSecurityContext.fsGroup }} /var/lib/spire
           resources:
             {{- toYaml .Values.fsGroupFix.resources | nindent 12 }}
           volumeMounts:
             - name: spire-agent-socket-dir
               mountPath: {{ $socketPath | dir }}
+            - name: spire-agent-persistence
+              mountPath: /var/lib/spire
             - name: spire-agent-admin-socket-dir
               mountPath: /tmp/spire-agent/private
           securityContext:
@@ -191,6 +195,8 @@ spec:
             - name: spire-config
               mountPath: /opt/spire/conf/agent
               readOnly: true
+            - name: spire-agent-persistence
+              mountPath: /var/lib/spire
             {{- if .Values.sockets.admin.enabled }}
             - name: spire-agent-admin-socket-dir
               mountPath: /tmp/spire-agent/private
@@ -255,6 +261,15 @@ spec:
             type: DirectoryOrCreate
         {{- else }}
         - name: spire-agent-admin-socket-dir
+          emptyDir: {}
+        {{- end }}
+        {{- if eq .Values.persistence.type "hostPath" }}
+        - name: spire-agent-persistence
+          hostPath:
+            path: {{ .Values.persistence.hostPath }}/{{ if .Values.upstream }}upstream.csi.spiffe.io{{ else }}csi.spiffe.io{{ end }}
+            type: DirectoryOrCreate
+        {{- else }}
+        - name: spire-agent-persistence
           emptyDir: {}
         {{- end }}
         {{- if eq (len .Values.trustBundleURL) 0 }}

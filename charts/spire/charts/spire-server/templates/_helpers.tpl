@@ -318,3 +318,17 @@ subjects:
   namespace: {{ include "spire-server.namespace" . }}
 {{-   end }}
 {{- end }}
+
+{{- define "spire-server.podSecurityContext" -}}
+{{-   $podSecurityContext := include "spire-lib.podsecuritycontext" . | fromYaml }}
+{{-   $openshift := ((.Values).global).openshift | default false }}
+{{-   if not $openshift }}
+{{-     if not (hasKey $podSecurityContext "runAsUser") }}
+{{-       $_ := set $podSecurityContext "runAsUser" 1000 }}
+{{-     end }}
+{{-     if not (hasKey $podSecurityContext "runAsGroup") }}
+{{-       $_ := set $podSecurityContext "runAsGroup" 1000 }}
+{{-     end }}
+{{-   end }}
+{{-   toYaml $podSecurityContext }}
+{{- end }}
