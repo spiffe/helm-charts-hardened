@@ -86,12 +86,12 @@ spec:
           args:
             - |
               {{- if ne .Values.workloadAttestors.k8s.verification.hostCert.fileName "" }}
-              openssl x509 -in /host/{{ .Values.workloadAttestors.k8s.verification.hostCert.fileName | quote }} -out /hostCert/kubelet.crt
+              openssl x509 -in "{{ .Values.workloadAttestors.k8s.verification.hostCert.basePath }}/{{ .Values.workloadAttestors.k8s.verification.hostCert.fileName }}" -out /hostCert/kubelet.crt
               {{- else }}
-              if [ -f /host/kubelet-server-current.pem ]; then
-                openssl x509 -in /host/kubelet-server-current.pem -out /hostCert/kubelet.crt
-              elif [ -f /host/kubelet.crt ]; then
-                openssl x509 -in /host/kubelet.crt -out /hostCert/kubelet.crt
+              if [ -f "{{ .Values.workloadAttestors.k8s.verification.hostCert.basePath }}/kubelet-server-current.pem" ]; then
+                openssl x509 -in "{{ .Values.workloadAttestors.k8s.verification.hostCert.basePath }}/kubelet-server-current.pem" -out /hostCert/kubelet.crt
+              elif [ -f "{{ .Values.workloadAttestors.k8s.verification.hostCert.basePath }}/kubelet.crt" ]; then
+                openssl x509 -in "{{ .Values.workloadAttestors.k8s.verification.hostCert.basePath }}/kubelet.crt" -out /hostCert/kubelet.crt
               else
                 echo Could not find certificate.
                 exit 1
@@ -102,7 +102,7 @@ spec:
           - name: host-cert-isolated
             mountPath: /hostCert
           - name: host-cert
-            mountPath: /host
+            mountPath: {{ .Values.workloadAttestors.k8s.verification.hostCert.basePath | quote }}
             readOnly: true
         {{- end }}
         {{- if .Values.nodeAttestor.tpmDirect.enabled }}
