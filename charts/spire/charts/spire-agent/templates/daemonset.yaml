@@ -103,6 +103,7 @@ spec:
             mountPath: /hostCert
           - name: host-cert
             mountPath: /host
+            readOnly: true
         {{- end }}
         {{- if .Values.nodeAttestor.tpmDirect.enabled }}
         {{- if .Values.nodeAttestor.tpmDirect.pubHash.enabled }}
@@ -253,6 +254,7 @@ spec:
             {{- if eq .Values.workloadAttestors.k8s.verification.type "hostCert" }}
             - name: host-cert-isolated
               mountPath: /hostCert
+              readOnly: true
             {{- end }}
             {{- if gt (len .Values.extraVolumeMounts) 0 }}
             {{- toYaml .Values.extraVolumeMounts | nindent 12 }}
