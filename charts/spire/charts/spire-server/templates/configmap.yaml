@@ -247,6 +247,31 @@ plugins:
         {{- end }}
   {{- end }}
 
+  {{- if or .Values.bundlePublisher.awsRolesAnywhereTrustAnchor.enabled .Values.bundlePublisher.awsS3.enabled .Values.bundlePublisher.gcpCloudStorage.enabled }}
+  BundlePublisher:
+    {{- if .Values.bundlePublisher.awsRolesAnywhereTrustAnchor.enabled }}
+    aws_rolesanywhere_trustanchor:
+      plugin_data:
+        region: {{ .Values.bundlePublisher.awsRolesAnywhereTrustAnchor.region | quote }}
+        trust_anchor_id: {{ .Values.bundlePublisher.awsRolesAnywhereTrustAnchor.trustAnchorID | quote }}
+    {{- end }}
+    {{- if .Values.bundlePublisher.awsS3.enabled }}
+    aws_s3:
+      plugin_data:
+        region: {{ .Values.bundlePublisher.awsS3.region | quote }}
+        bucket: {{ .Values.bundlePublisher.awsS3.bucket | quote }}
+        object_key: {{ .Values.bundlePublisher.awsS3.objectKey | quote }}
+        format: {{ .Values.bundlePublisher.awsS3.format | quote }}
+    {{- end }}
+    {{- if .Values.bundlePublisher.gcpCloudStorage.enabled }}
+    gcp_cloudstorage:
+      plugin_data:
+        bucket_name: {{ .Values.bundlePublisher.gcpCloudStorage.bucketName | quote }}
+        object_name: {{ .Values.bundlePublisher.gcpCloudStorage.objectName | quote }}
+        format: {{ .Values.bundlePublisher.awsS3.format | quote }}
+    {{- end }}
+  {{- end }}
+
   {{- with .Values.upstreamAuthority.disk }}
   {{- if eq (.enabled | toString) "true" }}
   {{- $upstreamAuthorityUsed = add1 $upstreamAuthorityUsed }}
