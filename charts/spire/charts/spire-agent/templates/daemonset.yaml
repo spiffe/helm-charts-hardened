@@ -78,10 +78,8 @@ spec:
         - name: gather-host-cert
           securityContext:
             {{- $mainSecurityContext | toYaml | nindent 12 }}
-          #FIXME socketAlternate
-          #image: {{ template "spire-lib.image" (dict "image" .Values.socketAlternate.image "global" .Values.global) }}
-          image: chainguard/min-toolkit-debug:latest@sha256:eb1c3f94b5a2303d74a804c1bfd5adc9c98e55e344bbe1adcd6522d6e80d5733
-          imagePullPolicy: {{ .Values.socketAlternate.image.pullPolicy }}
+          image: {{ template "spire-lib.image" (dict "image" .Values.hostCert.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.hostCert.image.pullPolicy }}
           command: ["bash", "-xec"]
           args:
             - |

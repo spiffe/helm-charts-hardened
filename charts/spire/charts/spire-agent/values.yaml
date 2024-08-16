@@ -274,6 +274,21 @@ socketAlternate:
   ## @param socketAlternate.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
 
+hostCert:
+  ## @param hostCert.image.registry The OCI registry to pull the image from
+  ## @param hostCert.image.repository The repository within the registry
+  ## @param hostCert.image.pullPolicy The image pull policy
+  ## @param hostCert.image.tag Overrides the image tag whose default is the chart appVersion
+  ##
+  image:
+    registry: cgr.dev
+    repository: chainguard/min-toolkit-debug
+    pullPolicy: IfNotPresent
+    tag: latest@sha256:eb1c3f94b5a2303d74a804c1bfd5adc9c98e55e344bbe1adcd6522d6e80d5733
+
+  ## @param hostCert.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+  resources: {}
+
 ## @param priorityClassName Priority class assigned to daemonset pods. Can be auto set with global.recommendations.priorityClassName.
 priorityClassName: ""
 
