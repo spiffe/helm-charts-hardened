@@ -993,6 +993,16 @@ tornjak:
   ## @param tornjak.securityContext [object] Security Context to use
   securityContext: {}
 
+secrets:
+  aws:
+    ## @param secrets.aws.accessKeyID AWS Access Key ID
+    accessKeyID: ""
+    ## @param secrets.aws.secretAccessKey AWS Secret Access Key
+    secretAccessKey: ""
+  gcp:
+    ## @param secrets.gcp.applicationCredentials Google Application Credentials
+    applicationCredentials: ""
+
 # NOTE: This is unsupported and only to configure currently supported spire built in plugins but plugins unsupported by the chart.
 # Upgrades wont be tested for anything under this config. If you need this, please let the chart developers know your needs so we
 # can prioritize proper support.
