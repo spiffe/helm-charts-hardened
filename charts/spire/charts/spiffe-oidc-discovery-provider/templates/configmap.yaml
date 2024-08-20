@@ -14,6 +14,7 @@
 {{- include "spire-lib.check-strict-mode" (list . "trustDomain must be set" (eq (include "spire-lib.trust-domain" .) "example.org"))}}
 {{- include "spire-lib.check-strict-mode" (list . "jwtIssuer must be set" (eq (include "spire-lib.jwt-issuer" .) "https://oidc-discovery.example.org"))}}
 {{- $oidcSocket := "/run/spire/oidc-sockets/spire-oidc-server.sock" }}
+{{- $ipMode := .Values.insecureScheme.nginx.ipMode }}
 {{- define "spiffe-oidc-discovery-provider.yaml-config" -}}
 {{- $oidcSocket := .oidcSocket }}
 {{- with .root }}
@@ -66,8 +67,12 @@ data:
     }
 
     server {
+      {{- if or (eq .Values.insecureScheme.nginx.ipMode "ipv4") (eq .Values.insecureScheme.nginx.ipMode "both") }}
       listen            8080;
+      {{- end }}
+      {{- if or (eq .Values.insecureScheme.nginx.ipMode "ipv6") (eq .Values.insecureScheme.nginx.ipMode "both") }}
       listen       [::]:8080;
+      {{- end }}
 
       location / {
         proxy_pass http://oidc;
