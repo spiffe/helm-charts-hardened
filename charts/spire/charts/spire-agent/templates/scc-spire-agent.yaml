@@ -18,6 +18,7 @@ volumes:
   - projected
   - secret
   - emptyDir
+allowedCapabilities: null
 allowHostDirVolumePlugin: true
 allowHostIPC: true
 allowHostNetwork: true
@@ -25,8 +26,11 @@ allowHostPID: true
 allowHostPorts: true
 allowPrivilegeEscalation: true
 allowPrivilegedContainer: true
+defaultAddCapabilities: null
 fsGroup:
   type: RunAsAny
 groups: []
+priority: null
+requiredDropCapabilities: null
 
 {{ end }}
