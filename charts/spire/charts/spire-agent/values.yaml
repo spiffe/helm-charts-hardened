@@ -208,7 +208,7 @@ workloadAttestors:
     enabled: true
     verification:
       ## @param workloadAttestors.k8s.verification.type What kind of verification to do against kubelet. Valid options are [hostCert, apiServerCA, skip]
-      type: hostCert
+      type: skip
       hostCert:
         ## @param workloadAttestors.k8s.verification.hostCert.basePath Path where kubelet places its certificates
         basePath: /var/lib/kubelet/pki
