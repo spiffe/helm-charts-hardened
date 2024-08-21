@@ -207,7 +207,7 @@ workloadAttestors:
     ## @param workloadAttestors.k8s.enabled Enables the Kubernetes workload attestor
     enabled: true
     verification:
-      ## @param workloadAttestors.k8s.verification.type What kind of verification to do against kubelet. Valid options are [hostCert, apiServerCA, skip]
+      ## @param workloadAttestors.k8s.verification.type What kind of verification to do against kubelet. Valid options are [auto, hostCert, apiServerCA, skip]
       type: skip
       hostCert:
         ## @param workloadAttestors.k8s.verification.hostCert.basePath Path where kubelet places its certificates
