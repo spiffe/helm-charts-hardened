@@ -165,6 +165,8 @@ insecureScheme:
       repository: nginxinc/nginx-unprivileged
       pullPolicy: IfNotPresent
       tag: 1.27.1-alpine
+    ## @param insecureScheme.nginx.ipMode IP modes supported by the cluster. Must be one of [ipv4, ipv6, both]
+    ipMode: both
     ## @param insecureScheme.nginx.resources Resource requests and limits
     resources: {}
       # We usually recommend not to specify default resources and to leave this as a conscious

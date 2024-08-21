@@ -66,8 +66,12 @@ data:
     }
 
     server {
+      {{- if or (eq .Values.insecureScheme.nginx.ipMode "ipv4") (eq .Values.insecureScheme.nginx.ipMode "both") }}
       listen            8080;
+      {{- end }}
+      {{- if or (eq .Values.insecureScheme.nginx.ipMode "ipv6") (eq .Values.insecureScheme.nginx.ipMode "both") }}
       listen       [::]:8080;
+      {{- end }}
 
       location / {
         proxy_pass http://oidc;
