@@ -109,7 +109,7 @@ plugins:
         {{- if eq .Values.workloadAttestors.k8s.verification.type "hostCert" }}
         kubelet_ca_path: /hostCert/kubelet.crt
         {{- else if eq .Values.workloadAttestors.k8s.verification.type "apiServerCA" }}
-        kubelet_ca_path: /run/secrets/kubernetes.io/serviceaccount/ca.crt
+        kubelet_ca_path: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
         {{- end }}
         skip_kubelet_verification: {{ eq .Values.workloadAttestors.k8s.verification.type "skip" }}
         disable_container_selectors: {{ .Values.workloadAttestors.k8s.disableContainerSelectors }}
