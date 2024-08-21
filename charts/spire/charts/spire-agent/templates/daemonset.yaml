@@ -74,6 +74,35 @@ spec:
         {{- toYaml .Values.hostAliases | nindent 8 }}
       {{- end }}
       initContainers:
+        {{- if eq .Values.workloadAttestors.k8s.verification.type "hostCert" }}
+        - name: gather-host-cert
+          securityContext:
+            {{- $mainSecurityContext | toYaml | nindent 12 }}
+          image: {{ template "spire-lib.image" (dict "image" .Values.hostCert.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.hostCert.image.pullPolicy }}
+          command: ["bash", "-xec"]
+          args:
+            - |
+              {{- if ne .Values.workloadAttestors.k8s.verification.hostCert.fileName "" }}
+              openssl x509 -in "{{ .Values.workloadAttestors.k8s.verification.hostCert.basePath }}/{{ .Values.workloadAttestors.k8s.verification.hostCert.fileName }}" -out /hostCert/kubelet.crt
+              {{- else }}
+              if [ -f "{{ .Values.workloadAttestors.k8s.verification.hostCert.basePath }}/kubelet-server-current.pem" ]; then
+                openssl x509 -in "{{ .Values.workloadAttestors.k8s.verification.hostCert.basePath }}/kubelet-server-current.pem" -out /hostCert/kubelet.crt
+              elif [ -f "{{ .Values.workloadAttestors.k8s.verification.hostCert.basePath }}/kubelet.crt" ]; then
+                openssl x509 -in "{{ .Values.workloadAttestors.k8s.verification.hostCert.basePath }}/kubelet.crt" -out /hostCert/kubelet.crt
+              else
+                echo Could not find certificate.
+                exit 1
+              fi
+              {{- end }}
+              chmod 644 /hostCert/kubelet.crt
+          volumeMounts:
+          - name: host-cert-isolated
+            mountPath: /hostCert
+          - name: host-cert
+            mountPath: {{ .Values.workloadAttestors.k8s.verification.hostCert.basePath | quote }}
+            readOnly: true
+        {{- end }}
         {{- if .Values.nodeAttestor.tpmDirect.enabled }}
         {{- if .Values.nodeAttestor.tpmDirect.pubHash.enabled }}
         - name: fingerprint-tpm
@@ -220,6 +249,11 @@ spec:
               readOnly: false
             - name: spire-token
               mountPath: /var/run/secrets/tokens
+            {{- if eq .Values.workloadAttestors.k8s.verification.type "hostCert" }}
+            - name: host-cert-isolated
+              mountPath: /hostCert
+              readOnly: true
+            {{- end }}
             {{- if gt (len .Values.extraVolumeMounts) 0 }}
             {{- toYaml .Values.extraVolumeMounts | nindent 12 }}
             {{- end }}
@@ -301,6 +335,13 @@ spec:
           hostPath:
             path: /dev/kmsg
             type: CharDevice
+        {{- end }}
+        {{- if eq .Values.workloadAttestors.k8s.verification.type "hostCert" }}
+        - name: host-cert-isolated
+          emptyDir: {}
+        - name: host-cert
+          hostPath:
+            path: {{ .Values.workloadAttestors.k8s.verification.hostCert.basePath }}
         {{- end }}
         {{- if gt (len .Values.extraVolumes) 0 }}
         {{- toYaml .Values.extraVolumes | nindent 8 }}

@@ -18,6 +18,11 @@
       "sort-flags": []
     },
     {
+      "query": "hostCert.image",
+      "filter": "LATESTSHA",
+      "sort-flags": []
+    },
+    {
       "query": "fsGroupFix.image",
       "filter": "LATESTSHA",
       "sort-flags": []
