@@ -75,8 +75,7 @@ EOF
 common_test_url () (
 count=10
 while true; do
-        curl "$1"
-        [ $? -eq 0 ] && exit 0
+        if curl "$1"; then exit 0; fi
         sleep 2
         count=$((count-1))
         [ $count -le 0 ] && exit 1
