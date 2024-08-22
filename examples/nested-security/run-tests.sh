@@ -61,7 +61,7 @@ helm upgrade --install ingress-nginx ingress-nginx --version "$VERSION_INGRESS_N
   --wait
 
 # Test the ingress controller. Should 404 as there is no services yet.
-curl "$IP"
+common_test_url "$IP"
 
 kubectl get configmap -n kube-system coredns -o yaml | grep hosts || kubectl get configmap -n kube-system coredns -o yaml | sed "/ready/a\        hosts {\n           fallthrough\n        }" | kubectl apply -f -
 kubectl get configmap -n kube-system coredns -o yaml | grep production.other || kubectl get configmap -n kube-system coredns -o yaml | sed "/hosts/a\           $IP oidc-discovery.production.other\n           $IP spire-server.production.other\n" | kubectl apply -f -
