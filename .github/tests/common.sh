@@ -72,6 +72,17 @@ $(helm ls -A | sed 's/\t/ | /g' | sed 's/^/| /' | sed 's/$/ |/' | sed '/^| NAME.
 EOF
 }
 
+common_test_url () (
+count=10
+while true; do
+        curl "$1"
+        [ $? -eq 0 ] && exit 0
+        sleep 2
+        count=$((count-1))
+        [ $count -le 0 ] && exit 1
+done
+)
+
 # Used just for testing. You should provide your own values as described in the install instructions.
 common_test_your_values () {
 cat > /tmp/$$.example-your-values.yaml <<EOF
