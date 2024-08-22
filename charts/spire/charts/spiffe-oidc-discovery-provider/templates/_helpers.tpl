@@ -93,7 +93,7 @@ Create the name of the service account to use
 {{- end }}
 
 {{- define "spiffe-oidc-discovery-provider.tls-enabled" -}}
-{{-   if and .Values.enabled (or .Values.tls.spire.enabled .Values.tls.externalSecret.enabled .Values.tls.certManager.enabled) }}
+{{-   if or .Values.tls.spire.enabled .Values.tls.externalSecret.enabled .Values.tls.certManager.enabled }}
 {{-     true }}
 {{-   else }}
 {{-     false }}
