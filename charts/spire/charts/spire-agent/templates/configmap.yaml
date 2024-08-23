@@ -106,7 +106,7 @@ plugins:
   {{- if .Values.workloadAttestors.k8s.enabled }}
     k8s:
       plugin_data:
-        {{- if eq .Values.workloadAttestors.k8s.verification.type "hostCert" }}
+        {{- if or (eq .Values.workloadAttestors.k8s.verification.type "hostCert") (eq .Values.workloadAttestors.k8s.verification.type "auto") }}
         kubelet_ca_path: /hostCert/kubelet.crt
         {{- else if eq .Values.workloadAttestors.k8s.verification.type "apiServerCA" }}
         kubelet_ca_path: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
