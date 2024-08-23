@@ -849,6 +849,7 @@ nodeAttestor:
     ## @param nodeAttestor.tpmDirect.hashes A list of TPM hashes that are allowed to connect.
     hashes: []
 
+# The secrets needed for this plugin are configured in the secrets: section
 bundlePublisher:
   awsRolesAnywhereTrustAnchor:
     ## @param bundlePublisher.awsRolesAnywhereTrustAnchor.enabled Enable the AWS S3 bundle publisher
