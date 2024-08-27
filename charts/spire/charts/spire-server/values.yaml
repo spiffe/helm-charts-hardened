@@ -849,6 +849,36 @@ nodeAttestor:
     ## @param nodeAttestor.tpmDirect.hashes A list of TPM hashes that are allowed to connect.
     hashes: []
 
+# The secrets needed for this plugin are configured in the secrets: section
+bundlePublisher:
+  awsRolesAnywhereTrustAnchor:
+    ## @param bundlePublisher.awsRolesAnywhereTrustAnchor.enabled Enable the AWS S3 bundle publisher
+    enabled: false
+    ## @param bundlePublisher.awsRolesAnywhereTrustAnchor.region AWS region to store the trust bundle
+    region: ""
+    ## @param bundlePublisher.awsRolesAnywhereTrustAnchor.trustAnchorID AWS trust anchor ID to publish to
+    trustAnchorID: ""
+  awsS3:
+    ## @param bundlePublisher.awsS3.enabled Enable the AWS S3 bundle publisher
+    enabled: false
+    ## @param bundlePublisher.awsS3.region AWS region to store the trust bundle
+    region: ""
+    ## @param bundlePublisher.awsS3.bucket AWS S3 bucket name to which the trust bundle is uploaded
+    bucket: ""
+    ## @param bundlePublisher.awsS3.objectKey AWS S3 object key inside the bucket
+    objectKey: ""
+    ## @param bundlePublisher.awsS3.format Format in which the trust bundle is stored. Valid options [spiffe, jwks, pem]
+    format: ""
+  gcpCloudStorage:
+    ## @param bundlePublisher.gcpCloudStorage.enabled Enable the Google Cloud Storage bundle publisher
+    enabled: false
+    ## @param bundlePublisher.gcpCloudStorage.bucketName Google Cloud Storage bucket name to which the trust bundle is uploaded
+    bucketName: ""
+    ## @param bundlePublisher.gcpCloudStorage.objectName Google Cloud Storage object name
+    objectName: ""
+    ## @param bundlePublisher.gcpCloudStorage.format Format in which the trust bundle is stored. Valid options [spiffe, jwks, pem]
+    format: ""
+
 ## @section Tornjak
 tornjak:
   ## @param tornjak.enabled Deploys Tornjak API (backend) (Not for production)
@@ -963,6 +993,16 @@ tornjak:
 
   ## @param tornjak.securityContext [object] Security Context to use
   securityContext: {}
+
+secrets:
+  aws:
+    ## @param secrets.aws.accessKeyID AWS Access Key ID
+    accessKeyID: ""
+    ## @param secrets.aws.secretAccessKey AWS Secret Access Key
+    secretAccessKey: ""
+  gcp:
+    ## @param secrets.gcp.applicationCredentials Google Application Credentials
+    applicationCredentials: ""
 
 # NOTE: This is unsupported and only to configure currently supported spire built in plugins but plugins unsupported by the chart.
 # Upgrades wont be tested for anything under this config. If you need this, please let the chart developers know your needs so we
