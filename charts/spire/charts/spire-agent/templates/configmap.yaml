@@ -32,7 +32,7 @@ agent:
   authorized_delegates:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  data_dir: "/run/spire"
+  data_dir: "/var/lib/spire"
   log_level: {{ .Values.logLevel | quote }}
   retry_bootstrap: true
   server_address: {{ include "spire-agent.server-address" . | trim | quote }}
@@ -78,6 +78,20 @@ plugins:
       plugin_data:
         cluster: {{ include "spire-lib.cluster-name" . | quote }}
     {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
+    {{- end }}
+    {{- with .Values.nodeAttestor.httpChallenge }}
+    {{- if eq (.enabled | toString) "true" }}
+    http_challenge:
+      plugin_data:
+        agentname: {{ .agentname | quote }}
+        {{- if ne (int .port) 0 }}
+        port: {{ .port }}
+        {{- end }}
+        {{- if ne (int .advertisedPort) 0 }}
+        advertisedPort: {{ .advertisedPort }}
+        {{- end }}
+    {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
+    {{- end }}
     {{- end }}
     {{- with .Values.nodeAttestor.tpmDirect }}
     {{- if eq (.enabled | toString) "true" }}

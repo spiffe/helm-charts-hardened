@@ -144,7 +144,7 @@ readinessProbe:
 ## @param persistence.size What size volume to use for persistence
 ## @param persistence.accessMode What access mode to use for persistence. Valid options are ReadWriteOnce (recommended), ReadWriteOncePod, ReadWriteMany (not recommended)
 ## @param persistence.storageClass What storage class to use for persistence
-## @param persistence.hostPath Which path to use on the host when type = hostPath
+## @param persistence.hostPath Which path to use on the host when persistence.type = hostPath
 ##
 persistence:
   type: pvc
@@ -827,6 +827,17 @@ nodeAttestor:
   joinToken:
     ## @param nodeAttestor.joinToken.enabled Enable the join_token nodeattestor
     enabled: false
+  httpChallenge:
+    ## @param nodeAttestor.httpChallenge.enabled Enable the http_challenge nodeattesto
+    enabled: false
+    ## @param nodeAttestor.httpChallenge.allowedDNSPatterns A list of regular expressions to match to the hostname being attested. If none match, attestation will fail. If a blank list, all hostnames are allowed.
+    allowedDNSPatterns: []
+    ## @param nodeAttestor.httpChallenge.requiredPort Set to a port number to require clients to listen only on that port. If 0, all port numbers are allowed
+    requiredPort: 0
+    ## @param nodeAttestor.httpChallenge.allowNonRootPorts Allow using ports >= 1024 from clients for attestation
+    allowNonRootPorts: true
+    ## @param nodeAttestor.httpChallenge.tofu Trust on first use of the successful challenge. Can only be disabled if allowNonRootPorts=false or requiredPort < 1024
+    tofu: true
   tpmDirect:
     ## @param nodeAttestor.tpmDirect.enabled Enable the direct TPM node attestor, a 3rd party plugin by Boxboat. This plugin is experimental.
     enabled: false
