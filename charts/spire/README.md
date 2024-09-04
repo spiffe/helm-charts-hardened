@@ -306,16 +306,16 @@ Now you can interact with the Spire agent socket from your own application. The 
 
 ### Upstream Spire agent parameters
 
-| Name                                             | Description                                        | Value                                                |
-| ------------------------------------------------ | -------------------------------------------------- | ---------------------------------------------------- |
-| `upstream-spire-agent.upstream`                  | Flag for enabling upstream Spire agent             | `true`                                               |
-| `upstream-spire-agent.nameOverride`              | Name override for upstream Spire agent             | `agent-upstream`                                     |
-| `upstream-spire-agent.bundleConfigMap`           | The configmap name for upstream Spire agent bundle | `spire-bundle-upstream`                              |
-| `upstream-spire-agent.socketPath`                | Socket path where Spire agent socket is mounted    | `/run/spire/agent-sockets-upstream/spire-agent.sock` |
-| `upstream-spire-agent.serviceAccount.name`       | Service account name for upstream Spire agent      | `spire-agent-upstream`                               |
-| `upstream-spire-agent.healthChecks.port`         | Health check port number for upstream Spire agent  | `9981`                                               |
-| `upstream-spire-agent.telemetry.prometheus.port` | The port where prometheus metrics are available    | `9989`                                               |
-| `upstream-spire-agent.persistence.hostPath`      | Which path to use on the host when type = hostPath | `/var/lib/spire/k8s/upstream-agent`                  |
+| Name                                             | Description                                                    | Value                                                |
+| ------------------------------------------------ | -------------------------------------------------------------- | ---------------------------------------------------- |
+| `upstream-spire-agent.upstream`                  | Flag for enabling upstream Spire agent                         | `true`                                               |
+| `upstream-spire-agent.nameOverride`              | Name override for upstream Spire agent                         | `agent-upstream`                                     |
+| `upstream-spire-agent.bundleConfigMap`           | The configmap name for upstream Spire agent bundle             | `spire-bundle-upstream`                              |
+| `upstream-spire-agent.socketPath`                | Socket path where Spire agent socket is mounted                | `/run/spire/agent-sockets-upstream/spire-agent.sock` |
+| `upstream-spire-agent.serviceAccount.name`       | Service account name for upstream Spire agent                  | `spire-agent-upstream`                               |
+| `upstream-spire-agent.healthChecks.port`         | Health check port number for upstream Spire agent              | `9981`                                               |
+| `upstream-spire-agent.telemetry.prometheus.port` | The port where prometheus metrics are available                | `9989`                                               |
+| `upstream-spire-agent.persistence.hostPath`      | Which path to use on the host when persistence.type = hostPath | `/var/lib/spire/k8s/upstream-agent`                  |
 
 ### SPIFFE CSI Driver parameters
 

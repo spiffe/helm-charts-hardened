@@ -383,7 +383,7 @@ sockets:
     mountOnHost: false
 
 ## @param persistence.type What type of volume to use for persistence. Valid options emptyDir (reattestable node attestors) or hostPath (nonr-reattestable node attestors)
-## @param persistence.hostPath Which path to use on the host when type = hostPath
+## @param persistence.hostPath Which path to use on the host when persistence.type = hostPath
 ##
 persistence:
   type: emptyDir
