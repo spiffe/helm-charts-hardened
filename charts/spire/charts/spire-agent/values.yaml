@@ -165,6 +165,15 @@ nodeAttestor:
   k8sPsat:
     ## @param nodeAttestor.k8sPsat.enabled Enable Psat k8s Node Attestor
     enabled: true
+  httpChallenge:
+    ## @param nodeAttestor.httpChallenge.enabled Enable the http challenge Node Attestor
+    enabled: false
+    ## @param nodeAttestor.httpChallenge.agentname Name of this agent. Useful if you have multiple agents bound to different spire servers on the same host and sharing the same port.
+    agentname: default
+    ## @param nodeAttestor.httpChallenge.port The port to listen on. If 0, a random value will be used.
+    port: 0
+    ## @param nodeAttestor.httpChallenge.advertisedPort The port to tell the server to call back on. Set only if your using an http proxy on the hosts. If 0, will use the port setting.
+    advertisedPort: 0
   tpmDirect:
     ## @param nodeAttestor.tpmDirect.enabled Enable the direct TPM node attestor, a 3rd party plugin by Boxboat. This plugin is experimental.
     enabled: false

@@ -1,6 +1,6 @@
 # spire
 
-![Version: 0.22.0](https://img.shields.io/badge/Version-0.22.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.10.1](https://img.shields.io/badge/AppVersion-1.10.1-informational?style=flat-square)
+![Version: 0.22.0](https://img.shields.io/badge/Version-0.22.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.10.3](https://img.shields.io/badge/AppVersion-1.10.3-informational?style=flat-square)
 [![Development Phase](https://github.com/spiffe/spiffe/blob/main/.img/maturity/dev.svg)](https://github.com/spiffe/spiffe/blob/main/MATURITY.md#development)
 
 A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
@@ -236,19 +236,21 @@ Now you can interact with the Spire agent socket from your own application. The 
 
 ### Spire agent parameters
 
-| Name                                              | Description                                                   | Value                     |
-| ------------------------------------------------- | ------------------------------------------------------------- | ------------------------- |
-| `downstream-spire-agent-full.nameOverride`        | Overrides the name of Spire agent pods                        | `agent-downstream`        |
-| `downstream-spire-agent-full.server.nameOverride` | The name override setting of the internal SPIRE server        | `internal-server`         |
-| `downstream-spire-agent-full.bundleConfigMap`     | The name of the configmap that contains the downstream bundle | `spire-bundle-downstream` |
+| Name                                               | Description                                                   | Value                                 |
+| -------------------------------------------------- | ------------------------------------------------------------- | ------------------------------------- |
+| `downstream-spire-agent-full.nameOverride`         | Overrides the name of Spire agent pods                        | `agent-downstream`                    |
+| `downstream-spire-agent-full.server.nameOverride`  | The name override setting of the internal SPIRE server        | `internal-server`                     |
+| `downstream-spire-agent-full.bundleConfigMap`      | The name of the configmap that contains the downstream bundle | `spire-bundle-downstream`             |
+| `downstream-spire-agent-full.persistence.hostPath` | Which path to use on the host when type = hostPath            | `/var/lib/spire/k8s/downstream-agent` |
 
 ### Spire agent parameters
 
-| Name                                                  | Description                                                   | Value                   |
-| ----------------------------------------------------- | ------------------------------------------------------------- | ----------------------- |
-| `downstream-spire-agent-security.nameOverride`        | Overrides the name of Spire agent pods                        | `agent-downstream`      |
-| `downstream-spire-agent-security.bundleConfigMap`     | The name of the configmap that contains the downstream bundle | `spire-bundle-upstream` |
-| `downstream-spire-agent-security.serviceAccount.name` | The name of the service account to use                        | `spire-agent-upstream`  |
+| Name                                                   | Description                                                   | Value                                 |
+| ------------------------------------------------------ | ------------------------------------------------------------- | ------------------------------------- |
+| `downstream-spire-agent-security.nameOverride`         | Overrides the name of Spire agent pods                        | `agent-downstream`                    |
+| `downstream-spire-agent-security.bundleConfigMap`      | The name of the configmap that contains the downstream bundle | `spire-bundle-upstream`               |
+| `downstream-spire-agent-security.serviceAccount.name`  | The name of the service account to use                        | `spire-agent-upstream`                |
+| `downstream-spire-agent-security.persistence.hostPath` | Which path to use on the host when type = hostPath            | `/var/lib/spire/k8s/downstream-agent` |
 
 ### Upstream Spire agent parameters
 
@@ -262,6 +264,7 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `upstream-spire-agent.healthChecks.port`         | Health check port number for upstream Spire agent  | `9981`                                               |
 | `upstream-spire-agent.telemetry.prometheus.port` | The port where prometheus metrics are available    | `9989`                                               |
 | `upstream-spire-agent.server.nameOverride`       | The name override setting of the root SPIRE server | `root-server`                                        |
+| `upstream-spire-agent.persistence.hostPath`      | Which path to use on the host when type = hostPath | `/var/lib/spire/k8s/upstream-agent`                  |
 
 ### SPIFFE CSI Driver parameters
 

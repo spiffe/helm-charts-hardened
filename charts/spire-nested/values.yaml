@@ -117,6 +117,9 @@ downstream-spire-agent-full:
     nameOverride: internal-server
   ## @param downstream-spire-agent-full.bundleConfigMap The name of the configmap that contains the downstream bundle
   bundleConfigMap: spire-bundle-downstream
+  ## @param downstream-spire-agent-full.persistence.hostPath Which path to use on the host when type = hostPath
+  persistence:
+    hostPath: /var/lib/spire/k8s/downstream-agent
 
 ## @section Spire agent parameters
 ## Parameter values for Spire agent
@@ -131,6 +134,9 @@ downstream-spire-agent-security:
   serviceAccount:
     ## @param downstream-spire-agent-security.serviceAccount.name The name of the service account to use
     name: spire-agent-upstream
+  ## @param downstream-spire-agent-security.persistence.hostPath Which path to use on the host when type = hostPath
+  persistence:
+    hostPath: /var/lib/spire/k8s/downstream-agent
 
 ## @section Upstream Spire agent parameters
 ## Parameter values for upstream Spire agent
@@ -159,6 +165,9 @@ upstream-spire-agent:
   server:
     ## @param upstream-spire-agent.server.nameOverride The name override setting of the root SPIRE server
     nameOverride: root-server
+  ## @param upstream-spire-agent.persistence.hostPath Which path to use on the host when type = hostPath
+  persistence:
+    hostPath: /var/lib/spire/k8s/upstream-agent
 
 ## @section SPIFFE CSI Driver parameters
 ## Parameter values for spiffe-csi-driver

@@ -183,6 +183,9 @@ upstream-spire-agent:
     prometheus:
       ## @param upstream-spire-agent.telemetry.prometheus.port The port where prometheus metrics are available
       port: 9989
+  ## @param upstream-spire-agent.persistence.hostPath Which path to use on the host when type = hostPath
+  persistence:
+    hostPath: /var/lib/spire/k8s/upstream-agent
 
 ## @section SPIFFE CSI Driver parameters
 ## Parameter values for spiffe-csi-driver
