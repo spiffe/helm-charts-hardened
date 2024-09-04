@@ -16,6 +16,7 @@ volumes:
   - configmap
   - hostPath
   - secret
+allowedCapabilities: null
 allowHostDirVolumePlugin: true
 allowHostIPC: false
 allowHostNetwork: false
@@ -23,8 +24,11 @@ allowHostPID: false
 allowHostPorts: false
 allowPrivilegeEscalation: true
 allowPrivilegedContainer: true
+defaultAddCapabilities: null
 fsGroup:
   type: RunAsAny
 groups: []
+priority: null
+requiredDropCapabilities: null
 
 {{ end }}

@@ -103,7 +103,7 @@ plugins:
       plugin_data:
         {{ include "spire-server.datastore-config" . | nindent 10 }}
 
-  {{- if or .Values.nodeAttestor.k8sPsat.enabled .Values.nodeAttestor.externalK8sPsat.enabled .Values.nodeAttestor.joinToken.enabled .Values.nodeAttestor.tpmDirect.enabled }}
+  {{- if or .Values.nodeAttestor.k8sPsat.enabled .Values.nodeAttestor.externalK8sPsat.enabled .Values.nodeAttestor.joinToken.enabled .Values.nodeAttestor.httpChallenge.enabled .Values.nodeAttestor.tpmDirect.enabled }}
   NodeAttestor:
   {{- $clusters := default .Values.kubeConfigs .Values.nodeAttestor.externalK8sPsat.clusters }}
   {{- if or (eq (.Values.nodeAttestor.k8sPsat.enabled | toString) "true") (and (eq (.Values.nodeAttestor.externalK8sPsat.enabled | toString) "true") (gt (len $clusters) 0)) }}
@@ -148,6 +148,21 @@ plugins:
   {{- if eq (.enabled | toString) "true" }}
     join_token:
       plugin_data: {}
+  {{- end }}
+  {{- end }}
+  {{- with .Values.nodeAttestor.httpChallenge }}
+  {{- if eq (.enabled | toString) "true" }}
+    http_challenge:
+      plugin_data:
+        {{- with .allowedDNSPatterns }}
+        allowed_dns_patterns:
+          {{ toYaml . | nindent 10 }}
+        {{- end }}
+        {{- if ne (int .requiredPort) 0 }}
+        required_port: {{ .requiredPort }}
+        {{- end }}
+        allow_non_root_ports: {{ .allowNonRootPorts }}
+        tofu: {{ .tofu }}
   {{- end }}
   {{- end }}
   {{- with .Values.nodeAttestor.tpmDirect }}
@@ -245,6 +260,31 @@ plugins:
               config_map_key: {{ if hasKey $clusterSettings "configMapKey" }}{{ $clusterSettings.configMapKey }}{{ else }}{{ $clusterDefaults.configMapKey }}{{ end }}
           {{- end }}
         {{- end }}
+  {{- end }}
+
+  {{- if or .Values.bundlePublisher.awsRolesAnywhereTrustAnchor.enabled .Values.bundlePublisher.awsS3.enabled .Values.bundlePublisher.gcpCloudStorage.enabled }}
+  BundlePublisher:
+    {{- if .Values.bundlePublisher.awsRolesAnywhereTrustAnchor.enabled }}
+    aws_rolesanywhere_trustanchor:
+      plugin_data:
+        region: {{ .Values.bundlePublisher.awsRolesAnywhereTrustAnchor.region | quote }}
+        trust_anchor_id: {{ .Values.bundlePublisher.awsRolesAnywhereTrustAnchor.trustAnchorID | quote }}
+    {{- end }}
+    {{- if .Values.bundlePublisher.awsS3.enabled }}
+    aws_s3:
+      plugin_data:
+        region: {{ .Values.bundlePublisher.awsS3.region | quote }}
+        bucket: {{ .Values.bundlePublisher.awsS3.bucket | quote }}
+        object_key: {{ .Values.bundlePublisher.awsS3.objectKey | quote }}
+        format: {{ .Values.bundlePublisher.awsS3.format | quote }}
+    {{- end }}
+    {{- if .Values.bundlePublisher.gcpCloudStorage.enabled }}
+    gcp_cloudstorage:
+      plugin_data:
+        bucket_name: {{ .Values.bundlePublisher.gcpCloudStorage.bucketName | quote }}
+        object_name: {{ .Values.bundlePublisher.gcpCloudStorage.objectName | quote }}
+        format: {{ .Values.bundlePublisher.awsS3.format | quote }}
+    {{- end }}
   {{- end }}
 
   {{- with .Values.upstreamAuthority.disk }}

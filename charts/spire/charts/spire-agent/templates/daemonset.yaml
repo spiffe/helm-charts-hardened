@@ -74,6 +74,58 @@ spec:
         {{- toYaml .Values.hostAliases | nindent 8 }}
       {{- end }}
       initContainers:
+        {{- if or (eq .Values.workloadAttestors.k8s.verification.type "hostCert") (eq .Values.workloadAttestors.k8s.verification.type "auto") }}
+        - name: gather-host-cert
+          securityContext:
+            {{- $mainSecurityContext | toYaml | nindent 12 }}
+          image: {{ template "spire-lib.image" (dict "image" .Values.hostCert.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.hostCert.image.pullPolicy }}
+          command: ["bash", "-xc"]
+          args:
+            - |
+              {{- if ne .Values.workloadAttestors.k8s.verification.hostCert.fileName "" }}
+              openssl x509 -in "{{ .Values.workloadAttestors.k8s.verification.hostCert.basePath }}/{{ .Values.workloadAttestors.k8s.verification.hostCert.fileName }}" -out /hostCert/kubelet.crt
+              {{- else }}
+              if [ -f "{{ .Values.workloadAttestors.k8s.verification.hostCert.basePath }}/kubelet-server-current.pem" ]; then
+                openssl x509 -in "{{ .Values.workloadAttestors.k8s.verification.hostCert.basePath }}/kubelet-server-current.pem" -out /hostCert/kubelet.crt
+              elif [ -f "{{ .Values.workloadAttestors.k8s.verification.hostCert.basePath }}/kubelet.crt" ]; then
+                openssl x509 -in "{{ .Values.workloadAttestors.k8s.verification.hostCert.basePath }}/kubelet.crt" -out /hostCert/kubelet.crt
+              else
+                {{- if eq .Values.workloadAttestors.k8s.verification.type "auto" }}
+                {{- if $cbh }}
+                URL="https://$NODE_NAME:10250/spec/"
+                {{- else }}
+                URL="https://localhost:10250/spec/"
+                {{- end }}
+                curl --caPath /var/run/secrets/kubernetes.io/serviceaccount/ca.crt "$URL"
+                if [ $? -eq 0 ]; then
+                  echo Mode detected as apiServerCA.
+                  ln -s /var/run/secrets/kubernetes.io/serviceaccount/ca.crt /hostCert/kubelet.crt
+                  exit 0
+                fi
+                {{- end }}
+                echo Could not find certificate.
+                exit 1
+              fi
+              {{- end }}
+              {{- if eq .Values.workloadAttestors.k8s.verification.type "auto" }}
+              echo Mode detected as hostCert.
+              {{- end }}
+              chmod 644 /hostCert/kubelet.crt
+          env:
+          {{- if $cbh }}
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          {{- end }}
+          volumeMounts:
+          - name: host-cert-isolated
+            mountPath: /hostCert
+          - name: host-cert
+            mountPath: {{ .Values.workloadAttestors.k8s.verification.hostCert.basePath | quote }}
+            readOnly: true
+        {{- end }}
         {{- if .Values.nodeAttestor.tpmDirect.enabled }}
         {{- if .Values.nodeAttestor.tpmDirect.pubHash.enabled }}
         - name: fingerprint-tpm
@@ -220,6 +272,11 @@ spec:
               readOnly: false
             - name: spire-token
               mountPath: /var/run/secrets/tokens
+            {{- if or (eq .Values.workloadAttestors.k8s.verification.type "hostCert") (eq .Values.workloadAttestors.k8s.verification.type "auto") }}
+            - name: host-cert-isolated
+              mountPath: /hostCert
+              readOnly: true
+            {{- end }}
             {{- if gt (len .Values.extraVolumeMounts) 0 }}
             {{- toYaml .Values.extraVolumeMounts | nindent 12 }}
             {{- end }}
@@ -301,6 +358,13 @@ spec:
           hostPath:
             path: /dev/kmsg
             type: CharDevice
+        {{- end }}
+        {{- if or (eq .Values.workloadAttestors.k8s.verification.type "hostCert") (eq .Values.workloadAttestors.k8s.verification.type "auto") }}
+        - name: host-cert-isolated
+          emptyDir: {}
+        - name: host-cert
+          hostPath:
+            path: {{ .Values.workloadAttestors.k8s.verification.hostCert.basePath }}
         {{- end }}
         {{- if gt (len .Values.extraVolumes) 0 }}
         {{- toYaml .Values.extraVolumes | nindent 8 }}

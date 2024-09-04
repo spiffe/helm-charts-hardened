@@ -32,7 +32,7 @@ agent:
   authorized_delegates:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  data_dir: "/run/spire"
+  data_dir: "/var/lib/spire"
   log_level: {{ .Values.logLevel | quote }}
   retry_bootstrap: true
   server_address: {{ include "spire-agent.server-address" . | trim | quote }}
@@ -79,6 +79,20 @@ plugins:
         cluster: {{ include "spire-lib.cluster-name" . | quote }}
     {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
     {{- end }}
+    {{- with .Values.nodeAttestor.httpChallenge }}
+    {{- if eq (.enabled | toString) "true" }}
+    http_challenge:
+      plugin_data:
+        agentname: {{ .agentname | quote }}
+        {{- if ne (int .port) 0 }}
+        port: {{ .port }}
+        {{- end }}
+        {{- if ne (int .advertisedPort) 0 }}
+        advertisedPort: {{ .advertisedPort }}
+        {{- end }}
+    {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
+    {{- end }}
+    {{- end }}
     {{- with .Values.nodeAttestor.tpmDirect }}
     {{- if eq (.enabled | toString) "true" }}
     tpm:
@@ -106,10 +120,12 @@ plugins:
   {{- if .Values.workloadAttestors.k8s.enabled }}
     k8s:
       plugin_data:
-        # Defaults to the secure kubelet port by default.
-        # Minikube does not have a cert in the cluster CA bundle that
-        # can authenticate the kubelet cert, so skip validation.
-        skip_kubelet_verification: {{ .Values.workloadAttestors.k8s.skipKubeletVerification }}
+        {{- if or (eq .Values.workloadAttestors.k8s.verification.type "hostCert") (eq .Values.workloadAttestors.k8s.verification.type "auto") }}
+        kubelet_ca_path: /hostCert/kubelet.crt
+        {{- else if eq .Values.workloadAttestors.k8s.verification.type "apiServerCA" }}
+        kubelet_ca_path: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        {{- end }}
+        skip_kubelet_verification: {{ eq .Values.workloadAttestors.k8s.verification.type "skip" }}
         disable_container_selectors: {{ .Values.workloadAttestors.k8s.disableContainerSelectors }}
         use_new_container_locator: {{ .Values.workloadAttestors.k8s.useNewContainerLocator }}
         verbose_container_locator_logs: {{ .Values.workloadAttestors.k8s.verboseContainerLocatorLogs }}

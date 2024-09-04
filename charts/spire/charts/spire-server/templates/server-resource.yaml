@@ -174,15 +174,36 @@ spec:
           - name: AWS_KMS_ACCESS_KEY_ID
             valueFrom:
               secretKeyRef:
-                name: {{ $fullname }}-aws-kms
+                name: {{ $fullname }}-cloud
                 key: AWS_KMS_ACCESS_KEY_ID
           {{- end }}
           {{- if ne .Values.keyManager.awsKMS.secretAccessKey "" }}
           - name: AWS_KMS_SECRET_ACCESS_KEY
             valueFrom:
               secretKeyRef:
-                name: {{ $fullname }}-aws-kms
+                name: {{ $fullname }}-cloud
                 key: AWS_KMS_SECRET_ACCESS_KEY
+          {{- end }}
+          {{- if ne .Values.secrets.aws.accessKeyID "" }}
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: {{ $fullname }}-cloud
+                key: AWS_ACCESS_KEY_ID
+          {{- end }}
+          {{- if ne .Values.secrets.aws.secretAccessKey "" }}
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ $fullname }}-cloud
+                key: AWS_SECRET_ACCESS_KEY
+          {{- end }}
+          {{- if ne .Values.secrets.gcp.applicationCredentials "" }}
+          - name: GOOGLE_APPLICATION_CREDENTIALS
+            valueFrom:
+              secretKeyRef:
+                name: {{ $fullname }}-cloud
+                key: GOOGLE_APPLICATION_CREDENTIALS
           {{- end }}
           ports:
             - name: grpc

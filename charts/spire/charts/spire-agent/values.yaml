@@ -151,7 +151,7 @@ fsGroupFix:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: Always
-    tag: latest@sha256:27dc752a2ebacd10571c4045d3e1732f4bbb764446373ac85626602b69132776
+    tag: latest@sha256:f5c85affd2aa0f55fc1ead7dc07952577ad82741bbbba742ead0fd9dde2de14a
 
   ## @param fsGroupFix.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
@@ -165,6 +165,15 @@ nodeAttestor:
   k8sPsat:
     ## @param nodeAttestor.k8sPsat.enabled Enable Psat k8s Node Attestor
     enabled: true
+  httpChallenge:
+    ## @param nodeAttestor.httpChallenge.enabled Enable the http challenge Node Attestor
+    enabled: false
+    ## @param nodeAttestor.httpChallenge.agentname Name of this agent. Useful if you have multiple agents bound to different spire servers on the same host and sharing the same port.
+    agentname: default
+    ## @param nodeAttestor.httpChallenge.port The port to listen on. If 0, a random value will be used.
+    port: 0
+    ## @param nodeAttestor.httpChallenge.advertisedPort The port to tell the server to call back on. Set only if your using an http proxy on the hosts. If 0, will use the port setting.
+    advertisedPort: 0
   tpmDirect:
     ## @param nodeAttestor.tpmDirect.enabled Enable the direct TPM node attestor, a 3rd party plugin by Boxboat. This plugin is experimental.
     enabled: false
@@ -206,8 +215,14 @@ workloadAttestors:
   k8s:
     ## @param workloadAttestors.k8s.enabled Enables the Kubernetes workload attestor
     enabled: true
-    ## @param workloadAttestors.k8s.skipKubeletVerification If true, kubelet certificate verification is skipped
-    skipKubeletVerification: true
+    verification:
+      ## @param workloadAttestors.k8s.verification.type What kind of verification to do against kubelet. auto will first attempt to use hostCert, and then fall back to apiServerCA. Valid options are [auto, hostCert, apiServerCA, skip]
+      type: skip
+      hostCert:
+        ## @param workloadAttestors.k8s.verification.hostCert.basePath Path where kubelet places its certificates
+        basePath: /var/lib/kubelet/pki
+        ## @param workloadAttestors.k8s.verification.hostCert.fileName File name where kubelet places its certificates. If blank, it will be auto detected.
+        fileName: ""
     ## @param workloadAttestors.k8s.disableContainerSelectors Set to true if using holdApplicationUntilProxyStarts in Istio
     disableContainerSelectors: false
     ## @param workloadAttestors.k8s.useNewContainerLocator If true, enables the new container locator algorithm that has support for cgroups v2. Defaults to false
@@ -263,9 +278,24 @@ socketAlternate:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: Always
-    tag: latest@sha256:27dc752a2ebacd10571c4045d3e1732f4bbb764446373ac85626602b69132776
+    tag: latest@sha256:f5c85affd2aa0f55fc1ead7dc07952577ad82741bbbba742ead0fd9dde2de14a
 
   ## @param socketAlternate.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+  resources: {}
+
+hostCert:
+  ## @param hostCert.image.registry The OCI registry to pull the image from
+  ## @param hostCert.image.repository The repository within the registry
+  ## @param hostCert.image.pullPolicy The image pull policy
+  ## @param hostCert.image.tag Overrides the image tag whose default is the chart appVersion
+  ##
+  image:
+    registry: cgr.dev
+    repository: chainguard/min-toolkit-debug
+    pullPolicy: IfNotPresent
+    tag: latest@sha256:5420e15d91112458fc573755954c9174dbf4db8d802c4de3aac18145f5a78a17
+
+  ## @param hostCert.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
 
 ## @param priorityClassName Priority class assigned to daemonset pods. Can be auto set with global.recommendations.priorityClassName.
@@ -353,7 +383,7 @@ sockets:
     mountOnHost: false
 
 ## @param persistence.type What type of volume to use for persistence. Valid options emptyDir (reattestable node attestors) or hostPath (nonr-reattestable node attestors)
-## @param persistence.hostPath Which path to use on the host when type = hostPath
+## @param persistence.hostPath Which path to use on the host when persistence.type = hostPath
 ##
 persistence:
   type: emptyDir

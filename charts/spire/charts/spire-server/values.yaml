@@ -144,7 +144,7 @@ readinessProbe:
 ## @param persistence.size What size volume to use for persistence
 ## @param persistence.accessMode What access mode to use for persistence. Valid options are ReadWriteOnce (recommended), ReadWriteOncePod, ReadWriteMany (not recommended)
 ## @param persistence.storageClass What storage class to use for persistence
-## @param persistence.hostPath Which path to use on the host when type = hostPath
+## @param persistence.hostPath Which path to use on the host when persistence.type = hostPath
 ##
 persistence:
   type: pvc
@@ -827,6 +827,17 @@ nodeAttestor:
   joinToken:
     ## @param nodeAttestor.joinToken.enabled Enable the join_token nodeattestor
     enabled: false
+  httpChallenge:
+    ## @param nodeAttestor.httpChallenge.enabled Enable the http_challenge nodeattesto
+    enabled: false
+    ## @param nodeAttestor.httpChallenge.allowedDNSPatterns A list of regular expressions to match to the hostname being attested. If none match, attestation will fail. If a blank list, all hostnames are allowed.
+    allowedDNSPatterns: []
+    ## @param nodeAttestor.httpChallenge.requiredPort Set to a port number to require clients to listen only on that port. If 0, all port numbers are allowed
+    requiredPort: 0
+    ## @param nodeAttestor.httpChallenge.allowNonRootPorts Allow using ports >= 1024 from clients for attestation
+    allowNonRootPorts: true
+    ## @param nodeAttestor.httpChallenge.tofu Trust on first use of the successful challenge. Can only be disabled if allowNonRootPorts=false or requiredPort < 1024
+    tofu: true
   tpmDirect:
     ## @param nodeAttestor.tpmDirect.enabled Enable the direct TPM node attestor, a 3rd party plugin by Boxboat. This plugin is experimental.
     enabled: false
@@ -848,6 +859,36 @@ nodeAttestor:
     cas: {}
     ## @param nodeAttestor.tpmDirect.hashes A list of TPM hashes that are allowed to connect.
     hashes: []
+
+# The secrets needed for this plugin are configured in the secrets: section
+bundlePublisher:
+  awsRolesAnywhereTrustAnchor:
+    ## @param bundlePublisher.awsRolesAnywhereTrustAnchor.enabled Enable the AWS S3 bundle publisher
+    enabled: false
+    ## @param bundlePublisher.awsRolesAnywhereTrustAnchor.region AWS region to store the trust bundle
+    region: ""
+    ## @param bundlePublisher.awsRolesAnywhereTrustAnchor.trustAnchorID AWS trust anchor ID to publish to
+    trustAnchorID: ""
+  awsS3:
+    ## @param bundlePublisher.awsS3.enabled Enable the AWS S3 bundle publisher
+    enabled: false
+    ## @param bundlePublisher.awsS3.region AWS region to store the trust bundle
+    region: ""
+    ## @param bundlePublisher.awsS3.bucket AWS S3 bucket name to which the trust bundle is uploaded
+    bucket: ""
+    ## @param bundlePublisher.awsS3.objectKey AWS S3 object key inside the bucket
+    objectKey: ""
+    ## @param bundlePublisher.awsS3.format Format in which the trust bundle is stored. Valid options [spiffe, jwks, pem]
+    format: ""
+  gcpCloudStorage:
+    ## @param bundlePublisher.gcpCloudStorage.enabled Enable the Google Cloud Storage bundle publisher
+    enabled: false
+    ## @param bundlePublisher.gcpCloudStorage.bucketName Google Cloud Storage bucket name to which the trust bundle is uploaded
+    bucketName: ""
+    ## @param bundlePublisher.gcpCloudStorage.objectName Google Cloud Storage object name
+    objectName: ""
+    ## @param bundlePublisher.gcpCloudStorage.format Format in which the trust bundle is stored. Valid options [spiffe, jwks, pem]
+    format: ""
 
 ## @section Tornjak
 tornjak:
@@ -964,6 +1005,16 @@ tornjak:
   ## @param tornjak.securityContext [object] Security Context to use
   securityContext: {}
 
+secrets:
+  aws:
+    ## @param secrets.aws.accessKeyID AWS Access Key ID
+    accessKeyID: ""
+    ## @param secrets.aws.secretAccessKey AWS Secret Access Key
+    secretAccessKey: ""
+  gcp:
+    ## @param secrets.gcp.applicationCredentials Google Application Credentials
+    applicationCredentials: ""
+
 # NOTE: This is unsupported and only to configure currently supported spire built in plugins but plugins unsupported by the chart.
 # Upgrades wont be tested for anything under this config. If you need this, please let the chart developers know your needs so we
 # can prioritize proper support.
@@ -1001,7 +1052,7 @@ chown:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: Always
-    tag: latest@sha256:27dc752a2ebacd10571c4045d3e1732f4bbb764446373ac85626602b69132776
+    tag: latest@sha256:f5c85affd2aa0f55fc1ead7dc07952577ad82741bbbba742ead0fd9dde2de14a
 
   ## @param chown.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
@@ -1036,7 +1087,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:27dc752a2ebacd10571c4045d3e1732f4bbb764446373ac85626602b69132776
+      tag: latest@sha256:f5c85affd2aa0f55fc1ead7dc07952577ad82741bbbba742ead0fd9dde2de14a
 
 ## @param kubeConfigs [object] Manage additional kubeconfig files to talk to external Kubernetes clusters
 kubeConfigs: {}
