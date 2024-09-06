@@ -3,7 +3,7 @@ apiVersion: security.openshift.io/v1
 kind: SecurityContextConstraints
 metadata:
   name: {{ include "spire-agent.fullname" . }}
-readOnlyRootFilesystem: true
+readOnlyRootFilesystem: false
 runAsUser:
   type: RunAsAny
 seLinuxContext:
