@@ -22,7 +22,7 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: {{ printf "%s%s" (include "spire-agent.fullname" .) ($nameSuffix) | quote }}
+  name: {{ printf "%s%s" (include "spire-agent.fullname" .) $nameSuffix | quote }}
   namespace: {{ include "spire-agent.namespace" . | quote}}
   labels:
     {{- include "spire-agent.labels" . | nindent 4 }}
@@ -84,7 +84,7 @@ spec:
           args:
             - |
               {{- if ne .Values.workloadAttestors.k8s.verification.hostCert.fileName "" }}
-              openssl x509 -in {{ printf "%s/%s" .Values.workloadAttestors.k8s.verification.hostCert.basePath  .Values.workloadAttestors.k8s.verification.hostCert.fileName | quote }} -out /hostCert/kubelet.crt
+              openssl x509 -in {{ printf "%s/%s" .Values.workloadAttestors.k8s.verification.hostCert.basePath .Values.workloadAttestors.k8s.verification.hostCert.fileName | quote }} -out /hostCert/kubelet.crt
               {{- else }}
               if [ -f "{{ .Values.workloadAttestors.k8s.verification.hostCert.basePath }}/kubelet-server-current.pem" ]; then
                 openssl x509 -in {{ printf "%s/kubelet-server-current.pem" .Values.workloadAttestors.k8s.verification.hostCert.basePath | quote }} -out /hostCert/kubelet.crt
@@ -315,9 +315,9 @@ spec:
         - name: spire-agent-admin-socket-dir
           hostPath:
             {{- if .Values.upstream }}
-            path: {{ printf "%s/upstream.csi.spiffe.io/admin" (.Values.sockets.hostBasePath) | quote }}
+            path: {{ printf "%s/upstream.csi.spiffe.io/admin" .Values.sockets.hostBasePath | quote }}
             {{- else }}
-            path: {{ printf "%s/csi.spiffe.io/admin" (.Values.sockets.hostBasePath) | quote }}
+            path: {{ printf "%s/csi.spiffe.io/admin" .Values.sockets.hostBasePath | quote }}
             {{- end }}
             type: DirectoryOrCreate
         {{- else }}
@@ -328,9 +328,9 @@ spec:
         - name: spire-agent-persistence
           hostPath:
             {{- if .Values.upstream }}
-            path: {{ printf "%s/upstream.csi.spiffe.io" (.Values.persistence.hostPath) | quote }}
+            path: {{ printf "%s/upstream.csi.spiffe.io" .Values.persistence.hostPath | quote }}
             {{- else }}
-            path: {{ printf "%s/csi.spiffe.io" (.Values.persistence.hostPath) | quote }}
+            path: {{ printf "%s/csi.spiffe.io" .Values.persistence.hostPath | quote }}
             {{- end }}
             type: DirectoryOrCreate
         {{- else }}
@@ -340,7 +340,7 @@ spec:
         {{- if eq (len .Values.trustBundleURL) 0 }}
         - name: spire-bundle
           configMap:
-            name: {{ printf "%s%s" (include "spire-lib.bundle-configmap" .) ($nameSuffix) | quote }}
+            name: {{ printf "%s%s" (include "spire-lib.bundle-configmap" .) $nameSuffix | quote }}
         {{- end }}
         {{- if .Values.nodeAttestor.tpmDirect.enabled }}
         - name: tpm-direct

@@ -170,7 +170,7 @@ telemetry:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ printf "%s%s" (include "spire-agent.fullname" .) ($nameSuffix) | quote }}
+  name: {{ printf "%s%s" (include "spire-agent.fullname" .) $nameSuffix | quote }}
   namespace: {{ include "spire-agent.namespace" . | quote }}
   {{- with .Values.configMap.annotations }}
   annotations:
