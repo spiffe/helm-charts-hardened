@@ -50,7 +50,7 @@ spec:
           args:
             - -config
             - /etc/spiffe-helper.conf
-            - -exitWhenReady
+            - -daemon-mode=false
           volumeMounts:
             - name: spiffe-workload-api
               mountPath: {{ include "spiffe-oidc-discovery-provider.workload-api-socket-path" . | dir }}
