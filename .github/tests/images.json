@@ -68,6 +68,7 @@
       "query": "spiffeHelper.image",
       "filter": "LATESTSHA",
       "sort-flags": []
+    }
   ],
   "tornjak-frontend/values.yaml": [
     {
