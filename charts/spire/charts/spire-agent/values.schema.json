@@ -7,7 +7,7 @@
       "properties": {
         "port": {
           "type": "integer",
-	  "minimum": 1
+          "minimum": 1
         }
       }
     },
@@ -16,7 +16,7 @@
       "properties": {
         "port": {
           "type": "integer",
-	  "minimum": 1
+          "minimum": 1
         }
       }
     },
@@ -25,11 +25,11 @@
       "properties": {
         "initialDelaySeconds": {
           "type": "integer",
-	  "minimum": 0
+          "minimum": 0
         },
         "periodSeconds": {
           "type": "integer",
-	  "minimum": 1
+          "minimum": 1
         }
       }
     },
@@ -38,11 +38,11 @@
       "properties": {
         "initialDelaySeconds": {
           "type": "integer",
-	  "minimum": 0
+          "minimum": 0
         },
         "periodSeconds": {
           "type": "integer",
-	  "minimum": 1
+          "minimum": 1
         }
       }
     }
