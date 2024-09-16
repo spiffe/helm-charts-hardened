@@ -41,7 +41,7 @@ spiffeHelper:
     registry: ghcr.io
     repository: spiffe/spiffe-helper
     pullPolicy: IfNotPresent
-    tag: 0.8.0
+    tag: latest@
   ## @param spiffeHelper.resources [object] Resource requests and limits
   resources: {}
 
@@ -330,7 +330,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:3ed6a0b7b498b531c631a5f314ba85e91c6fd66d47301f9f67e9422e395c80c8
+      tag: latest@sha256:bf1d070453ac365c0bcccc1c5906c8b0bcee708b5255332a93b19182529fdb86
 
   toolkit:
     ## @param tests.toolkit.image.registry The OCI registry to pull the image from
@@ -342,7 +342,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/min-toolkit-debug
       pullPolicy: IfNotPresent
-      tag: latest@sha256:206d0bd57044a6e9058ec82173a5ae92a64164383066e2aa7519736a011f151c
+      tag: latest@sha256:19bda25f6e093823dda7a313c6d43bf74092b88492b9da7e2b7326c0ee755dd3
 
   step:
     ## @param tests.step.image.registry The OCI registry to pull the image from
@@ -354,7 +354,7 @@ tests:
       registry: "docker.io"
       repository: smallstep/step-cli
       pullPolicy: IfNotPresent
-      tag: 0.27.2
+      tag: 0.27.4
 
   busybox:
     ## @param tests.busybox.image.registry The OCI registry to pull the image from
