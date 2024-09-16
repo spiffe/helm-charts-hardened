@@ -40,7 +40,7 @@ spec:
     type: {{ .type }}
     {{- if eq .type "RollingUpdate" }}
     rollingUpdate:
-      maxUnavailable: {{ .rollingUpdate.maxUnavailable | int }}
+      maxUnavailable: {{ .rollingUpdate.maxUnavailable }}
     {{- end }}
   {{- end }}
   template:
@@ -237,10 +237,10 @@ spec:
           {{- toYaml . | nindent 12 }}
           {{- end }}
           ports:
-            - containerPort: {{ .Values.healthChecks.port | int }}
+            - containerPort: {{ .Values.healthChecks.port }}
               name: healthz
             {{- if or (dig "telemetry" "prometheus" "enabled" .Values.telemetry.prometheus.enabled .Values.global) (and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "prometheus" true .Values.global)) }}
-            - containerPort: {{ .Values.telemetry.prometheus.port | int }}
+            - containerPort: {{ .Values.telemetry.prometheus.port }}
               name: prom
             {{- end }}
           volumeMounts:
