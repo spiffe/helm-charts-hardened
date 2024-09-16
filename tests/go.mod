@@ -6,7 +6,7 @@ toolchain go1.22.5
 require (
 	github.com/onsi/ginkgo/v2 v2.20.2
 	github.com/onsi/gomega v1.34.2
-	helm.sh/helm/v3 v3.16.0
+	helm.sh/helm/v3 v3.16.1
 )
 
 require (

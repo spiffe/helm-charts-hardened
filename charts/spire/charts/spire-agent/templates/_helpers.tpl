@@ -75,20 +75,20 @@ Create chart name and version as used by the chart label.
 Common labels
 */}}
 {{- define "spire-agent.labels" -}}
-helm.sh/chart: {{ include "spire-agent.chart" . }}
+helm.sh/chart: {{ include "spire-agent.chart" . | quote }}
 {{ include "spire-agent.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
+app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
 {{- end }}
 
 {{/*
 Selector labels
 */}}
 {{- define "spire-agent.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "spire-agent.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/name: {{ include "spire-agent.name" . | quote }}
+app.kubernetes.io/instance: {{ .Release.Name | quote }}
 {{- end }}
 
 {{/*
