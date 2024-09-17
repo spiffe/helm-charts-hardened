@@ -186,6 +186,8 @@ jwtIssuer: ""
 config:
   ## @param config.logLevel The log level, valid values are "debug", "info", "warn", and "error"
   logLevel: info
+  ## @param config.jwtDomain [string] The JWT domain. Defaults to oidc-discovery.$jwtIssuer URL-parsed host if unset
+  jwtDomain: ""
   ## @param config.additionalDomains [array] Add additional domains that can be used for oidc discovery
   additionalDomains: []
   # - localhost
