@@ -97,7 +97,7 @@ spec:
                 {{- else }}
                 URL="https://localhost:10250/spec/"
                 {{- end }}
-                curl --caPath /var/run/secrets/kubernetes.io/serviceaccount/ca.crt "$URL"
+                curl --capath /var/run/secrets/kubernetes.io/serviceaccount/ca.crt "$URL"
                 if [ $? -eq 0 ]; then
                   echo Mode detected as apiServerCA.
                   ln -s /var/run/secrets/kubernetes.io/serviceaccount/ca.crt /hostCert/kubelet.crt
