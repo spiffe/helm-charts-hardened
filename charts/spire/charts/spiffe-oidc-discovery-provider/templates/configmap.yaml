@@ -23,9 +23,12 @@ domains:
   - "{{ include "spiffe-oidc-discovery-provider.fullname" . }}"
   - "{{ include "spiffe-oidc-discovery-provider.fullname" . }}.{{ include "spiffe-oidc-discovery-provider.namespace" . }}"
   - "{{ include "spiffe-oidc-discovery-provider.fullname" . }}.{{ include "spiffe-oidc-discovery-provider.namespace" . }}.svc.{{ include "spire-lib.cluster-domain" . }}"
-  {{- $uri := urlParse (include "spire-lib.jwt-issuer" .) }}
-  {{- $jwtIssuer := (default $uri.path $uri.host) }}
-  {{- uniq (concat (list $jwtIssuer) .Values.config.additionalDomains) | toYaml | nindent 2 }}
+  {{- $jwtDomain := .Values.config.jwtDomain }}
+  {{- if not $jwtDomain }}
+    {{- $uri := urlParse (include "spire-lib.jwt-issuer" .) }}
+    {{- $jwtDomain = (default $uri.path $uri.host) }}
+  {{- end }}
+  {{- uniq (concat (list $jwtDomain) .Values.config.additionalDomains) | toYaml | nindent 2 }}
 
 {{- if eq (include "spiffe-oidc-discovery-provider.tls-enabled" .) "false" }}
 allow_insecure_scheme: true
