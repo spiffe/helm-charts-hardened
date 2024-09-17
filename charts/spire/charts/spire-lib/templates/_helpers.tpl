@@ -53,17 +53,17 @@
 {{- $repo := .image.repository }}
 {{- $tag := .image.tag | toString }}
 {{- if eq (substr 0 7 $tag) "sha256:" }}
-{{- printf "%s/%s@%s" $registry $repo $tag }}
+{{- printf "%s/%s@%s" $registry $repo $tag | quote }}
 {{- else if .appVersion }}
 {{- $appVersion := .appVersion }}
 {{- if and (hasKey . "ubi") (dig "openshift" false .global) }}
 {{- $appVersion = printf "ubi-%s" $appVersion }}
 {{- end }}
-{{- printf "%s%s:%s" $registry $repo (default $appVersion $tag) }}
+{{- printf "%s%s:%s" $registry $repo (default $appVersion $tag) | quote }}
 {{- else if $tag }}
-{{- printf "%s%s:%s" $registry $repo $tag }}
+{{- printf "%s%s:%s" $registry $repo $tag | quote }}
 {{- else }}
-{{- printf "%s%s" $registry $repo }}
+{{- printf "%s%s" $registry $repo | quote }}
 {{- end }}
 {{- end }}
 
@@ -309,7 +309,7 @@ securityContext - the subbranch of values that contains the securityContext to m
 
 {{- define "spire-lib.default_node_priority_class_name" }}
 {{- if .Values.priorityClassName }}
-priorityClassName: {{ .Values.priorityClassName }}
+priorityClassName: {{ .Values.priorityClassName | quote }}
 {{- else if and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "priorityClassName" true .Values.global) }}
 priorityClassName: system-node-critical
 {{- end }}
@@ -317,7 +317,7 @@ priorityClassName: system-node-critical
 
 {{- define "spire-lib.default_cluster_priority_class_name" }}
 {{- if .Values.priorityClassName }}
-priorityClassName: {{ .Values.priorityClassName }}
+priorityClassName: {{ .Values.priorityClassName | quote }}
 {{- else if and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "priorityClassName" true .Values.global) }}
 priorityClassName: system-cluster-critical
 {{- end }}
