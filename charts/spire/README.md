@@ -90,7 +90,7 @@ We only support upgrading one major/minor version at a time. Version skipping is
 
 ### 0.24.X
 
-We havd added the remaining options needed for the SPIRE Server sql data store plugin. We have removed spire-server.dataStore.sql.plugin_data as it is no longer needed. If you are using it, please migrate
+We have added the remaining options needed for the SPIRE Server SQL data store plugin. We have removed `spire-server.dataStore.sql.plugin_data` section as it is no longer needed. If you are using it, please migrate
 your settings to the ones under spire-server.dataStore.sql.
 
 ### 0.23.X
