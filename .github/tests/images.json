@@ -66,8 +66,8 @@
     },
     {
       "query": "spiffeHelper.image",
-      "filter": "LATESTSHA",
-      "sort-flags": []
+      "filter": "^[0-9]\\+\\.[0-9]\\+\\.[0-9]\\+$",
+      "sort-flags": ["-t", ".", "-k1,1n", "-k2,2n", "-k3,3n"]
     }
   ],
   "tornjak-frontend/values.yaml": [
