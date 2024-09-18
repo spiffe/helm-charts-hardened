@@ -176,7 +176,7 @@ spec:
                 name: {{ .Values.dataStore.sql.readOnly.externalSecret.name }}
                 key: {{ .Values.dataStore.sql.readOnly.externalSecret.key }}
           {{- else if .Values.dataStore.sql.readOnly.enabled }}
-          - name: DBPW
+          - name: RODBPW
             valueFrom:
               secretKeyRef:
                 name: {{ $fullname }}-dbpw
