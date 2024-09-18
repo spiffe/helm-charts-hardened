@@ -101,7 +101,22 @@ plugins:
   DataStore:
     sql:
       plugin_data:
-        {{ include "spire-server.datastore-config" . | nindent 10 }}
+        {{ include "spire-server.datastore-config" . | nindent 8 }}
+        {{- if ne .Values.dataStore.sql.rootCAPath "" }}
+        root_ca_path: {{ .Values.dataStore.sql.rootCAPath }}
+        {{- end }}
+        {{- if ne .Values.dataStore.sql.clientCertPath "" }}
+        client_cert_path: {{ .Values.dataStore.sql.clientCertPath }}
+        {{- end }}
+        {{- if ne .Values.dataStore.sql.clientKeyPath "" }}
+        client_key_path	: {{ .Values.dataStore.sql.clientKeyPath }}
+        {{- end }}
+        max_open_conns: {{ .Values.dataStore.sql.maxOpenConns }}
+        max_idle_conns: {{ .Values.dataStore.sql.maxIdleConns }}
+        {{- if ne (int .Values.dataStore.sql.connMaxLifetime) 0 }}
+        conn_max_lifetime: {{ .Values.dataStore.sql.connMaxLifetime }}
+        {{- end }}
+        disable_migration: {{ .Values.dataStore.sql.disableMigration }}
 
   {{- if or .Values.nodeAttestor.k8sPsat.enabled .Values.nodeAttestor.externalK8sPsat.enabled .Values.nodeAttestor.joinToken.enabled .Values.nodeAttestor.httpChallenge.enabled .Values.nodeAttestor.tpmDirect.enabled }}
   NodeAttestor:

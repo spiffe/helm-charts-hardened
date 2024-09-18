@@ -169,6 +169,19 @@ spec:
                 name: {{ $fullname }}-dbpw
                 key: DBPW
           {{- end }}
+          {{- if and .Values.dataStore.sql.readOnly.enabled .Values.dataStore.sql.readOnly.externalSecret.enabled }}
+          - name: RODBPW
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.dataStore.sql.readOnly.externalSecret.name }}
+                key: {{ .Values.dataStore.sql.readOnly.externalSecret.key }}
+          {{- else if .Values.dataStore.sql.readOnly.enabled }}
+          - name: DBPW
+            valueFrom:
+              secretKeyRef:
+                name: {{ $fullname }}-dbpw
+                key: RODBPW
+          {{- end }}
           {{- end }}
           {{- if ne .Values.keyManager.awsKMS.accessKeyID "" }}
           - name: AWS_KMS_ACCESS_KEY_ID
