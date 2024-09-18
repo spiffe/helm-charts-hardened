@@ -198,8 +198,8 @@ Create the name of the service account to use
 {{- else if or (eq .Values.dataStore.sql.databaseType "mysql") (eq .Values.dataStore.sql.databaseType "aws_mysql") }}
   {{- if eq .Values.dataStore.sql.databaseType "mysql" }}
   {{-   $_ := set $config "database_type" "mysql" }}
-  {{-   $pw = "${PW}" }}
-  {{-   $ropw = "${ROPW}" }}
+  {{-   $pw = "${DBPW}" }}
+  {{-   $ropw = "${RODBPW}" }}
   {{- else }}
   {{-   $_ := set $config "database_type" (list (dict "aws_mysql" (dict "region" .Values.dataStore.sql.region))) }}
   {{- end }}
