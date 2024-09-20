@@ -27,15 +27,15 @@
 {{- if hasKey .Values.dataStore.sql "plugin_data" }}
 {{-   fail "The plugin_data setting to the sql data store is no longer supported." }}
 {{- end }}
-{{- if ne .Values.dataStore.sql.databaseType "mysql" }}
+{{- if and (ne .Values.dataStore.sql.databaseType "mysql") (ne .Values.dataStore.sql.databaseType "aws_mysql" }}
 {{-   if ne .Values.dataStore.sql.rootCAPath "" }}
-{{-     fail "rootCAPath can only be set with database type mysql." }}
+{{-     fail "rootCAPath can only be set with database type mysql or aws_mysql." }}
 {{-   end }}
 {{-   if ne .Values.dataStore.sql.clientCertPath "" }}
-{{-     fail "clientCertPath can only be set with database type mysql." }}
+{{-     fail "clientCertPath can only be set with database type mysql or aws_mysql." }}
 {{-   end }}
 {{-   if ne .Values.dataStore.sql.clientKeyPath "" }}
-{{-     fail "clientKeyPath can only be set with database type mysql." }}
+{{-     fail "clientKeyPath can only be set with database type mysql or aws_mysql." }}
 {{-   end }}
 {{- end }}
 {{- if not .Values.externalServer }}
