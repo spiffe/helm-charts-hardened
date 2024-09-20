@@ -1,0 +1,397 @@
+# Default configuration for Spire chart
+# SPDX-License-Identifier: APACHE-2.0
+
+## @section Global parameters
+## Note: the parameter values specified here will override the chart level values for these parameters.
+##
+global:
+  k8s:
+    ## @param global.k8s.clusterDomain Cluster domain name configured for Spire install
+    clusterDomain: cluster.local
+
+  spire:
+    ## @param global.spire.clusterName The name of the k8s cluster for Spire install
+    clusterName: example-cluster
+    ## @param global.spire.jwtIssuer The issuer for Spire JWT tokens. Defaults to oidc-discovery.$trustDomain if unset
+    jwtIssuer: ""
+    ## @param global.spire.trustDomain The trust domain for Spire install
+    trustDomain: example.org
+
+    ## @param global.spire.caSubject.country Country for Spire server CA
+    ## @param global.spire.caSubject.organization Organization for Spire server CA
+    ## @param global.spire.caSubject.commonName Common Name for Spire server CA
+    caSubject:
+      country: ""
+      organization: ""
+      commonName: ""
+
+    ## @param global.spire.recommendations.enabled Use recommended settings for production deployments. Default is off.
+    ## @param global.spire.recommendations.namespaceLayout Set to true to use recommended values for installing across namespaces
+    ## @param global.spire.recommendations.namespacePSS When chart namespace creation is enabled, label them with preffered Pod Security Standard labels
+    ## @param global.spire.recommendations.priorityClassName Set to true to use recommended values for Pod Priority Class Names
+    ## @param global.spire.recommendations.strictMode Check values, such as trustDomain, are overridden with a suitable value for production.
+    ## @param global.spire.recommendations.securityContexts Set to true to use recommended values for Pod and Container Security Contexts
+    ## @param global.spire.recommendations.prometheus Enable prometheus exporters for monitoring
+    recommendations:
+      enabled: false
+      namespaceLayout: true
+      namespacePSS: true
+      priorityClassName: true
+      strictMode: true
+      securityContexts: true
+      prometheus: true
+
+    image:
+      ## @param global.spire.image.registry Override all Spire image registries at once
+      registry: ""
+
+    namespaces:
+      ## @param global.spire.namespaces.create Set to true to Create all namespaces. If this or either of the namespace specific create flags is set, the namespace will be created.
+      create: false
+      system:
+        ## @param global.spire.namespaces.system.name Name of the Spire system Namespace.
+        name: "spire-system"
+        ## @param global.spire.namespaces.system.create Create a Namespace for Spire system resources.
+        create: false
+        ## @param global.spire.namespaces.system.annotations [object] Annotations to apply to the Spire system Namespace.
+        annotations: {}
+        ## @param global.spire.namespaces.system.labels [object] Labels to apply to the Spire system Namespace.
+        labels: {}
+      server:
+        ## @param global.spire.namespaces.server.name Name of the Spire server Namespace.
+        name: "spire-server"
+        ## @param global.spire.namespaces.server.create Create a Namespace for Spire server resources.
+        create: false
+        ## @param global.spire.namespaces.server.annotations [object] Annotations to apply to the Spire server Namespace.
+        annotations: {}
+        ## @param global.spire.namespaces.server.labels [object] Labels to apply to the Spire server Namespace.
+        labels: {}
+
+    ## @param global.spire.strictMode Check values, such as trustDomain, are overridden with a suitable value for production.
+    strictMode: false
+
+    ## @param global.spire.ingressControllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, autodetection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""].
+    ingressControllerType: ""
+
+    tools:
+      kubectl:
+        ## @param global.spire.tools.kubectl.tag Set to force the tag to use for all kubectl instances
+        tag: ""
+
+  installAndUpgradeHooks:
+    ## @param global.installAndUpgradeHooks.enabled Enable Helm hooks to autofix common install/upgrade issues (should be disabled when using `helm template`)
+    enabled: true
+  deleteHooks:
+    ## @param global.deleteHooks.enabled Enable Helm hooks to autofix common delete issues (should be disabled when using `helm template`)
+    enabled: true
+
+#  telemetry:
+#    prometheus:
+#      enabled: true
+#      podMonitor:
+#        enabled: true
+#        # -- Allows to install the PodMonitor in another namespace then the spire components are installed into.
+#        namespace: "kube-prometheus-system"
+#        labels: {}
+
+tags:
+  ## @param tags.nestedRoot Set the chart architecture to root nested
+  nestedRoot: false
+  ## @param tags.nestedChildFull Set the chart mode to a child cluster with its own nested server
+  nestedChildFull: false
+  ## @param tags.nestedChildSecurity Set the chart mode to a child cluster for use with a security cluster
+  nestedChildSecurity: false
+
+## subcharts
+
+## @section Spire agent parameters
+## Parameter values for Spire agent
+##
+# Used with tags [nestedRoot, nestedChildFull]
+downstream-spire-agent-full:
+  # enabled: true
+  ## @param downstream-spire-agent-full.nameOverride Overrides the name of Spire agent pods
+  nameOverride: agent-downstream
+  server:
+    ## @param downstream-spire-agent-full.server.nameOverride The name override setting of the internal SPIRE server
+    nameOverride: internal-server
+  ## @param downstream-spire-agent-full.bundleConfigMap The name of the configmap that contains the downstream bundle
+  bundleConfigMap: spire-bundle-downstream
+  ## @param downstream-spire-agent-full.persistence.hostPath Which path to use on the host when persistence.type = hostPath
+  persistence:
+    hostPath: /var/lib/spire/k8s/downstream-agent
+
+## @section Spire agent parameters
+## Parameter values for Spire agent
+##
+# Used with tags [nestedChildSecurity]
+downstream-spire-agent-security:
+  # enabled: true
+  ## @param downstream-spire-agent-security.nameOverride Overrides the name of Spire agent pods
+  nameOverride: agent-downstream
+  ## @param downstream-spire-agent-security.bundleConfigMap The name of the configmap that contains the downstream bundle
+  bundleConfigMap: spire-bundle-upstream
+  serviceAccount:
+    ## @param downstream-spire-agent-security.serviceAccount.name The name of the service account to use
+    name: spire-agent-upstream
+  ## @param downstream-spire-agent-security.persistence.hostPath Which path to use on the host when persistence.type = hostPath
+  persistence:
+    hostPath: /var/lib/spire/k8s/downstream-agent
+
+## @section Upstream Spire agent parameters
+## Parameter values for upstream Spire agent
+##
+# Used with tags [nestedRoot, nestedChildFull]
+upstream-spire-agent:
+  # enabled: true
+  ## @param upstream-spire-agent.upstream Flag for enabling upstream Spire agent
+  upstream: true
+  ## @param upstream-spire-agent.nameOverride Name override for upstream Spire agent
+  nameOverride: agent-upstream
+  ## @param upstream-spire-agent.bundleConfigMap The configmap name for upstream Spire agent bundle
+  bundleConfigMap: spire-bundle-upstream
+  ## @param upstream-spire-agent.socketPath Socket path where Spire agent socket is mounted
+  socketPath: /run/spire/agent-sockets-upstream/spire-agent.sock
+  serviceAccount:
+    ## @param upstream-spire-agent.serviceAccount.name Service account name for upstream Spire agent
+    name: spire-agent-upstream
+  healthChecks:
+    ## @param upstream-spire-agent.healthChecks.port Health check port number for upstream Spire agent
+    port: 9981
+  telemetry:
+    prometheus:
+      ## @param upstream-spire-agent.telemetry.prometheus.port The port where prometheus metrics are available
+      port: 9989
+  server:
+    ## @param upstream-spire-agent.server.nameOverride The name override setting of the root SPIRE server
+    nameOverride: root-server
+  ## @param upstream-spire-agent.persistence.hostPath Which path to use on the host when persistence.type = hostPath
+  persistence:
+    hostPath: /var/lib/spire/k8s/upstream-agent
+
+## @section SPIFFE CSI Driver parameters
+## Parameter values for spiffe-csi-driver
+##
+# Used with tags [nestedRoot, nestedChildFull, nestedChildSecurity]
+downstream-spiffe-csi-driver:
+  # enabled: true
+  ## @param downstream-spiffe-csi-driver.fullnameOverride Fullname override
+  fullnameOverride: spiffe-csi-driver-downstream
+
+## @section Upstream SPIFFE CSI Driver parameters
+## Parameter values for upstream spiffe-csi-driver
+##
+# Used with tags [nestedRoot, nestedChildFull]
+upstream-spiffe-csi-driver:
+  # enabled: true
+  ## @param upstream-spiffe-csi-driver.fullnameOverride Fullname override
+  fullnameOverride: spiffe-csi-driver-upstream
+  ## @param upstream-spiffe-csi-driver.pluginName The plugin name for configuring upstream Spiffe CSI driver
+  pluginName: upstream.csi.spiffe.io
+  ## @param upstream-spiffe-csi-driver.agentSocketPath The socket path where Spiffe CSI driver mounts agent socket
+  agentSocketPath: /run/spire/agent-sockets-upstream/spire-agent.sock
+  healthChecks:
+    ## @param upstream-spiffe-csi-driver.healthChecks.port The port where Spiffe CSI driver health checks are exposed
+    port: 9810
+
+## @section SPIFFE oidc discovery provider parameters
+## Parameter values for spiffe-oidc-discovery-provider
+##
+# Used with tags [nestedRoot, nestedChildFull, nestedChildSecurity]
+spiffe-oidc-discovery-provider:
+  # enabled: true
+  ## @param spiffe-oidc-discovery-provider.fullnameOverride Fullname override
+  fullnameOverride: spiffe-oidc-discovery-provider
+
+## @section Tornjak frontend parameters
+## Parameter values for Tornjak frontend
+##
+tornjak-frontend:
+  ## @param tornjak-frontend.enabled Enables deployment of Tornjak frontend/UI (Not for production)
+  enabled: false
+
+# Used with tags [nestedRoot]
+root-spire-server:
+  # enabled: true
+  ## @param root-spire-server.nameOverride Name override
+  nameOverride: root-server
+  ## @param root-spire-server.crNameOverride Custom Resource name override
+  crNameOverride: root
+  controllerManager:
+    ## @param root-spire-server.controllerManager.enabled Enable controller manager and provision CRD's
+    enabled: true
+    externalControllerManagers:
+      ## @param root-spire-server.controllerManager.externalControllerManagers.enabled Flag to enable external controller managers
+      enabled: true
+    validatingWebhookConfiguration:
+      ## @param root-spire-server.controllerManager.validatingWebhookConfiguration.enabled Disable only when you have another instance on the k8s cluster with webhooks enabled.
+      enabled: false
+    ## @param root-spire-server.controllerManager.className specify to use an explicit class name.
+    className: spire-mgmt-root-server
+    identities:
+      clusterSPIFFEIDs:
+        child-servers:
+          ## @param root-spire-server.controllerManager.identities.clusterSPIFFEIDs.child-servers.enabled Enable child servers
+          enabled: true
+        default:
+          ## @param root-spire-server.controllerManager.identities.clusterSPIFFEIDs.default.enabled Enable the default cluster spiffe id
+          enabled: false
+        oidc-discovery-provider:
+          ## @param root-spire-server.controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.enabled Enable the test-keys identity
+          enabled: false
+        test-keys:
+          ## @param root-spire-server.controllerManager.identities.clusterSPIFFEIDs.test-keys.enabled Enable the test-keys identity
+          enabled: false
+  externalControllerManagers:
+    ## @param root-spire-server.externalControllerManagers.enabled Flag to enable external controller managers
+    enabled: true
+  nodeAttestor:
+    k8sPsat:
+      ## @param root-spire-server.nodeAttestor.k8sPsat.serviceAccountAllowList [array] Allowed service accounts for Psat nodeattestor
+      serviceAccountAllowList:
+        - spire-agent-upstream
+  ## @param root-spire-server.bundleConfigMap The name of the configmap to store the upstream bundle
+  bundleConfigMap: spire-bundle-upstream
+
+# Used with tags [nestedChildFull]
+external-root-spire-server-full:
+  ## @param external-root-spire-server-full.externalServer Set to true to setup the bundle configmap, rbac rules, and identity documents but doesn't deploy the server locally. Useful for external servers.
+  externalServer: true
+  ## @param external-root-spire-server-full.nameOverride Name override
+  nameOverride: root-server
+  ## @param external-root-spire-server-full.crNameOverride Custom Resource name override
+  crNameOverride: root
+  controllerManager:
+    ## @param external-root-spire-server-full.controllerManager.enabled Enable controller manager and provision CRD's
+    enabled: true
+    validatingWebhookConfiguration:
+      ## @param external-root-spire-server-full.controllerManager.validatingWebhookConfiguration.enabled Disable only when you have another instance on the k8s cluster with webhooks enabled.
+      enabled: false
+    ## @param external-root-spire-server-full.controllerManager.className specify to use an explicit class name.
+    className: spire-mgmt-external-server
+    identities:
+      clusterSPIFFEIDs:
+        child-servers:
+          ## @param external-root-spire-server-full.controllerManager.identities.clusterSPIFFEIDs.child-servers.enabled Enable child servers
+          enabled: true
+        default:
+          ## @param external-root-spire-server-full.controllerManager.identities.clusterSPIFFEIDs.default.enabled Enable the default cluster spiffe id
+          enabled: false
+        oidc-discovery-provider:
+          ## @param external-root-spire-server-full.controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.enabled Enable the test-keys identity
+          enabled: false
+        test-keys:
+          ## @param external-root-spire-server-full.controllerManager.identities.clusterSPIFFEIDs.test-keys.enabled Enable the test-keys identity
+          enabled: false
+  nodeAttestor:
+    k8sPsat:
+      ## @param external-root-spire-server-full.nodeAttestor.k8sPsat.serviceAccountAllowList [array] Allowed service accounts for Psat nodeattestor
+      serviceAccountAllowList:
+        - spire-agent-upstream
+  ## @param external-root-spire-server-full.bundleConfigMap The name of the configmap to store the upstream bundle
+  bundleConfigMap: spire-bundle-upstream
+
+# Used with tags [nestedChildSecurity]
+external-root-spire-server-security:
+  ## @param external-root-spire-server-security.externalServer Set to true to setup the bundle configmap, rbac rules, and identity documents but doesn't deploy the server locally. Useful for external servers.
+  externalServer: true
+  ## @param external-root-spire-server-security.nameOverride Name override
+  nameOverride: root-server
+  ## @param external-root-spire-server-security.crNameOverride Custom Resource name override
+  crNameOverride: root
+  controllerManager:
+    ## @param external-root-spire-server-security.controllerManager.enabled Enable controller manager and provision CRD's
+    enabled: true
+    validatingWebhookConfiguration:
+      ## @param external-root-spire-server-security.controllerManager.validatingWebhookConfiguration.enabled Disable only when you have another instance on the k8s cluster with webhooks enabled.
+      enabled: false
+    ## @param external-root-spire-server-security.controllerManager.className specify to use an explicit class name.
+    className: spire-mgmt-external-server
+  nodeAttestor:
+    k8sPsat:
+      ## @param external-root-spire-server-security.nodeAttestor.k8sPsat.serviceAccountAllowList [array] Allowed service accounts for Psat nodeattestor
+      serviceAccountAllowList:
+        - spire-agent-upstream
+  ## @param external-root-spire-server-security.bundleConfigMap The name of the configmap to store the upstream bundle
+  bundleConfigMap: spire-bundle-upstream
+
+## @section Spire server parameters
+## Parameter values for Spire server
+##
+# Used with tags [nestedRoot, nestedChildFull]
+internal-spire-server:
+  # enabled: true
+  ## @param internal-spire-server.nameOverride Overrides the name of Spire server pods
+  nameOverride: internal-server
+  controllerManager:
+    ## @param internal-spire-server.controllerManager.enabled Enable controller manager and provision CRD's
+    enabled: true
+    identities:
+      clusterSPIFFEIDs:
+        oidc-discovery-provider:
+          ## @param internal-spire-server.controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.autoPopulateDNSNames Auto populate dns entries
+          autoPopulateDNSNames: false
+  externalControllerManagers:
+    ## @param internal-spire-server.externalControllerManagers.enabled Flag to enable external controller managers
+    enabled: true
+  upstreamAuthority:
+    spire:
+      ## @param internal-spire-server.upstreamAuthority.spire.enabled Enable upstream SPIRE server
+      enabled: true
+      ## @param internal-spire-server.upstreamAuthority.spire.upstreamDriver Use an upstream driver for authentication
+      upstreamDriver: upstream.csi.spiffe.io
+      server:
+        ## @param internal-spire-server.upstreamAuthority.spire.server.nameOverride The name override setting of the root SPIRE server
+        nameOverride: root-server
+  ## @param internal-spire-server.bundleConfigMap The name of the configmap to store the downstream bundle
+  bundleConfigMap: spire-bundle-downstream
+
+# Used with tags [nestedRoot]
+external-spire-server:
+  # enabled: true
+  ## @param external-spire-server.nameOverride Overrides the name of Spire server pods
+  nameOverride: external-server
+  ## @param external-spire-server.crNameOverride Custom Resource name override
+  crNameOverride: external
+  controllerManager:
+    ## @param external-spire-server.controllerManager.enabled Enable controller manager and provision CRD's
+    enabled: true
+    validatingWebhookConfiguration:
+      ## @param external-spire-server.controllerManager.validatingWebhookConfiguration.enabled Disable only when you have another instance on the k8s cluster with webhooks enabled.
+      enabled: false
+    ## @param external-spire-server.controllerManager.className specify to use an explicit class name.
+    className: spire-mgmt-external-server
+    identities:
+      clusterSPIFFEIDs:
+        default:
+          ## @param external-spire-server.controllerManager.identities.clusterSPIFFEIDs.default.enabled Enable the default identity
+          enabled: false
+        oidc-discovery-provider:
+          ## @param external-spire-server.controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.enabled Enable the oidc-discovery-provider identity
+          enabled: false
+        test-keys:
+          ## @param external-spire-server.controllerManager.identities.clusterSPIFFEIDs.test-keys.enabled Enable the test-keys identity
+          enabled: false
+  externalControllerManagers:
+    ## @param external-spire-server.externalControllerManagers.enabled Flag to enable external controller managers
+    enabled: true
+  upstreamAuthority:
+    spire:
+      ## @param external-spire-server.upstreamAuthority.spire.enabled Enable upstream SPIRE server
+      enabled: true
+      ## @param external-spire-server.upstreamAuthority.spire.upstreamDriver Use an upstream driver for authentication
+      upstreamDriver: upstream.csi.spiffe.io
+      server:
+        ## @param external-spire-server.upstreamAuthority.spire.server.nameOverride The name override setting of the root SPIRE server
+        nameOverride: root-server
+  notifier:
+    k8sbundle:
+      ## @param external-spire-server.notifier.k8sbundle.enabled Enable local k8s bundle uploader
+      enabled: false
+  nodeAttestor:
+    k8sPsat:
+      ## @param external-spire-server.nodeAttestor.k8sPsat.enabled Enable Psat k8s nodeattestor
+      enabled: false
+    joinToken:
+      ## @param external-spire-server.nodeAttestor.joinToken.enabled Enable the join_token nodeattestor
+      enabled: true

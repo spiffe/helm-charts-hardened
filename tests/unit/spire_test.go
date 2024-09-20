@@ -107,6 +107,9 @@ spire-server:
 		It("plugin set ok", func() {
 			objs, err := ValueStringRender(chart, `
 spire-agent:
+  nodeAttestor:
+    k8sPsat:
+      enabled: false
   customPlugins:
     nodeAttestor:
       tpm:
@@ -123,6 +126,9 @@ spire-agent:
 		It("plugin set ok", func() {
 			objs, err := ValueStringRender(chart, `
 spire-agent:
+  nodeAttestor:
+    k8sPsat:
+      enabled: false
   unsupportedBuiltInPlugins:
     nodeAttestor:
       join_token:
@@ -138,6 +144,19 @@ spire-agent:
 			objs, err := ValueStringRender(chart, `
 spire-server:
   enabled: false
+`)
+			Expect(err).Should(Succeed())
+			notes := objs["spire/templates/NOTES.txt"]
+			Expect(notes).Should(ContainSubstring("Installed"))
+		})
+	})
+	Describe("spire-server.credentialComposer.uniqueID", func() {
+		It("spire server uniqueid credential composer", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  credentialComposer:
+    uniqueID:
+      enabled: true
 `)
 			Expect(err).Should(Succeed())
 			notes := objs["spire/templates/NOTES.txt"]

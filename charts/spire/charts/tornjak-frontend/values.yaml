@@ -63,10 +63,8 @@ service:
   port: 3000
   annotations: {}
 
-## @extra nodeSelector Select specific nodes to run on (currently only amd64 is supported by Tornjak)
-nodeSelector:
-  ## @skip nodeSelector.kubernetes.io/arch
-  kubernetes.io/arch: amd64
+## @param nodeSelector (Optional) Select specific nodes to run on. Tornjak currently supports amd64 and arm64 architectures
+nodeSelector: {}
 
 ## @param affinity [object] Affinity rules
 affinity: {}
@@ -86,13 +84,20 @@ topologySpreadConstraints: []
 #     cpu: 100m
 #     memory: 512Mi
 
-## @param apiServerURL URL of the Tornjak APIs (backend). Since Tornjak Frontend runs in the browser, this URL must be accessible from the machine running a browser. If unset, autodetection is atempted.
+## @param apiServerURL URL of the Tornjak APIs (backend). Since Tornjak Frontend runs in the browser, this URL must be accessible from the machine running a browser. If not provided, auto-detection is attempted.
 apiServerURL: ""
 
 # SPIRE Healthchecker indicator
 spireHealthCheck:
   ## @param spireHealthCheck.enabled Enables the SPIRE Healthchecker indicator
   enabled: true
+
+# User Management
+auth:
+  ## @param auth.enabled Enables auth for Tornjak
+  enabled: false
+  ## @param auth.serverURL URL of the Auth service. Tornjak Frontend will redirect to this URL to authenticate the user
+  serverURL: ""
 
 ## Configure extra options for Tornjak frontend container's startup probe
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-startup-probes
@@ -114,9 +119,12 @@ startupProbe:
 ## @param workingDir Set to override the default path containing the Tornjak frontend within the image
 workingDir: ""
 
+## @param logsDir Directory path for NPM logs
+logsDir: ""
+
 ## @param ingress.enabled Flag to enable ingress for Tornjak frontend service
 ## @param ingress.className Ingress class name for Tornjak frontend service
-## @param ingress.controllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, autodetection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""].
+## @param ingress.controllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, auto-detection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""].
 ## @param ingress.annotations [object] Annotations for Tornjak frontend service
 ingress:
   enabled: false
@@ -130,14 +138,14 @@ ingress:
   ## @param ingress.tlsSecret Secret that has the certs. If blank will use default certs. Used with host var.
   tlsSecret: ""
 
-  ## @param ingress.hosts [array] Host paths for ingress object. If emtpy, rules will be built based on the host var.
+  ## @param ingress.hosts [array] Host paths for ingress object. If empty, rules will be built based on the host var.
   hosts: []
   #   - host: tornjak-frontend.example.org
   #     paths:
   #       - path: /
   #         pathType: Prefix
 
-  ## @param ingress.tls [array] Secrets containing TLS certs to enable https on ingress. If emtpy, rules will be built based on the host and tlsSecret vars.
+  ## @param ingress.tls [array] Secrets containing TLS certs to enable https on ingress. If empty, rules will be built based on the host and tlsSecret vars.
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
@@ -154,4 +162,4 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:099e4b9adb13a94e6f25d6bb9bfe69fd5ba734a615e62bb0e1efba6650c6b23d
+      tag: latest@sha256:3ed6a0b7b498b531c631a5f314ba85e91c6fd66d47301f9f67e9422e395c80c8

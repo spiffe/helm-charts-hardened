@@ -24,10 +24,7 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: {{ include "spire-controller-manager.fullname" . }}-leader-election
-subjects:
-- kind: ServiceAccount
-  name: {{ include "spire-server.serviceAccountName" . }}
-  namespace: {{ include "spire-server.namespace" . }}
+{{ include "spire-server.subject" . }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -37,9 +34,11 @@ rules:
   - apiGroups: [""]
     resources: ["namespaces"]
     verbs: ["get", "list", "watch"]
+{{- if .Values.controllerManager.validatingWebhookConfiguration.enabled }}
   - apiGroups: ["admissionregistration.k8s.io"]
     resources: ["validatingwebhookconfigurations"]
     verbs: ["get", "list", "patch", "watch"]
+{{- end }}
   - apiGroups: [""]
     resources: ["nodes"]
     verbs: ["get", "list", "watch"]
@@ -85,8 +84,5 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: {{ .Release.Namespace}}-{{ include "spire-controller-manager.fullname" . }}
-subjects:
-- kind: ServiceAccount
-  name: {{ include "spire-server.serviceAccountName" . }}
-  namespace: {{ include "spire-server.namespace" . }}
+{{ include "spire-server.subject" . }}
 {{- end }}

@@ -1,3 +1,4 @@
+{{- if not .Values.externalServer }}
 {{- if eq ((dig "deleteHooks" "enabled" .Values.controllerManager.deleteHook.enabled .Values.global) | toString) "true" }}
 {{- if .Values.upstreamAuthority.spire.enabled }}
 apiVersion: v1
@@ -21,7 +22,7 @@ metadata:
     "helm.sh/hook-delete-policy": before-hook-creation, hook-succeeded, hook-failed
 rules:
   - apiGroups: ["apps"]
-    resources: ["statefulsets"]
+    resources: ["{{ include "spire-server.kind" . }}s"]
     resourceNames: [{{ include "spire-server.fullname" . | quote }}]
     verbs: ["get", "delete"]
   - apiGroups: [""]
@@ -73,9 +74,13 @@ spec:
           - delete
           - -n
           - {{ include "spire-server.namespace" . }}
-          - statefulset
+          - {{ include "spire-server.kind" . }}
           - {{ include "spire-server.fullname" . }}
           - --wait
+        {{- with (((.Values).global).deleteHooks).resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
       - name: pre-delete-check
         securityContext:
           {{- include "spire-lib.securitycontext" . | nindent 10 }}
@@ -88,5 +93,10 @@ spec:
           - app.kubernetes.io/instance={{ include "spire-server.name" . }},app.kubernetes.io/name={{ .Release.Name }},app.kubernetes.io/component=server
           - -n
           - {{ include "spire-server.namespace" . }}
+        {{- with (((.Values).global).deleteHooks).resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+{{- end }}
 {{- end }}
 {{- end }}

@@ -1,6 +1,6 @@
 # spire
 
-![Version: 0.17.0](https://img.shields.io/badge/Version-0.17.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.8.7](https://img.shields.io/badge/AppVersion-1.8.7-informational?style=flat-square)
+![Version: 0.23.0](https://img.shields.io/badge/Version-0.23.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.10.3](https://img.shields.io/badge/AppVersion-1.10.3-informational?style=flat-square)
 [![Development Phase](https://github.com/spiffe/spiffe/blob/main/.img/maturity/dev.svg)](https://github.com/spiffe/spiffe/blob/main/MATURITY.md#development)
 
 A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
@@ -10,6 +10,7 @@ A Helm chart for deploying the complete Spire stack including: spire-server, spi
 ## Install Instructions
 
 ### Non Production
+
 To do a quick install suitable for testing in something like minikube:
 
 ```shell
@@ -22,6 +23,12 @@ helm upgrade --install -n spire-server spire spire --repo https://spiffe.github.
 Preparing a production deployment requires a few steps.
 
 1. Save the following to your-values.yaml, ideally in your git repo.
+
+> [!NOTE]
+> Please note that `rancher/kubectl` image does not always correspond to the most
+> recent version of Kubernetes. In order to find the most up-to-date version,
+> please visit their [releases](https://github.com/rancher/kubectl/releases) page.
+
 ```yaml
 global:
   openshift: false # If running on openshift, set to true
@@ -34,21 +41,25 @@ global:
     # Update these
     clusterName: example-cluster
     trustDomain: example.org
-spire-server:
-  ca_subject:
-    # Update these
-    country: ARPA
-    organization: Example
-    common_name: example.org
+    caSubject:
+      country: ARPA
+      organization: Example
+      commonName: example.org
+# If rancher/kubectl doesn't have a version that matches your cluster, uncomment and update:
+#    tools:
+#       kubectl:
+#         tag: "v1.23.3"
 ```
 
-2. If you need a non default storageClass, append the following to the spire-server section and update:
+2. If you need a non default storageClass, append the following to the global.spire section and update:
+
 ```
-  persistence:
-    storageClass: your-storage-class
+    persistence:
+      storageClass: your-storage-class
 ```
 
 3. If your Kubernetes cluster is OpenShift based, use the output of the following command to update the trustDomain setting:
+
 ```shell
 oc get cm -n openshift-config-managed  console-public -o go-template="{{ .data.consoleURL }}" | sed 's@https://@@; s/^[^.]*\.//'
 ```
@@ -64,14 +75,56 @@ helm upgrade --install -n spire-mgmt spire-crds spire-crds --repo https://spiffe
 helm upgrade --install -n spire-mgmt spire spire --repo https://spiffe.github.io/helm-charts-hardened/ -f your-values.yaml
 ```
 
+## Clean up
+
+```shell
+helm -n spire-mgmt uninstall spire-crds
+helm -n spire-mgmt uninstall spire
+kubectl -n spire-server delete pvc -l app.kubernetes.io/instance=spire
+kubectl delete crds clusterfederatedtrustdomains.spire.spiffe.io clusterspiffeids.spire.spiffe.io clusterstaticentries.spire.spiffe.io
+```
+
 ## Upgrade notes
 
-We only support upgrading one major version at a time. Version skipping isn't supported.
+We only support upgrading one major/minor version at a time. Version skipping isn't supported. Please see <https://spiffe.io/docs/latest/spire-helm-charts-hardened-about/upgrading/> for details.
+
+### 0.23.X
+
+In previous versions, the setting spire-agent.workloadAttestors.k8s.skipKubeletVerification was set to true by default. Starting in 0.23.x, we removed that setting and replaced it with
+spire-agent.workloadAttestors.k8s.verification.type. It defaults to "skip" which will have the same behavior as before. In a future version, it will be set to "auto". Please try
+setting it to this with your deployment and let us know if you run into any problems so we can fix it before we change the default for everyone.
+
+### 0.21.X
+
+- In previous versions, spire-server.upstreamAuthority.certManager.issuer_name would incorrectly have '-ca' appended. Starting with this version, that is no longer the case. If you previously set this
+value, you likely want to update your value to include the '-ca' suffix in the value to have your deployment continue to function properly.
+
+- The default value of spire-server.controllerManager.entryIDPrefixCleanup changed from "" to false. Prior to this release upgrades cleaned up old entries in the database. After upgrading to 0.21.X, manual entries will not be overridden by the spire-controller-manager. Skipping over chart releases (unsupported), requires manual setting of this value to "" to trigger the cleanup.
+
+### 0.20.X
+
+- The default service port for the spire-server was changed to be port 443 to allow easier switching between internal access and external access through an ingress controller. For most users, this will be a transparent
+change.
+
+- This release configures the entries managed by the spire-controller-manager to move into their own managed space within SPIRE. This should be transparent. In a future release, we will
+disable cleanup by default of the old space. This release lays the groundwork for future support for manually created entries in the SPIRE database without the spire-controller-manager
+destroying them. It is supported in this release by manually setting spire-server.controllerManager.entryIDPrefixCleanup=false after successfully upgrading to the chart without the
+setting and waiting for a spire-controller-manager sync.
+
+### 0.19.X
+
+- The spire-agent daemonset gained a new label. For those disabling the upgrade hooks, you need to delete the spire-agent daemonset before issuing the helm upgrade.
+
+### 0.18.X
+
+- SPIRE no longer emits x509UniqueIdentifiers in x509-SVIDS by default. The old behavior can be reenabled with spire-server.credentialComposer.uniqueID.enabled=true. See <https://github.com/spiffe/spire/pull/4862> for details.
+- SPIRE agents will now automatically reattest when they can. The old behavior can be reenabled with spire-agent.disableReattestToRenew=true. See <https://github.com/spiffe/spire/pull/4791> for details.
 
 ### 0.17.X
 
+- If you set spire-server.replicaCount > 1, update it to 1 before upgrading and after upgrade you can set it back to its previous value.
 - The SPIFFE OIDC Discovery Provider now has many new TLS options and defaults to using SPIRE to issue its certificate.
-- The `spiffe-oidc-discovery-provider.insecureScheme.enabled` flag was removed. If you previously set that flag, remove the setting from your values.yaml and see if the new default of using a SPIRE issued certificate is suitable for your deployment. If it isn't, please consider one of the other options under `spiffe-oidc-discovery-provider.tls`. If all other options are still unsuitable, you can still enable the previous mode by disabling TLS. (`spiffe-oidc-discovery-provider.spire.enabled=false`)
+- The `spiffe-oidc-discovery-provider.insecureScheme.enabled` flag was removed. If you previously set that flag, remove the setting from your values.yaml and see if the new default of using a SPIRE issued certificate is suitable for your deployment. If it isn't, please consider one of the other options under `spiffe-oidc-discovery-provider.tls`. If all other options are still unsuitable, you can still enable the previous mode by disabling TLS. (`spiffe-oidc-discovery-provider.tls.spire.enabled=false`)
 
 - The SPIFFE OIDC Discovery Provider is now enabled by default. If you previously chose to have it off, you can disable it explicitly with `spiffe-oidc-discovery-provider.enabled=false`.
 
@@ -199,6 +252,10 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `global.spire.jwtIssuer`                         | The issuer for Spire JWT tokens. Defaults to oidc-discovery.$trustDomain if unset                                                                                                                                                      | `""`              |
 | `global.spire.trustDomain`                       | The trust domain for Spire install                                                                                                                                                                                                     | `example.org`     |
 | `global.spire.upstreamServerAddress`             | Set what address to use for the upstream server when using nested spire                                                                                                                                                                | `""`              |
+| `global.spire.caSubject.country`                 | Country for Spire server CA                                                                                                                                                                                                            | `""`              |
+| `global.spire.caSubject.organization`            | Organization for Spire server CA                                                                                                                                                                                                       | `""`              |
+| `global.spire.caSubject.commonName`              | Common Name for Spire server CA                                                                                                                                                                                                        | `""`              |
+| `global.spire.persistence.storageClass`          | What storage class to use for persistence                                                                                                                                                                                              | `nil`             |
 | `global.spire.recommendations.enabled`           | Use recommended settings for production deployments. Default is off.                                                                                                                                                                   | `false`           |
 | `global.spire.recommendations.namespaceLayout`   | Set to true to use recommended values for installing across namespaces                                                                                                                                                                 | `true`            |
 | `global.spire.recommendations.namespacePSS`      | When chart namespace creation is enabled, label them with preffered Pod Security Standard labels                                                                                                                                       | `true`            |
@@ -218,16 +275,21 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `global.spire.namespaces.server.labels`          | Labels to apply to the Spire server Namespace.                                                                                                                                                                                         | `{}`              |
 | `global.spire.strictMode`                        | Check values, such as trustDomain, are overridden with a suitable value for production.                                                                                                                                                | `false`           |
 | `global.spire.ingressControllerType`             | Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, autodetection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""]. | `""`              |
+| `global.spire.tools.kubectl.tag`                 | Set to force the tag to use for all kubectl instances                                                                                                                                                                                  | `""`              |
 | `global.installAndUpgradeHooks.enabled`          | Enable Helm hooks to autofix common install/upgrade issues (should be disabled when using `helm template`)                                                                                                                             | `true`            |
+| `global.installAndUpgradeHooks.resources`        | Resource requests and limits for installAndUpgradeHooks                                                                                                                                                                                | `{}`              |
 | `global.deleteHooks.enabled`                     | Enable Helm hooks to autofix common delete issues (should be disabled when using `helm template`)                                                                                                                                      | `true`            |
+| `global.deleteHooks.resources`                   | Resource requests and limits for deleteHooks                                                                                                                                                                                           | `{}`              |
 
 ### Spire server parameters
 
-| Name                                     | Description                                   | Value    |
-| ---------------------------------------- | --------------------------------------------- | -------- |
-| `spire-server.enabled`                   | Flag to enable Spire server                   | `true`   |
-| `spire-server.nameOverride`              | Overrides the name of Spire server pods       | `server` |
-| `spire-server.controllerManager.enabled` | Enable controller manager and provision CRD's | `true`   |
+| Name                                              | Description                                                               | Value         |
+| ------------------------------------------------- | ------------------------------------------------------------------------- | ------------- |
+| `spire-server.enabled`                            | Flag to enable Spire server                                               | `true`        |
+| `spire-server.nameOverride`                       | Overrides the name of Spire server pods                                   | `server`      |
+| `spire-server.kind`                               | Run spire server as deployment/statefulset. This feature is experimental. | `statefulset` |
+| `spire-server.controllerManager.enabled`          | Enable controller manager and provision CRD's                             | `true`        |
+| `spire-server.externalControllerManagers.enabled` | Enable external controller manager support                                | `true`        |
 
 ### Spire agent parameters
 
@@ -244,15 +306,16 @@ Now you can interact with the Spire agent socket from your own application. The 
 
 ### Upstream Spire agent parameters
 
-| Name                                             | Description                                        | Value                                                |
-| ------------------------------------------------ | -------------------------------------------------- | ---------------------------------------------------- |
-| `upstream-spire-agent.upstream`                  | Flag for enabling upstream Spire agent             | `true`                                               |
-| `upstream-spire-agent.nameOverride`              | Name override for upstream Spire agent             | `agent-upstream`                                     |
-| `upstream-spire-agent.bundleConfigMap`           | The configmap name for upstream Spire agent bundle | `spire-bundle-upstream`                              |
-| `upstream-spire-agent.socketPath`                | Socket path where Spire agent socket is mounted    | `/run/spire/agent-sockets-upstream/spire-agent.sock` |
-| `upstream-spire-agent.serviceAccount.name`       | Service account name for upstream Spire agent      | `spire-agent-upstream`                               |
-| `upstream-spire-agent.healthChecks.port`         | Health check port number for upstream Spire agent  | `9981`                                               |
-| `upstream-spire-agent.telemetry.prometheus.port` | The port where prometheus metrics are available    | `9989`                                               |
+| Name                                             | Description                                                    | Value                                                |
+| ------------------------------------------------ | -------------------------------------------------------------- | ---------------------------------------------------- |
+| `upstream-spire-agent.upstream`                  | Flag for enabling upstream Spire agent                         | `true`                                               |
+| `upstream-spire-agent.nameOverride`              | Name override for upstream Spire agent                         | `agent-upstream`                                     |
+| `upstream-spire-agent.bundleConfigMap`           | The configmap name for upstream Spire agent bundle             | `spire-bundle-upstream`                              |
+| `upstream-spire-agent.socketPath`                | Socket path where Spire agent socket is mounted                | `/run/spire/agent-sockets-upstream/spire-agent.sock` |
+| `upstream-spire-agent.serviceAccount.name`       | Service account name for upstream Spire agent                  | `spire-agent-upstream`                               |
+| `upstream-spire-agent.healthChecks.port`         | Health check port number for upstream Spire agent              | `9981`                                               |
+| `upstream-spire-agent.telemetry.prometheus.port` | The port where prometheus metrics are available                | `9989`                                               |
+| `upstream-spire-agent.persistence.hostPath`      | Which path to use on the host when persistence.type = hostPath | `/var/lib/spire/k8s/upstream-agent`                  |
 
 ### SPIFFE CSI Driver parameters
 

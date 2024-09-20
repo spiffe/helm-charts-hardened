@@ -75,20 +75,20 @@ Create chart name and version as used by the chart label.
 Common labels
 */}}
 {{- define "spire-agent.labels" -}}
-helm.sh/chart: {{ include "spire-agent.chart" . }}
+helm.sh/chart: {{ include "spire-agent.chart" . | quote }}
 {{ include "spire-agent.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
+app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
 {{- end }}
 
 {{/*
 Selector labels
 */}}
 {{- define "spire-agent.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "spire-agent.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/name: {{ include "spire-agent.name" . | quote }}
+app.kubernetes.io/instance: {{ .Release.Name | quote }}
 {{- end }}
 
 {{/*
@@ -103,6 +103,8 @@ Create the name of the service account to use
 {{- print .Values.global.spire.upstreamSpireAddress }}
 {{- else if .Values.server.address }}
 {{- .Values.server.address }}
+{{- else if .Values.server.nameOverride }}
+{{ .Release.Name }}-{{ .Values.server.nameOverride }}.{{ include "spire-agent.server.namespace" . }}
 {{- else }}
 {{ .Release.Name }}-server.{{ include "spire-agent.server.namespace" . }}
 {{- end }}
@@ -124,4 +126,12 @@ Create the name of the service account to use
 {{-   else }}
 {{-     printf "false" }}
 {{-   end }}
+{{- end }}
+
+{{- define "spire-agent.socket-alternate-names" -}}
+{{-   $sockName := .Values.socketPath | base }}
+{{-   $l := deepCopy .Values.socketAlternate.names }}
+{{-   $l = without $l $sockName }}
+names:
+{{ $l | toYaml }}
 {{- end }}

@@ -9,8 +9,17 @@ spec:
   selector:
     matchLabels:
       {{- include "spiffe-csi-driver.selectorLabels" . | nindent 6 }}
+  {{- with .Values.updateStrategy }}
   updateStrategy:
-    type: RollingUpdate
+    {{- if not (has .type (list "RollingUpdate" "OnDelete")) }}
+    {{- fail "updateStrategy.type can only be RollingUpdate or OnDelete"}}
+    {{- end }}
+    type: {{ .type }}
+    {{- if eq .type "RollingUpdate" }}
+    rollingUpdate:
+      maxUnavailable: {{ .rollingUpdate.maxUnavailable }}
+    {{- end }}
+  {{- end }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -27,6 +36,10 @@ spec:
       serviceAccountName: {{ include "spiffe-csi-driver.serviceAccountName" . }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.tolerations }}

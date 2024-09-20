@@ -6,6 +6,17 @@ Expand the name of the chart.
 {{- end }}
 
 {{/*
+Spire Server deployment/statefulset
+*/}}
+{{- define "spire-server.kind" -}}
+{{- if not (has .Values.kind (list "statefulset" "deployment")) -}}
+  {{- fail "Unsupported deployment type" -}}
+{{- else -}}
+  {{- .Values.kind -}}
+{{- end -}}
+{{- end }}
+
+{{/*
 Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
@@ -134,10 +145,19 @@ Create the name of the service account to use
 {{- end }}
 
 {{- define "spire-server.serviceAccountAllowedList" }}
+{{- $releaseNamespace := include "spire-server.agent-namespace" . }}
 {{- if ne (len .Values.nodeAttestor.k8sPsat.serviceAccountAllowList) 0 }}
-{{- .Values.nodeAttestor.k8sPsat.serviceAccountAllowList | toJson }}
+{{-   $list := list }}
+{{-   range .Values.nodeAttestor.k8sPsat.serviceAccountAllowList }}
+{{-     if contains ":" . }}
+{{-       $list = append $list . }}
+{{-     else }}
+{{-       $list = append $list ( printf "%s:%s" $releaseNamespace . ) | }}
+{{-     end }}
+{{-   end }}
+{{-   $list | toJson }}
 {{- else }}
-[{{ printf "%s:%s-agent" (include "spire-server.agent-namespace" .) .Release.Name | quote }}]
+[{{ printf "%s:%s-agent" $releaseNamespace .Release.Name | quote }}]
 {{- end }}
 {{- end }}
 
@@ -192,6 +212,8 @@ Create the name of the service account to use
 {{- define "spire-server.upstream-spire-address" }}
 {{- if ne (len (dig "spire" "upstreamSpireAddress" "" .Values.global)) 0 }}
 {{- print .Values.global.spire.upstreamSpireAddress }}
+{{- else if .Values.upstreamAuthority.spire.server.nameOverride }}
+{{- printf "%s-%s" .Release.Name .Values.upstreamAuthority.spire.server.nameOverride }}
 {{- else }}
 {{- print .Values.upstreamAuthority.spire.server.address }}
 {{- end }}
@@ -258,9 +280,55 @@ The code below determines what connection type should be used.
 {{- end -}}
 
 {{- define "spire-server.controller-manager-class-name" -}}
-{{-   if .Values.controllerManager.className }}
-{{-     .Values.controllerManager.className }}
+{{-   if and (hasKey . "settings") (hasKey .settings "className") }}
+{{-       .settings.className }}
+{{-   else if and (hasKey . "defaults") .defaults.className }}
+{{-       .defaults.className }}
+{{-   else if .Values.controllerManager.className }}
+{{-       .Values.controllerManager.className }}
 {{-   else }}
 {{-     .Release.Namespace }}-{{ default .Release.Name .Values.crNameOverride }}
 {{-   end -}}
 {{- end -}}
+
+{{- define "spire-server.ca-subject-country" }}
+{{-   $g := dig "spire" "caSubject" "country" "" .Values.global }}
+{{-   default .Values.ca_subject.country $g }}
+{{- end }}
+
+{{- define "spire-server.ca-subject-organization" }}
+{{-   $g := dig "spire" "caSubject" "organization" "" .Values.global }}
+{{-   default .Values.ca_subject.organization $g }}
+{{- end }}
+
+{{- define "spire-server.ca-subject-common-name" }}
+{{-   $g := dig "spire" "caSubject" "commonName" "" .Values.global }}
+{{-   default .Values.ca_subject.common_name $g }}
+{{- end }}
+
+{{- define "spire-server.subject" }}
+subjects:
+{{-   if .Values.externalServer }}
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: spire-root
+{{-   else }}
+- kind: ServiceAccount
+  name: {{ include "spire-server.serviceAccountName" . }}
+  namespace: {{ include "spire-server.namespace" . }}
+{{-   end }}
+{{- end }}
+
+{{- define "spire-server.podSecurityContext" -}}
+{{-   $podSecurityContext := include "spire-lib.podsecuritycontext" . | fromYaml }}
+{{-   $openshift := ((.Values).global).openshift | default false }}
+{{-   if not $openshift }}
+{{-     if not (hasKey $podSecurityContext "runAsUser") }}
+{{-       $_ := set $podSecurityContext "runAsUser" 1000 }}
+{{-     end }}
+{{-     if not (hasKey $podSecurityContext "runAsGroup") }}
+{{-       $_ := set $podSecurityContext "runAsGroup" 1000 }}
+{{-     end }}
+{{-   end }}
+{{-   toYaml $podSecurityContext }}
+{{- end }}

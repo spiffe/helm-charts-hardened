@@ -21,6 +21,18 @@ global:
     ## @param global.spire.upstreamServerAddress Set what address to use for the upstream server when using nested spire
     upstreamServerAddress: ""
 
+    ## @param global.spire.caSubject.country Country for Spire server CA
+    ## @param global.spire.caSubject.organization Organization for Spire server CA
+    ## @param global.spire.caSubject.commonName Common Name for Spire server CA
+    caSubject:
+      country: ""
+      organization: ""
+      commonName: ""
+
+    persistence:
+      ## @param global.spire.persistence.storageClass What storage class to use for persistence
+      storageClass: null
+
     ## @param global.spire.recommendations.enabled Use recommended settings for production deployments. Default is off.
     ## @param global.spire.recommendations.namespaceLayout Set to true to use recommended values for installing across namespaces
     ## @param global.spire.recommendations.namespacePSS When chart namespace creation is enabled, label them with preffered Pod Security Standard labels
@@ -69,12 +81,41 @@ global:
     ## @param global.spire.ingressControllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, autodetection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""].
     ingressControllerType: ""
 
+    tools:
+      kubectl:
+        ## @param global.spire.tools.kubectl.tag Set to force the tag to use for all kubectl instances
+        tag: ""
+
   installAndUpgradeHooks:
     ## @param global.installAndUpgradeHooks.enabled Enable Helm hooks to autofix common install/upgrade issues (should be disabled when using `helm template`)
     enabled: true
+    ## @param global.installAndUpgradeHooks.resources [object] Resource requests and limits for installAndUpgradeHooks
+    resources: {}
+      # We usually recommend not to specify default resources and to leave this as a conscious
+      # choice for the user. This also increases chances charts run on environments with little
+      # resources, such as Minikube. If you do want to specify resources, copy the following
+      # to your values file and edit as needed.
+      # limits:
+      #   cpu: 100m
+      #   memory: 128Mi
+      # requests:
+      #   cpu: 100m
+      #   memory: 128Mi
   deleteHooks:
     ## @param global.deleteHooks.enabled Enable Helm hooks to autofix common delete issues (should be disabled when using `helm template`)
     enabled: true
+    ## @param global.deleteHooks.resources [object] Resource requests and limits for deleteHooks
+    resources: {}
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, copy the following
+    # to your values file and edit as needed.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
 
 #  telemetry:
 #    prometheus:
@@ -95,8 +136,13 @@ spire-server:
   enabled: true
   ## @param spire-server.nameOverride Overrides the name of Spire server pods
   nameOverride: server
+  ## @param spire-server.kind Run spire server as deployment/statefulset. This feature is experimental.
+  kind: statefulset
   controllerManager:
     ## @param spire-server.controllerManager.enabled Enable controller manager and provision CRD's
+    enabled: true
+  externalControllerManagers:
+    ## @param spire-server.externalControllerManagers.enabled Enable external controller manager support
     enabled: true
 
 ## @section Spire agent parameters
@@ -137,6 +183,9 @@ upstream-spire-agent:
     prometheus:
       ## @param upstream-spire-agent.telemetry.prometheus.port The port where prometheus metrics are available
       port: 9989
+  ## @param upstream-spire-agent.persistence.hostPath Which path to use on the host when persistence.type = hostPath
+  persistence:
+    hostPath: /var/lib/spire/k8s/upstream-agent
 
 ## @section SPIFFE CSI Driver parameters
 ## Parameter values for spiffe-csi-driver

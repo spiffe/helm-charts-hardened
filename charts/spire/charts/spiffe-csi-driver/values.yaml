@@ -37,6 +37,13 @@ healthChecks:
   ## @param healthChecks.port The healthcheck port for spiffe-csi-driver
   port: 9809
 
+## @param updateStrategy.type The update strategy to use to replace existing DaemonSet pods with new pods. Can be RollingUpdate or OnDelete.
+## @param updateStrategy.rollingUpdate.maxUnavailable Max unavailable pods during update. Can be a number or a percentage.
+updateStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 1
+
 ## @param livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
 ## @param livenessProbe.timeoutSeconds Timeout value in seconds for livenessProbe
 ##
@@ -96,6 +103,9 @@ nodeSelector: {}
 ## @param tolerations [array] Tolerations for CSI driver pods
 tolerations: []
 
+## @param affinity [object] Node affinity
+affinity: {}
+
 nodeDriverRegistrar:
   ## @param nodeDriverRegistrar.image.registry The OCI registry to pull the image from
   ## @param nodeDriverRegistrar.image.repository The repository within the registry
@@ -106,7 +116,7 @@ nodeDriverRegistrar:
     registry: registry.k8s.io
     repository: sig-storage/csi-node-driver-registrar
     pullPolicy: IfNotPresent
-    tag: v2.9.3
+    tag: v2.9.4
   ## @param nodeDriverRegistrar.resources Resource requests and limits for CSI driver pods
   resources: {}
     # We usually recommend not to specify default resources and to leave this as a conscious

@@ -21,7 +21,7 @@ $(kubectl --request-timeout=30s describe pods --namespace "$1")
 #### Logs
 
 \`\`\`shell
-$(kubectl get pods -o name -n "$1" | while read -r line; do echo logs for "${line}"; kubectl logs -n "$1" "${line}" --all-containers=true --ignore-errors=true; done)
+$(kubectl get pods -o name -n "$1" | while read -r line; do echo logs for "${line}"; kubectl logs -n "$1" "${line}" --prefix --all-containers=true --ignore-errors=true; done)
 $( ([[ -n "$2" ]] && kubectl get pods -o name -n "$2") | while read -r line; do echo logs for "${line}"; kubectl logs -n "$2" "${line}" --all-containers=true --ignore-errors=true; done)
 \`\`\`
 
@@ -55,6 +55,7 @@ print_spire_workload_status () {
 | Namespace | Workload                                       | Status |
 | --------- | ---------------------------------------------- | ------ |
 | ${ns1}    | ${release_name}-server                         | <pre>$(k_rollout_status "${ns1}" statefulset "${release_name}-server")</pre> |
+| ${ns1}    | ${release_name}-server                         | <pre>$(k_rollout_status "${ns1}" deployments.apps "${release_name}-server")</pre> |
 | ${ns2}    | ${release_name}-spiffe-csi-driver              | <pre>$(k_rollout_status "${ns2}" daemonset "${release_name}-spiffe-csi-driver")</pre> |
 | ${ns2}    | ${release_name}-agent                          | <pre>$(k_rollout_status "${ns2}" daemonset "${release_name}-agent")</pre> |
 | ${ns1}    | ${release_name}-spiffe-oidc-discovery-provider | <pre>$(k_rollout_status "${ns1}" deployments.apps "${release_name}-spiffe-oidc-discovery-provider")</pre> |
@@ -70,3 +71,33 @@ $(helm ls -A | sed 's/\t/ | /g' | sed 's/^/| /' | sed 's/$/ |/' | sed '/^| NAME.
 
 EOF
 }
+
+common_test_url () (
+count=10
+while true; do
+        if curl "$1"; then exit 0; fi
+        sleep 2
+        count=$((count-1))
+        [ $count -le 0 ] && exit 1
+done
+)
+
+# Used just for testing. You should provide your own values as described in the install instructions.
+common_test_your_values () {
+cat > /tmp/$$.example-your-values.yaml <<EOF
+global:
+  spire:
+    recommendations:
+      enabled: true
+    clusterName: production
+    trustDomain: production.other
+    caSubject:
+      country: US
+      organization: Production
+      commonName: production.other
+EOF
+echo "/tmp/$$.example-your-values.yaml"
+}
+
+COMMON_TEST_YOUR_VALUES="$(common_test_your_values)"
+export COMMON_TEST_YOUR_VALUES

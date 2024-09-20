@@ -1,0 +1,7 @@
+[
+  {
+    "name": "envoy-gateway",
+    "registry": "docker.io/envoyproxy/gateway-helm",
+    "version": ""
+  }
+]
