@@ -50,10 +50,10 @@ agent:
   {{- end }}
   {{- if .Values.sds.enabled }}
   sds:
-    default_svid_name: {{ .Values.sds.defaultSvidName | quote }}
+    default_svid_name: {{ .Values.sds.defaultSVIDName | quote }}
     default_bundle_name: {{ .Values.sds.defaultBundleName | quote }}
     default_all_bundles_name: {{ .Values.sds.defaultAllBundlesName | quote }}
-    disable_spiffe_cert_validation: {{ eq .Values.sds.disableSpiffeCertValidation true }}
+    disable_spiffe_cert_validation: {{ eq .Values.sds.disableSPIFFECertValidation true }}
   {{- end }}
 
   {{- with .Values.experimental }}
@@ -73,7 +73,7 @@ agent:
 {{- $keyManagerUsed := add (len .Values.customPlugins.keyManager) (len .Values.unsupportedBuiltInPlugins.keyManager) }}
 plugins:
   NodeAttestor:
-    {{- if .Values.nodeAttestor.k8sPsat.enabled }}
+    {{- if .Values.nodeAttestor.k8sPSAT.enabled }}
     k8s_psat:
       plugin_data:
         cluster: {{ include "spire-lib.cluster-name" . | quote }}

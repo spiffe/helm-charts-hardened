@@ -8,10 +8,10 @@ spiffe-oidc-discovery-provider:
 spire-server:
   namespaceOverride: spire-server
   nodeAttestor:
-    k8sPsat:
+    k8sPSAT:
       serviceAccountAllowList: ["spire-system:spire-agent"]
   notifier:
-    k8sbundle:
+    k8sBundle:
       namespace: spire-system
 
 spiffe-csi-driver:
