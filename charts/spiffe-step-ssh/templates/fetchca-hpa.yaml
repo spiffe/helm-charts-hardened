@@ -2,14 +2,14 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "spire-step-ssh.fullname" . }}-fetchca
+  name: {{ include "spiffe-step-ssh.fullname" . }}-fetchca
   labels:
-    {{- include "spire-step-ssh.labels" . | nindent 4 }}
+    {{- include "spiffe-step-ssh.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "spire-step-ssh.fullname" . }}-fetchca
+    name: {{ include "spiffe-step-ssh.fullname" . }}-fetchca
   minReplicas: {{ .Values.fetchca.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.fetchca.autoscaling.maxReplicas }}
   metrics:

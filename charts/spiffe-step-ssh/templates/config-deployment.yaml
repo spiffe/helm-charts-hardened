@@ -2,17 +2,17 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "spire-step-ssh.fullname" . }}-config
+  name: {{ include "spiffe-step-ssh.fullname" . }}-config
   labels:
-    {{- include "spire-step-ssh.labels" . | nindent 4 }}
-    app: spire-step-ssh
+    {{- include "spiffe-step-ssh.labels" . | nindent 4 }}
+    app: spiffe-step-ssh
     component: config
 spec:
   replicas: 1
   selector:
     matchLabels:
-      {{- include "spire-step-ssh.selectorLabels" . | nindent 6 }}
-      app: spire-step-ssh
+      {{- include "spiffe-step-ssh.selectorLabels" . | nindent 6 }}
+      app: spiffe-step-ssh
       component: config
   template:
     metadata:
@@ -22,18 +22,18 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
       labels:
-        {{- include "spire-step-ssh.labels" . | nindent 8 }}
+        {{- include "spiffe-step-ssh.labels" . | nindent 8 }}
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
-        app: spire-step-ssh
+        app: spiffe-step-ssh
         component: config
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "spire-step-ssh.serviceAccountName" . }}-config
+      serviceAccountName: {{ include "spiffe-step-ssh.serviceAccountName" . }}-config
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       initContainers:
@@ -114,10 +114,10 @@ spec:
           readOnly: true
       - name: config-deployment
         configMap:
-          name: {{ include "spire-step-ssh.fullname" . }}-config-deployment
+          name: {{ include "spiffe-step-ssh.fullname" . }}-config-deployment
       - name: config
         configMap:
-          name: {{ include "spire-step-ssh.fullname" . }}-config-raw
+          name: {{ include "spiffe-step-ssh.fullname" . }}-config-raw
       - name: certdir
         emptyDir: {}
       - name: spiffe-helper-config

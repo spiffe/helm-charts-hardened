@@ -1,4 +1,4 @@
-{{- define "spire-step-ssh.config-provisioners" }}
+{{- define "spiffe-step-ssh.config-provisioners" }}
 type: X5C
 name: "x5c@spiffe"
 roots: ""
@@ -10,13 +10,13 @@ options:
    templateFile: /home/step/config/ssh_x5c.tpl
 {{- end }}
 {{ $ca := deepCopy (index .Values.inject.config.files "ca.json") }}
-{{ $_ := set $ca.authority "provisioners" (list (include "spire-step-ssh.config-provisioners" . | fromYaml )) }}
+{{ $_ := set $ca.authority "provisioners" (list (include "spiffe-step-ssh.config-provisioners" . | fromYaml )) }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "spire-step-ssh.fullname" . }}-config-raw
+  name: {{ include "spiffe-step-ssh.fullname" . }}-config-raw
   labels:
-    {{- include "spire-step-ssh.labels" . | nindent 4 }}
+    {{- include "spiffe-step-ssh.labels" . | nindent 4 }}
 data:
   "ca.json": |
     {{- $ca | toPrettyJson | nindent 4 }}

@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "spire-step-ssh.fullname" . }}-certs
+  name: {{ include "spiffe-step-ssh.fullname" . }}-certs
   labels:
-    {{- include "spire-step-ssh.labels" . | nindent 4 }}
+    {{- include "spiffe-step-ssh.labels" . | nindent 4 }}
 data:
   "root_ca.crt": |
     {{- .Values.inject.certificates.root_ca | nindent 4}}

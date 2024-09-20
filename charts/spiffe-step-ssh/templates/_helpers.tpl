@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "spire-step-ssh.name" -}}
+{{- define "spiffe-step-ssh.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "spire-step-ssh.fullname" -}}
+{{- define "spiffe-step-ssh.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -26,16 +26,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "spire-step-ssh.chart" -}}
+{{- define "spiffe-step-ssh.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "spire-step-ssh.labels" -}}
-helm.sh/chart: {{ include "spire-step-ssh.chart" . }}
-{{ include "spire-step-ssh.selectorLabels" . }}
+{{- define "spiffe-step-ssh.labels" -}}
+helm.sh/chart: {{ include "spiffe-step-ssh.chart" . }}
+{{ include "spiffe-step-ssh.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -45,17 +45,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "spire-step-ssh.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "spire-step-ssh.name" . }}
+{{- define "spiffe-step-ssh.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "spiffe-step-ssh.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "spire-step-ssh.serviceAccountName" -}}
+{{- define "spiffe-step-ssh.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "spire-step-ssh.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "spiffe-step-ssh.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}

@@ -1,5 +1,5 @@
 {{- if .Values.fetchca.ingress.enabled -}}
-{{- $fullName := printf "%s-fetchca" (include "spire-step-ssh.fullname" .) -}}
+{{- $fullName := printf "%s-fetchca" (include "spiffe-step-ssh.fullname" .) -}}
 {{- $svcPort := .Values.fetchca.service.port -}}
 {{- if and .Values.fetchca.ingress.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
   {{- if not (hasKey .Values.ingress.annotations "kubernetes.io/ingress.class") }}
@@ -17,7 +17,7 @@ kind: Ingress
 metadata:
   name: {{ $fullName }}
   labels:
-    {{- include "spire-step-ssh.labels" . | nindent 4 }}
+    {{- include "spiffe-step-ssh.labels" . | nindent 4 }}
   {{- with .Values.fetchca.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}

@@ -1,4 +1,4 @@
-# Default values for spire-step-ssh.
+# Default values for spiffe-step-ssh.
 # SPDX-License-Identifier: APACHE-2.0
 
 ## @skip global

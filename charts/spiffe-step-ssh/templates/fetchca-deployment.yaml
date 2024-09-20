@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "spire-step-ssh.fullname" . }}-fetchca
+  name: {{ include "spiffe-step-ssh.fullname" . }}-fetchca
   labels:
-    {{- include "spire-step-ssh.labels" . | nindent 4 }}
-    app: spire-step-ssh
+    {{- include "spiffe-step-ssh.labels" . | nindent 4 }}
+    app: spiffe-step-ssh
     component: fetchca
 spec:
   {{- if not .Values.fetchca.autoscaling.enabled }}
@@ -12,8 +12,8 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      {{- include "spire-step-ssh.selectorLabels" . | nindent 6 }}
-      app: spire-step-ssh
+      {{- include "spiffe-step-ssh.selectorLabels" . | nindent 6 }}
+      app: spiffe-step-ssh
       component: fetchca
   template:
     metadata:
@@ -22,11 +22,11 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "spire-step-ssh.labels" . | nindent 8 }}
+        {{- include "spiffe-step-ssh.labels" . | nindent 8 }}
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
-        app: spire-step-ssh
+        app: spiffe-step-ssh
         component: fetchca
     spec:
       shareProcessNamespace: true
@@ -34,7 +34,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "spire-step-ssh.serviceAccountName" . }}-fetchca
+      serviceAccountName: {{ include "spiffe-step-ssh.serviceAccountName" . }}-fetchca
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       initContainers:
@@ -160,14 +160,14 @@ spec:
         emptyDir: {}
       - name: config
         configMap:
-          name: {{ include "spire-step-ssh.fullname" . }}-fetchca
+          name: {{ include "spiffe-step-ssh.fullname" . }}-fetchca
       - name: spiffe-workload-api
         csi:
           driver: "csi.spiffe.io"
           readOnly: true
       - name: share
         configMap:
-          name: {{ include "spire-step-ssh.fullname" . }}-certs
+          name: {{ include "spiffe-step-ssh.fullname" . }}-certs
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

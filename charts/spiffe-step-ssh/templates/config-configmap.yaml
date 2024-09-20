@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "spire-step-ssh.fullname" . }}-config-deployment
+  name: {{ include "spiffe-step-ssh.fullname" . }}-config-deployment
   labels:
-    {{- include "spire-step-ssh.labels" . | nindent 4 }}
+    {{- include "spiffe-step-ssh.labels" . | nindent 4 }}
 data:
   spiffe-helper.conf: |
     agent_address = "/spiffe-workload-api/spire-agent.sock"
@@ -20,6 +20,6 @@ data:
     echo Updating Roots to "$ROOTS"
     cat /config/ca.json > /work/ca.json
     yq e -i -ojson '.authority.provisioners |= map(select(.name == "x5c@spiffe").roots = env(ROOTS))' /work/ca.json
-    /helper/kubectl create configmap {{ include "spire-step-ssh.fullname" . }}-config -n "{{ .Release.Namespace }}" --from-file=/work/ca.json --from-file=/config/defaults.json --from-file=/config/ssh_x5c.tpl --dry-run=client -o yaml | /helper/kubectl apply -f -
-    /helper/kubectl rollout restart statefulset {{ include "spire-step-ssh.fullname" . }} -n "{{ .Release.Namespace }}"
+    /helper/kubectl create configmap {{ include "spiffe-step-ssh.fullname" . }}-config -n "{{ .Release.Namespace }}" --from-file=/work/ca.json --from-file=/config/defaults.json --from-file=/config/ssh_x5c.tpl --dry-run=client -o yaml | /helper/kubectl apply -f -
+    /helper/kubectl rollout restart statefulset {{ include "spiffe-step-ssh.fullname" . }} -n "{{ .Release.Namespace }}"
     echo $?
