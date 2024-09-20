@@ -24,6 +24,20 @@
 {{- else }}
 {{-   fail "Unsupported kind." }}
 {{- end }}
+{{- if hasKey .Values.dataStore.sql "plugin_data" }}
+{{-   fail "The plugin_data setting to the sql data store is no longer supported." }}
+{{- end }}
+{{- if ne .Values.dataStore.sql.databaseType "mysql" }}
+{{-   if ne .Values.dataStore.sql.rootCAPath "" }}
+{{-     fail "rootCAPath can only be set with database type mysql." }}
+{{-   end }}
+{{-   if ne .Values.dataStore.sql.clientCertPath "" }}
+{{-     fail "clientCertPath can only be set with database type mysql." }}
+{{-   end }}
+{{-   if ne .Values.dataStore.sql.clientKeyPath "" }}
+{{-     fail "clientKeyPath can only be set with database type mysql." }}
+{{-   end }}
+{{- end }}
 {{- if not .Values.externalServer }}
 apiVersion: apps/v1
 {{- if eq .Values.kind "statefulset" }}
