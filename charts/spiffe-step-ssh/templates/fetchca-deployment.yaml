@@ -57,7 +57,7 @@ spec:
           - /spiffe-helper
           - -config
           - /etc/spiffe-helper.conf
-          - -exitWhenReady
+          - -daemon-mode=false
           volumeMounts:
           - name: spiffe-workload-api
             mountPath: /spiffe-workload-api

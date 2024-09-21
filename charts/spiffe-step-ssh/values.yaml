@@ -33,7 +33,7 @@ spiffeHelper:
     registry: ghcr.io
     repository: spiffe/spiffe-helper
     pullPolicy: IfNotPresent
-    tag: "nightly@sha256:8cee346ffdcee5c996d394f1c3bb761c2c06834a0e779a78db6dc6a46fd13ae6"
+    tag: 0.8.0
 
 nginx:
   ## @param nginx.image.registry The OCI registry to pull the image from

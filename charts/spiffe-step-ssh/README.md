@@ -54,7 +54,7 @@ step:
     annotations:
       "nginx.ingress.kubernetes.io/ssl-passthrough": "true"
     hosts:
-    - host: spire-step-ssh.example.org
+    - host: spiffe-step-ssh.example.org
       paths:
       - path: /
         pathType: Prefix
