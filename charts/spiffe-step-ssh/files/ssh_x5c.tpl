@@ -18,13 +18,18 @@
 {{-   end }}
 {{- end }}
 {{- define "findURLSANs" }}
+{{-   $root := . }}
 {{-   $ext := .ext }}
-{{-   $rawSANs := printf "%s" (index $ext 5).Value }}
-{{-   $t := printf "%.1s" $rawSANs }}
-{{-   $seq := ("ME==" | b64dec) }}
-{{-   if eq $t $seq }}
-{{-     $args := dict "root" . "chunk" (slice (index $ext 5).Value 2) }}
-{{-     template "walkListFindURLSANs" $args }}
+{{-   range $ext }}
+{{-     if eq (printf "%s" .Id) "2.5.29.17" }}
+{{-       $rawSANs := printf "%s" .Value }}
+{{-       $t := printf "%.1s" $rawSANs }}
+{{-       $seq := ("ME==" | b64dec) }}
+{{-       if eq $t $seq }}
+{{-         $args := dict "root" $root "chunk" (slice .Value 2) }}
+{{-         template "walkListFindURLSANs" $args }}
+{{-       end }}
+{{-     end }}
 {{-   end }}
 {{- end }}
 {{- $prepURLSANs := dict "retval" (list) "ext" .AuthorizationCrt.Extensions }}
