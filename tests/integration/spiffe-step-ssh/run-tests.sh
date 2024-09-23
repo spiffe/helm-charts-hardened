@@ -140,7 +140,7 @@ pushd charts/spiffe-step-ssh
 helm dep up
 popd
 
-helm upgrade --install spiffe-step-ssh charts/spiffe-step-ssh --set caPassword="$(cat spiffe-step-ssh-password.txt)" -f spiffe-step-ssh-values.yaml -f "${SCRIPTPATH}/ingress-values.yaml" --set trustDomain=production.other --wait
+helm upgrade --install spiffe-step-ssh charts/spiffe-step-ssh --set caPassword="$(cat spiffe-step-ssh-password.txt)" -f spiffe-step-ssh-values.yaml -f "${SCRIPTPATH}/ingress-values.yaml" --set trustDomain=production.other --wait --timeout 10m
 
 # Start things up
 sudo systemctl daemon-reload
