@@ -111,6 +111,8 @@ sudo curl -L -o /usr/libexec/spiffe-step-ssh/helper.conf https://raw.githubuserc
 sudo curl -L -o /etc/systemd/system/spiffe-step-ssh.service https://raw.githubusercontent.com/kfox1111/spire-examples/refs/heads/spiffe-step-ssh/examples/spiffe-step-ssh/systemd/spiffe-step-ssh.service
 
 sudo cp "${SCRIPTPATH}/spiffe-step-ssh.conf" /etc
+sudo mkdir -p /etc/spire/agent
+sudo cp "${SCRIPTPATH}/spire-agent.conf" /etc/spire/agent/main.conf
 
 PASSWORD=$(openssl rand -base64 48)
 echo "$PASSWORD" > spiffe-step-ssh-password.txt
