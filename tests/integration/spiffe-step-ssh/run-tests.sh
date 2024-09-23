@@ -72,7 +72,7 @@ sudo -u spiffe-test mkdir -p /home/spiffe-test/.ssh
 sudo chown spiffe-test --recursive /home/spiffe-test
 sudo -u spiffe-test ssh-keygen -t ed25519 -f /home/spiffe-test/.ssh/id_ed25519 -q -N ""
 sudo -u spiffe-test cp /home/spiffe-test/.ssh/id_ed25519.pub /home/spiffe-test/.ssh/authorized_keys
-sudo -u spiffe-test ssh -i /home/spiffe-test/.ssh/id_ed25519.pub spiffe-test@test.production.other hostname || echo Expected fail here
+sudo -u spiffe-test ssh -T -n -i /home/spiffe-test/.ssh/id_ed25519.pub spiffe-test@test.production.other hostname || echo Expected fail here
 
 # Update deps
 helm dep up charts/spire-nested
