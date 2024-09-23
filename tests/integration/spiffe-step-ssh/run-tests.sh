@@ -26,8 +26,14 @@ done
 teardown() {
   echo spire-agent logs:
   journalctl -u spire-agent@main
-  echo sspiffe-step-ssh logs:
+  echo spiffe-step-ssh logs:
   journalctl -u spiffe-step-ssh
+  echo fetchca pod:
+  kubectl logs deploy/spiffe-spire-ssh-fetchca
+  echo config pod:
+  kubectl logs deploy/spiffe-spire-ssh-config
+  echo ingress
+  kubectl get ingress
   print_helm_releases
   print_spire_workload_status spire-root-server
   print_spire_workload_status spire-server spire-system
