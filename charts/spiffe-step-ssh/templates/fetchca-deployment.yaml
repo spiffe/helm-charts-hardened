@@ -163,7 +163,7 @@ spec:
           name: {{ include "spiffe-step-ssh.fullname" . }}-fetchca
       - name: spiffe-workload-api
         csi:
-          driver: "csi.spiffe.io"
+          driver: {{ .Values.csiDriver | quote }}
           readOnly: true
       - name: share
         configMap:

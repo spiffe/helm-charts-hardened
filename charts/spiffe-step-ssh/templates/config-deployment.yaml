@@ -110,7 +110,7 @@ spec:
       volumes:
       - name: spiffe-workload-api
         csi:
-          driver: "csi.spiffe.io"
+          driver: {{ .Values.csiDriver | quote }}
           readOnly: true
       - name: config-deployment
         configMap:

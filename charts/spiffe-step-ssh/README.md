@@ -73,3 +73,7 @@ fetchca:
 ```shell
 helm upgrade --install spiffe-step-ssh . --set caPassword=`cat spiffe-step-ssh-password.txt` -f spiffe-step-ssh-values.yaml -f ingress-values.yaml --set trustDomain=example.org
 ```
+
+<!-- The parameters section is generated using helm-docs.sh and should not be edited by hand. -->
+
+## Parameters

@@ -4,8 +4,11 @@
 ## @skip global
 global: {}
 
+## @param trustDomain The trust domain for SPIRE
 trustDomain: ""
+## @param prefix Prefix where hosts show up that are allowed to get ssh host certs
 prefix: sshd
+## @param csiDriver The csi driver to use
 csiDriver: csi.spiffe.io
 
 ## @skip step
@@ -76,10 +79,10 @@ yq:
     tag: "4.40.5"
 
 busybox:
-  ## @param yq.image.registry The OCI registry to pull the image from
-  ## @param yq.image.repository The repository within the registry
-  ## @param yq.image.pullPolicy The image pull policy
-  ## @param yq.image.tag Overrides the image tag whose default is the chart appVersion
+  ## @param busybox.image.registry The OCI registry to pull the image from
+  ## @param busybox.image.repository The repository within the registry
+  ## @param busybox.image.pullPolicy The image pull policy
+  ## @param busybox.image.tag Overrides the image tag whose default is the chart appVersion
   ##
   image:
     registry: docker.io
@@ -105,12 +108,16 @@ serviceAccount:
   annotations: {}
   name: ""
 
+## @param podAnnotations [object] Additional pod annotations to add
 podAnnotations: {}
+## @param podLabels [object] Additional pod labels to add
 podLabels: {}
 
+## @param podSecurityContext [object} Specify pod security context settings
 podSecurityContext: {}
   # fsGroup: 2000
 
+## @param securityContext [object] Specify container security context settings
 securityContext:
   # capabilities:
   #   drop:
@@ -122,12 +129,20 @@ securityContext:
   runAsUser: 0
 
 fetchca:
+  ## @param fetchca.replicaCount Number of replicas to launch
   replicaCount: 1
 
+  ## @param fetchca.service.type The type of service to deploy
+  ## @param fetchca.service.port The port number of the service port
   service:
     type: ClusterIP
     port: 443
 
+  ## @param fetchca.ingress.enabled Enable ingress
+  ## @param fetchca.ingress.className Ingress class to use
+  ## @param fetchca.ingress.annotations [object] Ingress annotations
+  ## @param fetchca.ingress.hosts [array] List of hosts to export
+  ## @param fetchca.ingress.tls [array] TLS config
   ingress:
     enabled: false
     className: ""
@@ -144,6 +159,10 @@ fetchca:
     #    hosts:
     #      - chart-example.local
 
+  ## @param fetchca.autoscaling.enabled Enable autoscaling
+  ## @param fetchca.autoscaling.minReplicas Minimum number of replicas to deploy
+  ## @param fetchca.autoscaling.maxReplicas Maximum number of replicas to deploy
+  ## @param fetchca.autoscaling.targetCPUUtilizationPercentage Target CPU utilization to use for autoscaling
   autoscaling:
     enabled: false
     minReplicas: 1
@@ -151,6 +170,7 @@ fetchca:
     targetCPUUtilizationPercentage: 80
     # targetMemoryUtilizationPercentage: 80
 
+  ## @param fetchca.resources [object] Specify resources
   resources: {}
     # limits:
     #   cpu: 100m
@@ -159,6 +179,7 @@ fetchca:
     #   cpu: 100m
     #   memory: 128Mi
 
+  ## @param fetchca.sidecarResources [object] Specify resources for the sidecar
   sidecarResources: {}
     # limits:
     #   cpu: 100m
@@ -167,13 +188,17 @@ fetchca:
     #   cpu: 100m
     #   memory: 128Mi
 
+  ## @param fetchca.nodeSelector [object] Specify node selector
   nodeSelector: {}
 
+  ## @param fetchca.tolerations [array] Specify tolerations
   tolerations: []
 
+  ## @param fetchca.affinity [object] Specify affinity
   affinity: {}
 
 config:
+  ## @param config.resources [object] Specify resources
   resources: {}
     # limits:
     #   cpu: 100m
@@ -182,6 +207,7 @@ config:
     #   cpu: 100m
     #   memory: 128Mi
 
+  ## @param config.sidecarResources [object] Specify resources for the sidecar
   sidecarResources: {}
     # limits:
     #   cpu: 100m
@@ -190,8 +216,11 @@ config:
     #   cpu: 100m
     #   memory: 128Mi
 
+  ## @param config.nodeSelector [object] Specify node selector
   nodeSelector: {}
 
+  ## @param config.tolerations [array] Specify tolerations
   tolerations: []
 
+  ## @param config.affinity [object] Specify affinity
   affinity: {}
