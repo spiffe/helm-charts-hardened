@@ -128,4 +128,10 @@ sudo systemctl enable spire-agent@main
 sudo systemctl start spire-agent@main
 #FIXME
 #sudo systemctl enable spiffe-step-ssh
+#FIXME wait for spire-agent
+sleep 5
 sudo systemctl start spiffe-step-ssh
+
+sudo adduser spiffe-test
+sudo -u spiffe-test mkdir -p /home/spiffe-test/.ssh
+sudo -u spiffe-test ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519 -q -N ""
