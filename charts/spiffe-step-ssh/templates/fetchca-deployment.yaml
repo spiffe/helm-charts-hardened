@@ -71,7 +71,7 @@ spec:
           resources:
             {{- toYaml .Values.fetchCA.sidecarResources | nindent 12 }}
       containers:
-        - name: {{ .Chart.Name }}-fetchCA
+        - name: {{ .Chart.Name }}-fetchca
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: {{ template "spire-lib.image" (dict "image" .Values.nginx.image "global" .Values.global) }}
