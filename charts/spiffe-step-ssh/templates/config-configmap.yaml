@@ -23,3 +23,5 @@ data:
     /helper/kubectl create configmap {{ include "spiffe-step-ssh.fullname" . }}-config -n "{{ .Release.Namespace }}" --from-file=/work/ca.json --from-file=/config/defaults.json --from-file=/config/ssh_x5c.tpl --dry-run=client -o yaml | /helper/kubectl apply -f -
     /helper/kubectl rollout restart statefulset {{ include "spiffe-step-ssh.fullname" . }} -n "{{ .Release.Namespace }}"
     echo $?
+    /helper/kubectl rollout restart deployment {{ include "spiffe-step-ssh.fullname" . }}-fetchca -n "{{ .Release.Namespace }}"
+    echo $?
