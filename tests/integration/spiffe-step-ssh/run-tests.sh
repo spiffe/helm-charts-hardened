@@ -29,6 +29,8 @@ teardown() {
   journalctl -u spire-agent@main
   echo spiffe-step-ssh logs:
   journalctl -u spiffe-step-ssh
+  echo step pod:
+  kubectl logs statefulset/spiffe-step-ssh
   echo fetchca pod:
   kubectl logs deploy/spiffe-step-ssh-fetchca
   echo config pod:
@@ -150,6 +152,10 @@ helm upgrade --install spiffe-step-ssh charts/spiffe-step-ssh --set caPassword="
 #FIXME
 #sudo systemctl enable spiffe-step-ssh
 #FIXME wait for spire-agent
+
+# Is fetchca responding.
+curl https://spiffe-step-ssh-fetchca.production.other -k
+
 sudo systemctl start spiffe-step-ssh
 
 #FIXME wait for spiffe-step-ssh
