@@ -48,6 +48,10 @@ trap 'EC=$? && trap - SIGTERM && teardown $EC' SIGINT SIGTERM EXIT
 echo Network interfaces:
 ip a
 
+HIP="$(ip -4 addr show docker0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')"
+
+echo "Picked IP ${HIP}"
+
 # Update deps
 helm dep up charts/spire-nested
 
@@ -67,7 +71,7 @@ helm upgrade --install ingress-nginx ingress-nginx --version "$VERSION_INGRESS_N
 common_test_url "$IP"
 
 kubectl get configmap -n kube-system coredns -o yaml | grep hosts || kubectl get configmap -n kube-system coredns -o yaml | sed "/ready/a\        hosts {\n           fallthrough\n        }" | kubectl apply -f -
-kubectl get configmap -n kube-system coredns -o yaml | grep test.production.other || kubectl get configmap -n kube-system coredns -o yaml | sed "/hosts/a\           $IP oidc-discovery.production.other\n           $IP spire-server.production.other\n           $IP test.production.other\n" | kubectl apply -f -
+kubectl get configmap -n kube-system coredns -o yaml | grep test.production.other || kubectl get configmap -n kube-system coredns -o yaml | sed "/hosts/a\           $IP oidc-discovery.production.other\n           $IP spire-server.production.other\n           $HIP test.production.other\n" | kubectl apply -f -
 kubectl rollout restart -n kube-system deployment/coredns
 kubectl rollout status -n kube-system -w --timeout=1m deploy/coredns
 
@@ -106,7 +110,7 @@ PASSWORD=$(openssl rand -base64 48)
 echo "$PASSWORD" > spiffe-step-ssh-password.txt
 step ca init --helm --deployment-type=Standalone --name='My CA' --dns spiffe-step-ssh.example.org --ssh --address :8443 --provisioner default --password-file spiffe-step-ssh-password.txt > spiffe-step-ssh-values.yaml
 
-helm upgrade --install spiffe-step-ssh . --set caPassword="$(cat spiffe-step-ssh-password.txt)" -f spiffe-step-ssh-values.yaml -f "${SCRIPTPATH}/ingress-values.yaml" --set trustDomain=production.other
+helm upgrade --install spiffe-step-ssh charts/spiffe-step-ssh --set caPassword="$(cat spiffe-step-ssh-password.txt)" -f spiffe-step-ssh-values.yaml -f "${SCRIPTPATH}/ingress-values.yaml" --set trustDomain=production.other
 
 # Start things up
 sudo systemctl daemon-reload
