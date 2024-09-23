@@ -4,6 +4,9 @@
 ## @skip global
 global: {}
 
+trustDomain: ""
+prefix: sshd
+
 ## @skip step
 step:
   service:

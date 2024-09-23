@@ -25,6 +25,9 @@ data:
     {{- $ca | toPrettyJson | nindent 4 }}
   "defaults.json": |
     {{- index .Values.inject.config.files "defaults.json" | toPrettyJson | nindent 4 }}
+{{- if eq .Values.trustDomain "" }}
+{{-   fail "You must set trustDomain" }}
+{{- end }}
   "ssh_x5c.tpl": |
-    {{- .Files.Get "files/ssh_x5c.tpl" | nindent 4}}
+    {{- .Files.Get "files/ssh_x5c.tpl" | replace "@TRUST_DOMAIN@" .Values.trustDomain | replace "@PREFIX@" .Values.prefix | nindent 4}}
 

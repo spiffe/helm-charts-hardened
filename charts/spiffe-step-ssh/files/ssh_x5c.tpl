@@ -36,8 +36,8 @@
 {{- template "findURLSANs" $prepURLSANs }}
 {{- if eq (len $prepURLSANs.retval) 1 }}
 {{-   $san := $prepURLSANs.retval | join "" }}
-{{-   if hasPrefix "spiffe://example.org/sshd/" $san }}
-{{-     $name := trimPrefix "spiffe://example.org/sshd/" $san }}
+{{-   if hasPrefix "spiffe://@TRUST_DOMAIN@/@PREFIX@/" $san }}
+{{-     $name := trimPrefix "spiffe://@TRUST_DOMAIN@/@PREFIX@/" $san }}
 {
   "type": {{ toJson .Type }},
   "keyId": {{ toJson $name }},
