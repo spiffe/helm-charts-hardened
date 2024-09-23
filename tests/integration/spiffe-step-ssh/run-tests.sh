@@ -136,18 +136,25 @@ PASSWORD=$(openssl rand -base64 48)
 echo "$PASSWORD" > spiffe-step-ssh-password.txt
 step ca init --helm --deployment-type=Standalone --name='My CA' --dns spiffe-step-ssh.example.org --ssh --address :8443 --provisioner default --password-file spiffe-step-ssh-password.txt > spiffe-step-ssh-values.yaml
 
+# Start things up
+sudo systemctl daemon-reload
+sudo systemctl enable spire-agent@main
+sudo systemctl start spire-agent@main
+
 pushd charts/spiffe-step-ssh
 helm dep up
 popd
 
 helm upgrade --install spiffe-step-ssh charts/spiffe-step-ssh --set caPassword="$(cat spiffe-step-ssh-password.txt)" -f spiffe-step-ssh-values.yaml -f "${SCRIPTPATH}/ingress-values.yaml" --set trustDomain=production.other --wait --timeout 10m
 
-# Start things up
-sudo systemctl daemon-reload
-sudo systemctl enable spire-agent@main
-sudo systemctl start spire-agent@main
 #FIXME
 #sudo systemctl enable spiffe-step-ssh
 #FIXME wait for spire-agent
-sleep 5
 sudo systemctl start spiffe-step-ssh
+
+#FIXME wait for spiffe-step-ssh
+sleep 10
+
+kubectl get configmap spiffe-step-ssh-certs -o 'go-template={{ index .data "ssh_host_ca_key.pub" }}' | sed '/^$/d' | sudo -u spiffe-test dd of=/home/spiffe-test/.ssh/known_hosts
+
+sudo -u spiffe-test ssh -T -n -i /home/spiffe-test/.ssh/id_ed25519.pub spiffe-test@test.production.other hostname
