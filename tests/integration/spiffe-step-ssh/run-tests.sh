@@ -137,7 +137,7 @@ sudo cp "${SCRIPTPATH}/spire-agent.conf" /etc/spire/agent/main.conf
 
 PASSWORD=$(openssl rand -base64 48)
 echo "$PASSWORD" > spiffe-step-ssh-password.txt
-step ca init --helm --deployment-type=Standalone --name='My CA' --dns spiffe-step-ssh.example.org --ssh --address :8443 --provisioner default --password-file spiffe-step-ssh-password.txt > spiffe-step-ssh-values.yaml
+step ca init --helm --deployment-type=Standalone --name='My CA' --dns spiffe-step-ssh.production.other --ssh --address :8443 --provisioner default --password-file spiffe-step-ssh-password.txt > spiffe-step-ssh-values.yaml
 
 # Start things up
 sudo systemctl daemon-reload
