@@ -24,6 +24,10 @@ for i in "$@"; do
 done
 
 teardown() {
+  echo spire-agent logs:
+  journalctl -u spire-agent@main
+  echo sspiffe-step-ssh logs:
+  journalctl -u spiffe-step-ssh
   print_helm_releases
   print_spire_workload_status spire-root-server
   print_spire_workload_status spire-server spire-system
@@ -120,5 +124,6 @@ helm upgrade --install spiffe-step-ssh charts/spiffe-step-ssh --set caPassword="
 sudo systemctl daemon-reload
 sudo systemctl enable spire-agent@main
 sudo systemctl start spire-agent@main
-sudo systemctl enable spiffe-step-ssh
+#FIXME
+#sudo systemctl enable spiffe-step-ssh
 sudo systemctl start spiffe-step-ssh
