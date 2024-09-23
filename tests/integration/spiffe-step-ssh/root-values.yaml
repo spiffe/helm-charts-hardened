@@ -39,4 +39,5 @@ external-spire-server:
       enabled: true
       allowedDNSPatterns:
       - ".*\\.production\\.other"
-    allowNonRootPorts: false
+      allowNonRootPorts: false
+      tofu: false

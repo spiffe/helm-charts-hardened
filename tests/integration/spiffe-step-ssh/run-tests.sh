@@ -45,6 +45,9 @@ teardown() {
 
 trap 'EC=$? && trap - SIGTERM && teardown $EC' SIGINT SIGTERM EXIT
 
+echo Network interfaces:
+ip a
+
 # Update deps
 helm dep up charts/spire-nested
 
@@ -88,15 +91,16 @@ helm test --namespace spire-mgmt spire
 
 kubectl get ingress -n spire-server
 
+echo "${IP} spire-server.production.other spiffe-step-ssh.production.other spiffe-step-ssh-fetchca.production.other" | sudo bash -c 'cat >> /etc/hosts'
 echo Hosts:
 cat /etc/hosts
 
-curl -L https://raw.githubusercontent.com/kfox1111/spire-examples/refs/heads/spiffe-step-ssh/examples/spiffe-step-ssh/scripts/demo.sh | bash
+curl -L https://raw.githubusercontent.com/kfox1111/spire-examples/refs/heads/spiffe-step-ssh/examples/spiffe-step-ssh/scripts/demo.sh | sudo bash
 
-mkdir -p /usr/libexec/spiffe-step-ssh
-curl -L -o /usr/libexec/spiffe-step-ssh/update.sh https://raw.githubusercontent.com/kfox1111/spire-examples/refs/heads/spiffe-step-ssh/examples/spiffe-step-ssh/scripts/update.sh
-curl -L -o /usr/libexec/spiffe-step-ssh/helper.conf https://raw.githubusercontent.com/kfox1111/spire-examples/refs/heads/spiffe-step-ssh/examples/spiffe-step-ssh/conf/helper.conf
-curl -L -o /etc/systemd/system/spiffe-step-ssh.service https://raw.githubusercontent.com/kfox1111/spire-examples/refs/heads/spiffe-step-ssh/examples/spiffe-step-ssh/systemd/spiffe-step-ssh.service
+sudo mkdir -p /usr/libexec/spiffe-step-ssh
+sudo curl -L -o /usr/libexec/spiffe-step-ssh/update.sh https://raw.githubusercontent.com/kfox1111/spire-examples/refs/heads/spiffe-step-ssh/examples/spiffe-step-ssh/scripts/update.sh
+sudo curl -L -o /usr/libexec/spiffe-step-ssh/helper.conf https://raw.githubusercontent.com/kfox1111/spire-examples/refs/heads/spiffe-step-ssh/examples/spiffe-step-ssh/conf/helper.conf
+sudo curl -L -o /etc/systemd/system/spiffe-step-ssh.service https://raw.githubusercontent.com/kfox1111/spire-examples/refs/heads/spiffe-step-ssh/examples/spiffe-step-ssh/systemd/spiffe-step-ssh.service
 
 PASSWORD=$(openssl rand -base64 48)
 echo "$PASSWORD" > spiffe-step-ssh-password.txt
@@ -105,8 +109,8 @@ step ca init --helm --deployment-type=Standalone --name='My CA' --dns spiffe-ste
 helm upgrade --install spiffe-step-ssh . --set caPassword="$(cat spiffe-step-ssh-password.txt)" -f spiffe-step-ssh-values.yaml -f "${SCRIPTPATH}/ingress-values.yaml" --set trustDomain=production.other
 
 # Start things up
-systemctl daemon-reload
-systemctl enable spire-agent@main
-systemctl start spire-agent@main
-systemctl enable spiffe-step-ssh
-systemctl start spiffe-step-ssh
+sudo systemctl daemon-reload
+sudo systemctl enable spire-agent@main
+sudo systemctl start spire-agent@main
+sudo systemctl enable spiffe-step-ssh
+sudo systemctl start spiffe-step-ssh
