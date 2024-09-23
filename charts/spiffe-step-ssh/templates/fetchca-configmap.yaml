@@ -13,7 +13,7 @@ data:
     svid_file_name = "tls.crt"
     svid_key_file_name = "tls.key"
     svid_bundle_file_name = "ca.pem"
-    add_intermediates_to_bundle = true
+    add_intermediates_to_bundle = false
   spiffe-helper-sidecar.conf: |
     agent_address = "/spiffe-workload-api/spire-agent.sock"
     cmd = "/busybox/busybox"
@@ -22,7 +22,7 @@ data:
     svid_file_name = "tls.crt"
     svid_key_file_name = "tls.key"
     svid_bundle_file_name = "ca.pem"
-    add_intermediates_to_bundle = true
+    add_intermediates_to_bundle = false
   update.sh: |
     #!/bin/sh
     /busybox/busybox kill -HUP `/busybox/busybox busybox cat /pid/pid`
