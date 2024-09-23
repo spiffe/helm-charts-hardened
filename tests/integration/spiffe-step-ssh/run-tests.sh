@@ -75,7 +75,7 @@ sudo -u spiffe-test mkdir -p /home/spiffe-test/.ssh
 sudo chown spiffe-test --recursive /home/spiffe-test
 sudo -u spiffe-test ssh-keygen -t ed25519 -f /home/spiffe-test/.ssh/id_ed25519 -q -N ""
 sudo -u spiffe-test cp /home/spiffe-test/.ssh/id_ed25519.pub /home/spiffe-test/.ssh/authorized_keys
-sudo -u spiffe-test ssh -T -n -i /home/spiffe-test/.ssh/id_ed25519.pub spiffe-test@test.production.other hostname || echo Expected fail here
+sudo -u spiffe-test ssh -T -n -i /home/spiffe-test/.ssh/id_ed25519 spiffe-test@test.production.other hostname || echo Expected fail here
 
 # Update deps
 helm dep up charts/spire-nested
@@ -167,4 +167,4 @@ sleep 10
 kubectl get configmap spiffe-step-ssh-certs -o 'go-template={{ index .data "ssh_host_ca_key.pub" }}' | sed '/^$/d; s/^/@cert-authority *.production.other /' | sudo -u spiffe-test dd of=/home/spiffe-test/.ssh/known_hosts
 sudo -u spiffe-test cat /home/spiffe-test/.ssh/known_hosts
 
-sudo -u spiffe-test ssh -T -n -i /home/spiffe-test/.ssh/id_ed25519.pub spiffe-test@test.production.other hostname
+sudo -u spiffe-test ssh -T -n -i /home/spiffe-test/.ssh/id_ed25519 spiffe-test@test.production.other hostname
