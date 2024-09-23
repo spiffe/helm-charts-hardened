@@ -58,18 +58,21 @@ teardown() {
 
 trap 'EC=$? && trap - SIGTERM && teardown $EC' SIGINT SIGTERM EXIT
 
-sudo adduser spiffe-test
-sudo -u spiffe-test mkdir -p /home/spiffe-test/.ssh
-sudo chown spiffe-test --recursive /home/spiffe-test
-sudo -u spiffe-test ssh-keygen -t ed25519 -f /home/spiffe-test/.ssh/id_ed25519 -q -N ""
-sudo -u spiffe-test cp /home/spiffe-test/.ssh/id_ed25519.pub /home/spiffe-test/.ssh/authorized_keys
-
 echo Network interfaces:
 ip a
 
 HIP="$(ip -4 addr show docker0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')"
 
 echo "Picked IP ${HIP}"
+
+echo "${HIP} test.production.other" | sudo bash -c 'cat >> /etc/hosts'
+
+sudo adduser spiffe-test
+sudo -u spiffe-test mkdir -p /home/spiffe-test/.ssh
+sudo chown spiffe-test --recursive /home/spiffe-test
+sudo -u spiffe-test ssh-keygen -t ed25519 -f /home/spiffe-test/.ssh/id_ed25519 -q -N ""
+sudo -u spiffe-test cp /home/spiffe-test/.ssh/id_ed25519.pub /home/spiffe-test/.ssh/authorized_keys
+sudo -u spiffe-test ssh -i spiffe-test@test.production.other hostname || echo Expected fail here
 
 # Update deps
 helm dep up charts/spire-nested
