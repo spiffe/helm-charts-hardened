@@ -136,4 +136,5 @@ sudo systemctl start spiffe-step-ssh
 
 sudo adduser spiffe-test
 sudo -u spiffe-test mkdir -p /home/spiffe-test/.ssh
+sudo chown spiffe-test --recursive /home/spiffe-test
 sudo -u spiffe-test ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519 -q -N ""
