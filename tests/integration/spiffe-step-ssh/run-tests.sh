@@ -25,7 +25,8 @@ done
 
 teardown() {
   set +e
-  echo spire-agent logs:
+  curl https://spiffe-step-ssh-fetchca.production.other -k -vvvv
+  echo spire-agent logs:S
   journalctl -u spire-agent@main
   echo spiffe-step-ssh logs:
   journalctl -u spiffe-step-ssh
