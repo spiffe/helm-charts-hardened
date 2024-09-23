@@ -75,7 +75,7 @@ helm upgrade --install --create-namespace --namespace spire-mgmt --values "${COM
   --set "global.spire.ingressControllerType=ingress-nginx"
 
 kubectl get pods -n spire-server
-kubectl exec -it -n spire-server external-spire-server-0 -- spire-server entry create -parentID spiffe://example.org/spire/agent/http_challenge/test.example.org -spiffeID spiffe://example.org/sshd/test.example.org -selector systemd:id:spiffe-step-ssh.service
+kubectl exec -it -n spire-server spire-external-server-0 -- spire-server entry create -parentID spiffe://example.org/spire/agent/http_challenge/test.example.org -spiffeID spiffe://example.org/sshd/test.example.org -selector systemd:id:spiffe-step-ssh.service
 
 ENTRIES="$(kubectl exec -i -n spire-server spire-external-server-0 -- spire-server entry show)"
 
