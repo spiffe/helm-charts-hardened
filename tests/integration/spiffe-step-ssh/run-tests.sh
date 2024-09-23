@@ -35,6 +35,8 @@ teardown() {
   kubectl logs deploy/spiffe-step-ssh-config
   echo ingress
   kubectl get ingress
+  echo describe pods:
+  kubectl describe pods
   print_helm_releases
   print_spire_workload_status spire-root-server
   print_spire_workload_status spire-server spire-system
