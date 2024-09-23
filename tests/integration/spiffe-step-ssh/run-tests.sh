@@ -64,7 +64,7 @@ helm upgrade --install ingress-nginx ingress-nginx --version "$VERSION_INGRESS_N
 common_test_url "$IP"
 
 kubectl get configmap -n kube-system coredns -o yaml | grep hosts || kubectl get configmap -n kube-system coredns -o yaml | sed "/ready/a\        hosts {\n           fallthrough\n        }" | kubectl apply -f -
-kubectl get configmap -n kube-system coredns -o yaml | grep minikube.example.org || kubectl get configmap -n kube-system coredns -o yaml | sed "/hosts/a\           $IP minikube.example.org\n" | kubectl apply -f -
+kubectl get configmap -n kube-system coredns -o yaml | grep test.production.other || kubectl get configmap -n kube-system coredns -o yaml | sed "/hosts/a\           $IP test.production.other\n" | kubectl apply -f -
 kubectl rollout restart -n kube-system deployment/coredns
 kubectl rollout status -n kube-system -w --timeout=1m deploy/coredns
 
@@ -75,7 +75,7 @@ helm upgrade --install --create-namespace --namespace spire-mgmt --values "${COM
   --set "global.spire.ingressControllerType=ingress-nginx"
 
 kubectl get pods -n spire-server
-kubectl exec -it -n spire-server spire-external-server-0 -- spire-server entry create -parentID spiffe://example.org/spire/agent/http_challenge/test.example.org -spiffeID spiffe://example.org/sshd/test.example.org -selector systemd:id:spiffe-step-ssh.service
+kubectl exec -it -n spire-server spire-external-server-0 -- spire-server entry create -parentID spiffe://production.other/spire/agent/http_challenge/test.production.other -spiffeID spiffe://production.other/sshd/test.production.other -selector systemd:id:spiffe-step-ssh.service
 
 ENTRIES="$(kubectl exec -i -n spire-server spire-external-server-0 -- spire-server entry show)"
 
@@ -88,4 +88,19 @@ helm test --namespace spire-mgmt spire
 
 kubectl get ingress -n spire-server
 
-# TODO
+echo Hosts:
+cat /etc/hosts
+
+curl -L https://raw.githubusercontent.com/kfox1111/spire-examples/refs/heads/spiffe-step-ssh/examples/spiffe-step-ssh/scripts/demo.sh | bash
+
+mkdir -p /usr/libexec/spiffe-step-ssh
+curl -L -o /usr/libexec/spiffe-step-ssh/update.sh https://raw.githubusercontent.com/kfox1111/spire-examples/refs/heads/spiffe-step-ssh/examples/spiffe-step-ssh/scripts/update.sh
+curl -L -o /usr/libexec/spiffe-step-ssh/helper.conf https://raw.githubusercontent.com/kfox1111/spire-examples/refs/heads/spiffe-step-ssh/examples/spiffe-step-ssh/conf/helper.conf
+curl -L -o /etc/systemd/system/spiffe-step-ssh.service https://raw.githubusercontent.com/kfox1111/spire-examples/refs/heads/spiffe-step-ssh/examples/spiffe-step-ssh/systemd/spiffe-step-ssh.service
+
+# Start things up
+systemctl daemon-reload
+systemctl enable spire-agent@main
+systemctl start spire-agent@main
+systemctl enable spiffe-step-ssh
+systemctl start spiffe-step-ssh
