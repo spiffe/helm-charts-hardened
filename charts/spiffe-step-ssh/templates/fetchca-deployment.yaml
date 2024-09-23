@@ -160,7 +160,7 @@ spec:
         emptyDir: {}
       - name: config
         configMap:
-          name: {{ include "spiffe-step-ssh.fullname" . }}-fetchCA
+          name: {{ include "spiffe-step-ssh.fullname" . }}-fetchca
       - name: spiffe-workload-api
         csi:
           driver: {{ .Values.csiDriver | quote }}
