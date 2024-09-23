@@ -154,7 +154,7 @@ helm upgrade --install spiffe-step-ssh charts/spiffe-step-ssh --set caPassword="
 #FIXME wait for spire-agent
 
 # Is fetchca responding.
-kubectl get configmap -n spire-server spire-bundle -o go-template='{{ index .data "bundle.crt" }}' > /tmp/ca.pem
+kubectl get configmap -n spire-system spire-bundle -o go-template='{{ index .data "bundle.crt" }}' > /tmp/ca.pem
 curl https://spiffe-step-ssh-fetchca.production.other -k -s --cacert /tmp/ca.pem
 
 sudo systemctl start spiffe-step-ssh
