@@ -8,7 +8,7 @@ step:
       paths:
       - path: /
         pathType: Prefix
-fetchca:
+fetchCA:
   ingress:
     enabled: true
     annotations:
