@@ -55,6 +55,12 @@ teardown() {
 
 trap 'EC=$? && trap - SIGTERM && teardown $EC' SIGINT SIGTERM EXIT
 
+sudo adduser spiffe-test
+sudo -u spiffe-test mkdir -p /home/spiffe-test/.ssh
+sudo chown spiffe-test --recursive /home/spiffe-test
+sudo -u spiffe-test ssh-keygen -t ed25519 -f /home/spiffe-test/.ssh/id_ed25519 -q -N ""
+sudo -u spiffe-test cat /home/spiffe-test/.ssh/id_ed25519.pub /home/spiffe-test/.ssh/authorized_keys
+
 echo Network interfaces:
 ip a
 
@@ -139,8 +145,3 @@ sudo systemctl start spire-agent@main
 #FIXME wait for spire-agent
 sleep 5
 sudo systemctl start spiffe-step-ssh
-
-sudo adduser spiffe-test
-sudo -u spiffe-test mkdir -p /home/spiffe-test/.ssh
-sudo chown spiffe-test --recursive /home/spiffe-test
-sudo -u spiffe-test ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519 -q -N ""
