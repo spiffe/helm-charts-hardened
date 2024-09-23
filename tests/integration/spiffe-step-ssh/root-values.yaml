@@ -38,5 +38,5 @@ external-spire-server:
     httpChallenge:
       enabled: true
       allowedDNSPatterns:
-      - ".*\.production\.other"
+      - ".*\\.production\\.other"
     allowNonRootPorts: false
