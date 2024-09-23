@@ -164,6 +164,7 @@ sudo systemctl start spiffe-step-ssh
 #FIXME wait for spiffe-step-ssh
 sleep 10
 
-kubectl get configmap spiffe-step-ssh-certs -o 'go-template={{ index .data "ssh_host_ca_key.pub" }}' | sed '/^$/d' | sudo -u spiffe-test dd of=/home/spiffe-test/.ssh/known_hosts
+kubectl get configmap spiffe-step-ssh-certs -o 'go-template={{ index .data "ssh_host_ca_key.pub" }}' | sed '/^$/d; s/^/@cert-authority *.production.other /' | sudo -u spiffe-test dd of=/home/spiffe-test/.ssh/known_hosts
+sudo -u spiffe-test /home/spiffe-test/.ssh/known_hosts
 
 sudo -u spiffe-test ssh -T -n -i /home/spiffe-test/.ssh/id_ed25519.pub spiffe-test@test.production.other hostname
