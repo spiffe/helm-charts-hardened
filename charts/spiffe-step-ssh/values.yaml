@@ -150,21 +150,21 @@ securityContext:
   # FIXME
   runAsUser: 0
 
-fetchca:
-  ## @param fetchca.replicaCount Number of replicas to launch
+fetchCA:
+  ## @param fetchCA.replicaCount Number of replicas to launch
   replicaCount: 1
 
-  ## @param fetchca.service.type The type of service to deploy
-  ## @param fetchca.service.port The port number of the service port
+  ## @param fetchCA.service.type The type of service to deploy
+  ## @param fetchCA.service.port The port number of the service port
   service:
     type: ClusterIP
     port: 443
 
-  ## @param fetchca.ingress.enabled Enable ingress
-  ## @param fetchca.ingress.className Ingress class to use
-  ## @param fetchca.ingress.annotations [object] Ingress annotations
-  ## @param fetchca.ingress.hosts [array] List of hosts to export
-  ## @param fetchca.ingress.tls [array] TLS config
+  ## @param fetchCA.ingress.enabled Enable ingress
+  ## @param fetchCA.ingress.className Ingress class to use
+  ## @param fetchCA.ingress.annotations [object] Ingress annotations
+  ## @param fetchCA.ingress.hosts [array] List of hosts to export
+  ## @param fetchCA.ingress.tls [array] TLS config
   ingress:
     enabled: false
     className: ""
@@ -181,10 +181,10 @@ fetchca:
     #    hosts:
     #      - chart-example.local
 
-  ## @param fetchca.autoscaling.enabled Enable autoscaling
-  ## @param fetchca.autoscaling.minReplicas Minimum number of replicas to deploy
-  ## @param fetchca.autoscaling.maxReplicas Maximum number of replicas to deploy
-  ## @param fetchca.autoscaling.targetCPUUtilizationPercentage Target CPU utilization to use for autoscaling
+  ## @param fetchCA.autoscaling.enabled Enable autoscaling
+  ## @param fetchCA.autoscaling.minReplicas Minimum number of replicas to deploy
+  ## @param fetchCA.autoscaling.maxReplicas Maximum number of replicas to deploy
+  ## @param fetchCA.autoscaling.targetCPUUtilizationPercentage Target CPU utilization to use for autoscaling
   autoscaling:
     enabled: false
     minReplicas: 1
@@ -192,7 +192,7 @@ fetchca:
     targetCPUUtilizationPercentage: 80
     # targetMemoryUtilizationPercentage: 80
 
-  ## @param fetchca.resources [object] Specify resources
+  ## @param fetchCA.resources [object] Specify resources
   resources: {}
     # limits:
     #   cpu: 100m
@@ -201,7 +201,7 @@ fetchca:
     #   cpu: 100m
     #   memory: 128Mi
 
-  ## @param fetchca.sidecarResources [object] Specify resources for the sidecar
+  ## @param fetchCA.sidecarResources [object] Specify resources for the sidecar
   sidecarResources: {}
     # limits:
     #   cpu: 100m
@@ -210,13 +210,13 @@ fetchca:
     #   cpu: 100m
     #   memory: 128Mi
 
-  ## @param fetchca.nodeSelector [object] Specify node selector
+  ## @param fetchCA.nodeSelector [object] Specify node selector
   nodeSelector: {}
 
-  ## @param fetchca.tolerations [array] Specify tolerations
+  ## @param fetchCA.tolerations [array] Specify tolerations
   tolerations: []
 
-  ## @param fetchca.affinity [object] Specify affinity
+  ## @param fetchCA.affinity [object] Specify affinity
   affinity: {}
 
 config:

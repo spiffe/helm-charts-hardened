@@ -1,9 +1,9 @@
-{{- if .Values.fetchca.ingress.enabled -}}
+{{- if .Values.fetchCA.ingress.enabled -}}
 {{- $fullName := printf "%s-fetchca" (include "spiffe-step-ssh.fullname" .) -}}
-{{- $svcPort := .Values.fetchca.service.port -}}
-{{- if and .Values.fetchca.ingress.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
+{{- $svcPort := .Values.fetchCA.service.port -}}
+{{- if and .Values.fetchCA.ingress.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
   {{- if not (hasKey .Values.ingress.annotations "kubernetes.io/ingress.class") }}
-  {{- $_ := set .Values.fetchca.ingress.annotations "kubernetes.io/ingress.class" .Values.fetchca.ingress.className}}
+  {{- $_ := set .Values.fetchCA.ingress.annotations "kubernetes.io/ingress.class" .Values.fetchCA.ingress.className}}
   {{- end }}
 {{- end }}
 {{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
@@ -18,17 +18,17 @@ metadata:
   name: {{ $fullName }}
   labels:
     {{- include "spiffe-step-ssh.labels" . | nindent 4 }}
-  {{- with .Values.fetchca.ingress.annotations }}
+  {{- with .Values.fetchCA.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  {{- if and .Values.fetchca.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
-  ingressClassName: {{ .Values.fetchca.ingress.className }}
+  {{- if and .Values.fetchCA.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+  ingressClassName: {{ .Values.fetchCA.ingress.className }}
   {{- end }}
-  {{- if .Values.fetchca.ingress.tls }}
+  {{- if .Values.fetchCA.ingress.tls }}
   tls:
-    {{- range .Values.fetchca.ingress.tls }}
+    {{- range .Values.fetchCA.ingress.tls }}
     - hosts:
         {{- range .hosts }}
         - {{ . | quote }}
@@ -37,7 +37,7 @@ spec:
     {{- end }}
   {{- end }}
   rules:
-    {{- range .Values.fetchca.ingress.hosts }}
+    {{- range .Values.fetchCA.ingress.hosts }}
     - host: {{ .host | quote }}
       http:
         paths:

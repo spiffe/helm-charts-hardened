@@ -33,7 +33,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "spiffe-step-ssh.serviceAccountName" . }}-config
+      serviceAccountName: {{ include "spiffe-step-ssh.serviceAccountName" . }}-svc-config
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       initContainers:

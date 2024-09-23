@@ -1,7 +1,7 @@
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: {{ include "spiffe-step-ssh.fullname" . }}-config
+  name: {{ include "spiffe-step-ssh.fullname" . }}-svc-config
 rules:
   - apiGroups: [""]
     resources: [configmaps]
@@ -25,13 +25,13 @@ rules:
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: {{ include "spiffe-step-ssh.fullname" . }}-config
+  name: {{ include "spiffe-step-ssh.fullname" . }}-svc-config
 subjects:
   - kind: ServiceAccount
-    name: {{ include "spiffe-step-ssh.fullname" . }}-config
+    name: {{ include "spiffe-step-ssh.fullname" . }}-svc-config
     namespace: {{ .Release.Namespace }}
 roleRef:
   kind: Role
-  name: {{ include "spiffe-step-ssh.fullname" . }}-config
+  name: {{ include "spiffe-step-ssh.fullname" . }}-svc-config
   apiGroup: rbac.authorization.k8s.io
 

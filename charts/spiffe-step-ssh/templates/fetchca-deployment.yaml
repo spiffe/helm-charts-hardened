@@ -7,8 +7,8 @@ metadata:
     app: spiffe-step-ssh
     component: fetchca
 spec:
-  {{- if not .Values.fetchca.autoscaling.enabled }}
-  replicas: {{ .Values.fetchca.replicaCount }}
+  {{- if not .Values.fetchCA.autoscaling.enabled }}
+  replicas: {{ .Values.fetchCA.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
@@ -49,7 +49,7 @@ spec:
           - name: busybox
             mountPath: /busybox
           resources:
-            {{- toYaml .Values.fetchca.sidecarResources | nindent 12 }}
+            {{- toYaml .Values.fetchCA.sidecarResources | nindent 12 }}
         - name: init-tls
           image: {{ template "spire-lib.image" (dict "image" .Values.spiffeHelper.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.spiffeHelper.image.pullPolicy }}
@@ -69,9 +69,9 @@ spec:
           - name: certs
             mountPath: /certs
           resources:
-            {{- toYaml .Values.fetchca.sidecarResources | nindent 12 }}
+            {{- toYaml .Values.fetchCA.sidecarResources | nindent 12 }}
       containers:
-        - name: {{ .Chart.Name }}-fetchca
+        - name: {{ .Chart.Name }}-fetchCA
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: {{ template "spire-lib.image" (dict "image" .Values.nginx.image "global" .Values.global) }}
@@ -113,7 +113,7 @@ spec:
               port: http
               scheme: HTTPS
           resources:
-            {{- toYaml .Values.fetchca.resources | nindent 12 }}
+            {{- toYaml .Values.fetchCA.resources | nindent 12 }}
           volumeMounts:
           - name: certs
             mountPath: /certs
@@ -150,7 +150,7 @@ spec:
             mountPath: /busybox
             readOnly: true
           resources:
-            {{- toYaml .Values.fetchca.sidecarResources | nindent 12 }}
+            {{- toYaml .Values.fetchCA.sidecarResources | nindent 12 }}
       volumes:
       - name: certs
         emptyDir: {}
@@ -160,7 +160,7 @@ spec:
         emptyDir: {}
       - name: config
         configMap:
-          name: {{ include "spiffe-step-ssh.fullname" . }}-fetchca
+          name: {{ include "spiffe-step-ssh.fullname" . }}-fetchCA
       - name: spiffe-workload-api
         csi:
           driver: {{ .Values.csiDriver | quote }}

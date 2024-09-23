@@ -1,8 +1,8 @@
-{{- if .Values.fetchca.autoscaling.enabled }}
+{{- if .Values.fetchCA.autoscaling.enabled }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "spiffe-step-ssh.fullname" . }}-fetchca
+  name: {{ include "spiffe-step-ssh.fullname" . }}-fetchCA
   labels:
     {{- include "spiffe-step-ssh.labels" . | nindent 4 }}
 spec:
@@ -10,23 +10,23 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: {{ include "spiffe-step-ssh.fullname" . }}-fetchca
-  minReplicas: {{ .Values.fetchca.autoscaling.minReplicas }}
-  maxReplicas: {{ .Values.fetchca.autoscaling.maxReplicas }}
+  minReplicas: {{ .Values.fetchCA.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.fetchCA.autoscaling.maxReplicas }}
   metrics:
-    {{- if .Values.fetchca.autoscaling.targetCPUUtilizationPercentage }}
+    {{- if .Values.fetchCA.autoscaling.targetCPUUtilizationPercentage }}
     - type: Resource
       resource:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: {{ .Values.fetchca.autoscaling.targetCPUUtilizationPercentage }}
+          averageUtilization: {{ .Values.fetchCA.autoscaling.targetCPUUtilizationPercentage }}
     {{- end }}
-    {{- if .Values.fetchca.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- if .Values.fetchCA.autoscaling.targetMemoryUtilizationPercentage }}
     - type: Resource
       resource:
         name: memory
         target:
           type: Utilization
-          averageUtilization: {{ .Values.fetchca.autoscaling.targetMemoryUtilizationPercentage }}
+          averageUtilization: {{ .Values.fetchCA.autoscaling.targetMemoryUtilizationPercentage }}
     {{- end }}
 {{- end }}
