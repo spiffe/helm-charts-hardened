@@ -1,0 +1,20 @@
+step:
+  ingress:
+    enabled: true
+    annotations:
+      "nginx.ingress.kubernetes.io/ssl-passthrough": "true"
+    hosts:
+    - host: spiffe-step-ssh.production.other
+      paths:
+      - path: /
+        pathType: Prefix
+fetchca:
+  ingress:
+    enabled: true
+    annotations:
+      "nginx.ingress.kubernetes.io/ssl-passthrough": "true"
+    hosts:
+    - host: spiffe-step-ssh-fetchca.production.other
+      paths:
+      - path: /
+        pathType: Prefix
