@@ -6,6 +6,7 @@ global: {}
 
 trustDomain: ""
 prefix: sshd
+csiDriver: csi.spiffe.io
 
 ## @skip step
 step:
