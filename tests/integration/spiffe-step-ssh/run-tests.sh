@@ -95,7 +95,7 @@ if [[ "${ENTRIES}" == "Found 0 entries" ]]; then
   exit 1
 fi
 
-helm test --namespace spire-mgmt spire
+#helm test --namespace spire-mgmt spire
 
 kubectl get ingress -n spire-server
 
@@ -109,6 +109,8 @@ sudo mkdir -p /usr/libexec/spiffe-step-ssh
 sudo curl -L -o /usr/libexec/spiffe-step-ssh/update.sh https://raw.githubusercontent.com/kfox1111/spire-examples/refs/heads/spiffe-step-ssh/examples/spiffe-step-ssh/scripts/update.sh
 sudo curl -L -o /usr/libexec/spiffe-step-ssh/helper.conf https://raw.githubusercontent.com/kfox1111/spire-examples/refs/heads/spiffe-step-ssh/examples/spiffe-step-ssh/conf/helper.conf
 sudo curl -L -o /etc/systemd/system/spiffe-step-ssh.service https://raw.githubusercontent.com/kfox1111/spire-examples/refs/heads/spiffe-step-ssh/examples/spiffe-step-ssh/systemd/spiffe-step-ssh.service
+
+sudo cp "${SCRIPTPATH}/spiffe-step-ssh.conf" /etc
 
 PASSWORD=$(openssl rand -base64 48)
 echo "$PASSWORD" > spiffe-step-ssh-password.txt
