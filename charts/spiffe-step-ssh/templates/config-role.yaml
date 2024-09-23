@@ -23,7 +23,7 @@ rules:
       - patch
   - apiGroups: ["apps"]
     resources: [deployments]
-    resourceNames: [{{ include "spiffe-step-ssh.fullname" . }}]-fetchca
+    resourceNames: [{{ include "spiffe-step-ssh.fullname" . }}-fetchca]
     verbs:
       - get
       - patch
