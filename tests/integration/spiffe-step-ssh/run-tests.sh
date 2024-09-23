@@ -24,14 +24,15 @@ for i in "$@"; do
 done
 
 teardown() {
+  set +e
   echo spire-agent logs:
   journalctl -u spire-agent@main
   echo spiffe-step-ssh logs:
   journalctl -u spiffe-step-ssh
   echo fetchca pod:
-  kubectl logs deploy/spiffe-spire-ssh-fetchca
+  kubectl logs deploy/spiffe-step-ssh-fetchca
   echo config pod:
-  kubectl logs deploy/spiffe-spire-ssh-config
+  kubectl logs deploy/spiffe-step-ssh-config
   echo ingress
   kubectl get ingress
   print_helm_releases
