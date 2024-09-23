@@ -25,7 +25,7 @@ done
 
 teardown() {
   set +e
-  curl https://spiffe-step-ssh-fetchca.production.other -k -vvvv
+  openssl s_client -servername spiffe-step-ssh-fetchca.production.other -connect spiffe-step-ssh-fetchca.production.other:443 2>/dev/null </dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p'
   echo spire-agent logs:S
   journalctl -u spire-agent@main
   echo spiffe-step-ssh logs:
