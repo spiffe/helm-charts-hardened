@@ -23,7 +23,7 @@ version: 0.1.0
 # It is recommended to use it with quotes.
 appVersion: "1.16.0"
 
-keywords: ["spiffe", "step" "step-ca" "ssh"]
+keywords: ["spiffe", "step", "step-ca", "ssh"]
 home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spiffe-step-ssh
 sources:
   - https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spiffe-step-ssh
