@@ -1,5 +1,5 @@
 {{- if eq (len .AuthorizationCrt.URIs) 1 }}
-{{-   $san := index .AuthorizationCrt.URIs 0 }}
+{{-   $san := printf "%s" (index .AuthorizationCrt.URIs 0) }}
 {{-   if hasPrefix "spiffe://@TRUST_DOMAIN@/@PREFIX@/" $san }}
 {{-     $name := trimPrefix "spiffe://@TRUST_DOMAIN@/@PREFIX@/" $san }}
 {
