@@ -3,8 +3,8 @@ type: X5C
 name: "x5c@spiffe"
 roots: ""
 claims:
-  maxTLSCertDuration: 24h
-  defaultTLSCertDuration: 1h
+  maxTLSCertDuration: {{ .Values.maxTLSCertDuration | quote }}
+  defaultTLSCertDuration: {{ .Values.defaultTLSCertDuration | quote }}
   disableRenewal: true
   enableSSHCA: true
 disableCustomSANs: true

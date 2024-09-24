@@ -1,6 +1,6 @@
 apiVersion: v2
 name: spiffe-step-ssh
-description: A Helm chart for Kubernetes
+description: sshd signed host certificates using SPIFFE for trust and step ca
 
 # A chart can be either an 'application' or a 'library' chart.
 #

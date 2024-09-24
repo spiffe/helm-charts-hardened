@@ -49,7 +49,7 @@ spec:
           - name: busybox
             mountPath: /busybox
           resources:
-            {{- toYaml .Values.fetchCA.sidecarResources | nindent 12 }}
+            {{- toYaml .Values.fetchCA.spiffeHelper.resources | nindent 12 }}
         - name: init-tls
           image: {{ template "spire-lib.image" (dict "image" .Values.spiffeHelper.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.spiffeHelper.image.pullPolicy }}
@@ -69,7 +69,7 @@ spec:
           - name: certs
             mountPath: /certs
           resources:
-            {{- toYaml .Values.fetchCA.sidecarResources | nindent 12 }}
+            {{- toYaml .Values.fetchCA.spiffeHelper.resources | nindent 12 }}
       containers:
         - name: {{ .Chart.Name }}-fetchca
           securityContext:
@@ -150,7 +150,7 @@ spec:
             mountPath: /busybox
             readOnly: true
           resources:
-            {{- toYaml .Values.fetchCA.sidecarResources | nindent 12 }}
+            {{- toYaml .Values.fetchCA.spiffeHelper.resources | nindent 12 }}
       volumes:
       - name: certs
         emptyDir: {}
@@ -168,15 +168,15 @@ spec:
       - name: share
         configMap:
           name: {{ include "spiffe-step-ssh.fullname" . }}-certs
-      {{- with .Values.nodeSelector }}
+      {{- with .Values.fetchCA.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.affinity }}
+      {{- with .Values.fetchCA.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.tolerations }}
+      {{- with .Values.fetchCA.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}

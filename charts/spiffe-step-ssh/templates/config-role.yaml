@@ -5,7 +5,6 @@ metadata:
 rules:
   - apiGroups: [""]
     resources: [configmaps]
-    #resourceNames: [{{ include "spiffe-step-ssh.fullname" . }}-config]
     verbs:
       - create
   - apiGroups: [""]
@@ -40,4 +39,3 @@ roleRef:
   kind: Role
   name: {{ include "spiffe-step-ssh.fullname" . }}-svc-config
   apiGroup: rbac.authorization.k8s.io
-

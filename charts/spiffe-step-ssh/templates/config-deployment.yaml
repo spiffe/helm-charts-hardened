@@ -44,7 +44,8 @@ spec:
         - sh
         - -c
         - 'cp -a /bin/busybox /helper'
-        #securityContext:
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
         volumeMounts:
         - name: spiffe-helper
           mountPath: /helper
@@ -58,7 +59,8 @@ spec:
         - sh
         - -c
         - '/helper/busybox cp -a /bin/kubectl /helper'
-        #securityContext:
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
         volumeMounts:
         - name: spiffe-helper
           mountPath: /helper
@@ -72,7 +74,8 @@ spec:
         - sh
         - -c
         - '/helper/busybox cp -a /spiffe-helper /helper && /helper/busybox rm -f /helper/busybox'
-        #securityContext:
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
         volumeMounts:
         - name: spiffe-helper
           mountPath: /helper

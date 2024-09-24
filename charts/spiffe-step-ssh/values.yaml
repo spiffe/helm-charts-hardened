@@ -8,6 +8,10 @@ global: {}
 trustDomain: ""
 ## @param caPassword Password securing the SSH CA
 caPassword: ""
+## @param maxTLSCertDuration The maximum duration the X5C traded cert is valid for.
+maxTLSCertDuration: 24h
+## @param defaultTLSCertDuration The default duration the X5C traded cert is valid for.
+defaultTLSCertDuration: 1h
 ## @param prefix Prefix where hosts show up that are allowed to get ssh host certs
 prefix: sshd
 ## @param csiDriver The csi driver to use
@@ -201,14 +205,15 @@ fetchCA:
     #   cpu: 100m
     #   memory: 128Mi
 
-  ## @param fetchCA.sidecarResources [object] Specify resources for the sidecar
-  sidecarResources: {}
-    # limits:
-    #   cpu: 100m
-    #   memory: 128Mi
-    # requests:
-    #   cpu: 100m
-    #   memory: 128Mi
+  spiffeHelper:
+    ## @param fetchCA.spiffeHelper.resources [object] Specify resources for the SPIFFE helper
+    resources: {}
+      # limits:
+      #   cpu: 100m
+      #   memory: 128Mi
+      # requests:
+      #   cpu: 100m
+      #   memory: 128Mi
 
   ## @param fetchCA.nodeSelector [object] Specify node selector
   nodeSelector: {}
@@ -222,15 +227,6 @@ fetchCA:
 config:
   ## @param config.resources [object] Specify resources
   resources: {}
-    # limits:
-    #   cpu: 100m
-    #   memory: 128Mi
-    # requests:
-    #   cpu: 100m
-    #   memory: 128Mi
-
-  ## @param config.sidecarResources [object] Specify resources for the sidecar
-  sidecarResources: {}
     # limits:
     #   cpu: 100m
     #   memory: 128Mi
