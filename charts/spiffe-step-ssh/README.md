@@ -48,26 +48,14 @@ step ca init --helm --deployment-type=Standalone --name='My CA' --dns spiffe-ste
 
 ingress-values.yaml
 ```yaml
-step:
+global:
+  spiffe:
+    ingressControllerType: ingress-nginx
+stepIngress:
+  enabled: true
+fetchCA:
   ingress:
     enabled: true
-    annotations:
-      "nginx.ingress.kubernetes.io/ssl-passthrough": "true"
-    hosts:
-    - host: spiffe-step-ssh.example.org
-      paths:
-      - path: /
-        pathType: Prefix
-fetchca:
-  ingress:
-    enabled: true
-    annotations:
-      "nginx.ingress.kubernetes.io/ssl-passthrough": "true"
-    hosts:
-    - host: spiffe-step-ssh-fetchca.example.org
-      paths:
-      - path: /
-        pathType: Prefix
 ```
 
 ```shell

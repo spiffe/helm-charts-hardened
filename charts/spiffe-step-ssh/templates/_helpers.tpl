@@ -60,3 +60,24 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/* Takes in a dictionary with keys:
+ * global - the standard global object
+ * ingress - a standard format ingress config object
+*/}}
+{{- define "spiffe-step-ssh.ingress-controller-type" }}
+{{-   $type := "" }}
+{{-   if ne (len (dig "spiffe" "ingressControllerType" "" .global)) 0 }}
+{{-     $type = .global.spiffe.ingressControllerType }}
+{{-   else if ne .ingress.controllerType "" }}
+{{-     $type = .ingress.controllerType }}
+{{-   else if (dig "openshift" false .global) }}
+{{-     $type = "openshift" }}
+{{-   else }}
+{{-     $type = "other" }}
+{{-   end }}
+{{-   if not (has $type (list "ingress-nginx" "openshift" "other")) }}
+{{-     fail "Unsupported ingress controller type specified. Must be one of [ingress-nginx, openshift, other]" }}
+{{-   end }}
+{{-   $type }}
+{{- end }}
