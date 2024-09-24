@@ -22,10 +22,8 @@
 {{-   $ext := .ext }}
 {{-   range $ext }}
 {{-     if eq (printf "%s" .Id) "2.5.29.17" }}
-{{-       $rawSANs := printf "%s" .Value }}
-{{-       $t := printf "%.1s" $rawSANs }}
-{{-       $seq := ("ME==" | b64dec) }}
-{{-       if eq $t $seq }}
+{{-       $t := index (slice .Value 0 1) 0 | int }}
+{{-       if eq $t 48 }}
 {{-         $args := dict "root" $root "chunk" (slice .Value 2) }}
 {{-         template "walkListFindURLSANs" $args }}
 {{-       end }}
