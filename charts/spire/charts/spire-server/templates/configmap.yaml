@@ -38,9 +38,6 @@
 {{- if and (eq (.Values.keyManager.awsKMS.keyIdentifierFile.enabled | toString) "true") (eq (.Values.keyManager.awsKMS.keyIdentifierValue.enabled | toString ) "true") }}
 {{-   fail "You can only enable one of keyIdentifierFile or keyIdentifierValue at a time" }}
 {{- end }}
-{{- if hasKey .Values.federation.bundleEndpoint "profile" }}
-{{-   fail "Configuring the federation bundle endpoint profile directly isn't supported. You can specify the settings via federation.tls" }}
-{{- end }}
 {{- define "spire-server.yaml-config" -}}
 {{- $upstreamAuthorityUsed := 0 }}
 {{- $keyManagerUsed := 0 }}
@@ -69,12 +66,24 @@ server:
       organization: [{{ include "spire-server.ca-subject-organization" . | quote }}]
       common_name: {{ include "spire-server.ca-subject-common-name" . | quote }}
 
-  {{- with .Values.federation }}
-  {{- if eq (.enabled | toString) "true" }}
+  {{- if eq (.Values.federation.enabled | toString) "true" }}
   federation:
     bundle_endpoint:
-      - {{ .bundleEndpoint | toYaml | nindent 8 }}
-  {{- end }}
+      address: {{ .Values.federation.bundleEndpoint.address | quote }}
+      port: {{ .Values.federation.bundleEndpoint.port }}
+      refreshHint: {{ .Values.federation.bundleEndpoint.refreshHint | quote }}
+      profile:
+        {{- if .Values.federation.tls.spire.enabled }}
+        - https_spiffe:
+          - {}
+        {{ else }}
+        - https_web:
+          - file_sync_interval: {{ .Values.federation.bundleEndpoint.profile.httpWeb.fileSyncInterval }}
+            {{- if or .Values.federation.tls.certManager.enabled .Values.federation.tls.externalSecret.enabled }}
+            cert_file_path: /bundle-endpoint-tls/tls.crt
+            key_file_path: /bundle-endpoint-tls/tls.key
+            {{- end }}
+        {{- end }}
   {{- end }}
 
   {{- with .Values.experimental }}
