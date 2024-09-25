@@ -7,6 +7,6 @@ spire-server:
     tls:
       spire:
         enabled: false
-    externalSecret:
-      enabled: true
-      secretName: spire-server-federation-tls
+      externalSecret:
+        enabled: true
+        secretName: spire-server-federation-tls
