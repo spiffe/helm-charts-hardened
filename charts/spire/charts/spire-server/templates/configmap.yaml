@@ -74,15 +74,15 @@ server:
       refresh_hint: {{ .Values.federation.bundleEndpoint.refreshHint | quote }}
       profile:
         {{- if .Values.federation.tls.spire.enabled }}
-        - https_spiffe:
-          - {}
+        - https_spiffe: {}
         {{ else }}
         - https_web:
-          - file_sync_interval: {{ .Values.federation.bundleEndpoint.profile.httpWeb.fileSyncInterval }}
-            {{- if or .Values.federation.tls.certManager.enabled .Values.federation.tls.externalSecret.enabled }}
-            cert_file_path: /bundle-endpoint-tls/tls.crt
-            key_file_path: /bundle-endpoint-tls/tls.key
-            {{- end }}
+            serving_cert_file:
+              file_sync_interval: {{ .Values.federation.bundleEndpoint.profile.httpWeb.fileSyncInterval }}
+              {{- if or .Values.federation.tls.certManager.enabled .Values.federation.tls.externalSecret.enabled }}
+              cert_file_path: /bundle-endpoint-tls/tls.crt
+              key_file_path: /bundle-endpoint-tls/tls.key
+              {{- end }}
         {{- end }}
   {{- end }}
 
