@@ -71,7 +71,7 @@ server:
     bundle_endpoint:
       address: {{ .Values.federation.bundleEndpoint.address | quote }}
       port: {{ .Values.federation.bundleEndpoint.port }}
-      refreshHint: {{ .Values.federation.bundleEndpoint.refreshHint | quote }}
+      refresh_hint: {{ .Values.federation.bundleEndpoint.refreshHint | quote }}
       profile:
         {{- if .Values.federation.tls.spire.enabled }}
         - https_spiffe:
