@@ -82,6 +82,16 @@ while true; do
 done
 )
 
+common_test_file_exists () (
+count=10
+while true; do
+        if [ -f "$1" ]; then exit 0; fi
+        sleep 2
+        count=$((count-1))
+        [ $count -le 0 ] && exit 1
+done
+)
+
 # Used just for testing. You should provide your own values as described in the install instructions.
 common_test_your_values () {
 cat > /tmp/$$.example-your-values.yaml <<EOF
