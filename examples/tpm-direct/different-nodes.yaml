@@ -7,7 +7,7 @@ spire-agent:
       nodeSelector:
         tpm: with
       nodeAttestor:
-        k8sPsat:
+        k8sPSAT:
           enabled: false
         tpmDirect:
           enabled: true

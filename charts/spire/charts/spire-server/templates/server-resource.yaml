@@ -6,7 +6,33 @@
 {{- $configSum3 := (include (print $.Template.BasePath "/controller-manager-configmap.yaml") . | sha256sum) }}
 {{- $configSumTornjak := (include (print $.Template.BasePath "/tornjak-config.yaml") . | sha256sum) }}
 {{- $fullname := include "spire-server.fullname" . }}
-
+{{- if hasKey .Values "ca_subject" }}
+{{-   fail "ca_subject was renamed to caSubject. Please update your config." }}
+{{- end }}
+{{- if hasKey .Values.caSubject "common_name" }}
+{{-   fail "ca_name was renamed to caName. Please update your config." }}
+{{- end }}
+{{- if hasKey .Values.upstreamAuthority.certManager "issuer_name" }}
+{{-   fail "issuer_name was renamed to issuerName. Please update your config." }}
+{{- end }}
+{{- if hasKey .Values.upstreamAuthority.certManager "issuer_group" }}
+{{-   fail "issuer_group was renamed to issuerGroup. Please update your config." }}
+{{- end }}
+{{- if hasKey .Values.upstreamAuthority.certManager "issuer_kind" }}
+{{-   fail "issuer_kind was renamed to issuerKind. Please update your config." }}
+{{- end }}
+{{- if hasKey .Values.upstreamAuthority.certManager "kube_config_file" }}
+{{-   fail "kube_config_file was renamed to kubeConfigFile. Please update your config." }}
+{{- end }}
+{{- if hasKey .Values.nodeAttestor "k8sPsat" }}
+{{-   fail "k8sPsat was renamed to k8sPSAT. Please update your config." }}
+{{- end }}
+{{- if hasKey .Values.nodeAttestor "externalK8sPSA" }}
+{{-   fail "externalK8sPsat was renamed to externalK8sPSAT. Please update your config." }}
+{{- end }}
+{{- if hasKey .Values.notifier "k8sbundle" }}
+{{-   fail "k8sbundle was renmaed to k8sBundle. Please update your config." }}
+{{- end }}
 {{- if eq .Values.kind "statefulset" }}
 {{-   if not (has .Values.persistence.type (list "pvc" "hostPath" "emptyDir")) }}
 {{-     fail "persistence.type must be one of [\"pvc\", \"hostPath\", \"emptyDir\"]" }}
