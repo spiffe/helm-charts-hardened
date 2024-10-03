@@ -9,12 +9,12 @@ global:
     clusterName: a
     trustDomain: a-org.local
     bundleConfigMap: spire-bundle-a
+    caSubject:
+      country: US
+      organization: A
+      commonName: a.local
 
 spire-server:
-  ca_subject:
-    country: US
-    organization: A
-    common_name: a.local
   federation:
     enabled: true
     ingress:

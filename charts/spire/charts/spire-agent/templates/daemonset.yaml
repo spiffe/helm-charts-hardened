@@ -1,5 +1,14 @@
 {{- $configSum := (include (print $.Template.BasePath "/configmap.yaml") . | sha256sum) }}
 {{- $root := . }}
+{{- if hasKey .Values.nodeAttestor "k8sPsat" }}
+{{-   fail "k8sPsat was renamed to k8sPSAT. Please update your config." }}
+{{- end }}
+{{- if hasKey .Values.sds "defaultSvidName" }}
+{{-   fail "defaultSvidName was renamed to defaultSVIDName. Please update your config." }}
+{{- end }}
+{{- if hasKey .Values.sds "disableSpiffeCertValidation" }}
+{{-   fail "disableSpiffeCertValidation was renamed to disableSPIFFECertValidation. Please update your config." }}
+{{- end }}
 {{- range $name := (concat (list "default") (keys .Values.agents)) | uniq }}
 {{- with (dict "Release" $root.Release "Chart" $root.Chart "Values" (deepCopy $root.Values)) }}
 {{- $nameSuffix := "" }}

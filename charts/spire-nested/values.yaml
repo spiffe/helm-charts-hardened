@@ -246,8 +246,8 @@ root-spire-server:
     ## @param root-spire-server.externalControllerManagers.enabled Flag to enable external controller managers
     enabled: true
   nodeAttestor:
-    k8sPsat:
-      ## @param root-spire-server.nodeAttestor.k8sPsat.serviceAccountAllowList [array] Allowed service accounts for Psat nodeattestor
+    k8sPSAT:
+      ## @param root-spire-server.nodeAttestor.k8sPSAT.serviceAccountAllowList [array] Allowed service accounts for PSAT nodeattestor
       serviceAccountAllowList:
         - spire-agent-upstream
   ## @param root-spire-server.bundleConfigMap The name of the configmap to store the upstream bundle
@@ -284,8 +284,8 @@ external-root-spire-server-full:
           ## @param external-root-spire-server-full.controllerManager.identities.clusterSPIFFEIDs.test-keys.enabled Enable the test-keys identity
           enabled: false
   nodeAttestor:
-    k8sPsat:
-      ## @param external-root-spire-server-full.nodeAttestor.k8sPsat.serviceAccountAllowList [array] Allowed service accounts for Psat nodeattestor
+    k8sPSAT:
+      ## @param external-root-spire-server-full.nodeAttestor.k8sPSAT.serviceAccountAllowList [array] Allowed service accounts for PSAT nodeattestor
       serviceAccountAllowList:
         - spire-agent-upstream
   ## @param external-root-spire-server-full.bundleConfigMap The name of the configmap to store the upstream bundle
@@ -308,8 +308,8 @@ external-root-spire-server-security:
     ## @param external-root-spire-server-security.controllerManager.className specify to use an explicit class name.
     className: spire-mgmt-external-server
   nodeAttestor:
-    k8sPsat:
-      ## @param external-root-spire-server-security.nodeAttestor.k8sPsat.serviceAccountAllowList [array] Allowed service accounts for Psat nodeattestor
+    k8sPSAT:
+      ## @param external-root-spire-server-security.nodeAttestor.k8sPSAT.serviceAccountAllowList [array] Allowed service accounts for PSAT nodeattestor
       serviceAccountAllowList:
         - spire-agent-upstream
   ## @param external-root-spire-server-security.bundleConfigMap The name of the configmap to store the upstream bundle
@@ -385,12 +385,12 @@ external-spire-server:
         ## @param external-spire-server.upstreamAuthority.spire.server.nameOverride The name override setting of the root SPIRE server
         nameOverride: root-server
   notifier:
-    k8sbundle:
-      ## @param external-spire-server.notifier.k8sbundle.enabled Enable local k8s bundle uploader
+    k8sBundle:
+      ## @param external-spire-server.notifier.k8sBundle.enabled Enable local k8s bundle uploader
       enabled: false
   nodeAttestor:
-    k8sPsat:
-      ## @param external-spire-server.nodeAttestor.k8sPsat.enabled Enable Psat k8s nodeattestor
+    k8sPSAT:
+      ## @param external-spire-server.nodeAttestor.k8sPSAT.enabled Enable PSAT k8s nodeattestor
       enabled: false
     joinToken:
       ## @param external-spire-server.nodeAttestor.joinToken.enabled Enable the join_token nodeattestor
