@@ -66,8 +66,8 @@ Allow the release namespace to be overridden for multi-namespace deployments in 
 {{- end -}}
 
 {{- define "spire-server.bundle-namespace" -}}
-  {{- if .Values.notifier.k8sbundle.namespace }}
-    {{- .Values.notifier.k8sbundle.namespace }}
+  {{- if .Values.notifier.k8sBundle.namespace }}
+    {{- .Values.notifier.k8sBundle.namespace }}
   {{- else if .Values.namespaceOverride -}}
     {{- .Values.namespaceOverride -}}
   {{- else if and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "namespaceLayout" true .Values.global) }}
@@ -146,9 +146,9 @@ Create the name of the service account to use
 
 {{- define "spire-server.serviceAccountAllowedList" }}
 {{- $releaseNamespace := include "spire-server.agent-namespace" . }}
-{{- if ne (len .Values.nodeAttestor.k8sPsat.serviceAccountAllowList) 0 }}
+{{- if ne (len .Values.nodeAttestor.k8sPSAT.serviceAccountAllowList) 0 }}
 {{-   $list := list }}
-{{-   range .Values.nodeAttestor.k8sPsat.serviceAccountAllowList }}
+{{-   range .Values.nodeAttestor.k8sPSAT.serviceAccountAllowList }}
 {{-     if contains ":" . }}
 {{-       $list = append $list . }}
 {{-     else }}
@@ -317,17 +317,17 @@ The code below determines what connection type should be used.
 
 {{- define "spire-server.ca-subject-country" }}
 {{-   $g := dig "spire" "caSubject" "country" "" .Values.global }}
-{{-   default .Values.ca_subject.country $g }}
+{{-   default .Values.caSubject.country $g }}
 {{- end }}
 
 {{- define "spire-server.ca-subject-organization" }}
 {{-   $g := dig "spire" "caSubject" "organization" "" .Values.global }}
-{{-   default .Values.ca_subject.organization $g }}
+{{-   default .Values.caSubject.organization $g }}
 {{- end }}
 
 {{- define "spire-server.ca-subject-common-name" }}
 {{-   $g := dig "spire" "caSubject" "commonName" "" .Values.global }}
-{{-   default .Values.ca_subject.common_name $g }}
+{{-   default .Values.caSubject.commonName $g }}
 {{- end }}
 
 {{- define "spire-server.subject" }}
