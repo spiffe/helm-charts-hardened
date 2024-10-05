@@ -28,13 +28,13 @@ var _ = Describe("Spire", func() {
 	chart, err := helmloader.Load("../../charts/spire")
 	Expect(err).Should(Succeed())
 	Describe("spire-server.upstream.cert-manager", func() {
-		It("issuer_name when set is passed through", func() {
+		It("issuerName when set is passed through", func() {
 			objs, err := ValueStringRender(chart, `
 spire-server:
   upstreamAuthority:
     certManager:
       enabled: true
-      issuer_name: abc123
+      issuerName: abc123
 `)
 			Expect(err).Should(Succeed())
 			notes := objs["spire/charts/spire-server/templates/configmap.yaml"]
@@ -108,7 +108,7 @@ spire-server:
 			objs, err := ValueStringRender(chart, `
 spire-agent:
   nodeAttestor:
-    k8sPsat:
+    k8sPSAT:
       enabled: false
   customPlugins:
     nodeAttestor:
@@ -127,7 +127,7 @@ spire-agent:
 			objs, err := ValueStringRender(chart, `
 spire-agent:
   nodeAttestor:
-    k8sPsat:
+    k8sPSAT:
       enabled: false
   unsupportedBuiltInPlugins:
     nodeAttestor:

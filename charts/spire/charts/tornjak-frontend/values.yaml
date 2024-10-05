@@ -162,4 +162,4 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:b812c38f9e411c76215246e1773534e4dc35332cb3a905cc31b7053b443af395
+      tag: latest@sha256:255cefa977e1868391b60eb9eacfee85900510011135661bcf52381bd8001da4
