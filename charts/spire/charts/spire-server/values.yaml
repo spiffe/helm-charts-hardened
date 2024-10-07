@@ -170,8 +170,12 @@ dataStore:
     ## @param dataStore.sql.options [array] Only used by "postgres" or "mysql"
     options: []
 
-    ## @param dataStore.sql.plugin_data [object] Settings from https://github.com/spiffe/spire/blob/main/doc/plugin_server_datastore_sql.md go in this section
-    plugin_data: {}
+    ## @param dataStore.sql.rootCAPath Path to Root CA bundle (MySQL only)
+    rootCAPath: ""
+    ## @param dataStore.sql.clientCertPath Path to client certificate (MySQL only)
+    clientCertPath: ""
+    ## @param dataStore.sql.clientKeyPath Path to private key for client certificate (MySQL only)
+    clientKeyPath: ""
 
     ## When an external source creates the secret. The secret should reside in the same namespace as the spire server
     externalSecret:
@@ -181,6 +185,37 @@ dataStore:
       name: ""
       ## @param dataStore.sql.externalSecret.key The key of the secret object whose value is the dataStore.sql password
       key: ""
+
+    ## @param dataStore.sql.maxOpenConns The maximum number of open db connections
+    maxOpenConns: 100
+    ## @param dataStore.sql.maxIdleConns The maximum number of idle connections in the pool
+    maxIdleConns: 2
+    ## @param dataStore.sql.connMaxLifetime The maximum amount of time a connection may be reused. If 0, time is unlimited
+    connMaxLifetime: 0
+    ## @param dataStore.sql.disableMigration True to disable auto-migration functionality
+    disableMigration: false
+
+    readOnly:
+      ## @param dataStore.sql.readOnly.enabled Set to true to configure a readOnly dartabase connection
+      enabled: false
+      ## @param dataStore.sql.readOnly.host Only used by "postgres" or "mysql"
+      host: ""
+      ## @param dataStore.sql.readOnly.port If 0 (default), it will auto set to 5432 for postgres and 3306 for mysql. Only used by those databases.
+      port: 0
+      ## @param dataStore.sql.readOnly.username Only used by "postgres" or "mysql"
+      username: spire
+      ## @param dataStore.sql.readOnly.password Only used by "postgres" or "mysql"
+      password: ""
+      ## @param dataStore.sql.readOnly.options [array] Only used by "postgres" or "mysql"
+      options: []
+      ## When an external source creates the secret. The secret should reside in the same namespace as the spire server
+      externalSecret:
+        ## @param dataStore.sql.readOnly.externalSecret.enabled Enable external secret for datastore creds
+        enabled: false
+        ## @param dataStore.sql.readOnly.externalSecret.name The name of the secret object
+        name: ""
+        ## @param dataStore.sql.readOnly.externalSecret.key The key of the secret object whose value is the dataStore.sql password
+        key: ""
 
 ## @param adminIDs SPIFFE IDs that, when present in a caller’s X509-SVID, grant that caller admin privileges.
 adminIDs: []
