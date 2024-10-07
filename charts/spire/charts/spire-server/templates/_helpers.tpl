@@ -189,7 +189,7 @@ Create the name of the service account to use
 {{- end }}
 
 {{- define "spire-server.datastore-config" }}
-{{- $config := deepCopy .Values.dataStore.sql.plugin_data }}
+{{- $config := dict }}
 {{- if eq .Values.dataStore.sql.databaseType "sqlite3" }}
   {{- $_ := set $config "database_type" "sqlite3" }}
   {{- $_ := set $config "connection_string" "/run/spire/data/datastore.sqlite3" }}
@@ -198,11 +198,21 @@ Create the name of the service account to use
   {{- $port := int .Values.dataStore.sql.port | default 3306 }}
   {{- $query := include "spire-server.config-mysql-query" .Values.dataStore.sql.options }}
   {{- $_ := set $config "connection_string" (printf "%s:${DBPW}@tcp(%s:%d)/%s%s" .Values.dataStore.sql.username .Values.dataStore.sql.host $port .Values.dataStore.sql.databaseName $query) }}
+  {{- if .Values.dataStore.sql.readOnly.enabled }}
+  {{-   $roPort := int .Values.dataStore.sql.readOnly.port | default 3306 }}
+  {{-   $roQuery := include "spire-server.config-mysql-query" .Values.dataStore.sql.readOnly.options }}
+  {{-   $_ := set $config "ro_connection_string" (printf "%s:${RODBPW}@tcp(%s:%d)/%s%s" .Values.dataStore.sql.readOnly.username .Values.dataStore.sql.readOnly.host $roPort .Values.dataStore.sql.readOnly.databaseName $roQuery) }}
+  {{- end }}
 {{- else if eq .Values.dataStore.sql.databaseType "postgres" }}
   {{- $_ := set $config "database_type" "postgres" }}
   {{- $port := int .Values.dataStore.sql.port | default 5432 }}
   {{- $options:= include "spire-server.config-postgresql-options" .Values.dataStore.sql.options }}
   {{- $_ := set $config "connection_string" (printf "dbname=%s user=%s password=${DBPW} host=%s port=%d%s" .Values.dataStore.sql.databaseName .Values.dataStore.sql.username .Values.dataStore.sql.host $port $options) }}
+  {{- if .Values.dataStore.sql.readOnly.enabled }}
+  {{-   $roPort := int .Values.dataStore.sql.readOnly.port | default 5432 }}
+  {{-   $roOptions:= include "spire-server.config-postgresql-options" .Values.dataStore.sql.readOnly.options }}
+  {{-   $_ := set $config "ro_connection_string" (printf "dbname=%s user=%s password=${RODBPW} host=%s port=%d%s" .Values.dataStore.sql.readOnly.databaseName .Values.dataStore.sql.readOnly.username .Values.dataStore.sql.readOnly.host $roPort $roOptions) }}
+  {{- end }}
 {{- else }}
   {{- fail "Unsupported database type" }}
 {{- end }}
