@@ -88,6 +88,11 @@ kubectl delete crds clusterfederatedtrustdomains.spire.spiffe.io clusterspiffeid
 
 We only support upgrading one major/minor version at a time. Version skipping isn't supported. Please see <https://spiffe.io/docs/latest/spire-helm-charts-hardened-about/upgrading/> for details.
 
+### 0.24.X
+
+We have added the remaining options needed for the SPIRE Server SQL data store plugin. We have removed `spire-server.dataStore.sql.plugin_data` section as it is no longer needed. If you are using it, please migrate
+your settings to the ones under `spire-server.dataStore.sql`.
+
 ### 0.23.X
 
 In previous versions, the setting spire-agent.workloadAttestors.k8s.skipKubeletVerification was set to true by default. Starting in 0.23.x, we removed that setting and replaced it with
