@@ -315,6 +315,10 @@ spec:
               mountPath: /tmp-direct-hashes
             {{- end }}
             {{- end }}
+            {{- if or .Values.federation.tls.certManager.enabled .Values.federation.tls.externalSecret.enabled }}
+            - name: bundle-endpoint-tls
+              mountPath: /bundle-endpoint-tls
+            {{- end }}
             {{- if eq (.Values.upstreamAuthority.disk.enabled | toString) "true" }}
             - name: upstream-ca
               mountPath: /run/spire/upstream_ca
@@ -449,6 +453,16 @@ spec:
           configMap:
             name: {{ include "spire-server.fullname" . }}-tpm-direct-hash
         {{- end }}
+        {{- end }}
+        {{- if .Values.federation.tls.certManager.enabled }}
+        - name: bundle-endpoint-tls
+          secret:
+            secretName: {{ printf "%s-federation-cert" (include "spire-server.fullname" .) }}
+        {{- end }}
+        {{- if .Values.federation.tls.externalSecret.enabled }}
+        - name: bundle-endpoint-tls
+          secret:
+            secretName: {{ .Values.federation.tls.externalSecret.secretName }}
         {{- end }}
         {{- if or (eq (include "spire-tornjak.connectionType" .) "tls") (eq (include "spire-tornjak.connectionType" .) "mtls") }}
         - name: server-cert

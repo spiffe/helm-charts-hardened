@@ -248,8 +248,12 @@ federation:
     port: 8443
     ## @param federation.bundleEndpoint.address Address for trust bundle federation
     address: "0.0.0.0"
-    ## @param federation.bundleEndpoint.refresh_hint Hint used by federated servers on how often to refresh the bundle. CA TTL must be 3-5x the duration of this value to ensure public keys are loaded on federated servers prior to private key rotation on remote server.
-    refresh_hint: "5m"
+    ## @param federation.bundleEndpoint.refreshHint Hint used by federated servers on how often to refresh the bundle. CA TTL must be 3-5x the duration of this value to ensure public keys are loaded on federated servers prior to private key rotation on remote server.
+    refreshHint: "5m"
+    profile:
+      httpWeb:
+        ## @param federation.bundleEndpoint.profile.httpWeb.fileSyncInterval Interval on which to reload the certificate/key from disk
+        fileSyncInterval: 1h
 
   tls:
     spire:
