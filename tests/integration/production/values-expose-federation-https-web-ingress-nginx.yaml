@@ -4,10 +4,9 @@ spire-server:
       enabled: true
   federation:
     enabled: true
-    ingress:
-      enabled: true
-      controllerType: ingress-nginx
-
-      # className: nginx
- 
-      tlsSecret: spire-server-federation-tls
+    tls:
+      spire:
+        enabled: false
+      externalSecret:
+        enabled: true
+        secretName: spire-server-federation-tls
