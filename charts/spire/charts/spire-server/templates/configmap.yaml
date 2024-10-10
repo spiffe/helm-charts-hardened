@@ -325,7 +325,7 @@ plugins:
         issuer_name: {{ default (printf "%s-ca" (include "spire-server.fullname" $root)) .issuerName }}
         issuer_kind: {{ .issuerKind | quote }}
         issuer_group: {{ .issuerGroup | quote }}
-        namespace: {{ default $root.Release.Namespace .namespace | quote }}
+        namespace: {{ default (include "spire-server.namespace" $) .namespace | quote }}
         {{- if ne .kubeConfigFile "" }}
         kube_config_file: {{ .kubeConfigFile | quote }}
         {{- end }}
