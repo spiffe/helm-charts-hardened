@@ -298,7 +298,7 @@ The code below determines what connection type should be used.
 {{-     end }}
 {{-     $args = append $args (printf "https://%s/" $host) }}
 {{-   else }}
-{{-     $args = append $args (printf "http://%s/" $host) }}
+{{-     $args = append $args (printf "-k -L http://%s/" $host) }}
 {{-   end }}
 {{ $args | toYaml }}
 {{- end -}}
