@@ -1,0 +1,45 @@
+tags:
+  nestedRoot: true
+
+spiffe-oidc-discovery-provider:
+  ingress:
+    enabled: true
+
+internal-spire-server:
+  controllerManager:
+    identities:
+      clusterSPIFFEIDs:
+        default:
+          enabled: false
+        spiffe-step-ssh-config:
+          type: raw
+          namespaceSelector:
+            matchLabels:
+              #FIXME move these
+              "kubernetes.io/metadata.name": default
+          podSelector:
+            matchLabels:
+              app: spiffe-step-ssh
+              component: config
+        spiffe-step-ssh-fetchca:
+          type: raw
+          namespaceSelector:
+            matchLabels:
+              "kubernetes.io/metadata.name": default
+          podSelector:
+            matchLabels:
+              app: spiffe-step-ssh
+              component: fetchca
+          dnsNameTemplates:
+          - "spiffe-step-ssh-fetchca.{{ .TrustDomain }}"
+
+external-spire-server:
+  ingress:
+    enabled: true
+  nodeAttestor:
+    httpChallenge:
+      enabled: true
+      allowedDNSPatterns:
+      - ".*\\.production\\.other"
+      allowNonRootPorts: false
+      tofu: false
