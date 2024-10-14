@@ -95,6 +95,8 @@ trustDomain: example.org
 trustBundleURL: ""
 ## @param trustBundleFormat If using trustBundleURL, what format is the url. Choices are "pem" and "spiffe"
 trustBundleFormat: pem
+## @param trustBundleHostPath If set, obtain trust bundle from a file on the host
+trustBundleHostPath: ""
 ## @param bundleConfigMap Configmap name for Spire bundle
 bundleConfigMap: spire-bundle
 ## @param availabilityTarget The minimum amount of time desired to gracefully handle SPIRE Server or Agent downtime. This configurable influences how aggressively X509 SVIDs should be rotated. If set, must be at least 24h.
