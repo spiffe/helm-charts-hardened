@@ -95,7 +95,7 @@ trustDomain: example.org
 trustBundleURL: ""
 ## @param trustBundleFormat If using trustBundleURL, what format is the url. Choices are "pem" and "spiffe"
 trustBundleFormat: pem
-## @param trustBundleHostPath If set, obtain trust bundle from a file on the host
+## @param trustBundleHostPath If set, obtain trust bundle from a file on the host instead of from the ConfigMap
 trustBundleHostPath: ""
 ## @param bundleConfigMap Configmap name for Spire bundle
 bundleConfigMap: spire-bundle
