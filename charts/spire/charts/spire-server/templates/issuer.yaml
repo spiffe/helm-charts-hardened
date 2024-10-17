@@ -21,14 +21,14 @@ metadata:
   namespace: {{ include "spire-server.namespace" $ }}
 spec:
   isCA: true
-  commonName: {{ $.Values.caSubject.commonName }}
+  commonName: {{ include "spire-server.ca-subject-common-name" $ | quote }}
   secretName: {{ include "spire-server.fullname" $ }}-ca-keys
   duration: {{ $.Values.upstreamAuthority.certManager.ca.duration }}
   subject:
     countries:
-      - {{ $.Values.caSubject.country }}
+      - {{ include "spire-server.ca-subject-country" $ | quote }}
     organizations:
-      - {{ $.Values.caSubject.organization }}
+      - {{ include "spire-server.ca-subject-organization" $ | quote }}
   privateKey:
     algorithm: {{ $.Values.upstreamAuthority.certManager.ca.privateKey.algorithm }}
     size: {{ $.Values.upstreamAuthority.certManager.ca.privateKey.size }}

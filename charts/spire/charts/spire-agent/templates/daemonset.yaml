@@ -265,8 +265,12 @@ spec:
             {{- end }}
             {{- if eq (len .Values.trustBundleURL) 0 }}
             - name: spire-bundle
-              mountPath: /run/spire/bundle
               readOnly: true
+            {{- if ne (len .Values.trustBundleHostPath) 0 }}
+              mountPath: {{ .Values.trustBundleHostPath | dir | quote }}
+            {{- else }}
+              mountPath: /run/spire/bundle
+            {{- end }}
             {{- end }}
             {{- if .Values.nodeAttestor.tpmDirect.enabled }}
             - name: tpm-direct
@@ -348,8 +352,13 @@ spec:
         {{- end }}
         {{- if eq (len .Values.trustBundleURL) 0 }}
         - name: spire-bundle
+        {{- if ne (len .Values.trustBundleHostPath) 0 }}
+          hostPath:
+            path: {{ .Values.trustBundleHostPath | dir | quote }}
+        {{- else }}
           configMap:
             name: {{ printf "%s%s" (include "spire-lib.bundle-configmap" .) $nameSuffix | quote }}
+        {{- end }}
         {{- end }}
         {{- if .Values.nodeAttestor.tpmDirect.enabled }}
         - name: tpm-direct

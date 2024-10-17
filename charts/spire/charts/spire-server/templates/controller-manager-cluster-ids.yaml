@@ -30,7 +30,7 @@ matchLabels:
 {{  $namespaces := list .Release.Namespace .Values.namespaceOverride (dig "spire" "namespaces" "server" "name" "" .Values.global) (dig "spire" "namespaces" "system" "name" "" .Values.global) | compact | uniq }}
 {{- range $key, $value := .Values.controllerManager.identities.clusterSPIFFEIDs }}
 {{-   range $skey, $svalue := $value }}
-{{-     if not (has $skey (list "name" "annotations" "labels" "enabled" "type" "admin" "dnsNameTemplates" "downstream" "federatesWith" "jwtTTL" "namespaceSelector" "podSelector" "spiffeIDTemplate" "ttl" "workloadSelectorTemplates" "autoPopulateDNSNames")) }}
+{{-     if not (has $skey (list "name" "annotations" "labels" "enabled" "type" "admin" "dnsNameTemplates" "downstream" "federatesWith" "jwtTTL" "namespaceSelector" "podSelector" "spiffeIDTemplate" "ttl" "workloadSelectorTemplates" "autoPopulateDNSNames" "fallback")) }}
 {{-       fail (printf "Unsupported property specified: %s" $skey) }}
 {{-     end }}
 {{-   end }}
@@ -102,6 +102,9 @@ spec:
   {{- end }}
   {{- with $value.autoPopulateDNSNames }}
   autoPopulateDNSNames: {{ . }}
+  {{- end }}
+  {{- with $value.fallback }}
+  fallback: {{ . }}
   {{- end }}
 {{-     end }}
 {{-   end }}
