@@ -1,0 +1,8 @@
+global:
+  spiffe:
+    ingressControllerType: ingress-nginx
+stepIngress:
+  enabled: true
+fetchCA:
+  ingress:
+    enabled: true

@@ -1,0 +1,143 @@
+{{- $configSum := (include (print $.Template.BasePath "/config-configmap.yaml") . | sha256sum) }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "spiffe-step-ssh.fullname" . }}-config
+  labels:
+    {{- include "spiffe-step-ssh.labels" . | nindent 4 }}
+    app: spiffe-step-ssh
+    component: config
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "spiffe-step-ssh.selectorLabels" . | nindent 6 }}
+      app: spiffe-step-ssh
+      component: config
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ $configSum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "spiffe-step-ssh.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        app: spiffe-step-ssh
+        component: config
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "spiffe-step-ssh.serviceAccountName" . }}-svc-config
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+      - name: setup-volume-p1
+        image: {{ template "spire-lib.image" (dict "image" .Values.busybox.image "global" .Values.global) }}
+        imagePullPolicy: {{ .Values.busybox.image.pullPolicy }}
+        command:
+        - sh
+        - -c
+        - 'cp -a /bin/busybox /helper'
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        volumeMounts:
+        - name: spiffe-helper
+          mountPath: /helper
+        resources:
+          {{- toYaml .Values.config.resources | nindent 12 }}
+      - name: setup-volume-p2
+        image: {{ template "spire-lib.kubectl-image" (dict "appVersion" $.Chart.AppVersion "image" .Values.kubectl.image "global" .Values.global "KubeVersion" .Capabilities.KubeVersion.Version) }}
+        imagePullPolicy: {{ .Values.kubectl.image.pullPolicy }}
+        command:
+        - /helper/busybox
+        - sh
+        - -c
+        - '/helper/busybox cp -a /bin/kubectl /helper'
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        volumeMounts:
+        - name: spiffe-helper
+          mountPath: /helper
+        resources:
+          {{- toYaml .Values.config.resources | nindent 12 }}
+      - name: setup-volume-p3
+        image: {{ template "spire-lib.image" (dict "image" .Values.spiffeHelper.image "global" .Values.global) }}
+        imagePullPolicy: {{ .Values.spiffeHelper.image.pullPolicy }}
+        command:
+        - /helper/busybox
+        - sh
+        - -c
+        - '/helper/busybox cp -a /spiffe-helper /helper && /helper/busybox rm -f /helper/busybox'
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        volumeMounts:
+        - name: spiffe-helper
+          mountPath: /helper
+        resources:
+          {{- toYaml .Values.config.resources | nindent 12 }}
+      containers:
+      - name: {{ .Chart.Name }}
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        image: {{ template "spire-lib.image" (dict "image" .Values.yq.image "global" .Values.global) }}
+        imagePullPolicy: {{ .Values.yq.image.pullPolicy }}
+        command:
+        - /helper/spiffe-helper
+        - -config
+        - /config-deployment/spiffe-helper.conf
+        resources:
+          {{- toYaml .Values.config.resources | nindent 12 }}
+        volumeMounts:
+        - name: spiffe-helper
+          mountPath: /helper
+          readOnly: true
+        - name: config
+          mountPath: /config
+          readOnly: true
+        - name: config-deployment
+          mountPath: /config-deployment
+          readOnly: true
+        - name: certdir
+          mountPath: /certs
+        - name: spiffe-workload-api
+          mountPath: /spiffe-workload-api
+          readOnly: true
+        - name: workdir
+          mountPath: /work
+      volumes:
+      - name: spiffe-workload-api
+        csi:
+          driver: {{ .Values.csiDriver | quote }}
+          readOnly: true
+      - name: config-deployment
+        configMap:
+          name: {{ include "spiffe-step-ssh.fullname" . }}-config-deployment
+      - name: config
+        configMap:
+          name: {{ include "spiffe-step-ssh.fullname" . }}-config-raw
+      - name: certdir
+        emptyDir: {}
+      - name: spiffe-helper-config
+        emptyDir: {}
+      - name: spiffe-helper
+        emptyDir: {}
+      - name: workdir
+        emptyDir: {}
+      {{- with .Values.config.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.config.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.config.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "spiffe-step-ssh.fullname" . }}-fetchca
+  labels:
+    {{- include "spiffe-step-ssh.labels" . | nindent 4 }}
+    app: spiffe-step-ssh
+    component: fetchca
+spec:
+  type: {{ .Values.fetchCA.service.type }}
+  ports:
+    - port: {{ .Values.fetchCA.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "spiffe-step-ssh.selectorLabels" . | nindent 4 }}
