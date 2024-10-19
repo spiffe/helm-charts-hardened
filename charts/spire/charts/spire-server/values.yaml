@@ -628,6 +628,10 @@ controllerManager:
         downstream: false
         ## @param controllerManager.identities.clusterSPIFFEIDs.default.autoPopulateDNSNames Auto populate DNS names from services attached to pods
         autoPopulateDNSNames: false
+        ## @param controllerManager.identities.clusterSPIFFEIDs.default.fallback Apply this ID only if there are no other matching non fallback ClusterSPIFFEIDs
+        fallback: true
+        # Set what hint to use. If unset, it will be asigned the clusterSPIFFEID name. If set to "", it will be unset. Any other value will set the hint to exactly what is specified.
+        # hint: ""
 
       child-servers:
         ## @param controllerManager.identities.clusterSPIFFEIDs.child-servers.enabled Enable this identity for controller manager

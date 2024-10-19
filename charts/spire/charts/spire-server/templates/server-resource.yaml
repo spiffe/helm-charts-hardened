@@ -168,7 +168,7 @@ spec:
           args:
             - wait
             - --namespace
-            - {{ .Release.Namespace }}
+            - {{ include "spire-server.namespace" $ }}
             - --timeout=3m
             - --for=condition=ready
             - issuer
