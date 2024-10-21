@@ -1,0 +1,31 @@
+{{- if .Values.fetchCA.ingress.enabled -}}
+{{- $ingressControllerType := include "spiffe-step-ssh.ingress-controller-type" (dict "global" .Values.global "ingress" .Values.fetchCA.ingress) }}
+{{- $fullName := printf "%s-fetchca" (include "spiffe-step-ssh.fullname" .) -}}
+{{- $path := "/" }}
+{{- $pathType := "Prefix" }}
+{{- $tlsSection := true }}
+{{- $annotations := deepCopy .Values.fetchCA.ingress.annotations }}
+{{- if eq $ingressControllerType "ingress-nginx" }}
+{{-   $_ := set $annotations "nginx.ingress.kubernetes.io/ssl-redirect" "true" }}
+{{-   $_ := set $annotations "nginx.ingress.kubernetes.io/force-ssl-redirect" "true" }}
+{{-   $_ := set $annotations "nginx.ingress.kubernetes.io/backend-protocol" "HTTPS" }}
+{{-   $_ := set $annotations "nginx.ingress.kubernetes.io/ssl-passthrough" "true" }}
+{{- else if eq $ingressControllerType "openshift" }}
+{{-   $_ := set $annotations "route.openshift.io/termination" "passthrough" }}
+{{-   $path = "" }}
+{{-   $pathType = "ImplementationSpecific" }}
+{{-   $tlsSection = false }}
+{{- end }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{ include "spiffe-step-ssh.labels" . | nindent 4}}
+  {{- with $annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{ include "spire-lib.ingress-spec" (dict "ingress" .Values.fetchCA.ingress "svcName" $fullName "port" .Values.fetchCA.service.port "path" $path "pathType" $pathType "tlsSection" $tlsSection "Values" .Values) | nindent 2 }}
+{{- end }}
