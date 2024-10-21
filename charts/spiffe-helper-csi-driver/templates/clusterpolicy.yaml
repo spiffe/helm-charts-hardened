@@ -1,0 +1,4 @@
+{{- $cp := .Files.Get "files/clusterpolicy.yaml" }}
+{{- $spiffe_helper_image := include "spire-lib.image" (dict "image" .Values.spiffeHelper.image "global" .Values.global) }}
+{{- $busybox_image := include "spire-lib.image" (dict "image" .Values.busybox.image "global" .Values.global) }}
+{{- $cp | replace "@SPIFFE_HELPER_IMAGE@" $spiffe_helper_image | replace "@BUSYBOX_IMAGE@" $busybox_image }}

@@ -1,0 +1,495 @@
+#TODO
+# main container security context for sidecar/init stuff by default
+# skip all sidecars if pod owned by a job.
+
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: spiffe-helper-csi-driver
+spec:
+  validationFailureAction: Enforce
+  rules:
+  - name: add-tmp
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    mutate:
+      patchesJson6902: |
+        - op: add
+          path: /tmp
+          value:
+            volumes: []
+            names: []
+            helperInitBase:
+            - "/bin/sh"
+            - "-c"
+            - (echo "$0"; for i in "$@"; do echo "$i"; done) > /config/helper-init.conf
+            - exit_when_ready = true
+            - agent_address = "/spiffe-workload-api/spire-agent.sock"
+            - cert_dir = "/certs"
+            helperSidecarBase:
+            - "/bin/sh"
+            - "-c"
+            - (echo "$0"; for i in "$@"; do echo "$i"; done) > /config/helper-sidecar.conf
+            - agent_address = "/spiffe-workload-api/spire-agent.sock"
+            - cert_dir = "/certs"
+            confDocInit: {}
+            confDocSidecar: {}
+            helperVolumeNeeded: false
+            validationFailure: false
+#FIXME
+# More checks here and validation below:
+# * cmd and cmdArgs should only be used if customSidecar is set
+# * customSidecar and pidContainer can't be used together
+# * renewSignal requires pidContainer
+# * check for unknown volumeAttributes
+# * all 3 svid options need to all be specified.
+  - name: check-pid-container
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    preconditions:
+      all:
+       - key: "{{ request.object.spec.volumes[?csi && csi.driver == 'helper.spiffe.io' && csi.volumeAttributes && csi.volumeAttributes.pidContainer] || `[]` | length(@) }}"
+         operator: GreaterThan
+         value: 0
+       - key: "{{ request.object.spec.shareProcessNamespace || request.object.spec.hostPID || `false` }}"
+         operator: NotEqual
+         value: true
+    mutate:
+      patchesJson6902: |
+       - op: add
+         path: /tmp/validationFailure
+         value: true
+  - name: build-names
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    mutate:
+      foreach:
+      - list: "request.object.spec.volumes[?csi && csi.driver == 'helper.spiffe.io']"
+        patchesJson6902: |
+         - op: add
+           path: /tmp/names/-1
+           value: {{ element }}
+  - name: copy-non-driver-volumes
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    mutate:
+      foreach:
+      - list: "request.object.spec.volumes[? !(csi && csi.driver == 'helper.spiffe.io')]"
+        patchesJson6902: |
+         - op: add
+           path: /tmp/volumes/-1
+           value: {{ element }}
+  - name: build-helper-needed
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    mutate:
+      foreach:
+      - list: "request.object.spec.volumes[?csi && csi.driver == 'helper.spiffe.io' && csi.volumeAttributes && csi.volumeAttributes.customSidecar]"
+        patchesJson6902: |
+         - op: replace
+           path: /tmp/helperVolumeNeeded
+           value: true
+  - name: build-confdocs
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    context:
+    - name: rename
+      variable:
+        value:
+          addIntermediatesToBundle: add_intermediates_to_bundle
+          cmd: cmd
+          cmdArgs: cmd_args
+          customSidecar: customSidecar
+          #jwtAudience: jwt_audience
+          #jwtBundleFileName: jwt_bundle_file_name
+          #jwtSVIDFileName: jwt_svid_file_name
+          pidContainer: pidContainer
+          renewSignal: renew_signal
+          svidFileName: svid_file_name
+          svidKeyFileName: svid_key_file_name
+          svidBundleFileName: svid_bundle_file_name
+    - name: initMatch
+      variable:
+        value:
+          addIntermediatesToBundle: true
+          cmd: false
+          cmdArgs: false
+          customSidecar: false
+          #jwtAudience: true
+          #jwtBundleFileName: true
+          #jwtSVIDFileName: true
+          pidContainer: false
+          renewSignal: false
+          svidBundleFileName: true
+          svidFileName: true
+          svidKeyFileName: true
+    - name: sidecarMatch
+      variable:
+        value:
+          addIntermediatesToBundle: true
+          cmd: true
+          cmdArgs: true
+          customSidecar: false
+          #jwtAudience: true
+          #jwtBundleFileName: true
+          #jwtSVIDFileName: true
+          pidContainer: false
+          renewSignal: true
+          svidBundleFileName: true
+          svidFileName: true
+          svidKeyFileName: true
+    mutate:
+      foreach:
+      - list: "request.object.spec.volumes[?csi && csi.driver == 'helper.spiffe.io']"
+        foreach:
+        #FIXME  Ensure volumeAttrbutes always exists?
+        - list: "items(element.csi.volumeAttributes, 'key', 'value')[]"
+          preconditions:
+            any:
+            - key: "{{ initMatch.{{ element.key }} }}"
+              operator: Equals
+              value: true
+          patchesJson6902: |
+            - path: "/tmp/confDocInit/{{ element0.name }}/-"
+              op: add
+              value: {{ rename.{{ element.key }} }} = {{ (element.value != 'true' && join('"', ['', element.value, ''])) || 'true' }}
+        - list: "items(element.csi.volumeAttributes, 'key', 'value')[]"
+          preconditions:
+            any:
+            - key: "{{ sidecarMatch.{{ element.key }} }}"
+              operator: Equals
+              value: true
+          patchesJson6902: |
+            - path: "/tmp/confDocSidecar/{{ element0.name }}/-"
+              op: add
+              value: |-
+                {{ rename.{{ element.key }} }} = {{ (element.value != 'true' && join('"', ['', replace_all(element.value, '"', '\"'), ''])) || 'true' }}
+  - name: clear-volumes
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    preconditions:
+      any:
+      - key: "{{ request.object.tmp.validationFailure }}"
+        operator: NotEquals
+        value: true
+    mutate:
+      patchesJson6902: |
+        - op: replace
+          path: "/spec/volumes"
+          value: []
+  - name: build-spiffe-helper-volume
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    preconditions:
+      all:
+      - key: "{{ request.object.tmp.validationFailure }}"
+        operator: NotEquals
+        value: true
+      - key: "{{ request.object.tmp.helperVolumeNeeded }}"
+        operator: equal
+        value: true
+    mutate:
+      patchesJson6902: |
+        - op: add
+          path: /spec/initContainers/0
+          value:
+            name: "spiffe-helper-prep"
+            image: @SPIFFE_HELPER_IMAGE@
+            command:
+            - "/spiffe-helper-tmp/busybox"
+            - "sh"
+            - "-c"
+            - "/spiffe-helper-tmp/busybox cp -a /spiffe-helper /spiffe-helper-tmp/ && /spiffe-helper-tmp/busybox rm -f /spiffe-helper-tmp/busybox"
+            volumeMounts:
+            - name: "spiffe-helper"
+              mountPath: /spiffe-helper-tmp
+        - op: add
+          path: /spec/initContainers/0
+          value:
+            name: "spiffe-helper-busybox"
+            image: @BUSYBOX_IMAGE@
+            command:
+            - "sh"
+            - "-c"
+            - "cp /bin/busybox /spiffe-helper"
+            volumeMounts:
+            - name: "spiffe-helper"
+              mountPath: /spiffe-helper
+        - path: /spec/volumes/-
+          op: add
+          value:
+            name: spiffe-helper
+            emptyDir: {}
+  - name: add-sidecar
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    preconditions:
+      all:
+      - key: "{{ request.object.tmp.validationFailure }}"
+        operator: NotEquals
+        value: true
+    mutate:
+      foreach:
+      - list: "request.object.tmp.names"
+        preconditions:
+          any:
+          - key: "{{ element.csi.volumeAttributes.customSidecar || '' }}"
+            operator: Equals
+            value: ''
+          #FIXME Don't add if owner is not a job
+        patchesJson6902: |
+         - op: add
+           path: /spec/containers/-
+           value:
+             name: "spiffe-helper-refresh-tls-{{ element.name }}"
+             image: @SPIFFE_HELPER_IMAGE@
+             volumeMounts:
+             - name: "{{ element.name }}"
+               mountPath: /certs
+             - name: "spiffe-helper-conf-{{ element.name }}"
+               mountPath: /etc/spiffe-helper.conf
+               subPath: helper-sidecar.conf
+               readOnly: true
+             - name: "spiffe-helper-spire-agent"
+               mountPath: /spiffe-workload-api
+               readOnly: true
+             {{ element.csi.volumeAttributes.pidContainer && '- {"name": "spiffe-helper-pid-{{ element.name }}", "mountPath": "/pid", "readOnly": true}' || '' }}
+  - name: xxx
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    preconditions:
+      any:
+      - key: "{{ request.object.tmp.validationFailure }}"
+        operator: NotEquals
+        value: true
+    mutate:
+      foreach:
+      - list: "request.object.tmp.names"
+        patchesJson6902: |
+         - op: add
+           path: /spec/volumes/-1
+           value:
+             name: "{{ element.name }}"
+             emptyDir: {}
+         - op: add
+           path: /spec/volumes/-1
+           value:
+             name: "spiffe-helper-conf-{{ element.name }}"
+             emptyDir: {}
+         - op: add
+           path: /spec/initContainers/0
+           value:
+             name: "spiffe-helper-tls-{{ element.name }}"
+             image: @SPIFFE_HELPER_IMAGE@
+             volumeMounts:
+             - name: "{{ element.name }}"
+               mountPath: /certs
+             - name: "spiffe-helper-conf-{{ element.name }}"
+               mountPath: /etc/spiffe-helper.conf
+               subPath: helper-init.conf
+               readOnly: true
+             - name: "spiffe-helper-spire-agent"
+               mountPath: /spiffe-workload-api
+               readOnly: true
+         - op: add
+           path: /spec/initContainers/0
+           value:
+             name: "spiffe-helper-conf-sidecar-{{ element.name }}"
+             image: @BUSYBOX_IMAGE@
+             command: {{ [request.object.tmp.helperSidecarBase, request.object.tmp.confDocSidecar.{{ element.name }}, [element.csi.volumeAttributes.pidContainer && 'pid_file_name = "/pid/pid"' || '' ]][] }}
+             volumeMounts:
+             - name: "spiffe-helper-conf-{{ element.name }}"
+               mountPath: /config
+         - op: add
+           path: /spec/initContainers/0
+           value:
+             name: "spiffe-helper-conf-init-{{ element.name }}"
+             image: @BUSYBOX_IMAGE@
+             command: {{ [request.object.tmp.helperInitBase, request.object.tmp.confDocInit.{{ element.name }}][] }}
+             volumeMounts:
+             - name: "spiffe-helper-conf-{{ element.name }}"
+               mountPath: /config
+  - name: add-non-driver-volumes
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    preconditions:
+      any:
+      - key: "{{ request.object.tmp.validationFailure }}"
+        operator: NotEquals
+        value: true
+    mutate:
+      foreach:
+      - list: "request.object.tmp.volumes"
+        patchesJson6902: |
+         - op: add
+           path: /spec/volumes/-1
+           value: {{ element }}
+  - name: add-pid-container-bits
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    preconditions:
+      all:
+      - key: "{{ request.object.tmp.validationFailure }}"
+        operator: NotEquals
+        value: true
+    mutate:
+      foreach:
+      - list: "request.object.tmp.names"
+        foreach:
+        #FIXME  Ensure volumeAttrbutes always exists?
+        - list: "request.object.spec.containers"
+          preconditions:
+            any:
+            - key: "{{ element.name }}"
+              operator: Equals
+              value: "{{ element0.csi.volumeAttributes.pidContainer || '' }}"
+          patchesJson6902: |
+            - path: /spec/containers/{{ elementIndex1 }}/volumeMounts/-
+              op: add
+              value:
+                name: spiffe-helper-pid-{{ element0.name }}
+                mountPath: /spiffe-helper-pid-{{ element0.name }}
+            - path: /spec/containers/{{ elementIndex1 }}/env/-
+              op: add
+              value:
+                name: SPIFFE_HELPER_PID_{{ to_upper(element0.name) }}
+                value: /spiffe-helper-pid-{{ element0.name }}/pid
+        #FIXME  Ensure volumeAttrbutes always exists?
+        - list: "request.object.spec.containers"
+          preconditions:
+            any:
+            - key: "{{ element.name }}"
+              operator: Equals
+              value: "{{ element0.csi.volumeAttributes.customSidecar || '' }}"
+          patchesJson6902: |
+            - path: /spec/containers/{{ elementIndex1 }}/command
+              op: add
+              value:
+                - /spiffe-helper/spiffe-helper
+                - -config
+                - /etc/spiffe-helper.conf
+            - path: /spec/containers/{{ elementIndex1 }}/volumeMounts/-
+              op: add
+              value:
+                name: "{{ element0.name }}"
+                mountPath: /certs
+            - path: /spec/containers/{{ elementIndex1 }}/volumeMounts/-
+              op: add
+              value:
+                name: "spiffe-helper-conf-{{ element0.name }}"
+                mountPath: /etc/spiffe-helper.conf
+                subPath: helper-sidecar.conf
+                readOnly: true
+            - path: /spec/containers/{{ elementIndex1 }}/volumeMounts/-
+              op: add
+              value:
+                name: "spiffe-helper-spire-agent"
+                mountPath: /spiffe-workload-api
+                readOnly: true
+            - path: /spec/containers/{{ elementIndex1 }}/volumeMounts/-
+              op: add
+              value:
+                name: "spiffe-helper"
+                mountPath: /spiffe-helper
+                readOnly: true
+  - name: add-pid-volume
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    preconditions:
+      any:
+      - key: "{{ request.object.tmp.validationFailure }}"
+        operator: NotEquals
+        value: true
+    mutate:
+      foreach:
+      - list: "request.object.tmp.names"
+        #FIXME  Ensure volumeAttrbutes always exists? Add only if needed
+        patchesJson6902: |
+          - path: /spec/volumes/-
+            op: add
+            value:
+              name: spiffe-helper-pid-{{ element.name }}
+              emptyDir: {}
+  - name: remove-tmp
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    preconditions:
+      all:
+      - key: "{{ request.object.tmp.validationFailure }}"
+        operator: NotEquals
+        value: true
+      - key: "{{ length(request.object.tmp.names) }}"
+        operator: GreaterThan
+        value: 0
+    mutate:
+      patchesJson6902: |
+        - op: add
+          path: /spec/volumes/-1
+          value:
+            name: spiffe-helper-spire-agent
+            csi:
+              driver: csi.spiffe.io
+              readOnly: true
+        - op: remove
+          path: "/tmp"
+  - name: validate-pid-container
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    preconditions:
+      all:
+       - key: "{{ request.object.spec.volumes[?csi && csi.driver == 'helper.spiffe.io' && csi.volumeAttributes && csi.volumeAttributes.pidContainer] || `[]` | length(@) }}"
+         operator: GreaterThan
+         value: 0
+    validate:
+      message: "Pods using the csi spiffe-helper driver with pidContainer feature must use either shareProcessNamespace: true or hostPID: true"
+      deny:
+        conditions:
+          all:
+          - key: "{{ request.object.spec.shareProcessNamespace || request.object.spec.hostPID || `false` }}"
+            operator: NotEqual
+            value: true
