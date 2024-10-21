@@ -1,9 +1,38 @@
+{{- $rawPodSecurityContext := fromYaml (include "spire-lib.podsecuritycontext" .) }}
+{{- $podSecurityContext := fromYaml (include "spire-server.podSecurityContext" .) }}
+{{- $needsChown := and (not (hasKey $rawPodSecurityContext "runAsUser")) (not (dig "openshift" false .Values.global)) }}
 {{- $configSum := (include (print $.Template.BasePath "/configmap.yaml") . | sha256sum) }}
 {{- $configSum2 := (include (print $.Template.BasePath "/secret.yaml") . | sha256sum) }}
 {{- $configSum3 := (include (print $.Template.BasePath "/controller-manager-configmap.yaml") . | sha256sum) }}
 {{- $configSumTornjak := (include (print $.Template.BasePath "/tornjak-config.yaml") . | sha256sum) }}
 {{- $fullname := include "spire-server.fullname" . }}
-
+{{- if hasKey .Values "ca_subject" }}
+{{-   fail "ca_subject was renamed to caSubject. Please update your config." }}
+{{- end }}
+{{- if hasKey .Values.caSubject "common_name" }}
+{{-   fail "ca_name was renamed to caName. Please update your config." }}
+{{- end }}
+{{- if hasKey .Values.upstreamAuthority.certManager "issuer_name" }}
+{{-   fail "issuer_name was renamed to issuerName. Please update your config." }}
+{{- end }}
+{{- if hasKey .Values.upstreamAuthority.certManager "issuer_group" }}
+{{-   fail "issuer_group was renamed to issuerGroup. Please update your config." }}
+{{- end }}
+{{- if hasKey .Values.upstreamAuthority.certManager "issuer_kind" }}
+{{-   fail "issuer_kind was renamed to issuerKind. Please update your config." }}
+{{- end }}
+{{- if hasKey .Values.upstreamAuthority.certManager "kube_config_file" }}
+{{-   fail "kube_config_file was renamed to kubeConfigFile. Please update your config." }}
+{{- end }}
+{{- if hasKey .Values.nodeAttestor "k8sPsat" }}
+{{-   fail "k8sPsat was renamed to k8sPSAT. Please update your config." }}
+{{- end }}
+{{- if hasKey .Values.nodeAttestor "externalK8sPSA" }}
+{{-   fail "externalK8sPsat was renamed to externalK8sPSAT. Please update your config." }}
+{{- end }}
+{{- if hasKey .Values.notifier "k8sbundle" }}
+{{-   fail "k8sbundle was renmaed to k8sBundle. Please update your config." }}
+{{- end }}
 {{- if eq .Values.kind "statefulset" }}
 {{-   if not (has .Values.persistence.type (list "pvc" "hostPath" "emptyDir")) }}
 {{-     fail "persistence.type must be one of [\"pvc\", \"hostPath\", \"emptyDir\"]" }}
@@ -20,6 +49,20 @@
 {{-   end }}
 {{- else }}
 {{-   fail "Unsupported kind." }}
+{{- end }}
+{{- if hasKey .Values.dataStore.sql "plugin_data" }}
+{{-   fail "The plugin_data setting to the sql data store is no longer supported." }}
+{{- end }}
+{{- if and (ne .Values.dataStore.sql.databaseType "mysql") (ne .Values.dataStore.sql.databaseType "aws_mysql") }}
+{{-   if ne .Values.dataStore.sql.rootCAPath "" }}
+{{-     fail "rootCAPath can only be set with database type mysql or aws_mysql." }}
+{{-   end }}
+{{-   if ne .Values.dataStore.sql.clientCertPath "" }}
+{{-     fail "clientCertPath can only be set with database type mysql or aws_mysql." }}
+{{-   end }}
+{{-   if ne .Values.dataStore.sql.clientKeyPath "" }}
+{{-     fail "clientKeyPath can only be set with database type mysql or aws_mysql." }}
+{{-   end }}
 {{- end }}
 {{- if not .Values.externalServer }}
 apiVersion: apps/v1
@@ -76,9 +119,9 @@ spec:
       serviceAccountName: {{ include "spire-server.serviceAccountName" . }}
       shareProcessNamespace: true
       securityContext:
-        {{- include "spire-lib.podsecuritycontext" . | nindent 8 }}
+        {{- $podSecurityContext | toYaml | nindent 8 }}
       {{- include "spire-lib.default_cluster_priority_class_name" . | nindent 6 }}
-      {{- if or (gt (len .Values.initContainers) 0) (and .Values.upstreamAuthority.certManager.enabled .Values.upstreamAuthority.certManager.ca.create) .Values.nodeAttestor.tpmDirect.enabled }}
+      {{- if or (gt (len .Values.initContainers) 0) (and .Values.upstreamAuthority.certManager.enabled .Values.upstreamAuthority.certManager.ca.create) .Values.nodeAttestor.tpmDirect.enabled $needsChown }}
       initContainers:
         {{- if .Values.nodeAttestor.tpmDirect.enabled }}
         - name: init-tpm-direct
@@ -100,6 +143,23 @@ spec:
               mountPath: /run/spire/data
           imagePullPolicy: {{ .Values.nodeAttestor.tpmDirect.image.pullPolicy }}
       {{- end }}
+      {{- if $needsChown }}
+        - name: chown
+          image: {{ template "spire-lib.image" (dict "image" .Values.chown.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.chown.image.pullPolicy }}
+          command: ["bash", "-c"]
+          args:
+            - |
+              chown -R {{ $podSecurityContext.runAsUser }}:{{ $podSecurityContext.runAsGroup }} /var/lib/spire
+          resources:
+            {{- toYaml .Values.chown.resources | nindent 12 }}
+          volumeMounts:
+            - name: spire-data
+              mountPath: /var/lib/spire
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+      {{- end }}
       {{- if and .Values.upstreamAuthority.certManager.enabled .Values.upstreamAuthority.certManager.ca.create }}
         - name: wait
           securityContext:
@@ -108,7 +168,7 @@ spec:
           args:
             - wait
             - --namespace
-            - {{ .Release.Namespace }}
+            - {{ include "spire-server.namespace" $ }}
             - --timeout=3m
             - --for=condition=ready
             - issuer
@@ -149,20 +209,54 @@ spec:
                 name: {{ $fullname }}-dbpw
                 key: DBPW
           {{- end }}
+          {{- if and .Values.dataStore.sql.readOnly.enabled .Values.dataStore.sql.readOnly.externalSecret.enabled }}
+          - name: RODBPW
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.dataStore.sql.readOnly.externalSecret.name }}
+                key: {{ .Values.dataStore.sql.readOnly.externalSecret.key }}
+          {{- else if .Values.dataStore.sql.readOnly.enabled }}
+          - name: RODBPW
+            valueFrom:
+              secretKeyRef:
+                name: {{ $fullname }}-dbpw
+                key: RODBPW
+          {{- end }}
           {{- end }}
           {{- if ne .Values.keyManager.awsKMS.accessKeyID "" }}
           - name: AWS_KMS_ACCESS_KEY_ID
             valueFrom:
               secretKeyRef:
-                name: {{ $fullname }}-aws-kms
+                name: {{ $fullname }}-cloud
                 key: AWS_KMS_ACCESS_KEY_ID
           {{- end }}
           {{- if ne .Values.keyManager.awsKMS.secretAccessKey "" }}
           - name: AWS_KMS_SECRET_ACCESS_KEY
             valueFrom:
               secretKeyRef:
-                name: {{ $fullname }}-aws-kms
+                name: {{ $fullname }}-cloud
                 key: AWS_KMS_SECRET_ACCESS_KEY
+          {{- end }}
+          {{- if ne .Values.secrets.aws.accessKeyID "" }}
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: {{ $fullname }}-cloud
+                key: AWS_ACCESS_KEY_ID
+          {{- end }}
+          {{- if ne .Values.secrets.aws.secretAccessKey "" }}
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ $fullname }}-cloud
+                key: AWS_SECRET_ACCESS_KEY
+          {{- end }}
+          {{- if ne .Values.secrets.gcp.applicationCredentials "" }}
+          - name: GOOGLE_APPLICATION_CREDENTIALS
+            valueFrom:
+              secretKeyRef:
+                name: {{ $fullname }}-cloud
+                key: GOOGLE_APPLICATION_CREDENTIALS
           {{- end }}
           ports:
             - name: grpc
@@ -220,6 +314,10 @@ spec:
             - name: tpm-direct-hashes
               mountPath: /tmp-direct-hashes
             {{- end }}
+            {{- end }}
+            {{- if or .Values.federation.tls.certManager.enabled .Values.federation.tls.externalSecret.enabled }}
+            - name: bundle-endpoint-tls
+              mountPath: /bundle-endpoint-tls
             {{- end }}
             {{- if eq (.Values.upstreamAuthority.disk.enabled | toString) "true" }}
             - name: upstream-ca
@@ -355,6 +453,16 @@ spec:
           configMap:
             name: {{ include "spire-server.fullname" . }}-tpm-direct-hash
         {{- end }}
+        {{- end }}
+        {{- if .Values.federation.tls.certManager.enabled }}
+        - name: bundle-endpoint-tls
+          secret:
+            secretName: {{ printf "%s-federation-cert" (include "spire-server.fullname" .) }}
+        {{- end }}
+        {{- if .Values.federation.tls.externalSecret.enabled }}
+        - name: bundle-endpoint-tls
+          secret:
+            secretName: {{ .Values.federation.tls.externalSecret.secretName }}
         {{- end }}
         {{- if or (eq (include "spire-tornjak.connectionType" .) "tls") (eq (include "spire-tornjak.connectionType" .) "mtls") }}
         - name: server-cert

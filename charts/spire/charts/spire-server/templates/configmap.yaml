@@ -1,9 +1,9 @@
 {{- include "spire-lib.check-strict-mode" (list . "clusterName must be set" (eq (include "spire-lib.cluster-name" .) "example-cluster"))}}
 {{- include "spire-lib.check-strict-mode" (list . "trustDomain must be set" (eq (include "spire-lib.trust-domain" .) "example.org"))}}
 {{- include "spire-lib.check-strict-mode" (list . "jwtIssuer must be set" (eq (include "spire-lib.jwt-issuer" .) "https://oidc-discovery.example.org"))}}
-{{- include "spire-lib.check-strict-mode" (list . "ca_subject.country must be set" (eq (include "spire-server.ca-subject-country" .) "ARPA"))}}
-{{- include "spire-lib.check-strict-mode" (list . "ca_subject.organization must be set" (eq (include "spire-server.ca-subject-organization" .) "Example"))}}
-{{- include "spire-lib.check-strict-mode" (list . "ca_subject.common_name must be set" (eq (include "spire-server.ca-subject-common-name" .) "example.org"))}}
+{{- include "spire-lib.check-strict-mode" (list . "caSubject.country must be set" (eq (include "spire-server.ca-subject-country" .) "ARPA"))}}
+{{- include "spire-lib.check-strict-mode" (list . "caSubject.organization must be set" (eq (include "spire-server.ca-subject-organization" .) "Example"))}}
+{{- include "spire-lib.check-strict-mode" (list . "caSubject.commonNname must be set" (eq (include "spire-server.ca-subject-common-name" .) "example.org"))}}
 {{- range $type, $tvals := .Values.customPlugins }}
 {{-   if not (has $type (list "bundlePublisher" "credentialComposer" "keyManager" "nodeAttestor" "upstreamAuthority" "notifier")) }}
 {{-     fail (printf "Unknown plugin type specified: %s" $type) }}
@@ -38,9 +38,6 @@
 {{- if and (eq (.Values.keyManager.awsKMS.keyIdentifierFile.enabled | toString) "true") (eq (.Values.keyManager.awsKMS.keyIdentifierValue.enabled | toString ) "true") }}
 {{-   fail "You can only enable one of keyIdentifierFile or keyIdentifierValue at a time" }}
 {{- end }}
-{{- if hasKey .Values.federation.bundleEndpoint "profile" }}
-{{-   fail "Configuring the federation bundle endpoint profile directly isn't supported. You can specify the settings via federation.tls" }}
-{{- end }}
 {{- define "spire-server.yaml-config" -}}
 {{- $upstreamAuthorityUsed := 0 }}
 {{- $keyManagerUsed := 0 }}
@@ -69,12 +66,24 @@ server:
       organization: [{{ include "spire-server.ca-subject-organization" . | quote }}]
       common_name: {{ include "spire-server.ca-subject-common-name" . | quote }}
 
-  {{- with .Values.federation }}
-  {{- if eq (.enabled | toString) "true" }}
+  {{- if eq (.Values.federation.enabled | toString) "true" }}
   federation:
     bundle_endpoint:
-      - {{ .bundleEndpoint | toYaml | nindent 8 }}
-  {{- end }}
+      address: {{ .Values.federation.bundleEndpoint.address | quote }}
+      port: {{ .Values.federation.bundleEndpoint.port }}
+      refresh_hint: {{ .Values.federation.bundleEndpoint.refreshHint | quote }}
+      profile:
+        {{- if .Values.federation.tls.spire.enabled }}
+        - https_spiffe: {}
+        {{ else }}
+        - https_web:
+            serving_cert_file:
+              file_sync_interval: {{ .Values.federation.bundleEndpoint.profile.httpWeb.fileSyncInterval }}
+              {{- if or .Values.federation.tls.certManager.enabled .Values.federation.tls.externalSecret.enabled }}
+              cert_file_path: /bundle-endpoint-tls/tls.crt
+              key_file_path: /bundle-endpoint-tls/tls.key
+              {{- end }}
+        {{- end }}
   {{- end }}
 
   {{- with .Values.experimental }}
@@ -101,16 +110,31 @@ plugins:
   DataStore:
     sql:
       plugin_data:
-        {{ include "spire-server.datastore-config" . | nindent 10 }}
+        {{ include "spire-server.datastore-config" . | nindent 8 }}
+        {{- if ne .Values.dataStore.sql.rootCAPath "" }}
+        root_ca_path: {{ .Values.dataStore.sql.rootCAPath }}
+        {{- end }}
+        {{- if ne .Values.dataStore.sql.clientCertPath "" }}
+        client_cert_path: {{ .Values.dataStore.sql.clientCertPath }}
+        {{- end }}
+        {{- if ne .Values.dataStore.sql.clientKeyPath "" }}
+        client_key_path	: {{ .Values.dataStore.sql.clientKeyPath }}
+        {{- end }}
+        max_open_conns: {{ .Values.dataStore.sql.maxOpenConns }}
+        max_idle_conns: {{ .Values.dataStore.sql.maxIdleConns }}
+        {{- if ne (int .Values.dataStore.sql.connMaxLifetime) 0 }}
+        conn_max_lifetime: {{ .Values.dataStore.sql.connMaxLifetime }}
+        {{- end }}
+        disable_migration: {{ .Values.dataStore.sql.disableMigration }}
 
-  {{- if or .Values.nodeAttestor.k8sPsat.enabled .Values.nodeAttestor.externalK8sPsat.enabled .Values.nodeAttestor.joinToken.enabled .Values.nodeAttestor.tpmDirect.enabled }}
+  {{- if or .Values.nodeAttestor.k8sPSAT.enabled .Values.nodeAttestor.externalK8sPSAT.enabled .Values.nodeAttestor.joinToken.enabled .Values.nodeAttestor.httpChallenge.enabled .Values.nodeAttestor.tpmDirect.enabled }}
   NodeAttestor:
-  {{- $clusters := default .Values.kubeConfigs .Values.nodeAttestor.externalK8sPsat.clusters }}
-  {{- if or (eq (.Values.nodeAttestor.k8sPsat.enabled | toString) "true") (and (eq (.Values.nodeAttestor.externalK8sPsat.enabled | toString) "true") (gt (len $clusters) 0)) }}
+  {{- $clusters := default .Values.kubeConfigs .Values.nodeAttestor.externalK8sPSAT.clusters }}
+  {{- if or (eq (.Values.nodeAttestor.k8sPSAT.enabled | toString) "true") (and (eq (.Values.nodeAttestor.externalK8sPSAT.enabled | toString) "true") (gt (len $clusters) 0)) }}
     k8s_psat:
       plugin_data:
         clusters:
-          {{- with .Values.nodeAttestor.k8sPsat }}
+          {{- with .Values.nodeAttestor.k8sPSAT }}
           {{- if eq (.enabled | toString) "true" }}
         - {{ include "spire-lib.cluster-name" $root }}:
             service_account_allow_list: {{ include "spire-server.serviceAccountAllowedList" $root | trim }}
@@ -121,12 +145,12 @@ plugins:
               {{ toYaml .allowedPodLabelKeys | nindent 14 }}
           {{- end }}
           {{- end }}
-          {{- if eq (.Values.nodeAttestor.externalK8sPsat.enabled | toString) "true" }}
-          {{- $clusterDefaults := .Values.nodeAttestor.externalK8sPsat.defaults }}
+          {{- if eq (.Values.nodeAttestor.externalK8sPSAT.enabled | toString) "true" }}
+          {{- $clusterDefaults := .Values.nodeAttestor.externalK8sPSAT.defaults }}
           {{- range $name, $_ := $clusters }}
           {{- $clusterSettings := dict }}
-          {{- if hasKey $root.Values.nodeAttestor.externalK8sPsat.clusters $name }}
-          {{- $clusterSettings = index $root.Values.nodeAttestor.externalK8sPsat.clusters $name }}
+          {{- if hasKey $root.Values.nodeAttestor.externalK8sPSAT.clusters $name }}
+          {{- $clusterSettings = index $root.Values.nodeAttestor.externalK8sPSAT.clusters $name }}
           {{- end }}
         - {{ $name }}:
             {{- if hasKey $clusterSettings "kubeConfigName" }}
@@ -148,6 +172,21 @@ plugins:
   {{- if eq (.enabled | toString) "true" }}
     join_token:
       plugin_data: {}
+  {{- end }}
+  {{- end }}
+  {{- with .Values.nodeAttestor.httpChallenge }}
+  {{- if eq (.enabled | toString) "true" }}
+    http_challenge:
+      plugin_data:
+        {{- with .allowedDNSPatterns }}
+        allowed_dns_patterns:
+          {{ toYaml . | nindent 10 }}
+        {{- end }}
+        {{- if ne (int .requiredPort) 0 }}
+        required_port: {{ .requiredPort }}
+        {{- end }}
+        allow_non_root_ports: {{ .allowNonRootPorts }}
+        tofu: {{ .tofu }}
   {{- end }}
   {{- end }}
   {{- with .Values.nodeAttestor.tpmDirect }}
@@ -200,8 +239,6 @@ plugins:
         key_identifier_file: "/run/spire/data/aws-kms-key-identifier"
         {{- else if eq (.keyIdentifierValue.enabled | toString) "true" }}
         key_identifier_value: {{ .keyIdentifierValue.identifier | quote }}
-        {{- else }}
-        key_metadata_file: "/run/spire/data/aws-kms-key-metadata"
         {{- end }}
         {{- if ne .accessKeyID "" }}
         access_key_id: "${AWS_KMS_ACCESS_KEY_ID}"
@@ -220,11 +257,11 @@ plugins:
 {{- end }}
 
   {{- $externalK8sBundleClusters := default .Values.kubeConfigs .Values.notifier.externalK8sBundle.clusters }}
-  {{- if or .Values.notifier.k8sbundle.enabled (and .Values.notifier.externalK8sBundle.enabled (ne (len $externalK8sBundleClusters) 0)) }}
+  {{- if or .Values.notifier.k8sBundle.enabled (and .Values.notifier.externalK8sBundle.enabled (ne (len $externalK8sBundleClusters) 0)) }}
   Notifier:
     k8sbundle:
       plugin_data:
-        {{- if eq (.Values.notifier.k8sbundle.enabled | toString) "true" }}
+        {{- if eq (.Values.notifier.k8sBundle.enabled | toString) "true" }}
         namespace: {{ include "spire-server.bundle-namespace" . | quote }}
         config_map: {{ include "spire-lib.bundle-configmap" . | quote }}
         {{- end }}
@@ -249,6 +286,31 @@ plugins:
         {{- end }}
   {{- end }}
 
+  {{- if or .Values.bundlePublisher.awsRolesAnywhereTrustAnchor.enabled .Values.bundlePublisher.awsS3.enabled .Values.bundlePublisher.gcpCloudStorage.enabled }}
+  BundlePublisher:
+    {{- if .Values.bundlePublisher.awsRolesAnywhereTrustAnchor.enabled }}
+    aws_rolesanywhere_trustanchor:
+      plugin_data:
+        region: {{ .Values.bundlePublisher.awsRolesAnywhereTrustAnchor.region | quote }}
+        trust_anchor_id: {{ .Values.bundlePublisher.awsRolesAnywhereTrustAnchor.trustAnchorID | quote }}
+    {{- end }}
+    {{- if .Values.bundlePublisher.awsS3.enabled }}
+    aws_s3:
+      plugin_data:
+        region: {{ .Values.bundlePublisher.awsS3.region | quote }}
+        bucket: {{ .Values.bundlePublisher.awsS3.bucket | quote }}
+        object_key: {{ .Values.bundlePublisher.awsS3.objectKey | quote }}
+        format: {{ .Values.bundlePublisher.awsS3.format | quote }}
+    {{- end }}
+    {{- if .Values.bundlePublisher.gcpCloudStorage.enabled }}
+    gcp_cloudstorage:
+      plugin_data:
+        bucket_name: {{ .Values.bundlePublisher.gcpCloudStorage.bucketName | quote }}
+        object_name: {{ .Values.bundlePublisher.gcpCloudStorage.objectName | quote }}
+        format: {{ .Values.bundlePublisher.awsS3.format | quote }}
+    {{- end }}
+  {{- end }}
+
   {{- with .Values.upstreamAuthority.disk }}
   {{- if eq (.enabled | toString) "true" }}
   {{- $upstreamAuthorityUsed = add1 $upstreamAuthorityUsed }}
@@ -269,12 +331,12 @@ plugins:
   UpstreamAuthority:
     cert-manager:
       plugin_data:
-        issuer_name: {{ default (printf "%s-ca" (include "spire-server.fullname" $root)) .issuer_name }}
-        issuer_kind: {{ .issuer_kind | quote }}
-        issuer_group: {{ .issuer_group | quote }}
-        namespace: {{ default $root.Release.Namespace .namespace | quote }}
-        {{- if ne .kube_config_file "" }}
-        kube_config_file: {{ .kube_config_file | quote }}
+        issuer_name: {{ default (printf "%s-ca" (include "spire-server.fullname" $root)) .issuerName }}
+        issuer_kind: {{ .issuerKind | quote }}
+        issuer_group: {{ .issuerGroup | quote }}
+        namespace: {{ default (include "spire-server.namespace" $) .namespace | quote }}
+        {{- if ne .kubeConfigFile "" }}
+        kube_config_file: {{ .kubeConfigFile | quote }}
         {{- end }}
   {{- end }}
   {{- end }}

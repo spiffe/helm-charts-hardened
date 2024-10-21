@@ -1,5 +1,14 @@
 {{- $configSum := (include (print $.Template.BasePath "/configmap.yaml") . | sha256sum) }}
 {{- $root := . }}
+{{- if hasKey .Values.nodeAttestor "k8sPsat" }}
+{{-   fail "k8sPsat was renamed to k8sPSAT. Please update your config." }}
+{{- end }}
+{{- if hasKey .Values.sds "defaultSvidName" }}
+{{-   fail "defaultSvidName was renamed to defaultSVIDName. Please update your config." }}
+{{- end }}
+{{- if hasKey .Values.sds "disableSpiffeCertValidation" }}
+{{-   fail "disableSpiffeCertValidation was renamed to disableSPIFFECertValidation. Please update your config." }}
+{{- end }}
 {{- range $name := (concat (list "default") (keys .Values.agents)) | uniq }}
 {{- with (dict "Release" $root.Release "Chart" $root.Chart "Values" (deepCopy $root.Values)) }}
 {{- $nameSuffix := "" }}
@@ -22,16 +31,16 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: {{ include "spire-agent.fullname" . }}{{ $nameSuffix }}
-  namespace: {{ include "spire-agent.namespace" . }}
+  name: {{ printf "%s%s" (include "spire-agent.fullname" .) $nameSuffix | quote }}
+  namespace: {{ include "spire-agent.namespace" . | quote}}
   labels:
     {{- include "spire-agent.labels" . | nindent 4 }}
-    app.kubernetes.io/component: {{ $name }}
+    app.kubernetes.io/component: {{ $name | quote }}
 spec:
   selector:
     matchLabels:
       {{- include "spire-agent.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: {{ $name }}
+      app.kubernetes.io/component: {{ $name | quote }}
   {{- with .Values.updateStrategy }}
   updateStrategy:
     {{- if not (has .type (list "RollingUpdate" "OnDelete")) }}
@@ -47,13 +56,13 @@ spec:
     metadata:
       annotations:
         kubectl.kubernetes.io/default-container: spire-agent
-        checksum/config: {{ $configSum }}
+        checksum/config: {{ $configSum | quote }}
         {{- with .Values.podAnnotations }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
       labels:
         {{- include "spire-agent.selectorLabels" . | nindent 8 }}
-        app.kubernetes.io/component: {{ $name }}
+        app.kubernetes.io/component: {{ $name | quote }}
         {{- with .Values.podLabels }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -65,7 +74,7 @@ spec:
       hostPID: true
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
-      serviceAccountName: {{ include "spire-agent.serviceAccountName" . }}
+      serviceAccountName: {{ include "spire-agent.serviceAccountName" . | quote }}
       securityContext:
         {{- toYaml $podSecurityContext | nindent 8 }}
       {{- include "spire-lib.default_node_priority_class_name" . | nindent 6 }}
@@ -74,6 +83,58 @@ spec:
         {{- toYaml .Values.hostAliases | nindent 8 }}
       {{- end }}
       initContainers:
+        {{- if or (eq .Values.workloadAttestors.k8s.verification.type "hostCert") (eq .Values.workloadAttestors.k8s.verification.type "auto") }}
+        - name: gather-host-cert
+          securityContext:
+            {{- $mainSecurityContext | toYaml | nindent 12 }}
+          image: {{ template "spire-lib.image" (dict "image" .Values.hostCert.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.hostCert.image.pullPolicy | quote }}
+          command: ["bash", "-xc"]
+          args:
+            - |
+              {{- if ne .Values.workloadAttestors.k8s.verification.hostCert.fileName "" }}
+              openssl x509 -in {{ printf "%s/%s" .Values.workloadAttestors.k8s.verification.hostCert.basePath .Values.workloadAttestors.k8s.verification.hostCert.fileName | quote }} -out /hostCert/kubelet.crt
+              {{- else }}
+              if [ -f "{{ .Values.workloadAttestors.k8s.verification.hostCert.basePath }}/kubelet-server-current.pem" ]; then
+                openssl x509 -in {{ printf "%s/kubelet-server-current.pem" .Values.workloadAttestors.k8s.verification.hostCert.basePath | quote }} -out /hostCert/kubelet.crt
+              elif [ -f "{{ .Values.workloadAttestors.k8s.verification.hostCert.basePath }}/kubelet.crt" ]; then
+                openssl x509 -in {{ printf "%s/kubelet.crt" .Values.workloadAttestors.k8s.verification.hostCert.basePath | quote }} -out /hostCert/kubelet.crt
+              else
+                {{- if eq .Values.workloadAttestors.k8s.verification.type "auto" }}
+                {{- if $cbh }}
+                URL="https://$NODE_NAME:10250/spec/"
+                {{- else }}
+                URL="https://localhost:10250/spec/"
+                {{- end }}
+                curl --capath /var/run/secrets/kubernetes.io/serviceaccount/ca.crt "$URL"
+                if [ $? -eq 0 ]; then
+                  echo Mode detected as apiServerCA.
+                  ln -s /var/run/secrets/kubernetes.io/serviceaccount/ca.crt /hostCert/kubelet.crt
+                  exit 0
+                fi
+                {{- end }}
+                echo Could not find certificate.
+                exit 1
+              fi
+              {{- end }}
+              {{- if eq .Values.workloadAttestors.k8s.verification.type "auto" }}
+              echo Mode detected as hostCert.
+              {{- end }}
+              chmod 644 /hostCert/kubelet.crt
+          env:
+          {{- if $cbh }}
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          {{- end }}
+          volumeMounts:
+          - name: host-cert-isolated
+            mountPath: /hostCert
+          - name: host-cert
+            mountPath: {{ .Values.workloadAttestors.k8s.verification.hostCert.basePath | quote }}
+            readOnly: true
+        {{- end }}
         {{- if .Values.nodeAttestor.tpmDirect.enabled }}
         {{- if .Values.nodeAttestor.tpmDirect.pubHash.enabled }}
         - name: fingerprint-tpm
@@ -98,7 +159,7 @@ spec:
               readOnly: true
             - name: kmsg
               mountPath: /dev/kmsg
-          imagePullPolicy: {{ .Values.nodeAttestor.tpmDirect.pubHash.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.nodeAttestor.tpmDirect.pubHash.image.pullPolicy | quote }}
         {{- end }}
         - name: init-tpm-direct
           securityContext:
@@ -109,16 +170,16 @@ spec:
             - -ec
             - |
               # SPIRE must be able to fork the plugin directly within its container. Copy the plugin into a volume that can be mounted where SPIRE can execute it.
-              cp -a {{ .Values.nodeAttestor.tpmDirect.plugin.path }} /tpm/tpm_attestor_agent
+              cp -a {{ .Values.nodeAttestor.tpmDirect.plugin.path | quote }} /tpm/tpm_attestor_agent
           volumeMounts:
             - name: tpm-direct
               mountPath: /tpm
-          imagePullPolicy: {{ .Values.nodeAttestor.tpmDirect.plugin.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.nodeAttestor.tpmDirect.plugin.image.pullPolicy | quote }}
         {{- end }}
         {{- if gt (len $socketAlternateNames) 0 }}
         - name: ensure-alternate-names
           image: {{ template "spire-lib.image" (dict "image" .Values.socketAlternate.image "global" .Values.global) }}
-          imagePullPolicy: {{ .Values.socketAlternate.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.socketAlternate.image.pullPolicy | quote }}
           command: ["bash", "-xc"]
           {{- /* 1. Look for symlinks pointing at the wrong place and remove them. 2. Make symlinks that don't exist. 3. If new socket is pointing at an existing symlink, remove old symlink. */}}
           args:
@@ -126,7 +187,7 @@ spec:
               cd {{ $socketPath | dir }}
               {{- range $socketAlternateNames }}
               L=`readlink {{ . }}`
-              [ "x$L" != "x{{ $socketPath | base}}" ] && rm -f {{ . }}
+              [ "x$L" != "x{{ $socketPath | base }}" ] && rm -f {{ . }}
               [ ! -L {{ . }} ] && ln -s {{ $socketPath | base }} {{ . }}
               {{- end }}
               [ -L {{ $socketPath | base }} ] && rm -f {{ $socketPath | base }}
@@ -143,15 +204,19 @@ spec:
         {{- if gt (int (dig "fsGroup" 0 $podSecurityContext)) 0 }}
         - name: fsgroupfix
           image: {{ template "spire-lib.image" (dict "image" .Values.fsGroupFix.image "global" .Values.global) }}
-          imagePullPolicy: {{ .Values.fsGroupFix.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.fsGroupFix.image.pullPolicy | quote }}
           command: ["bash", "-c"]
           args:
-            - "chown -R {{ $podSecurityContext.runAsUser }}:{{ $podSecurityContext.fsGroup }} {{ $socketPath | dir }} /tmp/spire-agent/private"
+            - |
+              chown -R {{ printf "%v:%v" $podSecurityContext.runAsUser $podSecurityContext.fsGroup | quote }} {{ $socketPath | dir }} /tmp/spire-agent/private
+              chown -R {{ printf "%v:%v" $podSecurityContext.runAsUser $podSecurityContext.fsGroup | quote }} /var/lib/spire
           resources:
             {{- toYaml .Values.fsGroupFix.resources | nindent 12 }}
           volumeMounts:
             - name: spire-agent-socket-dir
               mountPath: {{ $socketPath | dir }}
+            - name: spire-agent-persistence
+              mountPath: /var/lib/spire
             - name: spire-agent-admin-socket-dir
               mountPath: /tmp/spire-agent/private
           securityContext:
@@ -162,9 +227,9 @@ spec:
         {{- toYaml .Values.initContainers | nindent 8 }}
         {{- end }}
       containers:
-        - name: {{ .Chart.Name }}
+        - name: {{ .Chart.Name | quote }}
           image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.image "global" .Values.global) }}
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
           args: ["-config", "/opt/spire/conf/agent/agent.conf"]
           securityContext:
             {{- $mainSecurityContext | toYaml | nindent 12 }}
@@ -191,6 +256,8 @@ spec:
             - name: spire-config
               mountPath: /opt/spire/conf/agent
               readOnly: true
+            - name: spire-agent-persistence
+              mountPath: /var/lib/spire
             {{- if .Values.sockets.admin.enabled }}
             - name: spire-agent-admin-socket-dir
               mountPath: /tmp/spire-agent/private
@@ -198,8 +265,12 @@ spec:
             {{- end }}
             {{- if eq (len .Values.trustBundleURL) 0 }}
             - name: spire-bundle
-              mountPath: /run/spire/bundle
               readOnly: true
+            {{- if ne (len .Values.trustBundleHostPath) 0 }}
+              mountPath: {{ .Values.trustBundleHostPath | dir | quote }}
+            {{- else }}
+              mountPath: /run/spire/bundle
+            {{- end }}
             {{- end }}
             {{- if .Values.nodeAttestor.tpmDirect.enabled }}
             - name: tpm-direct
@@ -214,6 +285,11 @@ spec:
               readOnly: false
             - name: spire-token
               mountPath: /var/run/secrets/tokens
+            {{- if or (eq .Values.workloadAttestors.k8s.verification.type "hostCert") (eq .Values.workloadAttestors.k8s.verification.type "auto") }}
+            - name: host-cert-isolated
+              mountPath: /hostCert
+              readOnly: true
+            {{- end }}
             {{- if gt (len .Values.extraVolumeMounts) 0 }}
             {{- toYaml .Values.extraVolumeMounts | nindent 12 }}
             {{- end }}
@@ -251,16 +327,38 @@ spec:
         {{- if .Values.sockets.admin.mountOnHost }}
         - name: spire-agent-admin-socket-dir
           hostPath:
-            hostPath: {{ .Values.sockets.hostBasePath }}/{{ if .Values.upstream }}upstream.csi.spiffe.io{{ else }}csi.spiffe.io{{ end }}/admin
+            {{- if .Values.upstream }}
+            path: {{ printf "%s/upstream.csi.spiffe.io/admin" .Values.sockets.hostBasePath | quote }}
+            {{- else }}
+            path: {{ printf "%s/csi.spiffe.io/admin" .Values.sockets.hostBasePath | quote }}
+            {{- end }}
             type: DirectoryOrCreate
         {{- else }}
         - name: spire-agent-admin-socket-dir
           emptyDir: {}
         {{- end }}
+        {{- if eq .Values.persistence.type "hostPath" }}
+        - name: spire-agent-persistence
+          hostPath:
+            {{- if .Values.upstream }}
+            path: {{ printf "%s/upstream.csi.spiffe.io" .Values.persistence.hostPath | quote }}
+            {{- else }}
+            path: {{ printf "%s/csi.spiffe.io" .Values.persistence.hostPath | quote }}
+            {{- end }}
+            type: DirectoryOrCreate
+        {{- else }}
+        - name: spire-agent-persistence
+          emptyDir: {}
+        {{- end }}
         {{- if eq (len .Values.trustBundleURL) 0 }}
         - name: spire-bundle
+        {{- if ne (len .Values.trustBundleHostPath) 0 }}
+          hostPath:
+            path: {{ .Values.trustBundleHostPath | dir | quote }}
+        {{- else }}
           configMap:
-            name: {{ include "spire-lib.bundle-configmap" . }}{{ $nameSuffix }}
+            name: {{ printf "%s%s" (include "spire-lib.bundle-configmap" .) $nameSuffix | quote }}
+        {{- end }}
         {{- end }}
         {{- if .Values.nodeAttestor.tpmDirect.enabled }}
         - name: tpm-direct
@@ -286,6 +384,13 @@ spec:
           hostPath:
             path: /dev/kmsg
             type: CharDevice
+        {{- end }}
+        {{- if or (eq .Values.workloadAttestors.k8s.verification.type "hostCert") (eq .Values.workloadAttestors.k8s.verification.type "auto") }}
+        - name: host-cert-isolated
+          emptyDir: {}
+        - name: host-cert
+          hostPath:
+            path: {{ .Values.workloadAttestors.k8s.verification.hostCert.basePath | quote }}
         {{- end }}
         {{- if gt (len .Values.extraVolumes) 0 }}
         {{- toYaml .Values.extraVolumes | nindent 8 }}

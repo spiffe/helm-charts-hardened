@@ -61,7 +61,7 @@ helm upgrade --install ingress-nginx ingress-nginx --version "$VERSION_INGRESS_N
   --wait
 
 # Test the ingress controller. Should 404 as there is no services yet.
-curl "$IP"
+common_test_url "$IP"
 
 kubectl get configmap -n kube-system coredns -o yaml | grep hosts || kubectl get configmap -n kube-system coredns -o yaml | sed "/ready/a\        hosts {\n           fallthrough\n        }" | kubectl apply -f -
 kubectl get configmap -n kube-system coredns -o yaml | grep production.other || kubectl get configmap -n kube-system coredns -o yaml | sed "/hosts/a\           $IP oidc-discovery.production.other\n           $IP spire-server.production.other\n" | kubectl apply -f -
@@ -104,12 +104,12 @@ for cluster in child other; do
   KC="${SCRIPTPATH}/kubeconfig-${cluster}"
   kubectl --kubeconfig "${KC}" get configmap -n spire-system spire-bundle-upstream -o yaml
   kubectl --kubeconfig "${KC}" rollout restart daemonset spire-agent-upstream -n spire-system
+  kubectl --kubeconfig "${KC}" rollout status daemonset spire-agent-upstream -n spire-system --timeout 120s || kubectl logs --kubeconfig "${KC}" daemonset/spire-agent-upstream -n spire-system --prefix --all-containers=true
   kubectl --kubeconfig "${KC}" rollout restart statefulset spire-internal-server -n spire-server
+  kubectl --kubeconfig "${KC}" rollout status statefulset spire-internal-server -n spire-server --timeout 120s || kubectl logs --kubeconfig "${KC}" statefulset/spire-internal-server -n spire-server --prefix --all-containers=true
   kubectl --kubeconfig "${KC}" rollout restart daemonset spire-agent-downstream -n spire-system
-  kubectl --kubeconfig "${KC}" rollout restart deployment spiffe-oidc-discovery-provider -n spire-server
-  kubectl --kubeconfig "${KC}" rollout status daemonset spire-agent-upstream -n spire-system --timeout 60s || kubectl logs --kubeconfig "${KC}" daemonset/spire-agent-upstream -n spire-system --prefix --all-containers=true
-  kubectl --kubeconfig "${KC}" rollout status statefulset spire-internal-server -n spire-server --timeout 60s || kubectl logs --kubeconfig "${KC}" statefulset/spire-internal-server -n spire-server --prefix --all-containers=true
   kubectl --kubeconfig "${KC}" rollout status daemonset spire-agent-downstream -n spire-system --timeout 60s || kubectl logs --kubeconfig "${KC}" daemonset/spire-agent-downstream -n spire-system --prefix --all-containers=true
+  kubectl --kubeconfig "${KC}" rollout restart deployment spiffe-oidc-discovery-provider -n spire-server
   kubectl --kubeconfig "${KC}" rollout status deployment spiffe-oidc-discovery-provider -n spire-server --timeout 60s || kubectl logs --kubeconfig "${KC}" deployment/spiffe-oidc-discovery-provider -n spire-server --prefix --all-containers=true
 
   echo Pods on "${cluster}"

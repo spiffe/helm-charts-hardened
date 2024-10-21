@@ -85,6 +85,10 @@ spec:
                 }
               ]
             }
+        {{- with (((.Values).global).installAndUpgradeHooks).resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
 {{- end }}
 {{- end }}
 {{- end }}

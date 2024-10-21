@@ -1,6 +1,6 @@
 {{- with .Values.upstreamAuthority.certManager }}
 {{ if and .enabled .ca.create }}
-{{ $issuerName := printf "%s-selfsigned" (default (include "spire-server.fullname" $) .issuer_name)  }}
+{{ $issuerName := printf "%s-selfsigned" (default (include "spire-server.fullname" $) .issuerName)  }}
 {{/*
 Configuring CA Issuer: https://cert-manager.io/docs/configuration/ca/
 */}}
@@ -21,14 +21,14 @@ metadata:
   namespace: {{ include "spire-server.namespace" $ }}
 spec:
   isCA: true
-  commonName: {{ $.Values.ca_subject.common_name }}
+  commonName: {{ include "spire-server.ca-subject-common-name" $ | quote }}
   secretName: {{ include "spire-server.fullname" $ }}-ca-keys
   duration: {{ $.Values.upstreamAuthority.certManager.ca.duration }}
   subject:
     countries:
-      - {{ $.Values.ca_subject.country }}
+      - {{ include "spire-server.ca-subject-country" $ | quote }}
     organizations:
-      - {{ $.Values.ca_subject.organization }}
+      - {{ include "spire-server.ca-subject-organization" $ | quote }}
   privateKey:
     algorithm: {{ $.Values.upstreamAuthority.certManager.ca.privateKey.algorithm }}
     size: {{ $.Values.upstreamAuthority.certManager.ca.privateKey.size }}

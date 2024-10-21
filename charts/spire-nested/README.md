@@ -1,6 +1,6 @@
 # spire
 
-![Version: 0.20.0](https://img.shields.io/badge/Version-0.20.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.9.6](https://img.shields.io/badge/AppVersion-1.9.6-informational?style=flat-square)
+![Version: 0.23.0](https://img.shields.io/badge/Version-0.23.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.10.3](https://img.shields.io/badge/AppVersion-1.10.3-informational?style=flat-square)
 [![Development Phase](https://github.com/spiffe/spiffe/blob/main/.img/maturity/dev.svg)](https://github.com/spiffe/spiffe/blob/main/MATURITY.md#development)
 
 A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
@@ -236,32 +236,35 @@ Now you can interact with the Spire agent socket from your own application. The 
 
 ### Spire agent parameters
 
-| Name                                              | Description                                                   | Value                     |
-| ------------------------------------------------- | ------------------------------------------------------------- | ------------------------- |
-| `downstream-spire-agent-full.nameOverride`        | Overrides the name of Spire agent pods                        | `agent-downstream`        |
-| `downstream-spire-agent-full.server.nameOverride` | The name override setting of the internal SPIRE server        | `internal-server`         |
-| `downstream-spire-agent-full.bundleConfigMap`     | The name of the configmap that contains the downstream bundle | `spire-bundle-downstream` |
+| Name                                               | Description                                                    | Value                                 |
+| -------------------------------------------------- | -------------------------------------------------------------- | ------------------------------------- |
+| `downstream-spire-agent-full.nameOverride`         | Overrides the name of Spire agent pods                         | `agent-downstream`                    |
+| `downstream-spire-agent-full.server.nameOverride`  | The name override setting of the internal SPIRE server         | `internal-server`                     |
+| `downstream-spire-agent-full.bundleConfigMap`      | The name of the configmap that contains the downstream bundle  | `spire-bundle-downstream`             |
+| `downstream-spire-agent-full.persistence.hostPath` | Which path to use on the host when persistence.type = hostPath | `/var/lib/spire/k8s/downstream-agent` |
 
 ### Spire agent parameters
 
-| Name                                                  | Description                                                   | Value                   |
-| ----------------------------------------------------- | ------------------------------------------------------------- | ----------------------- |
-| `downstream-spire-agent-security.nameOverride`        | Overrides the name of Spire agent pods                        | `agent-downstream`      |
-| `downstream-spire-agent-security.bundleConfigMap`     | The name of the configmap that contains the downstream bundle | `spire-bundle-upstream` |
-| `downstream-spire-agent-security.serviceAccount.name` | The name of the service account to use                        | `spire-agent-upstream`  |
+| Name                                                   | Description                                                    | Value                                 |
+| ------------------------------------------------------ | -------------------------------------------------------------- | ------------------------------------- |
+| `downstream-spire-agent-security.nameOverride`         | Overrides the name of Spire agent pods                         | `agent-downstream`                    |
+| `downstream-spire-agent-security.bundleConfigMap`      | The name of the configmap that contains the downstream bundle  | `spire-bundle-upstream`               |
+| `downstream-spire-agent-security.serviceAccount.name`  | The name of the service account to use                         | `spire-agent-upstream`                |
+| `downstream-spire-agent-security.persistence.hostPath` | Which path to use on the host when persistence.type = hostPath | `/var/lib/spire/k8s/downstream-agent` |
 
 ### Upstream Spire agent parameters
 
-| Name                                             | Description                                        | Value                                                |
-| ------------------------------------------------ | -------------------------------------------------- | ---------------------------------------------------- |
-| `upstream-spire-agent.upstream`                  | Flag for enabling upstream Spire agent             | `true`                                               |
-| `upstream-spire-agent.nameOverride`              | Name override for upstream Spire agent             | `agent-upstream`                                     |
-| `upstream-spire-agent.bundleConfigMap`           | The configmap name for upstream Spire agent bundle | `spire-bundle-upstream`                              |
-| `upstream-spire-agent.socketPath`                | Socket path where Spire agent socket is mounted    | `/run/spire/agent-sockets-upstream/spire-agent.sock` |
-| `upstream-spire-agent.serviceAccount.name`       | Service account name for upstream Spire agent      | `spire-agent-upstream`                               |
-| `upstream-spire-agent.healthChecks.port`         | Health check port number for upstream Spire agent  | `9981`                                               |
-| `upstream-spire-agent.telemetry.prometheus.port` | The port where prometheus metrics are available    | `9989`                                               |
-| `upstream-spire-agent.server.nameOverride`       | The name override setting of the root SPIRE server | `root-server`                                        |
+| Name                                             | Description                                                    | Value                                                |
+| ------------------------------------------------ | -------------------------------------------------------------- | ---------------------------------------------------- |
+| `upstream-spire-agent.upstream`                  | Flag for enabling upstream Spire agent                         | `true`                                               |
+| `upstream-spire-agent.nameOverride`              | Name override for upstream Spire agent                         | `agent-upstream`                                     |
+| `upstream-spire-agent.bundleConfigMap`           | The configmap name for upstream Spire agent bundle             | `spire-bundle-upstream`                              |
+| `upstream-spire-agent.socketPath`                | Socket path where Spire agent socket is mounted                | `/run/spire/agent-sockets-upstream/spire-agent.sock` |
+| `upstream-spire-agent.serviceAccount.name`       | Service account name for upstream Spire agent                  | `spire-agent-upstream`                               |
+| `upstream-spire-agent.healthChecks.port`         | Health check port number for upstream Spire agent              | `9981`                                               |
+| `upstream-spire-agent.telemetry.prometheus.port` | The port where prometheus metrics are available                | `9989`                                               |
+| `upstream-spire-agent.server.nameOverride`       | The name override setting of the root SPIRE server             | `root-server`                                        |
+| `upstream-spire-agent.persistence.hostPath`      | Which path to use on the host when persistence.type = hostPath | `/var/lib/spire/k8s/upstream-agent`                  |
 
 ### SPIFFE CSI Driver parameters
 
@@ -300,7 +303,7 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `root-spire-server.controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.enabled`               | Enable the test-keys identity                                                                                                                     | `false`                      |
 | `root-spire-server.controllerManager.identities.clusterSPIFFEIDs.test-keys.enabled`                             | Enable the test-keys identity                                                                                                                     | `false`                      |
 | `root-spire-server.externalControllerManagers.enabled`                                                          | Flag to enable external controller managers                                                                                                       | `true`                       |
-| `root-spire-server.nodeAttestor.k8sPsat.serviceAccountAllowList`                                                | Allowed service accounts for Psat nodeattestor                                                                                                    | `[]`                         |
+| `root-spire-server.nodeAttestor.k8sPSAT.serviceAccountAllowList`                                                | Allowed service accounts for PSAT nodeattestor                                                                                                    | `[]`                         |
 | `root-spire-server.bundleConfigMap`                                                                             | The name of the configmap to store the upstream bundle                                                                                            | `spire-bundle-upstream`      |
 | `external-root-spire-server-full.externalServer`                                                                | Set to true to setup the bundle configmap, rbac rules, and identity documents but doesn't deploy the server locally. Useful for external servers. | `true`                       |
 | `external-root-spire-server-full.nameOverride`                                                                  | Name override                                                                                                                                     | `root-server`                |
@@ -312,7 +315,7 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `external-root-spire-server-full.controllerManager.identities.clusterSPIFFEIDs.default.enabled`                 | Enable the default cluster spiffe id                                                                                                              | `false`                      |
 | `external-root-spire-server-full.controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.enabled` | Enable the test-keys identity                                                                                                                     | `false`                      |
 | `external-root-spire-server-full.controllerManager.identities.clusterSPIFFEIDs.test-keys.enabled`               | Enable the test-keys identity                                                                                                                     | `false`                      |
-| `external-root-spire-server-full.nodeAttestor.k8sPsat.serviceAccountAllowList`                                  | Allowed service accounts for Psat nodeattestor                                                                                                    | `[]`                         |
+| `external-root-spire-server-full.nodeAttestor.k8sPSAT.serviceAccountAllowList`                                  | Allowed service accounts for PSAT nodeattestor                                                                                                    | `[]`                         |
 | `external-root-spire-server-full.bundleConfigMap`                                                               | The name of the configmap to store the upstream bundle                                                                                            | `spire-bundle-upstream`      |
 | `external-root-spire-server-security.externalServer`                                                            | Set to true to setup the bundle configmap, rbac rules, and identity documents but doesn't deploy the server locally. Useful for external servers. | `true`                       |
 | `external-root-spire-server-security.nameOverride`                                                              | Name override                                                                                                                                     | `root-server`                |
@@ -320,7 +323,7 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `external-root-spire-server-security.controllerManager.enabled`                                                 | Enable controller manager and provision CRD's                                                                                                     | `true`                       |
 | `external-root-spire-server-security.controllerManager.validatingWebhookConfiguration.enabled`                  | Disable only when you have another instance on the k8s cluster with webhooks enabled.                                                             | `false`                      |
 | `external-root-spire-server-security.controllerManager.className`                                               | specify to use an explicit class name.                                                                                                            | `spire-mgmt-external-server` |
-| `external-root-spire-server-security.nodeAttestor.k8sPsat.serviceAccountAllowList`                              | Allowed service accounts for Psat nodeattestor                                                                                                    | `[]`                         |
+| `external-root-spire-server-security.nodeAttestor.k8sPSAT.serviceAccountAllowList`                              | Allowed service accounts for PSAT nodeattestor                                                                                                    | `[]`                         |
 | `external-root-spire-server-security.bundleConfigMap`                                                           | The name of the configmap to store the upstream bundle                                                                                            | `spire-bundle-upstream`      |
 
 ### Spire server parameters
@@ -347,6 +350,6 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `external-spire-server.upstreamAuthority.spire.enabled`                                                            | Enable upstream SPIRE server                                                          | `true`                       |
 | `external-spire-server.upstreamAuthority.spire.upstreamDriver`                                                     | Use an upstream driver for authentication                                             | `upstream.csi.spiffe.io`     |
 | `external-spire-server.upstreamAuthority.spire.server.nameOverride`                                                | The name override setting of the root SPIRE server                                    | `root-server`                |
-| `external-spire-server.notifier.k8sbundle.enabled`                                                                 | Enable local k8s bundle uploader                                                      | `false`                      |
-| `external-spire-server.nodeAttestor.k8sPsat.enabled`                                                               | Enable Psat k8s nodeattestor                                                          | `false`                      |
+| `external-spire-server.notifier.k8sBundle.enabled`                                                                 | Enable local k8s bundle uploader                                                      | `false`                      |
+| `external-spire-server.nodeAttestor.k8sPSAT.enabled`                                                               | Enable PSAT k8s nodeattestor                                                          | `false`                      |
 | `external-spire-server.nodeAttestor.joinToken.enabled`                                                             | Enable the join_token nodeattestor                                                    | `true`                       |

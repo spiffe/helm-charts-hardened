@@ -77,6 +77,10 @@ spec:
           - {{ include "spire-server.kind" . }}
           - {{ include "spire-server.fullname" . }}
           - --wait
+        {{- with (((.Values).global).deleteHooks).resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
       - name: pre-delete-check
         securityContext:
           {{- include "spire-lib.securitycontext" . | nindent 10 }}
@@ -89,6 +93,10 @@ spec:
           - app.kubernetes.io/instance={{ include "spire-server.name" . }},app.kubernetes.io/name={{ .Release.Name }},app.kubernetes.io/component=server
           - -n
           - {{ include "spire-server.namespace" . }}
+        {{- with (((.Values).global).deleteHooks).resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
 {{- end }}
 {{- end }}
 {{- end }}

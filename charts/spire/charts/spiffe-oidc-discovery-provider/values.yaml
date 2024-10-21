@@ -41,7 +41,7 @@ spiffeHelper:
     registry: ghcr.io
     repository: spiffe/spiffe-helper
     pullPolicy: IfNotPresent
-    tag: nightly@sha256:8cee346ffdcee5c996d394f1c3bb761c2c06834a0e779a78db6dc6a46fd13ae6
+    tag: 0.8.0
   ## @param spiffeHelper.resources [object] Resource requests and limits
   resources: {}
 
@@ -164,7 +164,9 @@ insecureScheme:
       registry: docker.io
       repository: nginxinc/nginx-unprivileged
       pullPolicy: IfNotPresent
-      tag: 1.26.0-alpine
+      tag: 1.27.2-alpine
+    ## @param insecureScheme.nginx.ipMode IP modes supported by the cluster. Must be one of [ipv4, ipv6, both]
+    ipMode: both
     ## @param insecureScheme.nginx.resources Resource requests and limits
     resources: {}
       # We usually recommend not to specify default resources and to leave this as a conscious
@@ -184,6 +186,8 @@ jwtIssuer: ""
 config:
   ## @param config.logLevel The log level, valid values are "debug", "info", "warn", and "error"
   logLevel: info
+  ## @param config.jwtDomain [string] The JWT domain. Defaults to oidc-discovery.$jwtIssuer URL-parsed host if unset
+  jwtDomain: ""
   ## @param config.additionalDomains [array] Add additional domains that can be used for oidc discovery
   additionalDomains: []
   # - localhost
@@ -262,7 +266,7 @@ telemetry:
         registry: docker.io
         repository: nginx/nginx-prometheus-exporter
         pullPolicy: IfNotPresent
-        tag: "1.1.0"
+        tag: "1.3.0"
 
       ## @param telemetry.prometheus.nginxExporter.resources [object] Resource requests and limits
       resources: {}
@@ -328,7 +332,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:8c9e5cbb641ced8112c637eb3611dab29bf65448a9d884a03938baf1b352dc4d
+      tag: latest@sha256:bd3bc36a650516129e804fcbc9664f039bdfba167c1bed320516509f2a6d32c2
 
   toolkit:
     ## @param tests.toolkit.image.registry The OCI registry to pull the image from
@@ -340,7 +344,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/min-toolkit-debug
       pullPolicy: IfNotPresent
-      tag: latest@sha256:d94454739d8be0239cfe93453df79c88d25d38b7a97084d81a49e9403a90d07c
+      tag: latest@sha256:5d020ebb00ff6fccfe361c4f334b6bfce9472578efde619d5e119c77a49c4a60
 
   step:
     ## @param tests.step.image.registry The OCI registry to pull the image from
@@ -352,7 +356,7 @@ tests:
       registry: "docker.io"
       repository: smallstep/step-cli
       pullPolicy: IfNotPresent
-      tag: 0.26.1
+      tag: 0.27.5
 
   busybox:
     ## @param tests.busybox.image.registry The OCI registry to pull the image from
@@ -364,7 +368,7 @@ tests:
       registry: ""
       repository: busybox
       pullPolicy: IfNotPresent
-      tag: 1.36.1-uclibc
+      tag: 1.37.0-uclibc
 
   agent:
     ## @param tests.agent.image.registry The OCI registry to pull the image from

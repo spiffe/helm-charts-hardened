@@ -45,6 +45,11 @@ spec:
                 description: AutoPopulateDNSNames indicates whether or not to auto
                   populate service DNS names.
                 type: boolean
+              fallback:
+                description: |-
+                  Apply this ID only if there are no other matching non fallback
+                  ClusterSPIFFEIDs
+                type: boolean
               dnsNameTemplates:
                 description: DNSNameTemplate represents templates for extra DNS names
                   that are applicable to SVIDs minted for this ClusterSPIFFEID. The
@@ -66,6 +71,9 @@ spec:
                 items:
                   type: string
                 type: array
+              hint:
+                description: Set the entry hint
+                type: string
               jwtTtl:
                 description: JWTTTL indicates an upper-bound time-to-live for JWT
                   SVIDs minted for this ClusterSPIFFEID.
