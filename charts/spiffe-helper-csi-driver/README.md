@@ -2,7 +2,7 @@
 
 ![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.7.2](https://img.shields.io/badge/AppVersion-1.7.2-informational?style=flat-square)
 
-A Helm chart to install the SPIFFE HELPER CSI Driver.
+A *prototype* Helm chart to install the SPIFFE HELPER CSI Driver. It is useful only for testing at this point. Please do not use in production.
 
 **Homepage:** <https://github.com/spiffe/helm-charts/tree/main/charts/spire>
 
