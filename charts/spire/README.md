@@ -90,15 +90,16 @@ We only support upgrading one major/minor version at a time. Version skipping is
 
 ### 0.24.X
 
-You must upgrade spire-crds to 0.5.0+ before performing this upgrade.
 
-As we approach 1.0.0, we would like to ensure all the values are well supported, follow convention, and allow additions in the future without major changes. In order to support this, we have made a bunch of minor changes to the values in this version. If you are upgrading from a previous version, please read these upgrade nodes carefully.
+- You must upgrade spire-crds to 0.5.0+ before performing this upgrade.
 
-In order to make it easier to target specific SPIFFE IDs to workloads, a fallback feature was added to ClusterSPIFFEIDs so that a default ID will only apply when no others do. To change back to the previous behavior, use spire-server.controllerManager.identities.clusterSPIFFEIDs.default.fallback=false. The new default is likely to work well for you without changes.
+- As we approach 1.0.0, we would like to ensure all the values are well supported, follow convention, and allow additions in the future without major changes. In order to support this, we have made a bunch of minor changes to the values in this version. If you are upgrading from a previous version, please read these upgrade nodes carefully.
 
-We also set a hint of the ClusterSPIFFEID name on each entry created. This can be undone by setting the hint="" property on the ClusterSPIFFEID. Again, the new default here is unlikely to need changes.
+- In order to make it easier to target specific SPIFFE IDs to workloads, a fallback feature was added to ClusterSPIFFEIDs so that a default ID will only apply when no others do. To change back to the previous behavior, use spire-server.controllerManager.identities.clusterSPIFFEIDs.default.fallback=false. The new default is likely to work well for you without changes.
 
-We have added the remaining options needed for the SPIRE Server SQL data store plugin. We have removed `spire-server.dataStore.sql.plugin_data` section as it is no longer needed. If you are using it, please migrate
+- We now set a hint of the ClusterSPIFFEID name on each entry created by default. This can be undone by setting the `hint=""` property on the ClusterSPIFFEID. The new default here is unlikely to need changes.
+
+- We have added the remaining options needed for the SPIRE Server SQL data store plugin. We have removed `spire-server.dataStore.sql.plugin_data` section as it is no longer needed. If you are using it, please migrate
 your settings to the ones under `spire-server.dataStore.sql`.
 
 Other changes:
