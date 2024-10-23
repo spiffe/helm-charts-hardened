@@ -41,6 +41,8 @@ A Helm chart to install the SPIFFE CSI driver.
 | `imagePullSecrets`                            | Image pull secret details for spiffe-csi-driver                                                                | `[]`                                        |
 | `nameOverride`                                | Name override for spiffe-csi-driver                                                                            | `""`                                        |
 | `namespaceOverride`                           | Namespace to install spiffe-csi-driver                                                                         | `""`                                        |
+| `serverNamespaceOverride`                     | Override the namespace that the spire-server is installed into                                                 | `""`                                        |
+| `validatingAdmissionPolicy.enabled`           | When auto, an upstream driver, and k8s >= 1.30.0 then enabled = true, otherwise false                          | `auto`                                      |
 | `fullnameOverride`                            | Full name override for spiffe-csi-driver                                                                       | `""`                                        |
 | `csiDriverLabels`                             | Labels to apply to the CSIDriver                                                                               | `{}`                                        |
 | `initContainers`                              | Init Containers to apply to the CSI Driver DaemonSet                                                           | `[]`                                        |

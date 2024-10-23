@@ -1,0 +1,36 @@
+{{- $upstream := eq .Values.pluginName "upstream.csi.spiffe.io" }}
+{{- $detectedValidation := .Capabilities.APIVersions.Has "admissionregistration.k8s.io/v1" -}}
+{{- $auto := eq .validatingAdmissionPolicy.enabled "auto" }}
+{{- if or (eq .Values.ValidatingAdmissionPolicy.enabled true) (and $auto $upstream $detectValidation) }}
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: {{ .Values.pluginName | quote }}
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+    - apiGroups:   [""]
+      apiVersions: ["v1"]
+      operations:  ["CREATE", "UPDATE"]
+      resources:   ["pods"]
+  validations:
+  - expression: |
+      object.spec.volumes.all(c, has(c.csi) && has(c.csi.driver) && c.csi.driver == {{ .Values.pluginName | quote }}) != false
+    message: 'you may not use the upstream.csi.spiffe.io csi driver'
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: {{ .Values.pluginName | quote }}
+spec:
+  policyName: {{ .Values.pluginName | quote }}
+  validationActions: ["Deny"]
+  matchResources:
+    namespaceSelector:
+      matchExpressions:
+      - key: "kubernetes.io/metadata.name"
+        operator: NotIn
+        values:
+        - {{ include "spiffe-csi-driver.server-namespace" . | quote }}
+{{- end }}
