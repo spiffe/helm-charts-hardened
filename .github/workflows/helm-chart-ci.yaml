@@ -243,7 +243,7 @@ jobs:
         # Only build a kind cluster if there are chart changes to test.
         with:
           version: ${{ env.KIND_VERSION }}
-          node_image: kindest/node:${{ env.k8s }}
+          node_image: kindest/node:${{ matrix.k8s }}
           config: .github/kind/conf/kind-config.yaml
           verbosity: 1
 
@@ -294,7 +294,7 @@ jobs:
         # Only build a kind cluster if there are chart changes to test.
         with:
           version: ${{ env.KIND_VERSION }}
-          node_image: kindest/node:${{ env.k8s }}
+          node_image: kindest/node:${{ matrix.k8s }}
           config: .github/kind/conf/kind-config.yaml
           verbosity: 1
 
@@ -337,7 +337,7 @@ jobs:
         # Only build a kind cluster if there are chart changes to test.
         with:
           version: ${{ env.KIND_VERSION }}
-          node_image: kindest/node:${{ env.k8s }}
+          node_image: kindest/node:${{ matrix.k8s }}
           config: .github/kind/conf/kind-config.yaml
           verbosity: 1
 
