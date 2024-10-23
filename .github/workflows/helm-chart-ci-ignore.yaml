@@ -31,8 +31,8 @@ jobs:
       matrix:
         k8s:
           - v1.31.1
-          - v1.30.5
-          - v1.29.9
+          - v1.30.4
+          - v1.29.8
 
     steps:
       - run: 'echo "Skipping tests"'
@@ -75,8 +75,8 @@ jobs:
       matrix:
         k8s:
           - v1.31.1
-          - v1.30.5
-          - v1.29.9
+          - v1.30.4
+          - v1.29.8
         example:
           - ${{ fromJson(needs.build-matrix.outputs.examples) }}
 
@@ -93,8 +93,8 @@ jobs:
       matrix:
         k8s:
           - v1.31.1
-          - v1.30.5
-          - v1.29.9
+          - v1.30.4
+          - v1.29.8
         example:
           - ${{ fromJson(needs.build-matrix.outputs.integrationtests) }}
 
@@ -111,8 +111,8 @@ jobs:
       matrix:
         k8s:
           - v1.31.1
-          - v1.30.5
-          - v1.29.9
+          - v1.30.4
+          - v1.29.8
 
     steps:
       - run: 'echo "Skipping upgrade-test"'
