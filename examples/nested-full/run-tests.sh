@@ -72,7 +72,7 @@ for cluster in child other; do
   KC="${SCRIPTPATH}/kubeconfig-${cluster}"
 
   kind create cluster --name "${cluster}" --kubeconfig "${SCRIPTPATH}/kubeconfig-${cluster}" --config "${SCRIPTPATH}/.test-files/${cluster}-kind-config.yaml"
-  kubectl version
+  kubectl version --kubeconfig "${SCRIPTPATH}/kubeconfig-${cluster}"
   md5sum "${KC}"
   wc -l "${KC}"
 
