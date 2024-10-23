@@ -1,6 +1,6 @@
 {{- $upstream := eq .Values.pluginName "upstream.csi.spiffe.io" }}
 {{- $detectedValidation := .Capabilities.APIVersions.Has "admissionregistration.k8s.io/v1" -}}
-{{- $auto := eq .validatingAdmissionPolicy.enabled "auto" }}
+{{- $auto := eq .Values.validatingAdmissionPolicy.enabled "auto" }}
 {{- if or (eq .Values.ValidatingAdmissionPolicy.enabled true) (and $auto $upstream $detectValidation) }}
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicy
