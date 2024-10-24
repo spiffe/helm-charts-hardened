@@ -5,7 +5,3 @@
 
 tags:
   nestedChildFull: true
-
-upstream-spiffe-csi-driver:
-  validatingAdmissionPolicy:
-    enabled: no
