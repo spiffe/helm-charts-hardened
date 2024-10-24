@@ -90,36 +90,32 @@ We only support upgrading one major/minor version at a time. Version skipping is
 
 ### 0.24.X
 
+- You must upgrade [spire-crds](https://artifacthub.io/packages/helm/spiffe/spire-crds) to 0.5.0+ before performing this upgrade.
 
-- You must upgrade spire-crds to 0.5.0+ before performing this upgrade.
+- In order to make it easier to target specific SPIFFE IDs to workloads, a fallback feature was added to ClusterSPIFFEIDs so that a default ID will only apply when no others do. To change back to the previous behavior, use `spire-server.controllerManager.identities.clusterSPIFFEIDs.default.fallback=false`. The new default is unlikely to need changes.
 
-- As we approach 1.0.0, we would like to ensure all the values are well supported, follow convention, and allow additions in the future without major changes. In order to support this, we have made a bunch of minor changes to the values in this version. If you are upgrading from a previous version, please read these upgrade nodes carefully.
+- We now set a hint of the ClusterSPIFFEID name on each entry created by default. This can be undone by setting the `hint=""` property on the ClusterSPIFFEID. The new default is unlikely to need changes.
 
-- In order to make it easier to target specific SPIFFE IDs to workloads, a fallback feature was added to ClusterSPIFFEIDs so that a default ID will only apply when no others do. To change back to the previous behavior, use spire-server.controllerManager.identities.clusterSPIFFEIDs.default.fallback=false. The new default is likely to work well for you without changes.
+- We have added the remaining options needed for the SPIRE Server SQL data store plugin as native values. We have removed `spire-server.dataStore.sql.plugin_data` section as it is no longer needed. If you are using it, please migrate your settings to the ones under `spire-server.dataStore.sql`.
 
-- We now set a hint of the ClusterSPIFFEID name on each entry created by default. This can be undone by setting the `hint=""` property on the ClusterSPIFFEID. The new default here is unlikely to need changes.
+- For users of `spire-server.upstreamAuthority.certManager`, a bug was discovered with templates not honoring `global.spire.caSubject.*`. It has been fixed, but may change values if you are not careful. Please double check the new settings are what you need them to be before completing the upgrade.
 
-- We have added the remaining options needed for the SPIRE Server SQL data store plugin. We have removed `spire-server.dataStore.sql.plugin_data` section as it is no longer needed. If you are using it, please migrate
-your settings to the ones under `spire-server.dataStore.sql`.
+- Lastly, as we approach 1.0.0, we would like to ensure all the values follow the same convention. We have made a bunch of minor changes to the values in this version to make sure they are all camel cased and properly capitalized. If you are upgrading from a previous version, please look though this list carefully to see if a value you are using is impacted:
 
-Other changes:
-
-spire-server.federation.bundleEndpoint.refresh_hint -> spire-server.federation.bundleEndpoint.refreshHint
-spire-server.nodeAttestor.k8sPsat -> spire-server.nodeAttestor.k8sPSAT
-spire-server.nodeAttestor.externalK8sPsat -> spire-server.nodeAttestor.ExternalK8sPSAT
-spire-server.notifier.k8sbundle -> spire-server.notifier.k8sBundle
-spire-server.ca_subject -> spire-server.caSubject
-spire-server.ca_subject.common_name -> spire-server.caSubject.commonName
-spire-server.upstreamAuthority.certManager.issuer_name -> spire-server.upstreamAuthority.certManager.issuerName
-spire-server.upstreamAuthority.certManager.issuer_kind -> spire-server.upstreamAuthority.certManager.issuerKind
-spire-server.upstreamAuthority.certManager.issuer_group -> spire-server.upstreamAuthority.certManager.issuerGroup
-spire-server.upstreamAuthority.certManager.kube_config_file -> spire-server.upstreamAuthority.certManager.kubeConfigFile
-spire-agent.sds.defaultSvidName -> spire-agent.sds.defaultSVIDName
-spire-agent.sds.disableSpiffeCertValidation -> spire-agent.sds.disableSPIFFECertValidation
-spire-agent.sds.defaultSvidName -> spire-agent.sds.defaultSVIDName
-spire-agent.nodeAttestor.k8sPsat -> spire-agent.nodeAttestor.k8sPSAT
-
-Lastly, for users of spire-server.upstreamAuthority.certManager, a bug was discovered with templates not honoring global.spire.caSubject.*. It has been fixed, but may change values if your not careful. Please double check the new settings are what you need them to be before completing the upgrade.
+    - `spire-server.federation.bundleEndpoint.refresh_hint` -> `spire-server.federation.bundleEndpoint.refreshHint`
+    - `spire-server.nodeAttestor.k8sPsat` -> `spire-server.nodeAttestor.k8sPSAT`
+    - `spire-server.nodeAttestor.externalK8sPsat` -> `spire-server.nodeAttestor.ExternalK8sPSAT`
+    - `spire-server.notifier.k8sbundle` -> `spire-server.notifier.k8sBundle`
+    - `spire-server.ca_subject` -> `spire-server.caSubject`
+    - `spire-server.ca_subject.common_name -> `spire-server.caSubject.commonName`
+    - `spire-server.upstreamAuthority.certManager.issuer_name` -> `spire-server.upstreamAuthority.certManager.issuerName`
+    - `spire-server.upstreamAuthority.certManager.issuer_kind` -> `spire-server.upstreamAuthority.certManager.issuerKind`
+    - `spire-server.upstreamAuthority.certManager.issuer_group` -> `spire-server.upstreamAuthority.certManager.issuerGroup`
+    - `spire-server.upstreamAuthority.certManager.kube_config_file` -> `spire-server.upstreamAuthority.certManager.kubeConfigFile`
+    - `spire-agent.sds.defaultSvidName` -> `spire-agent.sds.defaultSVIDName`
+    - `spire-agent.sds.disableSpiffeCertValidation` -> `spire-agent.sds.disableSPIFFECertValidation`
+    - `spire-agent.sds.defaultSvidName` -> `spire-agent.sds.defaultSVIDName`
+    - `spire-agent.nodeAttestor.k8sPsat` -> `spire-agent.nodeAttestor.k8sPSAT`
 
 ### 0.23.X
 
