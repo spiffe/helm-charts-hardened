@@ -256,6 +256,7 @@ jobs:
             kubectl create namespace spire-server
             helm install -n spire-server spire-crds charts/spire-crds
           fi
+          export K8S="${{ matrix.k8s }}"
           ${{ matrix.example }}/run-tests.sh
 
   integration-test:
