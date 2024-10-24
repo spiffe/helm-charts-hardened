@@ -3,6 +3,7 @@
 {{- $policyEnabled := .Values.validatingAdmissionPolicy.enabled | toString }}
 {{- $auto := eq $policyEnabled "auto" }}
 {{- if or (eq $policyEnabled "true") (and $auto $upstream $detectedValidation) }}
+{{- if false }}
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicy
 metadata:
@@ -34,4 +35,5 @@ spec:
         operator: NotIn
         values:
         - {{ include "spiffe-csi-driver.server-namespace" . | quote }}
+{{- end }}
 {{- end }}
