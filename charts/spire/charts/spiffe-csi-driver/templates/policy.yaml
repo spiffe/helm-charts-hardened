@@ -1,5 +1,5 @@
 {{- $upstream := eq .Values.pluginName "upstream.csi.spiffe.io" }}
-{{- $detectedValidation := .Capabilities.APIVersions.Has "admissionregistration.k8s.io/v1" -}}
+{{- $detectedValidation := semverCompare ">=1.30-0" .Capabilities.KubeVersion.GitVersion -}}
 {{- $policyEnabled := .Values.validatingAdmissionPolicy.enabled | toString }}
 {{- $auto := eq $policyEnabled "auto" }}
 {{- if or (eq $policyEnabled "true") (and $auto $upstream $detectedValidation) }}
