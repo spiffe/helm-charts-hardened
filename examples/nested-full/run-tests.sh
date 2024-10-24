@@ -71,7 +71,8 @@ kubectl rollout status -n kube-system -w --timeout=1m deploy/coredns
 for cluster in child other; do
   KC="${SCRIPTPATH}/kubeconfig-${cluster}"
 
-  kind --version "$K8S" create cluster --name "${cluster}" --kubeconfig "${SCRIPTPATH}/kubeconfig-${cluster}" --config "${SCRIPTPATH}/.test-files/${cluster}-kind-config.yaml"
+  kind create cluster --name "${cluster}" --kubeconfig "${SCRIPTPATH}/kubeconfig-${cluster}" --config "${SCRIPTPATH}/.test-files/${cluster}-kind-config.yaml" --image "kindest/node:${K8S}"
+
   kubectl version --kubeconfig "${SCRIPTPATH}/kubeconfig-${cluster}"
   md5sum "${KC}"
   wc -l "${KC}"
