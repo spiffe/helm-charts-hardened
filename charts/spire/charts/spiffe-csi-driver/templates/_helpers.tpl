@@ -41,6 +41,23 @@ Allow the release namespace to be overridden for multi-namespace deployments in 
 {{- end -}}
 
 {{/*
+Allow the release namespace to be overridden for multi-namespace deployments in combined charts
+*/}}
+{{- define "spiffe-csi-driver.server-namespace" -}}
+  {{- if .Values.serverNamespaceOverride -}}
+    {{- .Values.serverNamespaceOverride -}}
+  {{- else if and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "namespaceLayout" true .Values.global) }}
+    {{- if ne (len (dig "spire" "namespaces" "server" "name" "" .Values.global)) 0 }}
+      {{- .Values.global.spire.namespaces.server.name }}
+    {{- else }}
+      {{- printf "spire-server" }}
+    {{- end }}
+  {{- else -}}
+    {{- .Release.Namespace -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
 Create chart name and version as used by the chart label.
 */}}
 {{- define "spiffe-csi-driver.chart" -}}
