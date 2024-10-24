@@ -1,6 +1,6 @@
 # spire
 
-![Version: 0.23.0](https://img.shields.io/badge/Version-0.23.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.10.3](https://img.shields.io/badge/AppVersion-1.10.3-informational?style=flat-square)
+![Version: 0.23.0](https://img.shields.io/badge/Version-0.23.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.11.0](https://img.shields.io/badge/AppVersion-1.11.0-informational?style=flat-square)
 [![Development Phase](https://github.com/spiffe/spiffe/blob/main/.img/maturity/dev.svg)](https://github.com/spiffe/spiffe/blob/main/MATURITY.md#development)
 
 A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
@@ -91,6 +91,8 @@ We only support upgrading one major/minor version at a time. Version skipping is
 ### 0.24.X
 
 - You must upgrade [spire-crds](https://artifacthub.io/packages/helm/spiffe/spire-crds) to 0.5.0+ before performing this upgrade.
+
+- SPIRE changed the default in 1.11.0 from `spire-agent.workloadAttestors.k8s.useNewContainerLocator=false` to `spire-agent.workloadAttestors.k8s.useNewContainerLocator=true`
 
 - In order to make it easier to target specific SPIFFE IDs to workloads, a fallback feature was added to ClusterSPIFFEIDs so that a default ID will only apply when no others do. To change back to the previous behavior, use `spire-server.controllerManager.identities.clusterSPIFFEIDs.default.fallback=false`. The new default is unlikely to need changes.
 

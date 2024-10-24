@@ -227,8 +227,8 @@ workloadAttestors:
         fileName: ""
     ## @param workloadAttestors.k8s.disableContainerSelectors Set to true if using holdApplicationUntilProxyStarts in Istio
     disableContainerSelectors: false
-    ## @param workloadAttestors.k8s.useNewContainerLocator If true, enables the new container locator algorithm that has support for cgroups v2. Defaults to false
-    useNewContainerLocator: false
+    ## @param workloadAttestors.k8s.useNewContainerLocator If true, enables the new container locator algorithm that has support for cgroups v2. Defaults to true
+    useNewContainerLocator: true
     ## @param workloadAttestors.k8s.verboseContainerLocatorLogs If true, enables verbose logging of mountinfo and cgroup information used to locate containers. Defaults to false
     verboseContainerLocatorLogs: false
 
