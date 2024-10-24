@@ -17,7 +17,7 @@ spec:
       resources:   ["pods"]
   validations:
   - expression: |
-      object.spec.volumes.any(c, has(c.csi) && has(c.csi.driver) && c.csi.driver == {{ .Values.pluginName | quote }}) != false
+      object.spec.volumes.exists(c, has(c.csi) && has(c.csi.driver) && c.csi.driver == {{ .Values.pluginName | quote }}) != false
     message: 'you may not use the upstream.csi.spiffe.io csi driver'
 ---
 apiVersion: admissionregistration.k8s.io/v1
