@@ -64,7 +64,7 @@ namespaceOverride: ""
 serverNamespaceOverride: ""
 
 validatingAdmissionPolicy:
-  ## @param validatingAdmissionPolicy.enabled When auto, pluginName == "upstream.csi.spiffe.io", and k8s >= 1.30.0 then enabled = true, otherwise false
+  ## @param validatingAdmissionPolicy.enabled When set to auto, the validatingAdmissionPolicy will be enabled when the pluginName == "upstream.csi.spiffe.io" and k8s >= 1.30.0. Valid options are [auto, true, false]
   enabled: auto
 
 ## @param fullnameOverride Full name override for spiffe-csi-driver
