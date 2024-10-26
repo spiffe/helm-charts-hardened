@@ -25,7 +25,7 @@ done
 
 teardown() {
   set +e
-  ls -l /var/run/spiffe/step-ca/main
+  ls -l /var/run/spiffe/step-ssh/main
   ls -l /etc/ssh/sshd_config.d
   openssl s_client -servername spiffe-step-ssh-fetchca.production.other -connect spiffe-step-ssh-fetchca.production.other:443 2>/dev/null </dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p'
   echo spire-agent logs:S
