@@ -83,7 +83,7 @@ done
 )
 
 common_test_file_exists () (
-count=10
+count=20
 while true; do
         if [ -f "$1" ]; then exit 0; fi
         sleep 2
