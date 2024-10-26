@@ -29,7 +29,7 @@ teardown() {
   echo spire-agent logs:S
   journalctl -u spire-agent@main
   echo spiffe-step-ssh logs:
-  journalctl -u spiffe-step-ssh
+  journalctl -u spiffe-step-ssh@main
   echo step pod:
   kubectl logs statefulset/spiffe-step-ssh
   echo fetchca pod:
