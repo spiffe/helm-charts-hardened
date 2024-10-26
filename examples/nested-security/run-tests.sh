@@ -73,7 +73,7 @@ kubectl rollout status -n kube-system -w --timeout=1m deploy/coredns
 for cluster in child; do
   KC="${SCRIPTPATH}/kubeconfig-${cluster}"
 
-  kind create cluster --name "${cluster}" --kubeconfig "${SCRIPTPATH}/kubeconfig-${cluster}" --config "${SCRIPTPATH}/.test-files/${cluster}-kind-config.yaml"
+  kind create cluster --name "${cluster}" --kubeconfig "${SCRIPTPATH}/kubeconfig-${cluster}" --config "${SCRIPTPATH}/.test-files/${cluster}-kind-config.yaml" --image "kindest/node:${K8S}"
   md5sum "${KC}"
   wc -l "${KC}"
 
@@ -102,6 +102,7 @@ helm upgrade --install --create-namespace --namespace spire-mgmt --values "${COM
 # The check is being too pedantic.
 # shellcheck shell=bash disable=SC2043
 for cluster in child; do
+  kubectl version --kubeconfig "${SCRIPTPATH}/kubeconfig-${cluster}"
   KC="${SCRIPTPATH}/kubeconfig-${cluster}"
   kubectl --kubeconfig "${KC}" get configmap -n spire-system spire-bundle-upstream -o yaml
   kubectl --kubeconfig "${KC}" rollout restart daemonset spire-agent-downstream -n spire-system
