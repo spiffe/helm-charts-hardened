@@ -129,10 +129,10 @@ curl -L https://raw.githubusercontent.com/kfox1111/spire-examples/refs/heads/spi
 
 sudo mkdir -p /usr/libexec/spiffe-step-ssh
 sudo curl -L -o /usr/libexec/spiffe-step-ssh/update.sh https://raw.githubusercontent.com/kfox1111/spire-examples/refs/heads/spiffe-step-ssh/examples/spiffe-step-ssh/scripts/update.sh
-sudo curl -L -o /usr/libexec/spiffe-step-ssh/helper.conf https://raw.githubusercontent.com/kfox1111/spire-examples/refs/heads/spiffe-step-ssh/examples/spiffe-step-ssh/conf/helper.conf
-sudo curl -L -o /etc/systemd/system/spiffe-step-ssh.service https://raw.githubusercontent.com/kfox1111/spire-examples/refs/heads/spiffe-step-ssh/examples/spiffe-step-ssh/systemd/spiffe-step-ssh.service
+sudo curl -L -o /etc/systemd/system/spiffe-step-ssh@.service https://raw.githubusercontent.com/kfox1111/spire-examples/refs/heads/spiffe-step-ssh/examples/spiffe-step-ssh/systemd/spiffe-step-ssh@.service
+sudo curl -L -o /etc/systemd/system/spiffe-step-ssh-cleanup.service https://raw.githubusercontent.com/kfox1111/spire-examples/refs/heads/spiffe-step-ssh/examples/spiffe-step-ssh/systemd/spiffe-step-ssh-cleanup.service
+sudo curl -L -o /etc/systemd/system/sshd.service.d/10-spiffe-step-ssh.conf https://raw.githubusercontent.com/kfox1111/spire-examples/refs/heads/spiffe-step-ssh/examples/spiffe-step-ssh/conf/10-spiffe-step-ssh.conf
 
-sudo cp "${SCRIPTPATH}/spiffe-step-ssh.conf" /etc
 sudo mkdir -p /etc/spire/agent
 sudo cp "${SCRIPTPATH}/spire-agent.conf" /etc/spire/agent/main.conf
 
@@ -156,7 +156,7 @@ kubectl get configmap -n spire-system spire-bundle-downstream -o go-template='{{
 cat /tmp/ca.pem
 curl https://spiffe-step-ssh-fetchca.production.other -s --cacert /tmp/ca.pem
 
-sudo systemctl start spiffe-step-ssh
+sudo systemctl start spiffe-step-ssh@main
 
 common_test_file_exists "/var/run/spiffe-step-ssh/ssh_host_rsa_key-cert.pub"
 
