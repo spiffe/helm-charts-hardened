@@ -155,23 +155,27 @@ persistence:
 
 dataStore:
   sql:
-    ## @param dataStore.sql.databaseType Other supported databases are "postgres" and "mysql"
+    ## @param dataStore.sql.databaseType Other supported databases are ["postgres", "mysql", "aws_postgresql", "aws_mysql"]. Note: aws type databases are still experimental
     databaseType: sqlite3
-    ## @param dataStore.sql.databaseName Only used by "postgres" or "mysql"
+    ## @param dataStore.sql.databaseName Only used when type != "sqlite3"
     databaseName: spire
-    ## @param dataStore.sql.host Only used by "postgres" or "mysql"
+    ## @param dataStore.sql.host Only used when type != "sqlite3"
     host: ""
     ## @param dataStore.sql.port If 0 (default), it will auto set to 5432 for postgres and 3306 for mysql. Only used by those databases.
     port: 0
-    ## @param dataStore.sql.username Only used by "postgres" or "mysql"
+    ## @param dataStore.sql.username Only used when type != "sqlite3"
     username: spire
-    ## @param dataStore.sql.password Only used by "postgres" or "mysql"
+    ## @param dataStore.sql.password Only used when type != "sqlite3"
     password: ""
-    ## @param dataStore.sql.options [array] Only used by "postgres" or "mysql"
+    ## @param dataStore.sql.options [array] Only used when type != "sqlite3"
     options: []
 
-    ## @param dataStore.sql.plugin_data [object] Settings from https://github.com/spiffe/spire/blob/main/doc/plugin_server_datastore_sql.md go in this section
-    plugin_data: {}
+    ## @param dataStore.sql.rootCAPath Path to Root CA bundle (MySQL only)
+    rootCAPath: ""
+    ## @param dataStore.sql.clientCertPath Path to client certificate (MySQL only)
+    clientCertPath: ""
+    ## @param dataStore.sql.clientKeyPath Path to private key for client certificate (MySQL only)
+    clientKeyPath: ""
 
     ## When an external source creates the secret. The secret should reside in the same namespace as the spire server
     externalSecret:
@@ -181,6 +185,40 @@ dataStore:
       name: ""
       ## @param dataStore.sql.externalSecret.key The key of the secret object whose value is the dataStore.sql password
       key: ""
+
+    ## @param dataStore.sql.maxOpenConns The maximum number of open db connections
+    maxOpenConns: 100
+    ## @param dataStore.sql.maxIdleConns The maximum number of idle connections in the pool
+    maxIdleConns: 2
+    ## @param dataStore.sql.connMaxLifetime The maximum amount of time a connection may be reused. If 0, time is unlimited
+    connMaxLifetime: 0
+    ## @param dataStore.sql.disableMigration True to disable auto-migration functionality
+    disableMigration: false
+
+    ## @param dataStore.sql.region Region to use when database type is either aws_mysql or aws_postgresql
+    region: ""
+
+    readOnly:
+      ## @param dataStore.sql.readOnly.enabled Set to true to configure a readOnly dartabase connection
+      enabled: false
+      ## @param dataStore.sql.readOnly.host Only used when type != "sqlite3"
+      host: ""
+      ## @param dataStore.sql.readOnly.port If 0 (default), it will auto set to 5432 for postgres and 3306 for mysql. Only used by those databases.
+      port: 0
+      ## @param dataStore.sql.readOnly.username Only used when type != "sqlite3"
+      username: spire
+      ## @param dataStore.sql.readOnly.password Only used when type != "sqlite3"
+      password: ""
+      ## @param dataStore.sql.readOnly.options [array] Only used when type != "sqlite3"
+      options: []
+      ## When an external source creates the secret. The secret should reside in the same namespace as the spire server
+      externalSecret:
+        ## @param dataStore.sql.readOnly.externalSecret.enabled Enable external secret for datastore creds
+        enabled: false
+        ## @param dataStore.sql.readOnly.externalSecret.name The name of the secret object
+        name: ""
+        ## @param dataStore.sql.readOnly.externalSecret.key The key of the secret object whose value is the dataStore.sql password
+        key: ""
 
 ## @param adminIDs SPIFFE IDs that, when present in a caller’s X509-SVID, grant that caller admin privileges.
 adminIDs: []
@@ -210,8 +248,12 @@ federation:
     port: 8443
     ## @param federation.bundleEndpoint.address Address for trust bundle federation
     address: "0.0.0.0"
-    ## @param federation.bundleEndpoint.refresh_hint Hint used by federated servers on how often to refresh the bundle. CA TTL must be 3-5x the duration of this value to ensure public keys are loaded on federated servers prior to private key rotation on remote server.
-    refresh_hint: "5m"
+    ## @param federation.bundleEndpoint.refreshHint Hint used by federated servers on how often to refresh the bundle. CA TTL must be 3-5x the duration of this value to ensure public keys are loaded on federated servers prior to private key rotation on remote server.
+    refreshHint: "5m"
+    profile:
+      httpWeb:
+        ## @param federation.bundleEndpoint.profile.httpWeb.fileSyncInterval Interval on which to reload the certificate/key from disk
+        fileSyncInterval: 1h
 
   tls:
     spire:
@@ -287,13 +329,13 @@ federation:
     #    If Profile Type == https_web:
     #    secretName: spire-server-federation-tls
 
-ca_subject:
-  ## @param ca_subject.country Country for Spire server CA
+caSubject:
+  ## @param caSubject.country Country for Spire server CA
   country: ARPA
-  ## @param ca_subject.organization Organization for Spire server CA
+  ## @param caSubject.organization Organization for Spire server CA
   organization: Example
-  ## @param ca_subject.common_name Common Name for Spire server CA
-  common_name: example.org
+  ## @param caSubject.commonName Common Name for Spire server CA
+  commonName: example.org
 
 credentialComposer:
   uniqueID:
@@ -371,16 +413,16 @@ upstreamAuthority:
     ## @param upstreamAuthority.certManager.rbac.create Flag to create RBAC roles
     rbac:
       create: true
-    ## @param upstreamAuthority.certManager.issuer_name Defaults to the release name, override if CA is provided outside of the chart
-    issuer_name: ""
-    ## @param upstreamAuthority.certManager.issuer_kind Defaults to "Issuer", override if CA is provided outside of the chart
-    issuer_kind: "Issuer"
-    ## @param upstreamAuthority.certManager.issuer_group Defaults to "cert-manager.io", override if CA is provided outside of the chart
-    issuer_group: "cert-manager.io"
+    ## @param upstreamAuthority.certManager.issuerName Defaults to the release name, override if CA is provided outside of the chart
+    issuerName: ""
+    ## @param upstreamAuthority.certManager.issuerKind Defaults to "Issuer", override if CA is provided outside of the chart
+    issuerKind: "Issuer"
+    ## @param upstreamAuthority.certManager.issuerGroup Defaults to "cert-manager.io", override if CA is provided outside of the chart
+    issuerGroup: "cert-manager.io"
     ## @param upstreamAuthority.certManager.namespace Specify to use a namespace other then the one the chart is installed into
     namespace: ""
-    ## @param upstreamAuthority.certManager.kube_config_file Path to kube_config_file on node to setup cert manager
-    kube_config_file: ""
+    ## @param upstreamAuthority.certManager.kubeConfigFile Path to kube config file on node to setup cert manager
+    kubeConfigFile: ""
 
     ca:
       ## @param upstreamAuthority.certManager.ca.create Creates a Cert-Manager CA
@@ -440,10 +482,10 @@ upstreamAuthority:
         expiry: 7200
 
 notifier:
-  k8sbundle:
-    ## @param notifier.k8sbundle.enabled Enable local k8s bundle uploader
+  k8sBundle:
+    ## @param notifier.k8sBundle.enabled Enable local k8s bundle uploader
     enabled: true
-    ## @param notifier.k8sbundle.namespace Namespace to push the bundle into, if blank will default to SPIRE Server namespace
+    ## @param notifier.k8sBundle.namespace Namespace to push the bundle into, if blank will default to SPIRE Server namespace
     namespace: ""
   externalK8sBundle:
     ## @param notifier.externalK8sBundle.enabled Enable external k8s bundle uploader
@@ -498,7 +540,7 @@ controllerManager:
     registry: ghcr.io
     repository: spiffe/spire-controller-manager
     pullPolicy: IfNotPresent
-    tag: "0.5.0"
+    tag: "0.6.0"
 
   ## @param controllerManager.resources [object] Resource requests and limits for controller manager
   resources: {}
@@ -586,6 +628,10 @@ controllerManager:
         downstream: false
         ## @param controllerManager.identities.clusterSPIFFEIDs.default.autoPopulateDNSNames Auto populate DNS names from services attached to pods
         autoPopulateDNSNames: false
+        ## @param controllerManager.identities.clusterSPIFFEIDs.default.fallback Apply this ID only if there are no other matching non fallback ClusterSPIFFEIDs
+        fallback: true
+        # Set what hint to use. If unset, it will be asigned the clusterSPIFFEID name. If set to "", it will be unset. Any other value will set the hint to exactly what is specified.
+        # hint: ""
 
       child-servers:
         ## @param controllerManager.identities.clusterSPIFFEIDs.child-servers.enabled Enable this identity for controller manager
@@ -795,30 +841,30 @@ defaultX509SvidTTL: 4h
 defaultJwtSvidTTL: 1h
 
 nodeAttestor:
-  k8sPsat:
-    ## @param nodeAttestor.k8sPsat.enabled Enable Psat k8s nodeattestor
+  k8sPSAT:
+    ## @param nodeAttestor.k8sPSAT.enabled Enable PSAT k8s nodeattestor
     enabled: true
-    ## @param nodeAttestor.k8sPsat.serviceAccountAllowList [array] Allowed service accounts for Psat nodeattestor. If namespace isn't specified, release namespace will be used.
+    ## @param nodeAttestor.k8sPSAT.serviceAccountAllowList [array] Allowed service accounts for PSAT nodeattestor. If namespace isn't specified, release namespace will be used.
     serviceAccountAllowList: []
-    ## @param nodeAttestor.k8sPsat.audience [array] Audience for token validation. If set to [] (empty array), Kubernetes API server audience is used
+    ## @param nodeAttestor.k8sPSAT.audience [array] Audience for token validation. If set to [] (empty array), Kubernetes API server audience is used
     audience: ["spire-server"]
-    ## @param nodeAttestor.k8sPsat.allowedNodeLabelKeys [array] Node label keys considered for selectors
+    ## @param nodeAttestor.k8sPSAT.allowedNodeLabelKeys [array] Node label keys considered for selectors
     allowedNodeLabelKeys: []
-    ## @param nodeAttestor.k8sPsat.allowedPodLabelKeys [array] Pod label keys considered for selectors
+    ## @param nodeAttestor.k8sPSAT.allowedPodLabelKeys [array] Pod label keys considered for selectors
     allowedPodLabelKeys: []
-  externalK8sPsat:
-    ## @param nodeAttestor.externalK8sPsat.enabled Enable PSAT k8s nodeattestor for external Kubernetes clusters
+  externalK8sPSAT:
+    ## @param nodeAttestor.externalK8sPSAT.enabled Enable PSAT k8s nodeattestor for external Kubernetes clusters
     enabled: true
     defaults:
-      ## @param nodeAttestor.externalK8sPsat.defaults.serviceAccountAllowList [array] Allowed service accounts for PSAT node attestor
+      ## @param nodeAttestor.externalK8sPSAT.defaults.serviceAccountAllowList [array] Allowed service accounts for PSAT node attestor
       serviceAccountAllowList: ["spire-system:spire-agent-upstream"]
-      ## @param nodeAttestor.externalK8sPsat.defaults.audience [array] Audience for token validation. If it is set to an empty array ([]), Kubernetes API server audience is used
+      ## @param nodeAttestor.externalK8sPSAT.defaults.audience [array] Audience for token validation. If it is set to an empty array ([]), Kubernetes API server audience is used
       audience: ["spire-server"]
-      ## @param nodeAttestor.externalK8sPsat.defaults.allowedNodeLabelKeys [array] Node label keys considered for selectors
+      ## @param nodeAttestor.externalK8sPSAT.defaults.allowedNodeLabelKeys [array] Node label keys considered for selectors
       allowedNodeLabelKeys: []
-      ## @param nodeAttestor.externalK8sPsat.defaults.allowedPodLabelKeys [array] Pod label keys considered for selectors
+      ## @param nodeAttestor.externalK8sPSAT.defaults.allowedPodLabelKeys [array] Pod label keys considered for selectors
       allowedPodLabelKeys: []
-    ## @param nodeAttestor.externalK8sPsat.clusters [object] A dictionary of clusters to add with optional overrides. If empty, all clusters defined in kubeConfigs will be used.
+    ## @param nodeAttestor.externalK8sPSAT.clusters [object] A dictionary of clusters to add with optional overrides. If empty, all clusters defined in kubeConfigs will be used.
     clusters: {}
     # clustera:
     #   kubeConfigName: foo
@@ -1052,7 +1098,7 @@ chown:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: Always
-    tag: latest@sha256:f5c85affd2aa0f55fc1ead7dc07952577ad82741bbbba742ead0fd9dde2de14a
+    tag: latest@sha256:a5cd47a3caf0668c48c6ad4bb66436cab40aa335634f3b5740ffd2a0c39770b2
 
   ## @param chown.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
@@ -1087,7 +1133,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:f5c85affd2aa0f55fc1ead7dc07952577ad82741bbbba742ead0fd9dde2de14a
+      tag: latest@sha256:a5cd47a3caf0668c48c6ad4bb66436cab40aa335634f3b5740ffd2a0c39770b2
 
 ## @param kubeConfigs [object] Manage additional kubeconfig files to talk to external Kubernetes clusters
 kubeConfigs: {}

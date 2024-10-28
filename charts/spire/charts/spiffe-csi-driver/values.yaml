@@ -60,6 +60,13 @@ nameOverride: ""
 ## @param namespaceOverride Namespace to install spiffe-csi-driver
 namespaceOverride: ""
 
+## @param serverNamespaceOverride Override the namespace that the spire-server is installed into
+serverNamespaceOverride: ""
+
+validatingAdmissionPolicy:
+  ## @param validatingAdmissionPolicy.enabled When set to auto, the validatingAdmissionPolicy will be enabled when the pluginName == "upstream.csi.spiffe.io" and k8s >= 1.30.0. Valid options are [auto, true, false]
+  enabled: auto
+
 ## @param fullnameOverride Full name override for spiffe-csi-driver
 fullnameOverride: ""
 

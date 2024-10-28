@@ -19,7 +19,7 @@ primary:
       - name: spiffe-helper
         mountPath: /helper
     - name: setup-helper-volume-p2
-      image: ghcr.io/spiffe/spiffe-helper:nightly@sha256:8cee346ffdcee5c996d394f1c3bb761c2c06834a0e779a78db6dc6a46fd13ae6
+      image: ghcr.io/spiffe/spiffe-helper:0.8.0
       imagePullPolicy: IfNotPresent
       command:
       - /helper/busybox
@@ -31,13 +31,13 @@ primary:
       - name: spiffe-helper
         mountPath: /helper
     - name: init-tls
-      image: ghcr.io/spiffe/spiffe-helper:nightly@sha256:8cee346ffdcee5c996d394f1c3bb761c2c06834a0e779a78db6dc6a46fd13ae6
+      image: ghcr.io/spiffe/spiffe-helper:0.8.0
       imagePullPolicy: Always
       command:
       - /spiffe-helper
       - -config
       - /etc/spiffe-helper.conf
-      - -exitWhenReady
+      - -daemon-mode=false
       securityContext: {{- omit .Values.primary.containerSecurityContext "enabled" | toYaml | nindent 8 }}
       volumeMounts:
       - name: spiffe-workload-api

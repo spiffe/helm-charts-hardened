@@ -66,8 +66,8 @@ Allow the release namespace to be overridden for multi-namespace deployments in 
 {{- end -}}
 
 {{- define "spire-server.bundle-namespace" -}}
-  {{- if .Values.notifier.k8sbundle.namespace }}
-    {{- .Values.notifier.k8sbundle.namespace }}
+  {{- if .Values.notifier.k8sBundle.namespace }}
+    {{- .Values.notifier.k8sBundle.namespace }}
   {{- else if .Values.namespaceOverride -}}
     {{- .Values.namespaceOverride -}}
   {{- else if and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "namespaceLayout" true .Values.global) }}
@@ -146,9 +146,9 @@ Create the name of the service account to use
 
 {{- define "spire-server.serviceAccountAllowedList" }}
 {{- $releaseNamespace := include "spire-server.agent-namespace" . }}
-{{- if ne (len .Values.nodeAttestor.k8sPsat.serviceAccountAllowList) 0 }}
+{{- if ne (len .Values.nodeAttestor.k8sPSAT.serviceAccountAllowList) 0 }}
 {{-   $list := list }}
-{{-   range .Values.nodeAttestor.k8sPsat.serviceAccountAllowList }}
+{{-   range .Values.nodeAttestor.k8sPSAT.serviceAccountAllowList }}
 {{-     if contains ":" . }}
 {{-       $list = append $list . }}
 {{-     else }}
@@ -189,20 +189,44 @@ Create the name of the service account to use
 {{- end }}
 
 {{- define "spire-server.datastore-config" }}
-{{- $config := deepCopy .Values.dataStore.sql.plugin_data }}
+{{- $config := dict }}
+{{- $pw := "" }}
+{{- $ropw := "" }}
 {{- if eq .Values.dataStore.sql.databaseType "sqlite3" }}
   {{- $_ := set $config "database_type" "sqlite3" }}
   {{- $_ := set $config "connection_string" "/run/spire/data/datastore.sqlite3" }}
-{{- else if eq .Values.dataStore.sql.databaseType "mysql" }}
-  {{- $_ := set $config "database_type" "mysql" }}
+{{- else if or (eq .Values.dataStore.sql.databaseType "mysql") (eq .Values.dataStore.sql.databaseType "aws_mysql") }}
+  {{- if eq .Values.dataStore.sql.databaseType "mysql" }}
+  {{-   $_ := set $config "database_type" "mysql" }}
+  {{-   $pw = "${DBPW}" }}
+  {{-   $ropw = "${RODBPW}" }}
+  {{- else }}
+  {{-   $_ := set $config "database_type" (list (dict "aws_mysql" (dict "region" .Values.dataStore.sql.region))) }}
+  {{- end }}
   {{- $port := int .Values.dataStore.sql.port | default 3306 }}
   {{- $query := include "spire-server.config-mysql-query" .Values.dataStore.sql.options }}
-  {{- $_ := set $config "connection_string" (printf "%s:${DBPW}@tcp(%s:%d)/%s%s" .Values.dataStore.sql.username .Values.dataStore.sql.host $port .Values.dataStore.sql.databaseName $query) }}
-{{- else if eq .Values.dataStore.sql.databaseType "postgres" }}
-  {{- $_ := set $config "database_type" "postgres" }}
+  {{- $_ := set $config "connection_string" (printf "%s:%s@tcp(%s:%d)/%s%s" .Values.dataStore.sql.username $pw .Values.dataStore.sql.host $port .Values.dataStore.sql.databaseName $query) }}
+  {{- if .Values.dataStore.sql.readOnly.enabled }}
+  {{-   $roPort := int .Values.dataStore.sql.readOnly.port | default 3306 }}
+  {{-   $roQuery := include "spire-server.config-mysql-query" .Values.dataStore.sql.readOnly.options }}
+  {{-   $_ := set $config "ro_connection_string" (printf "%s:%s@tcp(%s:%d)/%s%s" .Values.dataStore.sql.readOnly.username $ropw .Values.dataStore.sql.readOnly.host $roPort .Values.dataStore.sql.readOnly.databaseName $roQuery) }}
+  {{- end }}
+{{- else if or (eq .Values.dataStore.sql.databaseType "postgres") (eq .Values.dataStore.sql.databaseType "aws_postgres") }}
+  {{- if eq .Values.dataStore.sql.databaseType "postgres" }}
+  {{-   $_ := set $config "database_type" "postgres" }}
+  {{-   $pw = " password=${DBPW}" }}
+  {{-   $ropw = " password=${RODBPW}" }}
+  {{- else }}
+  {{-   $_ := set $config "database_type" (list (dict "aws_postgres" (dict "region" .Values.dataStore.sql.region))) }}
+  {{- end }}
   {{- $port := int .Values.dataStore.sql.port | default 5432 }}
   {{- $options:= include "spire-server.config-postgresql-options" .Values.dataStore.sql.options }}
-  {{- $_ := set $config "connection_string" (printf "dbname=%s user=%s password=${DBPW} host=%s port=%d%s" .Values.dataStore.sql.databaseName .Values.dataStore.sql.username .Values.dataStore.sql.host $port $options) }}
+  {{- $_ := set $config "connection_string" (printf "dbname=%s user=%s%s host=%s port=%d%s" .Values.dataStore.sql.databaseName .Values.dataStore.sql.username $pw .Values.dataStore.sql.host $port $options) }}
+  {{- if .Values.dataStore.sql.readOnly.enabled }}
+  {{-   $roPort := int .Values.dataStore.sql.readOnly.port | default 5432 }}
+  {{-   $roOptions:= include "spire-server.config-postgresql-options" .Values.dataStore.sql.readOnly.options }}
+  {{-   $_ := set $config "ro_connection_string" (printf "dbname=%s user=%s%s host=%s port=%d%s" .Values.dataStore.sql.readOnly.databaseName $ropw .Values.dataStore.sql.readOnly.username .Values.dataStore.sql.readOnly.host $roPort $roOptions) }}
+  {{- end }}
 {{- else }}
   {{- fail "Unsupported database type" }}
 {{- end }}
@@ -274,7 +298,7 @@ The code below determines what connection type should be used.
 {{-     end }}
 {{-     $args = append $args (printf "https://%s/" $host) }}
 {{-   else }}
-{{-     $args = append $args (printf "http://%s/" $host) }}
+{{-     $args = append $args (printf "-k -L http://%s/" $host) }}
 {{-   end }}
 {{ $args | toYaml }}
 {{- end -}}
@@ -293,17 +317,17 @@ The code below determines what connection type should be used.
 
 {{- define "spire-server.ca-subject-country" }}
 {{-   $g := dig "spire" "caSubject" "country" "" .Values.global }}
-{{-   default .Values.ca_subject.country $g }}
+{{-   default .Values.caSubject.country $g }}
 {{- end }}
 
 {{- define "spire-server.ca-subject-organization" }}
 {{-   $g := dig "spire" "caSubject" "organization" "" .Values.global }}
-{{-   default .Values.ca_subject.organization $g }}
+{{-   default .Values.caSubject.organization $g }}
 {{- end }}
 
 {{- define "spire-server.ca-subject-common-name" }}
 {{-   $g := dig "spire" "caSubject" "commonName" "" .Values.global }}
-{{-   default .Values.ca_subject.common_name $g }}
+{{-   default .Values.caSubject.commonName $g }}
 {{- end }}
 
 {{- define "spire-server.subject" }}
