@@ -23,5 +23,10 @@
     "name": "postgresql",
     "repo": "https://charts.bitnami.com/bitnami",
     "version": "16.0.3"
+  },
+  {
+    "name": "kyverno",
+    "repo": "https://kyverno.github.io/kyverno",
+    "version": "3.1.1"
   }
 ]
