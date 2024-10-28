@@ -21,9 +21,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  HELM_VERSION: v3.12.0
+  HELM_VERSION: v3.16.2
   PYTHON_VERSION: 3.11.3
-  KIND_VERSION: v0.19.0
+  KIND_VERSION: v0.24.0
   CHART_TESTING_VERSION: v3.8.0
 
 jobs:
@@ -130,9 +130,9 @@ jobs:
         # Kubernetes, but can go back farther as long as we don't need heroics
         # to pull it off (i.e. kubectl version juggling).
         k8s:
-          - v1.28.0
-          - v1.27.3
-          - v1.26.6
+          - v1.31.1
+          - v1.30.4
+          - v1.29.8
 
     steps:
       - name: Checkout
@@ -218,9 +218,9 @@ jobs:
       fail-fast: false
       matrix:
         k8s:
-          - v1.28.0
-          - v1.27.3
-          - v1.26.6
+          - v1.31.1
+          - v1.30.4
+          - v1.29.8
         example:
           - ${{ fromJson(needs.build-matrix.outputs.examples) }}
 
@@ -243,7 +243,7 @@ jobs:
         # Only build a kind cluster if there are chart changes to test.
         with:
           version: ${{ env.KIND_VERSION }}
-          node_image: kindest/node:v1.26.4
+          node_image: kindest/node:${{ matrix.k8s }}
           config: .github/kind/conf/kind-config.yaml
           verbosity: 1
 
@@ -256,6 +256,7 @@ jobs:
             kubectl create namespace spire-server
             helm install -n spire-server spire-crds charts/spire-crds
           fi
+          export K8S="${{ matrix.k8s }}"
           ${{ matrix.example }}/run-tests.sh
 
   integration-test:
@@ -269,9 +270,9 @@ jobs:
       fail-fast: false
       matrix:
         k8s:
-          - v1.28.0
-          - v1.27.3
-          - v1.26.6
+          - v1.31.1
+          - v1.30.4
+          - v1.29.8
         integrationtest:
           - ${{ fromJson(needs.build-matrix.outputs.integrationtests) }}
 
@@ -294,7 +295,7 @@ jobs:
         # Only build a kind cluster if there are chart changes to test.
         with:
           version: ${{ env.KIND_VERSION }}
-          node_image: kindest/node:v1.26.4
+          node_image: kindest/node:${{ matrix.k8s }}
           config: .github/kind/conf/kind-config.yaml
           verbosity: 1
 
@@ -314,9 +315,9 @@ jobs:
       fail-fast: false
       matrix:
         k8s:
-          - v1.28.0
-          - v1.27.3
-          - v1.26.6
+          - v1.31.1
+          - v1.30.4
+          - v1.29.8
 
     steps:
       - name: Checkout
@@ -337,7 +338,7 @@ jobs:
         # Only build a kind cluster if there are chart changes to test.
         with:
           version: ${{ env.KIND_VERSION }}
-          node_image: kindest/node:v1.26.4
+          node_image: kindest/node:${{ matrix.k8s }}
           config: .github/kind/conf/kind-config.yaml
           verbosity: 1
 
