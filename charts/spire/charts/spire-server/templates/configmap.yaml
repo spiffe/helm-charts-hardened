@@ -307,7 +307,7 @@ plugins:
       plugin_data:
         bucket_name: {{ .Values.bundlePublisher.gcpCloudStorage.bucketName | quote }}
         object_name: {{ .Values.bundlePublisher.gcpCloudStorage.objectName | quote }}
-        format: {{ .Values.bundlePublisher.awsS3.format | quote }}
+        format: {{ .Values.bundlePublisher.gcpCloudStorage.format | quote }}
     {{- end }}
   {{- end }}
 
