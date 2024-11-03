@@ -7,8 +7,6 @@ spire-server:
   controllerManager:
     identities:
       clusterSPIFFEIDs:
-        default:
-          enabled: false
         spiffe-step-ssh-config:
           type: raw
           namespaceSelector:
