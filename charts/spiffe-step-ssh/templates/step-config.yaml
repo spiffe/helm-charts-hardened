@@ -30,4 +30,3 @@ data:
 {{- end }}
   "ssh_x5c.tpl": |
     {{- .Files.Get "files/ssh_x5c.tpl" | replace "@TRUST_DOMAIN@" .Values.trustDomain | replace "@PREFIX@" .Values.prefix | nindent 4}}
-

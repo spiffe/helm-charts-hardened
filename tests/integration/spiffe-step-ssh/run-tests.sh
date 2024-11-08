@@ -103,7 +103,6 @@ kubectl get configmap -n kube-system coredns -o yaml | grep test.production.othe
 kubectl rollout restart -n kube-system deployment/coredns
 kubectl rollout status -n kube-system -w --timeout=1m deploy/coredns
 
-#helm upgrade --install --create-namespace -n spire-system spire-crds charts/spire-crds
 helm upgrade --install --create-namespace --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/root-values.yaml" \
   --wait spire charts/spire-nested \
   --set "global.spire.namespaces.create=true" \
@@ -118,8 +117,6 @@ if [[ "${ENTRIES}" == "Found 0 entries" ]]; then
   echo "${ENTRIES}"
   exit 1
 fi
-
-#helm test --namespace spire-mgmt spire
 
 kubectl get ingress -n spire-server
 
