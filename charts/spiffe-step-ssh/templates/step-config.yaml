@@ -1,0 +1,32 @@
+{{- define "spiffe-step-ssh.config-provisioners" }}
+type: X5C
+name: "x5c@spiffe"
+roots: ""
+claims:
+  maxTLSCertDuration: {{ .Values.maxTLSCertDuration | quote }}
+  defaultTLSCertDuration: {{ .Values.defaultTLSCertDuration | quote }}
+  disableRenewal: true
+  enableSSHCA: true
+disableCustomSANs: true
+options:
+ ssh:
+   templateFile: /home/step/config/ssh_x5c.tpl
+{{- end }}
+{{ $ca := deepCopy (index .Values.inject.config.files "ca.json") }}
+{{ $_ := set $ca.authority "provisioners" (list (include "spiffe-step-ssh.config-provisioners" . | fromYaml )) }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spiffe-step-ssh.fullname" . }}-config-raw
+  labels:
+    {{- include "spiffe-step-ssh.labels" . | nindent 4 }}
+data:
+  "ca.json": |
+    {{- $ca | toPrettyJson | nindent 4 }}
+  "defaults.json": |
+    {{- index .Values.inject.config.files "defaults.json" | toPrettyJson | nindent 4 }}
+{{- if eq .Values.trustDomain "" }}
+{{-   fail "You must set trustDomain" }}
+{{- end }}
+  "ssh_x5c.tpl": |
+    {{- .Files.Get "files/ssh_x5c.tpl" | replace "@TRUST_DOMAIN@" .Values.trustDomain | replace "@PREFIX@" .Values.prefix | nindent 4}}

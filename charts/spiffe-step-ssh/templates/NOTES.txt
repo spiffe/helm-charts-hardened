@@ -1,0 +1,5 @@
+Installed {{ .Chart.Name }}…
+
+Configure your ssh clients with known_hosts file with:
+
+@cert-authority *.{{ .Values.trustDomain }} {{ .Values.inject.certificates.ssh_host_ca }}
