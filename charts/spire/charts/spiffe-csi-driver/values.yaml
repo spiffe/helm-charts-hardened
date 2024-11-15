@@ -33,6 +33,9 @@ resources: {}
   #   cpu: 100m
   #   memory: 64Mi
 
+## @param extraEnvVars [array] Extra environment variables to be added to the spiffe-csi-driver container
+extraEnvVars: []
+
 healthChecks:
   ## @param healthChecks.port The healthcheck port for spiffe-csi-driver
   port: 9809
@@ -136,6 +139,8 @@ nodeDriverRegistrar:
     # limits:
     #   cpu: 100m
     #   memory: 64Mi
+  ## @param nodeDriverRegistrar.extraEnvVars [array] Extra environment variables to be added to the nodeDriverRegistrar container
+  extraEnvVars: []
 
 ## @param agentSocketPath The unix socket path to the spire-agent
 agentSocketPath: /run/spire/agent-sockets/spire-agent.sock

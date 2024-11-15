@@ -90,6 +90,9 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+          {{- with .Values.extraEnvVars }}
+          {{- toYaml . | nindent 12 }}
+          {{- end }}
           volumeMounts:
             # The volume containing the SPIRE agent socket. The SPIFFE CSI
             # driver will mount this directory into containers.
@@ -123,6 +126,10 @@ spec:
             "-kubelet-registration-path", "{{ .Values.kubeletPath }}/plugins/{{ .Values.pluginName }}/csi.sock",
             "-health-port", "{{ .Values.healthChecks.port }}"
           ]
+          env:
+          {{- with .Values.nodeDriverRegistrar.extraEnvVars }}
+          {{- toYaml . | nindent 12 }}
+          {{- end }}
           volumeMounts:
             # The registrar needs access to the SPIFFE CSI driver socket
             - mountPath: /spiffe-csi
