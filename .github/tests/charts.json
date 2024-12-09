@@ -2,12 +2,12 @@
   {
     "name": "kube-prometheus-stack",
     "repo": "https://prometheus-community.github.io/helm-charts",
-    "version": "66.2.1"
+    "version": "66.3.1"
   },
   {
     "name": "cert-manager",
     "repo": "https://charts.jetstack.io",
-    "version": "v1.16.1"
+    "version": "v1.16.2"
   },
   {
     "name": "ingress-nginx",
@@ -17,11 +17,11 @@
   {
     "name": "mysql",
     "repo": "https://charts.bitnami.com/bitnami",
-    "version": "12.0.0"
+    "version": "12.1.0"
   },
   {
     "name": "postgresql",
     "repo": "https://charts.bitnami.com/bitnami",
-    "version": "16.2.1"
+    "version": "16.2.5"
   }
 ]
