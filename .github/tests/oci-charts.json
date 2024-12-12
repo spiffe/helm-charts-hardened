@@ -1,12 +1,12 @@
 [
   {
     "name": "mysql",
-    "registry": "docker.io/bitnamicharts/postgresql",
+    "registry": "docker.io/bitnamicharts/mysqll",
     "version": "12.2.0"
   },
   {
     "name": "postgresql",
-    "registry": "docker.io/bitnamicharts/postgreql",
+    "registry": "docker.io/bitnamicharts/postgresql",
     "version": "16.3.0"
   },
   {
