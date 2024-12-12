@@ -1,7 +1,7 @@
 [
   {
     "name": "mysql",
-    "registry": "docker.io/bitnamicharts/mysqll",
+    "registry": "docker.io/bitnamicharts/mysql",
     "version": "12.2.0"
   },
   {
