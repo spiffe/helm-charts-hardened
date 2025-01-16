@@ -1,0 +1,137 @@
+{{/*
+Expand the name of the chart.
+*/}}
+{{- define "spire-ha-agent.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Create a default fully qualified app name.
+We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+If release name contains chart name it will be used as a full name.
+*/}}
+{{- define "spire-ha-agent.fullname" -}}
+{{- if .Values.fullnameOverride }}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
+Allow the release namespace to be overridden for multi-namespace deployments in combined charts
+*/}}
+{{- define "spire-ha-agent.namespace" -}}
+  {{- if .Values.namespaceOverride -}}
+    {{- .Values.namespaceOverride -}}
+  {{- else if and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "namespaceLayout" true .Values.global) }}
+    {{- if ne (len (dig "spire" "namespaces" "system" "name" "" .Values.global)) 0 }}
+      {{- .Values.global.spire.namespaces.system.name }}
+    {{- else }}
+      {{- printf "spire-system" }}
+    {{- end }}
+  {{- else -}}
+    {{- .Release.Namespace -}}
+  {{- end -}}
+{{- end -}}
+
+{{- define "spire-ha-agent.server.namespace" -}}
+  {{- if .Values.server.namespaceOverride -}}
+    {{- .Values.server.namespaceOverride -}}
+  {{- else if and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "namespaceLayout" true .Values.global) }}
+    {{- if ne (len (dig "spire" "namespaces" "server" "name" "" .Values.global)) 0 }}
+      {{- .Values.global.spire.namespaces.server.name }}
+    {{- else }}
+      {{- printf "spire-server" }}
+    {{- end }}
+  {{- else -}}
+    {{- .Release.Namespace -}}
+  {{- end -}}
+{{- end -}}
+
+{{- define "spire-ha-agent.podMonitor.namespace" -}}
+  {{- if ne (len .Values.telemetry.prometheus.podMonitor.namespace) 0 }}
+    {{- .Values.telemetry.prometheus.podMonitor.namespace }}
+  {{- else if ne (len (dig "telemetry" "prometheus" "podMonitor" "namespace" "" .Values.global)) 0 }}
+    {{- .Values.global.telemetry.prometheus.podMonitor.namespace }}
+  {{- else }}
+    {{- include "spire-ha-agent.namespace" . }}
+  {{- end }}
+{{- end -}}
+
+{{/*
+Create chart name and version as used by the chart label.
+*/}}
+{{- define "spire-ha-agent.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Common labels
+*/}}
+{{- define "spire-ha-agent.labels" -}}
+helm.sh/chart: {{ include "spire-ha-agent.chart" . | quote }}
+{{ include "spire-ha-agent.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+{{- end }}
+
+{{/*
+Selector labels
+*/}}
+{{- define "spire-ha-agent.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "spire-ha-agent.name" . | quote }}
+app.kubernetes.io/instance: {{ .Release.Name | quote }}
+{{- end }}
+
+{{/*
+Create the name of the service account to use
+*/}}
+{{- define "spire-ha-agent.serviceAccountName" -}}
+{{- default (printf "%s-agent" .Release.Name) .Values.serviceAccount.name }}
+{{- end }}
+
+{{- define "spire-ha-agent.server-address" }}
+{{- if and (ne (len (dig "spire" "upstreamSpireAddress" "" .Values.global)) 0) .Values.upstream }}
+{{- print .Values.global.spire.upstreamSpireAddress }}
+{{- else if .Values.server.address }}
+{{- .Values.server.address }}
+{{- else if .Values.server.nameOverride }}
+{{ .Release.Name }}-{{ .Values.server.nameOverride }}.{{ include "spire-ha-agent.server.namespace" . }}
+{{- else }}
+{{ .Release.Name }}-server.{{ include "spire-ha-agent.server.namespace" . }}
+{{- end }}
+{{- end }}
+
+{{- define "spire-ha-agent.socket-path" -}}
+{{- print .Values.socketPath }}
+{{- end }}
+
+{{- define "spire-ha-agent.connect-by-hostname" -}}
+{{-   if ne .Values.kubeletConnectByHostname "" }}
+{{-     if eq (.Values.kubeletConnectByHostname | toString) "true" }}
+{{-       printf "true" }}
+{{-     else }}
+{{-       printf "false" }}
+{{-     end }}
+{{-   else if (dig "openshift" false .Values.global) }}
+{{-     printf "true" }}
+{{-   else }}
+{{-     printf "false" }}
+{{-   end }}
+{{- end }}
+
+{{- define "spire-ha-agent.socket-alternate-names" -}}
+{{-   $sockName := .Values.socketPath | base }}
+{{-   $l := deepCopy .Values.socketAlternate.names }}
+{{-   $l = without $l $sockName }}
+names:
+{{ $l | toYaml }}
+{{- end }}

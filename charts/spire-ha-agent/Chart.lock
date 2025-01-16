@@ -1,0 +1,6 @@
+dependencies:
+- name: spire-lib
+  repository: file://../spire/charts/spire-lib
+  version: 0.1.0
+digest: sha256:e397a79d7d3b94b353f8458cb435f2cae9fd9495b367b9216958bff2771b801c
+generated: "2024-11-08T00:50:47.925287061Z"

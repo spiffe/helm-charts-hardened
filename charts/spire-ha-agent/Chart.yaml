@@ -1,0 +1,23 @@
+apiVersion: v2
+name: spire-ha-agent
+description: A Helm chart to install the SPIRE HA agent.
+type: application
+version: 0.1.0
+appVersion: "0.0.7"
+keywords: ["spiffe", "spire-ha-agent"]
+home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire-ha-agent
+sources:
+  - https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire
+icon: https://spiffe.io/img/logos/spire/icon/color/spire-icon-color.png
+maintainers:
+  - name: marcofranssen
+    email: marco.franssen@gmail.com
+    url: https://marcofranssen.nl
+  - name: kfox1111
+    email: Kevin.Fox@pnnl.gov
+  - name: faisal-memon
+    email: fymemon@yahoo.com
+dependencies:
+  - name: spire-lib
+    repository: file://../spire/charts/spire-lib
+    version: 0.1.0
