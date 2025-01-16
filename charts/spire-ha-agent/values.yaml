@@ -133,10 +133,10 @@ cid2PID:
   ## @param cid2PID.image.tag Overrides the image tag whose default is the chart appVersion
   ##
   image:
-    registry: docker.io
-    repository: kfox1111/misc3
+    registry: ghcr.io
+    repository: kfox1111/cid2pid
     pullPolicy: Always
-    tag: cid2pid
+    tag: v0.0.3
 
   ## @param cid2PID.busybox.image.registry The OCI registry to pull the image from
   ## @param cid2PID.busybox.image.repository The repository within the registry
