@@ -14,7 +14,7 @@ global: {}
 image:
   registry: ghcr.io
   repository: spiffe/spire-ha-agent
-  pullPolicy: Always # IfNotPresent
+  pullPolicy: IfNotPresent
   tag: ""
 
 ## @param singleSocket If in singleSocket mode, only one driver is used
