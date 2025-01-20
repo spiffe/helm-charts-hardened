@@ -7,11 +7,11 @@
   {
     "name": "postgresql",
     "registry": "docker.io/bitnamicharts/postgresql",
-    "version": "16.3.5"
+    "version": "16.4.3"
   },
   {
     "name": "envoy-gateway",
     "registry": "docker.io/envoyproxy/gateway-helm",
-    "version": "v1.2.4"
+    "version": "v1.2.5"
   }
 ]
