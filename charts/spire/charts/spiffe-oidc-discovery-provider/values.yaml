@@ -31,6 +31,12 @@ image:
   pullPolicy: IfNotPresent
   tag: ""
 
+## @param expandEnv Set to true to enable environment variable substitution of config file options
+expandEnv: false
+
+## @param extraEnv [array] Extra environment variables to add to the spiffe oidc discovery provider
+extraEnv: []
+
 spiffeHelper:
   image:
     ## @param spiffeHelper.image.registry The OCI registry to pull the image from

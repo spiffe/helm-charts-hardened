@@ -71,6 +71,13 @@ spec:
           args:
             - -config
             - /run/spire/oidc/config/oidc-discovery-provider.conf
+            {{- if .Values.expandEnv }}
+            - -expandEnv
+            {{- end }}
+          {{- with .Values.extraEnv }}
+          env:
+          {{- . | toYaml | nindent 12 }}
+          {{- end }}
           ports:
             - containerPort: 8008
               name: healthz
