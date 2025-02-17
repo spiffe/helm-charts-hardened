@@ -170,7 +170,7 @@ insecureScheme:
       registry: docker.io
       repository: nginxinc/nginx-unprivileged
       pullPolicy: IfNotPresent
-      tag: 1.27.3-alpine
+      tag: 1.27.4-alpine
     ## @param insecureScheme.nginx.ipMode IP modes supported by the cluster. Must be one of [ipv4, ipv6, both]
     ipMode: both
     ## @param insecureScheme.nginx.resources Resource requests and limits
@@ -338,7 +338,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:f7d0921b1b57304b847eef057cf171313ab3131cecc9778ca58dee866894ae2d
+      tag: latest@sha256:62391cd491beac226e4dae09911481c8139c143a96a33b763a168be68ba3fc01
 
   toolkit:
     ## @param tests.toolkit.image.registry The OCI registry to pull the image from
