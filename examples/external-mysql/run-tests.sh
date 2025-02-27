@@ -48,7 +48,7 @@ kubectl label namespace spire-system pod-security.kubernetes.io/enforce=privileg
 kubectl create namespace spire-server --dry-run=client -o yaml | kubectl apply -f -
 kubectl label namespace spire-server pod-security.kubernetes.io/enforce=restricted || true
 
-helm upgrade --install mysql mysql --version "$VERSION_MYSQL" --repo "$HELM_REPO_MYSQL" \
+helm upgrade --install mysql "${HELM_REGISTRY_MYSQL}" --version "$VERSION_MYSQL" \
   --namespace spire-server \
   --values "${DEPS}/mysql.yaml" \
   --wait

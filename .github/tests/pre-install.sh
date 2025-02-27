@@ -37,13 +37,13 @@ kubectl wait --namespace ingress-nginx --for=condition=ready --timeout 60s pod -
 # external database
 
 # mysql
-"${helm_install[@]}" mysql mysql --version "$VERSION_MYSQL" --repo "$HELM_REPO_MYSQL" \
+"${helm_install[@]}" mysql "${HELM_REGISTRY_MYSQL}" --version "$VERSION_MYSQL" \
   --namespace mysql \
   --values "${DEPS}/mysql.yaml" \
   --wait
 
 # postgres
-"${helm_install[@]}" postgresql postgresql --version "$VERSION_POSTGRESQL" --repo "$HELM_REPO_POSTGRESQL" \
+"${helm_install[@]}" postgresql "${HELM_REGISTRY_POSTGRESQL}" --version "$VERSION_POSTGRESQL" \
   --namespace postgresql \
   --values "${DEPS}/postgresql.yaml" \
   --wait

@@ -32,7 +32,7 @@ jq -r ".[].name" "${CHARTJSON}" | while read -r NAME; do
   echo Processing: "${NAME}"
   echo "  chart: ${REGISTRY}"
   echo "  current version: ${VERSION}"
-  LATEST_VERSION=$(crane ls "$REGISTRY" | grep 'v[0-9]*\.[0-9]*\.[0-9]\.*$' | sort -V -r | head -n 1)
+  LATEST_VERSION=$(crane ls "$REGISTRY" | grep 'v\?[0-9]*\.[0-9]*\.[0-9]\.*$' | sort -V -r | head -n 1)
   echo "  latest version: ${LATEST_VERSION}"
   if [ "x${VERSION}" != "x${LATEST_VERSION}" ]; then
     echo "  New version found!"
