@@ -36,6 +36,76 @@ entries:
       artifacthub.io/category: security
       artifacthub.io/license: Apache-2.0
     apiVersion: v2
+    appVersion: 1.11.2
+    created: "2025-02-27T19:03:28.697560217Z"
+    dependencies:
+    - name: spire-lib
+      repository: file://./charts/spire-lib
+      version: 0.1.0
+    - condition: spire-server.enabled
+      name: spire-server
+      repository: file://./charts/spire-server
+      version: 0.1.0
+    - condition: spire-agent.enabled
+      name: spire-agent
+      repository: file://./charts/spire-agent
+      version: 0.1.0
+    - alias: upstream-spire-agent
+      condition: upstream.enabled
+      name: spire-agent
+      repository: file://./charts/spire-agent
+      version: 0.1.0
+    - condition: spiffe-csi-driver.enabled
+      name: spiffe-csi-driver
+      repository: file://./charts/spiffe-csi-driver
+      version: 0.1.0
+    - alias: upstream-spiffe-csi-driver
+      condition: upstream.enabled
+      name: spiffe-csi-driver
+      repository: file://./charts/spiffe-csi-driver
+      version: 0.1.0
+    - condition: spiffe-oidc-discovery-provider.enabled
+      name: spiffe-oidc-discovery-provider
+      repository: file://./charts/spiffe-oidc-discovery-provider
+      version: 0.1.0
+    - condition: tornjak-frontend.enabled
+      name: tornjak-frontend
+      repository: file://./charts/tornjak-frontend
+      version: 0.1.0
+    description: 'A Helm chart for deploying the complete Spire stack including: spire-server,
+      spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager. '
+    digest: 51185c57843de86307db57413bdfa4376537fcfca87ba11499d07d20bcf04a93
+    home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire
+    icon: https://spiffe.io/img/logos/spire/icon/color/spire-icon-color.png
+    keywords:
+    - spiffe
+    - spire
+    - spire-server
+    - spire-agent
+    - oidc
+    - spire-controller-manager
+    kubeVersion: '>=1.21.0-0'
+    maintainers:
+    - email: marco.franssen@gmail.com
+      name: marcofranssen
+      url: https://marcofranssen.nl
+    - email: Kevin.Fox@pnnl.gov
+      name: kfox1111
+    - email: fymemon@yahoo.com
+      name: faisal-memon
+    - email: edwbuck@gmail.com
+      name: edwbuck
+    name: spire
+    sources:
+    - https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire
+    type: application
+    urls:
+    - https://github.com/spiffe/helm-charts-hardened/releases/download/spire-0.24.2/spire-0.24.2.tgz
+    version: 0.24.2
+  - annotations:
+      artifacthub.io/category: security
+      artifacthub.io/license: Apache-2.0
+    apiVersion: v2
     appVersion: 1.11.0
     created: "2024-11-17T22:59:31.835411094Z"
     dependencies:
@@ -2710,6 +2780,132 @@ entries:
       artifacthub.io/category: security
       artifacthub.io/license: Apache-2.0
     apiVersion: v2
+    appVersion: 1.11.2
+    created: "2025-02-27T19:03:28.81866673Z"
+    dependencies:
+    - name: spire-lib
+      repository: file://../spire/charts/spire-lib
+      version: 0.1.0
+    - alias: root-spire-server
+      condition: root-spire-server.enabled
+      name: spire-server
+      repository: file://../spire/charts/spire-server
+      tags:
+      - nestedRoot
+      version: 0.1.0
+    - alias: external-root-spire-server-full
+      condition: external-root-spire-server-full.enabled
+      name: spire-server
+      repository: file://../spire/charts/spire-server
+      tags:
+      - nestedChildFull
+      version: 0.1.0
+    - alias: external-root-spire-server-security
+      condition: external-root-spire-server-security.enabled
+      name: spire-server
+      repository: file://../spire/charts/spire-server
+      tags:
+      - nestedChildSecurity
+      version: 0.1.0
+    - alias: internal-spire-server
+      condition: internal-spire-server.enabled
+      name: spire-server
+      repository: file://../spire/charts/spire-server
+      tags:
+      - nestedRoot
+      - nestedChildFull
+      version: 0.1.0
+    - alias: external-spire-server
+      condition: external-spire-server.enabled
+      name: spire-server
+      repository: file://../spire/charts/spire-server
+      tags:
+      - nestedRoot
+      version: 0.1.0
+    - alias: downstream-spire-agent-full
+      condition: downstream-spire-agent-full.enabled
+      name: spire-agent
+      repository: file://../spire/charts/spire-agent
+      tags:
+      - nestedRoot
+      - nestedChildFull
+      version: 0.1.0
+    - alias: downstream-spire-agent-security
+      condition: downstream-spire-agent-security.enabled
+      name: spire-agent
+      repository: file://../spire/charts/spire-agent
+      tags:
+      - nestedChildSecurity
+      version: 0.1.0
+    - alias: upstream-spire-agent
+      condition: upstream-spire-agent.enabled
+      name: spire-agent
+      repository: file://../spire/charts/spire-agent
+      tags:
+      - nestedRoot
+      - nestedChildFull
+      version: 0.1.0
+    - alias: downstream-spiffe-csi-driver
+      condition: downstream-spiffe-csi-driver.enabled
+      name: spiffe-csi-driver
+      repository: file://../spire/charts/spiffe-csi-driver
+      tags:
+      - nestedRoot
+      - nestedChildFull
+      - nestedChildSecurity
+      version: 0.1.0
+    - alias: upstream-spiffe-csi-driver
+      condition: upstream-spiffe-csi-driver.enabled
+      name: spiffe-csi-driver
+      repository: file://../spire/charts/spiffe-csi-driver
+      tags:
+      - nestedRoot
+      - nestedChildFull
+      version: 0.1.0
+    - condition: spiffe-oidc-discovery-provider.enabled
+      name: spiffe-oidc-discovery-provider
+      repository: file://../spire/charts/spiffe-oidc-discovery-provider
+      tags:
+      - nestedRoot
+      - nestedChildFull
+      - nestedChildSecurity
+      version: 0.1.0
+    - condition: tornjak-frontend.enabled
+      name: tornjak-frontend
+      repository: file://../spire/charts/tornjak-frontend
+      version: 0.1.0
+    description: 'A Helm chart for deploying the complete Spire stack including: spire-server,
+      spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager. '
+    digest: a236636675c322d521453f200a3d074ee0d6b20060c598fa51f50d4341e7bd1e
+    home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire
+    icon: https://spiffe.io/img/logos/spire/icon/color/spire-icon-color.png
+    keywords:
+    - spiffe
+    - spire
+    - spire-server
+    - spire-agent
+    - oidc
+    - spire-controller-manager
+    kubeVersion: '>=1.21.0-0'
+    maintainers:
+    - email: marco.franssen@gmail.com
+      name: marcofranssen
+      url: https://marcofranssen.nl
+    - email: Kevin.Fox@pnnl.gov
+      name: kfox1111
+    - email: fymemon@yahoo.com
+      name: faisal-memon
+    name: spire-nested
+    sources:
+    - https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire
+    type: application
+    urls:
+    - https://github.com/spiffe/helm-charts-hardened/releases/download/spire-nested-0.24.2/spire-nested-0.24.2.tgz
+    version: 0.24.2
+  - annotations:
+      artifacthub.io/category: security
+      artifacthub.io/license: Apache-2.0
+    apiVersion: v2
     appVersion: 1.11.0
     created: "2024-11-17T22:59:31.968319684Z"
     dependencies:
@@ -3588,4 +3784,4 @@ entries:
     urls:
     - https://github.com/spiffe/helm-charts-hardened/releases/download/spire-nested-0.20.0/spire-nested-0.20.0.tgz
     version: 0.20.0
-generated: "2024-11-17T22:59:31.968602172Z"
+generated: "2025-02-27T19:03:28.819097413Z"
