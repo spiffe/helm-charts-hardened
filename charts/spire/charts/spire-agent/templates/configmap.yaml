@@ -61,7 +61,7 @@ agent:
   {{- with .Values.experimental }}
   {{- if eq (.enabled | toString) "true" }}
   experimental:
-  sync_interval: {{ .syncInterval | quote }}
+    sync_interval: {{ .syncInterval | quote }}
     {{- if gt (len .featureFlags) 0 }}
     feature_flags:
       {{- range .featureFlags }}
