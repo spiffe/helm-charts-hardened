@@ -487,6 +487,10 @@ notifier:
     enabled: true
     ## @param notifier.k8sBundle.namespace Namespace to push the bundle into, if blank will default to SPIRE Server namespace
     namespace: ""
+    ## @param notifier.k8sBundle.apiServiceLabel If set, rotate the CA Bundle in API services with this label set to true.
+    apiServiceLabel: ""
+    ## @param notifier.k8sBundle.webhookLabel If set, rotate the CA Bundle in validating and mutating webhooks with this label set to true.
+    webhookLabel: ""
   externalK8sBundle:
     ## @param notifier.externalK8sBundle.enabled Enable external k8s bundle uploader
     enabled: true
