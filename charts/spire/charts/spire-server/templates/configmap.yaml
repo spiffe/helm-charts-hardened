@@ -303,6 +303,7 @@ plugins:
     {{- if .Values.bundlePublisher.awsS3.enabled }}
     aws_s3:
       plugin_data:
+        endpoint: {{ .Values.bundlePublisher.awsS3.endpoint | quote }}
         region: {{ .Values.bundlePublisher.awsS3.region | quote }}
         bucket: {{ .Values.bundlePublisher.awsS3.bucket | quote }}
         object_key: {{ .Values.bundlePublisher.awsS3.objectKey | quote }}

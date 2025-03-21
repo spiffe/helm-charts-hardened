@@ -922,6 +922,8 @@ bundlePublisher:
   awsS3:
     ## @param bundlePublisher.awsS3.enabled Enable the AWS S3 bundle publisher
     enabled: false
+    ## @param bundlePublisher.awsS3.endpoint A custom S3 endpoint should be set when using third-party object storage providers, such as Minio.
+    endpoint: ""
     ## @param bundlePublisher.awsS3.region AWS region to store the trust bundle
     region: ""
     ## @param bundlePublisher.awsS3.bucket AWS S3 bucket name to which the trust bundle is uploaded
