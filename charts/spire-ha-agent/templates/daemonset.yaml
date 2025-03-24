@@ -1,0 +1,207 @@
+{{- $podSecurityContext := fromYaml (include "spire-lib.podsecuritycontext" .) }}
+{{- $mainSecurityContext := deepCopy .Values.securityContext }}
+{{- $socketAlternateNames := index (include "spire-ha-agent.socket-alternate-names" . | fromYaml) "names" }}
+{{- $socketPath := include "spire-ha-agent.socket-path" . }}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "spire-ha-agent.fullname" . | quote }}
+  namespace: {{ include "spire-ha-agent.namespace" . | quote}}
+  labels:
+    {{- include "spire-ha-agent.labels" . | nindent 4 }}
+    app.kubernetes.io/component: spire-ha-agent
+spec:
+  selector:
+    matchLabels:
+      {{- include "spire-ha-agent.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: spire-ha-agent
+  {{- with .Values.updateStrategy }}
+  updateStrategy:
+    {{- if not (has .type (list "RollingUpdate" "OnDelete")) }}
+    {{- fail "updateStrategy.type can only be RollingUpdate or OnDelete"}}
+    {{- end }}
+    type: {{ .type }}
+    {{- if eq .type "RollingUpdate" }}
+    rollingUpdate:
+      maxUnavailable: {{ .rollingUpdate.maxUnavailable }}
+    {{- end }}
+  {{- end }}
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: spire-ha-agent
+      labels:
+        {{- include "spire-ha-agent.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: spire-ha-agent
+        {{- with .Values.podLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      hostPID: true
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      serviceAccountName: {{ include "spire-ha-agent.serviceAccountName" . | quote }}
+      securityContext:
+        {{- toYaml $podSecurityContext | nindent 8 }}
+      {{- include "spire-lib.default_node_priority_class_name" . | nindent 6 }}
+      {{- if ne (len .Values.hostAliases) 0 }}
+      hostAliases:
+        {{- toYaml .Values.hostAliases | nindent 8 }}
+      {{- end }}
+      initContainers:
+        {{- if not .Values.vsock }}
+        {{-   if gt (len $socketAlternateNames) 0 }}
+        - name: ensure-alternate-names
+          image: {{ template "spire-lib.image" (dict "image" .Values.socketAlternate.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.socketAlternate.image.pullPolicy | quote }}
+          command: ["bash", "-xc"]
+          {{- /* 1. Look for symlinks pointing at the wrong place and remove them. 2. Make symlinks that don't exist. 3. If new socket is pointing at an existing symlink, remove old symlink. */}}
+          args:
+            - |
+              cd {{ $socketPath | dir }}
+              {{- range $socketAlternateNames }}
+              L=`readlink {{ . }}`
+              [ "x$L" != "x{{ $socketPath | base }}" ] && rm -f {{ . }}
+              [ ! -L {{ . }} ] && ln -s {{ $socketPath | base }} {{ . }}
+              {{- end }}
+              [ -L {{ $socketPath | base }} ] && rm -f {{ $socketPath | base }}
+              exit 0
+          resources:
+            {{- toYaml .Values.socketAlternate.resources | nindent 12 }}
+          volumeMounts:
+            - name: spire-ha-agent-socket-dir
+              mountPath: {{ $socketPath | dir }}
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+        {{-   end }}
+        {{- else }}
+        - name: setup-shell
+          image: {{ template "spire-lib.image" (dict "image" .Values.cid2PID.busybox.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.cid2PID.busybox.image.pullPolicy | quote }}
+          command: ["sh", "-xc"]
+          args:
+            - |
+              cp -a /bin/busybox /data
+          resources:
+            {{- toYaml .Values.cid2PID.busybox.resources | nindent 12 }}
+          volumeMounts:
+            - name: cid2pid
+              mountPath: /data
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+        - name: setup-cid2pid
+          image: {{ template "spire-lib.image" (dict "image" .Values.cid2PID.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.cid2PID.image.pullPolicy | quote }}
+          command: ["/data/busybox", "sh", "-xc"]
+          args:
+            - |
+              /data/busybox cp -a /usr/bin/cid2pid /data
+              /data/busybox rm -f /data/busybox
+          resources:
+            {{- toYaml .Values.cid2PID.resources | nindent 12 }}
+          volumeMounts:
+            - name: cid2pid
+              mountPath: /data
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+        {{- end }}
+        {{- if gt (len .Values.initContainers) 0 }}
+        {{- toYaml .Values.initContainers | nindent 8 }}
+        {{- end }}
+      containers:
+        - name: {{ .Chart.Name | quote }}
+          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          securityContext:
+            privileged: true
+#FIXME read permission to api socket
+            runAsUser: 0
+            runAsGroup: 0
+        #{- $mainSecurityContext | toYaml | nindent 12 }}
+          env:
+          {{- if .Values.singleSocket }}
+            - name: SPIRE_HA_AGENT_SINGLE
+              value: enabled
+          {{- end }}
+          {{- if .Values.vsock }}
+            - name: SPIRE_HA_AGENT_VSOCK
+              value: enabled
+            - name: SPIRE_HA_AGENT_PORT
+              value: {{ .Values.port | quote }}
+          {{- end }}
+          {{- with .Values.extraEnvVars }}
+          {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+#            - name: spire-ha-agent-persistence
+#              mountPath: /var/lib/spire
+            {{- if .Values.vsock }}
+            - name: cid2pid
+              mountPath: /usr/bin/cid2pid
+              subPath: cid2pid
+              readOnly: true
+            {{- else }}
+            - name: spire-ha-agent-socket-dir
+              mountPath: /tmp/spire-ha-agent/public
+              readOnly: false
+            {{- end }}
+            - name: spire-ha-admin-socket-dir-upstream-a
+              mountPath: /var/run/spire/agent/sockets/a/private
+            {{- if not .Values.singleSocket }}
+            - name: spire-ha-admin-socket-dir-upstream-b
+              mountPath: /var/run/spire/agent/sockets/b/private
+            {{- end }}
+            - name: dev
+              mountPath: /dev
+            {{- if gt (len .Values.extraVolumeMounts) 0 }}
+            {{- toYaml .Values.extraVolumeMounts | nindent 12 }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+        {{- if gt (len .Values.extraContainers) 0 }}
+        {{- toYaml .Values.extraContainers | nindent 8 }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        {{- if not .Values.vsock }}
+        - name: spire-ha-agent-socket-dir
+          hostPath:
+            path: {{ $socketPath | dir }}
+            type: DirectoryOrCreate
+        {{- end }}
+        - name: spire-ha-admin-socket-dir-upstream-a
+          hostPath:
+            path: {{ if .Values.singleSocket }}{{ .Values.sockets.single.admin.hostPath }}{{ else }}{{ .Values.sockets.a.admin.hostPath }}{{ end }}
+            type: DirectoryOrCreate
+        {{- if not .Values.singleSocket }}
+        - name: spire-ha-admin-socket-dir-upstream-b
+          hostPath:
+            path: {{ .Values.sockets.b.admin.hostPath }}
+            type: DirectoryOrCreate
+        {{- end }}
+        - name: dev
+          hostPath:
+            path: /dev
+        - name: cid2pid
+          emtpyDir: {}
+        {{- if gt (len .Values.extraVolumes) 0 }}
+        {{- toYaml .Values.extraVolumes | nindent 8 }}
+        {{- end }}
