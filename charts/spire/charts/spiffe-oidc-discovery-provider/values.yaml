@@ -194,6 +194,8 @@ config:
   logLevel: info
   ## @param config.jwtDomain [string] The JWT domain. Defaults to oidc-discovery.$jwtIssuer URL-parsed host if unset
   jwtDomain: ""
+  ## @param config.jwksUri [string] The JWKS URI
+  jwksUri: ""
   ## @param config.additionalDomains [array] Add additional domains that can be used for oidc discovery
   additionalDomains: []
   # - localhost

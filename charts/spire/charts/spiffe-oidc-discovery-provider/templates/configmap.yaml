@@ -40,6 +40,10 @@ serving_cert_file:
   addr: ':8443'
 {{- end }}
 
+{{- if .Values.config.jwksUri}}
+jwks_uri: {{ .Values.config.jwksUri | quote }}
+{{- end }}
+
 workload_api:
   socket_path: {{ include "spiffe-oidc-discovery-provider.workload-api-socket-path" . | quote }}
   trust_domain: {{ include "spire-lib.trust-domain" . | quote }}
