@@ -225,7 +225,7 @@ Create the name of the service account to use
   {{- if .Values.dataStore.sql.readOnly.enabled }}
   {{-   $roPort := int .Values.dataStore.sql.readOnly.port | default 5432 }}
   {{-   $roOptions:= include "spire-server.config-postgresql-options" .Values.dataStore.sql.readOnly.options }}
-  {{-   $_ := set $config "ro_connection_string" (printf "dbname=%s user=%s%s host=%s port=%d%s" .Values.dataStore.sql.readOnly.databaseName $ropw .Values.dataStore.sql.readOnly.username .Values.dataStore.sql.readOnly.host $roPort $roOptions) }}
+  {{-   $_ := set $config "ro_connection_string" (printf "dbname=%s user=%s%s host=%s port=%d%s" .Values.dataStore.sql.readOnly.databaseName .Values.dataStore.sql.readOnly.username $ropw .Values.dataStore.sql.readOnly.host $roPort $roOptions) }}
   {{- end }}
 {{- else }}
   {{- fail "Unsupported database type" }}
