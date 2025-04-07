@@ -487,6 +487,10 @@ notifier:
     enabled: true
     ## @param notifier.k8sBundle.namespace Namespace to push the bundle into, if blank will default to SPIRE Server namespace
     namespace: ""
+    ## @param notifier.k8sBundle.apiServiceLabel If set, rotate the CA Bundle in API services with this label set to true.
+    apiServiceLabel: ""
+    ## @param notifier.k8sBundle.webhookLabel If set, rotate the CA Bundle in validating and mutating webhooks with this label set to true.
+    webhookLabel: ""
   externalK8sBundle:
     ## @param notifier.externalK8sBundle.enabled Enable external k8s bundle uploader
     enabled: true
@@ -918,6 +922,8 @@ bundlePublisher:
   awsS3:
     ## @param bundlePublisher.awsS3.enabled Enable the AWS S3 bundle publisher
     enabled: false
+    ## @param bundlePublisher.awsS3.endpoint A custom S3 endpoint should be set when using third-party object storage providers, such as Minio.
+    endpoint: ""
     ## @param bundlePublisher.awsS3.region AWS region to store the trust bundle
     region: ""
     ## @param bundlePublisher.awsS3.bucket AWS S3 bucket name to which the trust bundle is uploaded
@@ -1098,7 +1104,7 @@ chown:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: Always
-    tag: latest@sha256:bcaf350e298d474d12901adf9a1e78d8cf470d4434a82e0c718d514fc2032fa7
+    tag: latest@sha256:1661f1280c52f785f4a00d81032f710cf2948b03847535226eee6d90e1ca63ae
 
   ## @param chown.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
@@ -1133,7 +1139,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:bcaf350e298d474d12901adf9a1e78d8cf470d4434a82e0c718d514fc2032fa7
+      tag: latest@sha256:1661f1280c52f785f4a00d81032f710cf2948b03847535226eee6d90e1ca63ae
 
 ## @param kubeConfigs [object] Manage additional kubeconfig files to talk to external Kubernetes clusters
 kubeConfigs: {}

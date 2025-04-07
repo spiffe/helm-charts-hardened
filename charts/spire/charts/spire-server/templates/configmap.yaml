@@ -264,6 +264,12 @@ plugins:
         {{- if eq (.Values.notifier.k8sBundle.enabled | toString) "true" }}
         namespace: {{ include "spire-server.bundle-namespace" . | quote }}
         config_map: {{ include "spire-lib.bundle-configmap" . | quote }}
+        {{- with .Values.notifier.k8sBundle.apiServiceLabel }}
+        api_service_label: {{ . | quote }}
+        {{- end }}
+        {{- with .Values.notifier.k8sBundle.webhookLabel }}
+        webhook_label: {{ . | quote }}
+        {{- end }}
         {{- end }}
         {{- if and (eq (.Values.notifier.externalK8sBundle.enabled | toString) "true") (ne (len $externalK8sBundleClusters) 0) }}
         clusters:
@@ -297,6 +303,7 @@ plugins:
     {{- if .Values.bundlePublisher.awsS3.enabled }}
     aws_s3:
       plugin_data:
+        endpoint: {{ .Values.bundlePublisher.awsS3.endpoint | quote }}
         region: {{ .Values.bundlePublisher.awsS3.region | quote }}
         bucket: {{ .Values.bundlePublisher.awsS3.bucket | quote }}
         object_key: {{ .Values.bundlePublisher.awsS3.objectKey | quote }}
