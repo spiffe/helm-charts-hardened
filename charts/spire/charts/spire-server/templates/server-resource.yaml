@@ -505,6 +505,11 @@ spec:
         {{- end }}
         {{- end }}
         {{- if eq (.Values.controllerManager.enabled | toString) "true" }}
+        {{- if ne .Values.controllerManager.staticManifestMode "off" }}
+        - name: controller-manager-static-config
+          configMap:
+            name: {{ include "spire-controller-manager.fullname" . }}-static
+        {{- end }}
         - name: controller-manager-config
           configMap:
             name: {{ include "spire-controller-manager.fullname" . }}

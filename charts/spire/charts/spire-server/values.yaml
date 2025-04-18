@@ -511,6 +511,9 @@ controllerManager:
   ## @param controllerManager.enabled Flag to enable controller manager
   enabled: false
 
+  ## @param controllerManager.staticManifestMode Flag to configure static mode. Valid options off, internal, and external. If internal, the identities config options will be rendered to an included configmap
+  staticManifestMode: "off"
+
   ## @param controllerManager.className specify to use an explicit class name. If empty, it will be automatically set to Release.Namespace-Release.Name to not conflict with other installs, enabling parallel installs.
   className: ""
   ## @param controllerManager.watchClassless specify to process custom resources without class name specified. Useful to slowly migrate to class names from classless installs. Do not have two installs on the same k8s cluster both set to true.
@@ -544,7 +547,7 @@ controllerManager:
     registry: ghcr.io
     repository: spiffe/spire-controller-manager
     pullPolicy: IfNotPresent
-    tag: "0.6.0"
+    tag: "0.6.2"
 
   ## @param controllerManager.resources [object] Resource requests and limits for controller manager
   resources: {}
