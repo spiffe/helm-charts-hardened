@@ -24,17 +24,17 @@
     {{- end }}
     {{- with $value.annotations }}
     annotations:
-      {{- toYaml . | nindent 4 }}
+      {{- toYaml . | nindent 6 }}
     {{- end }}
     {{- with $value.labels }}
     labels:
-      {{- toYaml . | nindent 4 }}
+      {{- toYaml . | nindent 6 }}
     {{- end }}
   spec:
     className: {{ include "spire-server.controller-manager-class-name" $root | quote }}
     {{- with $value.bundleEndpointProfile }}
     bundleEndpointProfile:
-      {{- toYaml . | nindent 4 }}
+      {{- toYaml . | nindent 6 }}
     {{- end }}
     {{- with $value.bundleEndpointURL }}
     bundleEndpointURL: {{ . | quote }}

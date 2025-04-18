@@ -24,29 +24,29 @@
     {{- end }}
     {{- with $value.annotations }}
     annotations:
-      {{- toYaml . | nindent 4 }}
+      {{- toYaml . | nindent 6 }}
     {{- end }}
     {{- with $value.labels }}
     labels:
-      {{- toYaml . | nindent 4 }}
+      {{- toYaml . | nindent 6 }}
     {{- end }}
   spec:
     className: {{ include "spire-server.controller-manager-class-name" $root | quote }}
     spiffeID: {{ $value.spiffeID | quote }}
     {{- with $value.federatesWith }}
     federatesWith:
-    {{- toYaml . | nindent 4 }}
+    {{- toYaml . | nindent 6 }}
     {{- end }}
     {{- with $value.selectors }}
     selectors:
-      {{- toYaml . | nindent 4 }}
+      {{- toYaml . | nindent 6 }}
     {{- end }}
     {{- with $value.parentID }}
     parentID: {{ . | quote }}
     {{- end }}
     {{- with $value.dnsNames }}
     dnsNames:
-      {{- toYaml . | nindent 4 }}
+      {{- toYaml . | nindent 6 }}
     {{- end }}
     {{- with $value.hint }}
     hint: {{ . | quote }}
