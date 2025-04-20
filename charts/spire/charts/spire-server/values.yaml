@@ -900,12 +900,12 @@ nodeAttestor:
     ## @param nodeAttestor.tpmDirect.image.tag Overrides the image tag
     ##
     image:
-      registry: docker.io
-      repository: boxboat/spire-tpm-plugin-tpm-attestor-server
+      registry: ghcr.io
+      repository: spiffe/spire-tpm-plugin-tpm-attestor-server
       pullPolicy: IfNotPresent
-      tag: "v1.8.7"
+      tag: "v1.9.0"
     ## @param nodeAttestor.tpmDirect.checksum The sha256 checksum of the plugin binary
-    checksum: f39ef9cdd2b3dd74112bfe827b79d6721c59215d0d5f4c2e34fa09bbc60d36d2
+    checksum: 46d0caad8c25a027dd11c93e18b58a8bc6fbd9f1fe2e36fa2a0dd440986de4dc
     ## @param nodeAttestor.tpmDirect.pluginPath The filename in the container of the plugin
     pluginPath: /app/tpm_attestor_server
     ## @param nodeAttestor.tpmDirect.cas A dictionary of TPM CA PEM or DER files that are allowed to connect.
