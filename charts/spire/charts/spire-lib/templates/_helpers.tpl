@@ -53,7 +53,7 @@
 {{- $repo := .image.repository }}
 {{- $tag := .image.tag | toString }}
 {{- if eq (substr 0 7 $tag) "sha256:" }}
-{{- printf "%s/%s@%s" $registry $repo $tag | quote }}
+{{- printf "%s%s@%s" $registry $repo $tag | quote }}
 {{- else if .appVersion }}
 {{- $appVersion := .appVersion }}
 {{- if and (hasKey . "ubi") (dig "openshift" false .global) }}
