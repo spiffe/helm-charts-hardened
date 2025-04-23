@@ -26,6 +26,7 @@ matchLabels:
 {}
 {{-   end }}
 {{- end }}
+{{- if eq .Values.controllerManager.staticManifestMode "off" }}
 {{- $root := . }}
 {{  $namespaces := list .Release.Namespace .Values.namespaceOverride (dig "spire" "namespaces" "server" "name" "" .Values.global) (dig "spire" "namespaces" "system" "name" "" .Values.global) | compact | uniq }}
 {{- range $key, $value := .Values.controllerManager.identities.clusterSPIFFEIDs }}
@@ -115,4 +116,5 @@ spec:
   {{- end }}
 {{-     end }}
 {{-   end }}
+{{- end }}
 {{- end }}

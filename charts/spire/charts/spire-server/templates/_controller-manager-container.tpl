@@ -75,7 +75,11 @@
     {{- end }}
   env:
     - name: ENABLE_WEBHOOKS
+    {{- if eq .Values.controllerManager.staticManifestMode "off" }}
       value: {{ .webhooksEnabled | toString | quote }}
+    {{- else }}
+      value: "false"
+    {{- end }}
   {{- if gt (len $extraEnv) 0 }}
   {{-   $extraEnv | toYaml | nindent 4 }}
   {{- end }}
@@ -91,6 +95,7 @@
     - containerPort: {{ $promPort }}
       name: prom-cm{{ .suffix }}
     {{- end }}
+{{- if eq .Values.controllerManager.staticManifestMode "off" }}
   livenessProbe:
     httpGet:
       path: /healthz
@@ -99,12 +104,17 @@
     httpGet:
       path: /readyz
       port: healthz
+{{- end }}
   resources:
     {{- toYaml .Values.controllerManager.resources | nindent 4 }}
   volumeMounts:
     - name: spire-server-socket
       mountPath: /tmp/spire-server/private
       readOnly: true
+    {{- if ne .Values.controllerManager.staticManifestMode "off" }}
+    - name: controller-manager-static-config
+      mountPath: /manifests
+    {{- end }}
     - name: controller-manager-config
       mountPath: /controller-manager-config{{ .suffix }}.yaml
       subPath: controller-manager-config{{ .suffix }}.yaml
