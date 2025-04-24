@@ -11,6 +11,12 @@ agentSocketName: spire-agent.sock
 ## @param csiDriverName The csi driver to use
 csiDriverName: csi.spiffe.io
 
+## @param csiLess Fetch trust bundle from the Kubernetes configmap rather then via CSI
+csiLess: false
+
+## @param bundleConfigMap Configmap name for SPIRE bundle
+bundleConfigMap: spire-bundle
+
 ## @param replicaCount Replica count
 replicaCount: 1
 
