@@ -2,12 +2,12 @@
   {
     "name": "mysql",
     "registry": "docker.io/bitnamicharts/mysql",
-    "version": "12.3.2"
+    "version": "12.3.4"
   },
   {
     "name": "postgresql",
     "registry": "docker.io/bitnamicharts/postgresql",
-    "version": "16.6.1"
+    "version": "16.6.3"
   },
   {
     "name": "envoy-gateway",

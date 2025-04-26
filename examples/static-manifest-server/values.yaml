@@ -1,0 +1,31 @@
+spire-server:
+  nodeAttestor:
+    k8sPSAT:
+      enabled: false
+    joinToken:
+      enabled: true
+    tpmDirect:
+      enabled: true
+  controllerManager:
+    enabled: true
+    staticManifestMode: internal
+    identities:
+      clusterStaticEntries:
+        foo-node:
+           parentID: spiffe://example.org/spire/server
+           spiffeID: spiffe://example.org/hosts/foo
+           selectors:
+           - tpm:pub_hash:12345
+        foo-kubelet:
+           parentID: spiffe://example.org/foo
+           spiffeID: spiffe://example.org/k8s/one/node/foo
+           selectors:
+           - systemd:id:kubelet.service
+  ingress:
+    enabled: true
+spire-agent:
+  enabled: false
+spiffe-csi-driver:
+  enabled: false
+spiffe-oidc-discovery-provider:
+  enabled: false

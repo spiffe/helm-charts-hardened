@@ -511,6 +511,9 @@ controllerManager:
   ## @param controllerManager.enabled Flag to enable controller manager
   enabled: false
 
+  ## @param controllerManager.staticManifestMode Flag to configure static mode. Valid options off, internal, and external. If internal, the identities config options will be rendered to an included configmap
+  staticManifestMode: "off"
+
   ## @param controllerManager.className specify to use an explicit class name. If empty, it will be automatically set to Release.Namespace-Release.Name to not conflict with other installs, enabling parallel installs.
   className: ""
   ## @param controllerManager.watchClassless specify to process custom resources without class name specified. Useful to slowly migrate to class names from classless installs. Do not have two installs on the same k8s cluster both set to true.
@@ -544,7 +547,7 @@ controllerManager:
     registry: ghcr.io
     repository: spiffe/spire-controller-manager
     pullPolicy: IfNotPresent
-    tag: "0.6.0"
+    tag: "0.6.2"
 
   ## @param controllerManager.resources [object] Resource requests and limits for controller manager
   resources: {}
@@ -897,12 +900,12 @@ nodeAttestor:
     ## @param nodeAttestor.tpmDirect.image.tag Overrides the image tag
     ##
     image:
-      registry: docker.io
-      repository: boxboat/spire-tpm-plugin-tpm-attestor-server
+      registry: ghcr.io
+      repository: spiffe/spire-tpm-plugin-tpm-attestor-server
       pullPolicy: IfNotPresent
-      tag: "v1.8.7"
+      tag: "v1.9.0"
     ## @param nodeAttestor.tpmDirect.checksum The sha256 checksum of the plugin binary
-    checksum: f39ef9cdd2b3dd74112bfe827b79d6721c59215d0d5f4c2e34fa09bbc60d36d2
+    checksum: 46d0caad8c25a027dd11c93e18b58a8bc6fbd9f1fe2e36fa2a0dd440986de4dc
     ## @param nodeAttestor.tpmDirect.pluginPath The filename in the container of the plugin
     pluginPath: /app/tpm_attestor_server
     ## @param nodeAttestor.tpmDirect.cas A dictionary of TPM CA PEM or DER files that are allowed to connect.
@@ -1104,7 +1107,7 @@ chown:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: Always
-    tag: latest@sha256:ce272ee5a3739a3c45784c317b2fb1e93a4cc4ea1f4d3feabb702b278e5bf514
+    tag: latest@sha256:0cc351822c8e066b93d28344713d1a6cbad83e3ee4906d137d7a4e85d9a06f73
 
   ## @param chown.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
@@ -1139,7 +1142,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:ce272ee5a3739a3c45784c317b2fb1e93a4cc4ea1f4d3feabb702b278e5bf514
+      tag: latest@sha256:0cc351822c8e066b93d28344713d1a6cbad83e3ee4906d137d7a4e85d9a06f73
 
 ## @param kubeConfigs [object] Manage additional kubeconfig files to talk to external Kubernetes clusters
 kubeConfigs: {}
