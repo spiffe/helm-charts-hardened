@@ -47,7 +47,7 @@ spire-server:
            selectors:
            - tpm:pub_hash:12345
         foo-kubelet:
-           parentID: spiffe://example.org/foo
+           parentID: spiffe://example.org/hosts/foo
            spiffeID: spiffe://example.org/k8s/one/node/foo
            selectors:
            - systemd:id:kubelet.service
@@ -59,7 +59,7 @@ spiffe-csi-driver:
   enabled: false
 spiffe-oidc-discovery-provider:
   enabled: true
-  csiLess: true
+  bundleSource: ConfigMap
   tls:
     spire:
       enabled: false

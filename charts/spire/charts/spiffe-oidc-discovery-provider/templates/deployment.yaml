@@ -86,7 +86,7 @@ spec:
               name: https
           {{- end }}
           volumeMounts:
-            {{- if .Values.csiLess }}
+            {{- if eq .Values.bundleSource "ConfigMap" }}
             - name: spiffe-bundle
               mountPath: /bundle
               readOnly: true
@@ -177,13 +177,13 @@ spec:
         {{- end }}
         {{- end }}
       volumes:
-        {{- if or .Values.tls.spire.enabled (not .Values.csiLess) }}
+        {{- if or .Values.tls.spire.enabled (eq .Values.bundleSource "CSI") }}
         - name: spiffe-workload-api
           csi:
             driver: "{{ .Values.csiDriverName }}"
             readOnly: true
         {{- end }}
-        {{- if .Values.csiLess }}
+        {{- if eq .Values.bundleSource "ConfigMap" }}
         - name: spiffe-bundle
           configMap:
             name: {{ include "spire-lib.bundle-configmap" . }}
