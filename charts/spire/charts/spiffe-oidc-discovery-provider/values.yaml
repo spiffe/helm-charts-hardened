@@ -274,7 +274,7 @@ telemetry:
         registry: docker.io
         repository: nginx/nginx-prometheus-exporter
         pullPolicy: IfNotPresent
-        tag: "1.4.1"
+        tag: "1.4.2"
 
       ## @param telemetry.prometheus.nginxExporter.resources [object] Resource requests and limits
       resources: {}
@@ -340,7 +340,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:ecb8dbf446b3a82268722f2a7ab760140a6d70a8245692fbd1b287f50e05d458
+      tag: latest@sha256:3d01165781be8f608570cc6c3cab73bde2aa28078bbae4a2c10d899c37a5a61b
 
   toolkit:
     ## @param tests.toolkit.image.registry The OCI registry to pull the image from
@@ -352,7 +352,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/min-toolkit-debug
       pullPolicy: IfNotPresent
-      tag: latest@sha256:7b5f1c2ebaf9eed0b98fd4e4019b380bb3f4bc37d8b0b4f7ba391e674a92767a
+      tag: latest@sha256:9f3444f2e4ad0ced1c0740513aa42475bd2011e2021731845458348aae97a655
 
   step:
     ## @param tests.step.image.registry The OCI registry to pull the image from
