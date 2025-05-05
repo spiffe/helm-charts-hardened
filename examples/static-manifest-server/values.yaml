@@ -1,4 +1,34 @@
 spire-server:
+  extraVolumes:
+    - name: extraplugins
+      emptyDir: {}
+  extraVolumeMounts:
+    - name: extraplugins
+      mountPath: /plugins
+      readOnly: true
+  initContainers:
+    - name: k8sconfigmap
+      image: docker.io/kfox1111/misc:spire-server-bundlepublisher-k8sconfigmap
+      command:
+        - /bin/sh
+        - -c
+        - cp -a /spire-server-bundlepublisher-k8sconfigmap /plugins/spire-server-bundlepublisher-k8sconfigmap
+      volumeMounts:
+        - name: extraplugins
+          mountPath: /plugins
+  customPlugins:
+    bundlePublisher:
+      k8sconfigmap:
+        plugin_cmd: "/plugins/spire-server-bundlepublisher-k8sconfigmap"
+        plugin_checksum: ""
+        plugin_data:
+          namespace: default
+          format: spiffe
+          configmap_name: spire-bundle
+          configmap_key: bundle.spiffe
+  notifier:
+    k8sBundle:
+      enabled: true
   nodeAttestor:
     k8sPSAT:
       enabled: false
@@ -17,7 +47,7 @@ spire-server:
            selectors:
            - tpm:pub_hash:12345
         foo-kubelet:
-           parentID: spiffe://example.org/foo
+           parentID: spiffe://example.org/hosts/foo
            spiffeID: spiffe://example.org/k8s/one/node/foo
            selectors:
            - systemd:id:kubelet.service
@@ -28,4 +58,12 @@ spire-agent:
 spiffe-csi-driver:
   enabled: false
 spiffe-oidc-discovery-provider:
-  enabled: false
+  enabled: true
+  bundleSource: ConfigMap
+  tls:
+    spire:
+      enabled: false
+  image:
+    registry: docker.io
+    repository: kfox1111/misc
+    tag: oidc-discovery-provider
