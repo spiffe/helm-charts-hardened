@@ -14,7 +14,7 @@ Before we can deploy Tornjak with SPIRE, we need to decide whether the services 
 
 ## Tornjak with Direct Access
 
-This can be done using port-forward.
+This can be done using port forward.
 
 Deploy SPIRE with Tornjak enabled and start the Tornjak API on port 10000.
 
