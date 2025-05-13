@@ -16,7 +16,7 @@ Before we can deploy Tornjak with SPIRE, we need to decide whether the services 
 
 This can be done using port-forward.
 
-Deploy SPIRE with Tornjak enabled and start the Torjak API on port 10000.
+Deploy SPIRE with Tornjak enabled and start the Tornjak API on port 10000.
 
 ```shell
 export TORNJAK_API=http://localhost:10000
