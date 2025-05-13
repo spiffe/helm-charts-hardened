@@ -15,6 +15,7 @@ rules:
     verbs:
       - get
       - patch
+      - update
 {{- end }}
 {{- if and .Values.upstreamAuthority.certManager.enabled .Values.upstreamAuthority.certManager.rbac.create }}
 ---
