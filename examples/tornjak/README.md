@@ -6,18 +6,17 @@
 
 ## Deploy Standard SPIRE
 
-Follow the production installation of SPIRE as described in the [install instructions] (https://artifacthub.io/packages/helm/spiffe/spire) document.
+Follow the production installation of SPIRE as described in the [install instructions](https://artifacthub.io/packages/helm/spiffe/spire) document.
 
-## Upgrade to enable Tornjak
+## Upgrade to Enable Tornjak
 
-Before we can deploy Tornjak with SPIRE we need to decide whether the services would be
-using direct access, Ingress, or some other method.
+Before we can deploy Tornjak with SPIRE, we need to decide whether the services will be using direct access, ingress, or some other method.
 
 ## Tornjak with Direct Access
 
-This can be done using port-forward. For example, to start Tornjak APIs on port 10000
+This can be done using port forward.
 
-Deploy SPIRE with Tornjak enabled
+Deploy SPIRE with Tornjak enabled and start the Tornjak API on port 10000.
 
 ```shell
 export TORNJAK_API=http://localhost:10000
@@ -33,11 +32,8 @@ helm upgrade --install -n spire-mgmt spire spire \
 helm test spire -n spire-server
 ```
 
-Run following commands from your shell, to start port forwarding for Tornjak backend (APIs)
-and Tornjak frontend (UI) services.
- If you deployed in different namespace, your values might differ. Consult the install notes printed when running above `helm upgrade` command in that case.
-
-Since `port-forward` is a blocking command, execute them in two different consoles:
+Port forward the Tornjak backend (APIs) and Tornjak frontend (UI) services. Execute these commands in separate consoles.
+If you deployed in a different namespace, your values might differ. Consult the install notes printed when running above `helm upgrade` command in that case.
 
 ```shell
 kubectl -n spire-server port-forward service/spire-tornjak-backend 10000:10000
@@ -53,8 +49,7 @@ See [values.yaml](./values.yaml) for more details on the chart configurations to
 
 ## Deploy Tornjak with ingress-nginx
 
-Update your-values.yaml with your ingress information, most importantly, trustDomain, and redeploy
-adding the following:
+Update `your-values.yaml` with your ingress information (most importantly your trustDomain) and redeploy by adding the following:
 
 ```shell
 --set global.spire.ingressControllerType=ingress-nginx \
@@ -63,11 +58,10 @@ adding the following:
 
 ## Deploy Tornjak with Ingress on Openshift
 
-Obtain the OpenShift Apps Subdomain for Ingress and assign it to the `trustDomain`
-environment variable:
+Obtain the OpenShift apps subdomain for ingress and assign it to the `trustDomain` environment variable:
 
 ```shell
-export appdomain=$(oc get cm -n openshift-config-managed  console-public -o go-template="{{ .data.consoleURL }}" | sed 's@https://@@; s/^[^.]*\.//')
+export appdomain=$(oc get cm -n openshift-config-managed console-public -o go-template="{{ .data.consoleURL }}" | sed 's@https://@@; s/^[^.]*\.//')
 echo $appdomain
 ```
 
@@ -79,8 +73,7 @@ So it can be passed as follow:
 --values examples/tornjak/values-ingress.yaml \
 ```
 
-When running on Openshift in some environments like IBM Cloud,
-you might need to also add the following configurations:
+When running on Openshift in some environments like IBM Cloud, you may need to add the following configurations:
 
 ```shell
 --values examples/openshift/values-ibm-cloud.yaml
@@ -88,14 +81,14 @@ you might need to also add the following configurations:
 
 ## Validation
 
-Confirm  access to the Tornjak API (backend):
+Confirm access to the Tornjak API (backend):
 
 ```shell
 curl https://tornjak-backend.$appdomain
 "Welcome to the Tornjak Backend!"
 ```
 
-If the APIs are accessible, we can verify the Tornjak UI (A React application running in the local browser) can be accessed.
+If the APIs are accessible, we can verify the Tornjak UI (a React application running in the local browser) can be accessed.
 Test access to Tornjak by opening the URL provided in Tornjak-frontend route:
 
 ```shell
