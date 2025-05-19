@@ -350,9 +350,9 @@ credentialComposer:
       registry: ghcr.io
       repository: spiffe/spire-credentialcomposer-cel
       pullPolicy: IfNotPresent
-      tag: "0.0.1"
+      tag: "0.0.2"
     ## @param credentialComposer.cel.checksum The sha256 checksum of the plugin binary
-    checksum: 9bcaed8e17b88e02312d38c676048ba36f0d102e80513f551dcbaa10b834504c
+    checksum: 23fa1d10f15ad5d5c555930cf82289c664801d7d5609bfd8847f95a0a667e4e4
     ## @param credentialComposer.cel.pluginPath The filename in the container of the plugin
     pluginPath: /ko-app/cmd
     jwt:
