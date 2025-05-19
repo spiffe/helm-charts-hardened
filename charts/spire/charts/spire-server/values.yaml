@@ -1146,7 +1146,7 @@ chown:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: Always
-    tag: latest@sha256:e609a9a777e86f116f31425ccbfc9f88e3a001dfcdbc4aa5459a1bd59d032e37
+    tag: latest@sha256:57ed0cb7b67f52ea7678128da5c4cf99c1a71d269db92a6a40c179fa57f00ce4
 
   ## @param chown.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
@@ -1181,7 +1181,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:e609a9a777e86f116f31425ccbfc9f88e3a001dfcdbc4aa5459a1bd59d032e37
+      tag: latest@sha256:57ed0cb7b67f52ea7678128da5c4cf99c1a71d269db92a6a40c179fa57f00ce4
 
 ## @param kubeConfigs [object] Manage additional kubeconfig files to talk to external Kubernetes clusters
 kubeConfigs: {}
