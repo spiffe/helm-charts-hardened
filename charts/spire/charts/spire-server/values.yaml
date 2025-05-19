@@ -353,10 +353,10 @@ credentialComposer:
       tag: "0.0.1"
     ## @param credentialComposer.cel.checksum The sha256 checksum of the plugin binary
     checksum: 9bcaed8e17b88e02312d38c676048ba36f0d102e80513f551dcbaa10b834504c
-    ## @param credentailComposer.cel.pluginPath The filename in the container of the plugin
+    ## @param credentialComposer.cel.pluginPath The filename in the container of the plugin
     pluginPath: /ko-app/cmd
     jwt:
-      ## @param credentialComposer.jwt.expression The expression to use for jwt token composing
+      ## @param credentialComposer.cel.jwt.expression The expression to use for jwt token composing
       expression: ""
       #expression: |
       #  spire.plugin.server.credentialcomposer.v1.ComposeWorkloadJWTSVIDResponse{
