@@ -161,6 +161,20 @@ Create the name of the service account to use
 {{- end }}
 {{- end }}
 
+{{- define "spire-server.config-sqlite-query" }}
+{{- $lst := list }}
+{{- range . }}
+{{- range $key, $value := . }}
+{{- $eValue := toString $value }}
+{{- $entry := printf "%s=%s" (urlquery $key) (urlquery $eValue) }}
+{{- $lst = append $lst $entry }}
+{{- end }}
+{{- end }}
+{{- if gt (len $lst) 0 }}
+{{- printf "?%s" (join "&" (uniq $lst)) }}
+{{- end }}
+{{- end }}
+
 {{- define "spire-server.config-mysql-query" }}
 {{- $lst := list }}
 {{- range . }}
@@ -194,7 +208,8 @@ Create the name of the service account to use
 {{- $ropw := "" }}
 {{- if eq .Values.dataStore.sql.databaseType "sqlite3" }}
   {{- $_ := set $config "database_type" "sqlite3" }}
-  {{- $_ := set $config "connection_string" "/run/spire/data/datastore.sqlite3" }}
+  {{- $query := include "spire-server.config-sqlite-query" .Values.dataStore.sql.options }}
+  {{- $_ := set $config "connection_string" (printf "%s%s" .Values.dataStore.sql.file $query) }}
 {{- else if or (eq .Values.dataStore.sql.databaseType "mysql") (eq .Values.dataStore.sql.databaseType "aws_mysql") }}
   {{- if eq .Values.dataStore.sql.databaseType "mysql" }}
   {{-   $_ := set $config "database_type" "mysql" }}
