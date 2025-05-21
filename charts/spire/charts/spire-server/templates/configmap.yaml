@@ -102,9 +102,21 @@ server:
   {{- end }}
 
 plugins:
-  {{- if .Values.credentialComposer.uniqueID.enabled }}
+  {{- if or .Values.credentialComposer.uniqueID.enabled .Values.credentialComposer.cel.enabled }}
   CredentialComposer:
+    {{- if or .Values.credentialComposer.uniqueID.enabled }}
     uniqueid: {}
+    {{- end }}
+    {{- with .Values.credentialComposer.cel }}
+    {{- if .enabled }}
+    cel:
+      plugin_cmd: "/cel/credentialcomposer-cel"
+      plugin_checksum: {{ .checksum }}
+      plugin_data:
+        jwt:
+          expression_string: {{ .jwt.expression | quote }}
+    {{- end }}
+    {{- end }}
   {{- end }}
 
   DataStore:
