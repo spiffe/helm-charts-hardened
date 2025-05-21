@@ -1,0 +1,20 @@
+{{ $root := . }}
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ include "spike-keeper.namespace" $root }}
+  name: {{ include "spike-keeper.fullname" $root }}
+  {{- with $root.Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  labels:
+    {{- include "spike-keeper.labels" $root | nindent 4 }}
+spec:
+  type: {{ $root.Values.service.type }}
+  selector:
+    {{- include "spike-keeper.selectorLabels" $root | nindent 4 }}
+  ports:
+    - name: {{ include "spike-keeper.fullname" $root }}
+      port: {{ $root.Values.service.port }}
+      targetPort: http

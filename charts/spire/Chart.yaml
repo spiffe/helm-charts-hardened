@@ -55,6 +55,18 @@ dependencies:
     condition: tornjak-frontend.enabled
     repository: file://./charts/tornjak-frontend
     version: 0.1.0
+  - name: spike-keeper
+    condition: spike-keeper.enabled
+    repository: file://./charts/spire-keeper
+    version: 0.1.0
+  - name: spike-nexus
+    condition: spike-nexus.enabled
+    repository: file://./charts/spire-nexus
+    version: 0.1.0
+  - name: spike-pilot
+    condition: spike-pilot.enabled
+    repository: file://./charts/spire-pilot
+    version: 0.1.0
 annotations:
   artifacthub.io/category: security
   artifacthub.io/license: Apache-2.0
