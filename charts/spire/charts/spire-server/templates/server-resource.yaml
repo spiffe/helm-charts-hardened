@@ -128,7 +128,7 @@ spec:
           securityContext:
             {{- include "spire-lib.securitycontext" . | nindent 12 }}
           image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.tools.busybox.image "global" .Values.global) }}
-          # SPIRE must be able to fork the plugin directly within its container. Copy a busybox so that the plugin can be copied into the right place.
+          # SPIRE must be able to fork the plugin directly within its container. First copy a busybox so that the plugin can be copied into the right place.
           command:
             - busybox
             - sh
@@ -143,7 +143,7 @@ spec:
           securityContext:
             {{- include "spire-lib.securitycontext" . | nindent 12 }}
           image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.credentialComposer.cel.image "global" .Values.global) }}
-          # SPIRE must be able to fork the plugin directly within its container. Copy the plugin into a volume that can be mounted where SPIRE can execute it.
+          # Second, use the previously copied busybox to copy the plugin into a volume that can be mounted where SPIRE can execute it.
           command:
             - /cel/busybox
             - sh
