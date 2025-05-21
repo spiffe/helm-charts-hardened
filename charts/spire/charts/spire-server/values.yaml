@@ -167,7 +167,9 @@ dataStore:
     username: spire
     ## @param dataStore.sql.password Only used when type != "sqlite3"
     password: ""
-    ## @param dataStore.sql.options [array] Only used when type != "sqlite3"
+    ## @param dataStore.sql.file Data source file. Only used when type == "sqlite3"
+    file: "/run/spire/data/datastore.sqlite3"
+    ## @param dataStore.sql.options [array] takes an array of objects of form {<key>: <value>} to use when building the database connection string
     options: []
 
     ## @param dataStore.sql.rootCAPath Path to Root CA bundle (MySQL only)
