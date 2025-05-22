@@ -49,7 +49,7 @@ serviceAccount:
   annotations: {}
   name: ""
 
-## @param labels [object] Labels for tornjak frontend pods
+## @param labels [object] Labels for pods
 labels: {}
 
 ## @param podSecurityContext [object] Pod security context
@@ -74,7 +74,7 @@ service:
   port: 443
   annotations: {}
 
-## @param nodeSelector (Optional) Select specific nodes to run on. Tornjak currently supports amd64 and arm64 architectures
+## @param nodeSelector (Optional) Select specific nodes to run on.
 nodeSelector: {}
 
 ## @param affinity [object] Affinity rules
@@ -95,9 +95,9 @@ topologySpreadConstraints: []
 #     cpu: 100m
 #     memory: 512Mi
 
-## Configure extra options for Tornjak frontend container's startup probe
+## Configure extra options for startup probe
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-startup-probes
-## @param startupProbe.enabled Enable startupProbe on Tornjak frontend container
+## @param startupProbe.enabled Enable startupProbe
 ## @param startupProbe.initialDelaySeconds Initial delay seconds for startupProbe
 ## @param startupProbe.periodSeconds Period seconds for startupProbe
 ## @param startupProbe.timeoutSeconds Timeout seconds for startupProbe
@@ -112,10 +112,10 @@ startupProbe:
   failureThreshold: 6
   successThreshold: 1
 
-## @param ingress.enabled Flag to enable ingress for Tornjak frontend service
-## @param ingress.className Ingress class name for Tornjak frontend service
+## @param ingress.enabled Flag to enable ingress
+## @param ingress.className Ingress class name
 ## @param ingress.controllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, auto-detection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""].
-## @param ingress.annotations [object] Annotations for Tornjak frontend service
+## @param ingress.annotations [object] Annotations
 ingress:
   enabled: false
   className: ""
@@ -130,13 +130,6 @@ ingress:
 
   ## @param ingress.hosts [array] Host paths for ingress object. If empty, rules will be built based on the host var.
   hosts: []
-  #   - host: tornjak-frontend.example.org
-  #     paths:
-  #       - path: /
-  #         pathType: Prefix
 
   ## @param ingress.tls [array] Secrets containing TLS certs to enable https on ingress. If empty, rules will be built based on the host and tlsSecret vars.
   tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - tornjak-frontend.example.org

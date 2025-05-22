@@ -49,7 +49,7 @@ serviceAccount:
   annotations: {}
   name: ""
 
-## @param labels [object] Labels for tornjak frontend pods
+## @param labels [object] Labels for pods
 labels: {}
 
 ## @param podSecurityContext [object] Pod security context
@@ -65,7 +65,7 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
-## @param nodeSelector (Optional) Select specific nodes to run on. Tornjak currently supports amd64 and arm64 architectures
+## @param nodeSelector (Optional) Select specific nodes to run on.
 nodeSelector: {}
 
 ## @param affinity [object] Affinity rules
