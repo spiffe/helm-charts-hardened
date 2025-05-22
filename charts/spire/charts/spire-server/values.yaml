@@ -167,7 +167,9 @@ dataStore:
     username: spire
     ## @param dataStore.sql.password Only used when type != "sqlite3"
     password: ""
-    ## @param dataStore.sql.options [array] Only used when type != "sqlite3"
+    ## @param dataStore.sql.file Data source file. Only used when type == "sqlite3"
+    file: "/run/spire/data/datastore.sqlite3"
+    ## @param dataStore.sql.options [array] takes an array of objects of form {<key>: <value>} to use when building the database connection string
     options: []
 
     ## @param dataStore.sql.rootCAPath Path to Root CA bundle (MySQL only)
@@ -338,6 +340,34 @@ caSubject:
   commonName: example.org
 
 credentialComposer:
+  cel:
+    ## @param credentialComposer.cel.enabled Enable the cel based credential composer
+    enabled: false
+    ## @param credentialComposer.cel.image.registry The OCI registry to pull the image from
+    ## @param credentialComposer.cel.image.repository The repository within the registry
+    ## @param credentialComposer.cel.image.pullPolicy The image pull policy
+    ## @param credentialComposer.cel.image.tag Overrides the image tag
+    ##
+    image:
+      registry: ghcr.io
+      repository: spiffe/spire-credentialcomposer-cel
+      pullPolicy: IfNotPresent
+      tag: "0.0.2"
+    ## @param credentialComposer.cel.checksum The sha256 checksum of the plugin binary
+    checksum: 23fa1d10f15ad5d5c555930cf82289c664801d7d5609bfd8847f95a0a667e4e4
+    ## @param credentialComposer.cel.pluginPath The filename in the container of the plugin
+    pluginPath: /ko-app/cmd
+    jwt:
+      ## @param credentialComposer.cel.jwt.expression The expression to use for jwt token composing
+      expression: ""
+      #expression: |
+      #  spire.plugin.server.credentialcomposer.v1.ComposeWorkloadJWTSVIDResponse{
+      #    attributes: spire.plugin.server.credentialcomposer.v1.JWTSVIDAttributes{
+      #      claims: request.attributes.claims.mapOverrideEntries(
+      #        {'newclaim': "value"}
+      #      )
+      #    }
+      #  }
   uniqueID:
     ## @param credentialComposer.uniqueID.enabled Add the x509UniqueIdentifier attribute to workload X509-SVIDs
     enabled: false
@@ -777,6 +807,17 @@ tools:
       repository: rancher/kubectl
       pullPolicy: IfNotPresent
       tag: ""
+  busybox:
+    ## @param tools.busybox.image.registry The OCI registry to pull the image from
+    ## @param tools.busybox.image.repository The repository within the registry
+    ## @param tools.busybox.image.pullPolicy The image pull policy
+    ## @param tools.busybox.image.tag Overrides the image tag whose default is the chart appVersion
+    ##
+    image:
+      registry: ""
+      repository: busybox
+      pullPolicy: IfNotPresent
+      tag: 1.37.0-uclibc
 
 telemetry:
   prometheus:
@@ -1107,7 +1148,7 @@ chown:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: Always
-    tag: latest@sha256:0cc351822c8e066b93d28344713d1a6cbad83e3ee4906d137d7a4e85d9a06f73
+    tag: latest@sha256:57ed0cb7b67f52ea7678128da5c4cf99c1a71d269db92a6a40c179fa57f00ce4
 
   ## @param chown.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
@@ -1142,7 +1183,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:0cc351822c8e066b93d28344713d1a6cbad83e3ee4906d137d7a4e85d9a06f73
+      tag: latest@sha256:57ed0cb7b67f52ea7678128da5c4cf99c1a71d269db92a6a40c179fa57f00ce4
 
 ## @param kubeConfigs [object] Manage additional kubeconfig files to talk to external Kubernetes clusters
 kubeConfigs: {}
