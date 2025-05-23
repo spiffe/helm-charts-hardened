@@ -236,7 +236,7 @@ clusterName: example-cluster
 ## @param trustDomain Set the trust domain to be used for the SPIFFE identifiers
 trustDomain: example.org
 
-## @param bundleConfigMap Set the Configmap name for Spire bundle
+## @param bundleConfigMap Set the Configmap name for SPIRE bundle
 bundleConfigMap: spire-bundle
 
 ## @param clusterDomain This is the value of your clusters `kubeadm init --service-dns-domain` flag
