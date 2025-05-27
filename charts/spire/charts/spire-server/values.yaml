@@ -1047,7 +1047,7 @@ tornjak:
     repository: spiffe/tornjak-backend
     pullPolicy: IfNotPresent
     tag: ""
-    defaultTag: "v1.6.0"
+    defaultTag: "v2.1.0"
 
   service:
     ## @param tornjak.service.type Type of service resource
