@@ -21,11 +21,10 @@ Deploy SPIRE with Tornjak enabled and start the Tornjak API on port 10000.
 ```shell
 export TORNJAK_API=http://localhost:10000
 
-helm upgrade --install -n spire-mgmt spire spire \
+helm upgrade --install -n spire-server spire spire \
 --repo https://spiffe.github.io/helm-charts-hardened/ \
 --set tornjak-frontend.apiServerURL=$TORNJAK_API \
 --values examples/tornjak/values.yaml \
---values your-values.yaml \
 --render-subchart-notes
 
 # test the Tornjak deployment
