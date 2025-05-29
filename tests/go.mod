@@ -7,7 +7,7 @@ toolchain go1.24.1
 require (
 	github.com/onsi/ginkgo/v2 v2.23.4
 	github.com/onsi/gomega v1.37.0
-	helm.sh/helm/v3 v3.18.0
+	helm.sh/helm/v3 v3.18.1
 )
 
 require (
