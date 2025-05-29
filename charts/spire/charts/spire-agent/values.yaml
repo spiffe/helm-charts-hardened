@@ -58,8 +58,8 @@ securityContext: {}
   #   drop:
   #   - ALL
   # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
+  # runAsNonRoot: true # WARNING: Setting this to `true` will likely cause the Spire Agent to fail.
+  runAsUser: 0 # Spire Agent typically requires root (UID 0) to function correctly.
 
 ## @param resources [object] Resource requests and limits
 resources: {}
