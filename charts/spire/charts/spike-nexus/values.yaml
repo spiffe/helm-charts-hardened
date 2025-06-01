@@ -57,13 +57,13 @@ podSecurityContext: {}
   # fsGroup: 2000
 
 ## @param securityContext [object] Security context
-securityContext: {}
+securityContext:
   # capabilities:
   #   drop:
   #   - ALL
   # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
+  runAsNonRoot: true
+  runAsUser: 1000
 
 ## @param service.type Service type
 ## @param service.port Service port

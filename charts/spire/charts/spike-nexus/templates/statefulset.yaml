@@ -66,8 +66,9 @@ spec:
               mountPath: {{ include "spike-nexus.workload-api-socket-path" . | dir }}
               readOnly: true
             - name: nexus-data
-              mountPath: /root/.spike
+              mountPath: /.spike
       {{- with .Values.nodeSelector }}
+
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}

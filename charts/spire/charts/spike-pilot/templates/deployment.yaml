@@ -38,7 +38,7 @@ spec:
         - name:  init2
           image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.image "global" .Values.global "ubi" true) }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          command: ["/data/busybox", "sh", "-c", "/data/busybox cp -a /spike /data && /data/busybox rm -f /data/busybox"]
+          command: ["/data/busybox", "sh", "-c", "/data/busybox cp -a /usr/local/bin/spike /data && /data/busybox rm -f /data/busybox"]
           securityContext:
             {{- include "spire-lib.securitycontext" . | nindent 12 }}
           volumeMounts:
