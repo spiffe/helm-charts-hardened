@@ -28,27 +28,35 @@ A Helm chart to deploy spike pilot
 
 ### Chart parameters
 
-| Name                         | Description                                                                                 | Value               |
-| ---------------------------- | ------------------------------------------------------------------------------------------- | ------------------- |
-| `image.registry`             | The OCI registry to pull the image from                                                     | `docker.io`         |
-| `image.repository`           | The repository within the registry                                                          | `getspike/pilot`    |
-| `image.pullPolicy`           | The image pull policy                                                                       | `IfNotPresent`      |
-| `image.tag`                  | Overrides the image tag whose default is the chart appVersion                               | `0.4.0-linux-amd64` |
-| `replicas`                   | The number of keepers to launch                                                             | `1`                 |
-| `logLevel`                   | The log level, valid values are "debug", "info", "warn", and "error"                        | `debug`             |
-| `agentSocketName`            | The name of the spire-agent unix socket                                                     | `spire-agent.sock`  |
-| `csiDriverName`              | The csi driver to use                                                                       | `csi.spiffe.io`     |
-| `imagePullSecrets`           | Pull secrets for images                                                                     | `[]`                |
-| `nameOverride`               | Name override                                                                               | `""`                |
-| `namespaceOverride`          | Namespace override                                                                          | `""`                |
-| `fullnameOverride`           | Fullname override                                                                           | `""`                |
-| `serviceAccount.create`      | Specifies whether a service account should be created                                       | `true`              |
-| `serviceAccount.annotations` | Annotations to add to the service account                                                   | `{}`                |
-| `serviceAccount.name`        | The name of the service account to use. If not set and create is true, a name is generated. | `""`                |
-| `labels`                     | Labels for pods                                                                             | `{}`                |
-| `podSecurityContext`         | Pod security context                                                                        | `{}`                |
-| `securityContext`            | Security context                                                                            | `{}`                |
-| `nodeSelector`               | (Optional) Select specific nodes to run on.                                                 | `{}`                |
-| `affinity`                   | Affinity rules                                                                              | `{}`                |
-| `tolerations`                | List of tolerations                                                                         | `[]`                |
-| `topologySpreadConstraints`  | List of topology spread constraints for resilience                                          | `[]`                |
+| Name                             | Description                                                                                 | Value                |
+| -------------------------------- | ------------------------------------------------------------------------------------------- | -------------------- |
+| `image.registry`                 | The OCI registry to pull the image from                                                     | `ghcr.io`            |
+| `image.repository`               | The repository within the registry                                                          | `spiffe/spike-pilot` |
+| `image.pullPolicy`               | The image pull policy                                                                       | `IfNotPresent`       |
+| `image.tag`                      | Overrides the image tag whose default is the chart appVersion                               | `0.4.1-linux-amd64`  |
+| `shell.image.registry`           | The OCI registry to pull the image from                                                     | `""`                 |
+| `shell.image.repository`         | The repository within the registry                                                          | `busybox`            |
+| `shell.image.pullPolicy`         | The image pull policy                                                                       | `IfNotPresent`       |
+| `shell.image.tag`                | Overrides the image tag whose default is the chart appVersion                               | `1.37.0-uclibc`      |
+| `tools.busybox.image.registry`   | The OCI registry to pull the image from                                                     | `""`                 |
+| `tools.busybox.image.repository` | The repository within the registry                                                          | `busybox`            |
+| `tools.busybox.image.pullPolicy` | The image pull policy                                                                       | `IfNotPresent`       |
+| `tools.busybox.image.tag`        | Overrides the image tag whose default is the chart appVersion                               | `1.37.0-uclibc`      |
+| `replicas`                       | The number of keepers to launch                                                             | `1`                  |
+| `logLevel`                       | The log level, valid values are "debug", "info", "warn", and "error"                        | `debug`              |
+| `agentSocketName`                | The name of the spire-agent unix socket                                                     | `spire-agent.sock`   |
+| `csiDriverName`                  | The csi driver to use                                                                       | `csi.spiffe.io`      |
+| `imagePullSecrets`               | Pull secrets for images                                                                     | `[]`                 |
+| `nameOverride`                   | Name override                                                                               | `""`                 |
+| `namespaceOverride`              | Namespace override                                                                          | `""`                 |
+| `fullnameOverride`               | Fullname override                                                                           | `""`                 |
+| `serviceAccount.create`          | Specifies whether a service account should be created                                       | `true`               |
+| `serviceAccount.annotations`     | Annotations to add to the service account                                                   | `{}`                 |
+| `serviceAccount.name`            | The name of the service account to use. If not set and create is true, a name is generated. | `""`                 |
+| `labels`                         | Labels for pods                                                                             | `{}`                 |
+| `podSecurityContext`             | Pod security context                                                                        | `{}`                 |
+| `securityContext`                | Security context                                                                            | `{}`                 |
+| `nodeSelector`                   | (Optional) Select specific nodes to run on.                                                 | `{}`                 |
+| `affinity`                       | Affinity rules                                                                              | `{}`                 |
+| `tolerations`                    | List of tolerations                                                                         | `[]`                 |
+| `topologySpreadConstraints`      | List of topology spread constraints for resilience                                          | `[]`                 |

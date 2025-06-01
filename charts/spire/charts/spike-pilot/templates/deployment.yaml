@@ -25,10 +25,29 @@ spec:
       serviceAccountName: {{ include "spike-pilot.serviceAccountName" . }}
       securityContext:
         {{- include "spire-lib.podsecuritycontext" . | nindent 8 }}
-      containers:
-        - name:  {{ include "spike-pilot.fullname" . }}
+      initContainers:
+        - name:  init
+          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.tools.busybox.image "global" .Values.global "ubi" true) }}
+          imagePullPolicy: {{ .Values.tools.busybox.image.pullPolicy }}
+          command: ["/bin/sh", "-c", "cp -a /bin/busybox /data"]
+          securityContext:
+            {{- include "spire-lib.securitycontext" . | nindent 12 }}
+          volumeMounts:
+            - name: pilot
+              mountPath: /data
+        - name:  init2
           image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.image "global" .Values.global "ubi" true) }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["/data/busybox", "sh", "-c", "/data/busybox cp -a /spike /data && /data/busybox rm -f /data/busybox"]
+          securityContext:
+            {{- include "spire-lib.securitycontext" . | nindent 12 }}
+          volumeMounts:
+            - name: pilot
+              mountPath: /data
+      containers:
+        - name:  {{ include "spike-pilot.fullname" . }}
+          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.shell.image "global" .Values.global "ubi" true) }}
+          imagePullPolicy: {{ .Values.shell.image.pullPolicy }}
           command: ["/bin/sh", "-c", "echo I live; while true; do sleep 1000; done"]
           securityContext:
             {{- include "spire-lib.securitycontext" . | nindent 12 }}
@@ -48,6 +67,10 @@ spec:
             - name: spiffe-workload-api
               mountPath: {{ include "spike-pilot.workload-api-socket-path" . | dir }}
               readOnly: true
+            - name: pilot
+              mountPath: /bin/spike
+              subPath: spike
+              readOnly: true
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -65,6 +88,8 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       volumes:
+        - name: pilot
+          emptyDir: {}
         - name: spiffe-workload-api
           csi:
             driver: "{{ .Values.csiDriverName }}"

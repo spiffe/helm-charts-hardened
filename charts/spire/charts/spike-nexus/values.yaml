@@ -12,10 +12,10 @@ global: {}
 ## @param image.tag Overrides the image tag whose default is the chart appVersion
 ##
 image:
-  registry: docker.io
-  repository: getspike/nexus
+  registry: ghcr.io
+  repository: spiffe/spike-nexus
   pullPolicy: IfNotPresent
-  tag: "0.4.0-linux-amd64"
+  tag: "0.4.1-linux-amd64"
 
 ## @param replicas The number of keepers to launch
 replicas: 1
