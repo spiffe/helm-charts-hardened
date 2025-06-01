@@ -33,7 +33,7 @@ A Helm chart to deploy spike pilot
 | `image.registry`                 | The OCI registry to pull the image from                                                     | `ghcr.io`            |
 | `image.repository`               | The repository within the registry                                                          | `spiffe/spike-pilot` |
 | `image.pullPolicy`               | The image pull policy                                                                       | `IfNotPresent`       |
-| `image.tag`                      | Overrides the image tag whose default is the chart appVersion                               | `0.4.1-linux-amd64`  |
+| `image.tag`                      | Overrides the image tag whose default is the chart appVersion                               | `""`                 |
 | `shell.image.registry`           | The OCI registry to pull the image from                                                     | `""`                 |
 | `shell.image.repository`         | The repository within the registry                                                          | `busybox`            |
 | `shell.image.pullPolicy`         | The image pull policy                                                                       | `IfNotPresent`       |

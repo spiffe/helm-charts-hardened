@@ -15,7 +15,7 @@ image:
   registry: ghcr.io
   repository: spiffe/spike-keeper
   pullPolicy: IfNotPresent
-  tag: "0.4.1-linux-amd64"
+  tag: ""
 
 ## @param replicas The number of keepers to launch
 replicas: 3

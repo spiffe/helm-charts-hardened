@@ -15,7 +15,7 @@ image:
   registry: ghcr.io
   repository: spiffe/spike-pilot
   pullPolicy: IfNotPresent
-  tag: "0.4.1-linux-amd64"
+  tag: ""
 
 shell:
   ## @param shell.image.registry The OCI registry to pull the image from
