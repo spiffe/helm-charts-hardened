@@ -99,8 +99,8 @@ podSecurityContext: {}
 ## @param securityContext.privileged Flag for specifying privileged mode
 ##
 securityContext:
-  readOnlyRootFilesystem: true
-  privileged: true
+  # readOnlyRootFilesystem: true
+  # privileged: true
   # runAsNonRoot: true
   # runAsUser: 1000
   # capabilities:
