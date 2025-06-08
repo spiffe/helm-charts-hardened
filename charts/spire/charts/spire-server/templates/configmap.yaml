@@ -274,7 +274,7 @@ plugins:
     k8sbundle:
       plugin_data:
         {{- if eq (.Values.notifier.k8sBundle.enabled | toString) "true" }}
-        namespace: {{ include "spire-server.bundle-namespace" . | quote }}
+        namespace: {{ include "spire-server.bundle-namespace-notifier" . | quote }}
         config_map: {{ include "spire-lib.bundle-configmap" . | quote }}
         {{- with .Values.notifier.k8sBundle.apiServiceLabel }}
         api_service_label: {{ . | quote }}
@@ -304,8 +304,39 @@ plugins:
         {{- end }}
   {{- end }}
 
-  {{- if or .Values.bundlePublisher.awsRolesAnywhereTrustAnchor.enabled .Values.bundlePublisher.awsS3.enabled .Values.bundlePublisher.gcpCloudStorage.enabled }}
+  {{- $externalK8sConfigMapClusters := default .Values.kubeConfigs .Values.bundlePublisher.externalK8sConfigMap.clusters }}
+  {{- if or .Values.bundlePublisher.awsRolesAnywhereTrustAnchor.enabled .Values.bundlePublisher.awsS3.enabled .Values.bundlePublisher.gcpCloudStorage.enabled .Values.bundlePublisher.k8sConifgMap.enabled (and .Values.bundlePublisher.externalK8sConfigMap.enabled (ne (len $externalK8sConfigMapClusters) 0)) }}
   BundlePublisher:
+    {{- if or .Values.bundlePublisher.k8sConfigMap.enabled (and .Values.bundlePublisher.externalK8sConfigMap.enabled (ne (len $externalK8sConfigMapClusters) 0)) }}
+    k8s_configmap:
+      plugin_data:
+        {{- if eq (.Values.bundlePublisher.k8sConfigMap.enabled | toString) "true" }}
+        format: {{ .Values.bundlePublisher.k8sConfigMap.format }}
+        namespace: {{ include "spire-server.bundle-namespace-bundlepublisher" . | quote }}
+        config_map_name: {{ include "spire-lib.bundle-configmap" . | quote }}
+        config_map_key: "bundle.crt"
+        {{- end }}
+        {{- if and (eq (.Values.bundlePublisher.externalK8sConfigMap.enabled | toString) "true") (ne (len $externalK8sConfigMapClusters) 0) }}
+        clusters:
+          - "":
+          {{- $clusterDefaults := .Values.bundlePublisher.externalK8sConfigMap.defaults }}
+          {{- range $name, $_ := $externalK8sConfigMapClusters }}
+            {{- $clusterSettings := dict }}
+            {{- if hasKey $root.Values.bundlePublisher.externalK8sConfigMap.clusters $name }}
+            {{- $clusterSettings = index $root.Values.bundlePublisher.externalK8sConfigMap.clusters $name }}
+            {{- end }}
+            {{- if hasKey $clusterSettings "kubeConfigName" }}
+            - kube_config_file_path: /kubeconfigs/{{ $clusterSettings.kubeConfigName }}
+            {{- else }}
+            - kube_config_file_path: /kubeconfigs/{{ $name }}
+            {{- end }}
+              format: {{ if hasKey $clusterSettings "format" }}{{ $clusterSettings.format }}{{ else }}{{ $clusterDefaults.format }}{{ end }}
+              namespace: {{ if hasKey $clusterSettings "namespace" }}{{ $clusterSettings.namespace }}{{ else }}{{ $clusterDefaults.namespace }}{{ end }}
+              config_map_name: {{ if hasKey $clusterSettings "configMapName" }}{{ $clusterSettings.configMapName }}{{ else }}{{ $clusterDefaults.configMapName }}{{ end }}
+              config_map_key: {{ if hasKey $clusterSettings "configMapKey" }}{{ $clusterSettings.configMapKey }}{{ else }}{{ $clusterDefaults.configMapKey }}{{ end }}
+          {{- end }}
+        {{- end }}
+    {{- end }}
     {{- if .Values.bundlePublisher.awsRolesAnywhereTrustAnchor.enabled }}
     aws_rolesanywhere_trustanchor:
       plugin_data:

@@ -1,3 +1,6 @@
+{{- if and .Values.notifier.k8sBundle.enabled .Values.bundlePublisher.k8sConfigMap.enabled }}
+{{- fail "You can only enable either notifier.k8sBundle or bundlePublisher.k8sConfigMap." }}
+{{- end }}
 {{- $namespace := include "spire-server.bundle-namespace" . }}
 apiVersion: v1
 kind: ConfigMap
