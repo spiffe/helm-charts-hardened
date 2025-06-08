@@ -101,7 +101,7 @@ Allow the release namespace to be overridden for multi-namespace deployments in 
   {{- if .Values.notifier.k8sBundle.namespace }}
     {{- .Values.notifier.k8sBundle.namespace }}
   {{- else }}
-    {{- include "spire-server.bundle-namespace-bundlepublisher" -}}
+    {{- include "spire-server.bundle-namespace-bundlepublisher" . -}}
   {{- end }}
 {{- end }}
 
