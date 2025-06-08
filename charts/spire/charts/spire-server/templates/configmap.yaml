@@ -305,7 +305,7 @@ plugins:
   {{- end }}
 
   {{- $externalK8sConfigMapClusters := default .Values.kubeConfigs .Values.bundlePublisher.externalK8sConfigMap.clusters }}
-  {{- if or .Values.bundlePublisher.awsRolesAnywhereTrustAnchor.enabled .Values.bundlePublisher.awsS3.enabled .Values.bundlePublisher.gcpCloudStorage.enabled .Values.bundlePublisher.k8sConifgMap.enabled (and .Values.bundlePublisher.externalK8sConfigMap.enabled (ne (len $externalK8sConfigMapClusters) 0)) }}
+  {{- if or .Values.bundlePublisher.awsRolesAnywhereTrustAnchor.enabled .Values.bundlePublisher.awsS3.enabled .Values.bundlePublisher.gcpCloudStorage.enabled .Values.bundlePublisher.k8sConfigMap.enabled (and .Values.bundlePublisher.externalK8sConfigMap.enabled (ne (len $externalK8sConfigMapClusters) 0)) }}
   BundlePublisher:
     {{- if or .Values.bundlePublisher.k8sConfigMap.enabled (and .Values.bundlePublisher.externalK8sConfigMap.enabled (ne (len $externalK8sConfigMapClusters) 0)) }}
     k8s_configmap:
