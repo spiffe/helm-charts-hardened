@@ -11,9 +11,9 @@
       "sort-flags": []
     },
     {
-      "query": "tools.bash.image",
-      "filter": "LATESTSHA",
-      "sort-flags": []
+      "query": "tools.busybox.image",
+      "filter": "^[0-9]\\+\\.[0-9]\\+\\.[0-9]\\+-uclibc$",
+      "sort-flags": ["-t", ".", "-k1,1n", "-k2,2n", "-k3,3n"]
     }
   ],
   "spire-agent/values.yaml": [
