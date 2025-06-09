@@ -152,7 +152,7 @@ popd
 helm upgrade --install spiffe-step-ssh charts/spiffe-step-ssh --set caPassword="$(cat spiffe-step-ssh-password.txt)" -f spiffe-step-ssh-values.yaml -f "${SCRIPTPATH}/ingress-values.yaml" --set trustDomain=production.other --wait --timeout 10m
 
 # Is fetchca responding.
-kubectl get configmap -n spire-system spire-bundle-downstream -o go-template='{{ index .data "bundle.crt" }}' > /tmp/ca.pem
+kubectl exec -it spire-internal-server-0 -- spire-server bundle show > /tmp/ca.pem
 cat /tmp/ca.pem
 curl https://spiffe-step-ssh-fetchca.production.other -s --cacert /tmp/ca.pem
 

@@ -6,9 +6,6 @@ spiffe-oidc-discovery-provider:
     enabled: true
 
 internal-spire-server:
-  bundlePublisher:
-    k8sConfigMap:
-      format: pem
   controllerManager:
     identities:
       clusterSPIFFEIDs:
@@ -35,9 +32,6 @@ internal-spire-server:
               component: fetchca
           dnsNameTemplates:
           - "spiffe-step-ssh-fetchca.{{ .TrustDomain }}"
-
-downstream-spire-agent-full:
-  trustBundleFormat: pem
 
 external-spire-server:
   ingress:
