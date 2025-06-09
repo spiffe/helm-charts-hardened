@@ -310,15 +310,15 @@ plugins:
     {{- if or .Values.bundlePublisher.k8sConfigMap.enabled (and .Values.bundlePublisher.externalK8sConfigMap.enabled (ne (len $externalK8sConfigMapClusters) 0)) }}
     k8s_configmap:
       plugin_data:
-        {{- if eq (.Values.bundlePublisher.k8sConfigMap.enabled | toString) "true" }}
-        format: {{ .Values.bundlePublisher.k8sConfigMap.format }}
-        namespace: {{ include "spire-server.bundle-namespace-bundlepublisher" . | quote }}
-        config_map_name: {{ include "spire-lib.bundle-configmap" . | quote }}
-        config_map_key: "bundle.crt"
-        {{- end }}
-        {{- if and (eq (.Values.bundlePublisher.externalK8sConfigMap.enabled | toString) "true") (ne (len $externalK8sConfigMapClusters) 0) }}
         clusters:
           - "":
+          {{- if eq (.Values.bundlePublisher.k8sConfigMap.enabled | toString) "true" }}
+            - format: {{ .Values.bundlePublisher.k8sConfigMap.format }}
+              namespace: {{ include "spire-server.bundle-namespace-bundlepublisher" . | quote }}
+              configmap_name: {{ include "spire-lib.bundle-configmap" . | quote }}
+              configmap_key: "bundle.crt"
+          {{- end }}
+          {{- if and (eq (.Values.bundlePublisher.externalK8sConfigMap.enabled | toString) "true") (ne (len $externalK8sConfigMapClusters) 0) }}
           {{- $clusterDefaults := .Values.bundlePublisher.externalK8sConfigMap.defaults }}
           {{- range $name, $_ := $externalK8sConfigMapClusters }}
             {{- $clusterSettings := dict }}
@@ -332,8 +332,8 @@ plugins:
             {{- end }}
               format: {{ if hasKey $clusterSettings "format" }}{{ $clusterSettings.format }}{{ else }}{{ $clusterDefaults.format }}{{ end }}
               namespace: {{ if hasKey $clusterSettings "namespace" }}{{ $clusterSettings.namespace }}{{ else }}{{ $clusterDefaults.namespace }}{{ end }}
-              config_map_name: {{ if hasKey $clusterSettings "configMapName" }}{{ $clusterSettings.configMapName }}{{ else }}{{ $clusterDefaults.configMapName }}{{ end }}
-              config_map_key: {{ if hasKey $clusterSettings "configMapKey" }}{{ $clusterSettings.configMapKey }}{{ else }}{{ $clusterDefaults.configMapKey }}{{ end }}
+              configmap_name: {{ if hasKey $clusterSettings "configMapName" }}{{ $clusterSettings.configMapName }}{{ else }}{{ $clusterDefaults.configMapName }}{{ end }}
+              configmap_key: {{ if hasKey $clusterSettings "configMapKey" }}{{ $clusterSettings.configMapKey }}{{ else }}{{ $clusterDefaults.configMapKey }}{{ end }}
           {{- end }}
         {{- end }}
     {{- end }}
