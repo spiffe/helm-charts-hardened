@@ -326,9 +326,9 @@ plugins:
             {{- $clusterSettings = index $root.Values.bundlePublisher.externalK8sConfigMap.clusters $name }}
             {{- end }}
             {{- if hasKey $clusterSettings "kubeConfigName" }}
-            - kube_config_file_path: /kubeconfigs/{{ $clusterSettings.kubeConfigName }}
+            - kubeconfig_path: /kubeconfigs/{{ $clusterSettings.kubeConfigName }}
             {{- else }}
-            - kube_config_file_path: /kubeconfigs/{{ $name }}
+            - kubeconfig_path: /kubeconfigs/{{ $name }}
             {{- end }}
               format: {{ if hasKey $clusterSettings "format" }}{{ $clusterSettings.format }}{{ else }}{{ $clusterDefaults.format }}{{ end }}
               namespace: {{ if hasKey $clusterSettings "namespace" }}{{ $clusterSettings.namespace }}{{ else }}{{ $clusterDefaults.namespace }}{{ end }}
