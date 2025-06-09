@@ -48,7 +48,7 @@ roleRef:
   name: {{ include "spire-server.fullname" . }}-cm
   apiGroup: rbac.authorization.k8s.io
 {{- end }}
-{{- if or .Values.notifier.k8sBundle.enabled .Values.bundlePublisher.k8sConfigMap }}
+{{- if or .Values.notifier.k8sBundle.enabled .Values.bundlePublisher.k8sConfigMap.enabled }}
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
