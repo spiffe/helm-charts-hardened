@@ -36,7 +36,7 @@ internal-spire-server:
           dnsNameTemplates:
           - "spiffe-step-ssh-fetchca.{{ .TrustDomain }}"
 
-internal-spire-agent:
+downstream-spire-agent-full:
   trustBundleFormat: pem
 
 external-spire-server:
