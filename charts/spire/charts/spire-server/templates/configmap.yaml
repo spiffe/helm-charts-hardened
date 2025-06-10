@@ -311,30 +311,33 @@ plugins:
     k8s_configmap:
       plugin_data:
         clusters:
+          {{- $prefix := "-" }}
           {{- if eq (.Values.bundlePublisher.k8sConfigMap.enabled | toString) "true" }}
-          chart-internal:
-            format: {{ .Values.bundlePublisher.k8sConfigMap.format }}
-            namespace: {{ include "spire-server.bundle-namespace-bundlepublisher" . | quote }}
-            configmap_name: {{ include "spire-lib.bundle-configmap" . | quote }}
-            configmap_key: "bundle.crt"
+          {{ $prefix }} chart-internal:
+              format: {{ .Values.bundlePublisher.k8sConfigMap.format }}
+              namespace: {{ include "spire-server.bundle-namespace-bundlepublisher" . | quote }}
+              configmap_name: {{ include "spire-lib.bundle-configmap" . | quote }}
+              configmap_key: "bundle.crt"
+          {{- $prefix := " " }}
           {{- end }}
           {{- if and (eq (.Values.bundlePublisher.externalK8sConfigMap.enabled | toString) "true") (ne (len $externalK8sConfigMapClusters) 0) }}
           {{- $clusterDefaults := .Values.bundlePublisher.externalK8sConfigMap.defaults }}
           {{- range $name, $_ := $externalK8sConfigMapClusters }}
-          {{ $name | quote }}:
-            {{- $clusterSettings := dict }}
-            {{- if hasKey $root.Values.bundlePublisher.externalK8sConfigMap.clusters $name }}
-            {{- $clusterSettings = index $root.Values.bundlePublisher.externalK8sConfigMap.clusters $name }}
-            {{- end }}
-            {{- if hasKey $clusterSettings "kubeConfigName" }}
-            kubeconfig_path: /kubeconfigs/{{ $clusterSettings.kubeConfigName }}
-            {{- else }}
-            kubeconfig_path: /kubeconfigs/{{ $name }}
-            {{- end }}
-            format: {{ if hasKey $clusterSettings "format" }}{{ $clusterSettings.format }}{{ else }}{{ $clusterDefaults.format }}{{ end }}
-            namespace: {{ if hasKey $clusterSettings "namespace" }}{{ $clusterSettings.namespace }}{{ else }}{{ $clusterDefaults.namespace }}{{ end }}
-            configmap_name: {{ if hasKey $clusterSettings "configMapName" }}{{ $clusterSettings.configMapName }}{{ else }}{{ $clusterDefaults.configMapName }}{{ end }}
-            configmap_key: {{ if hasKey $clusterSettings "configMapKey" }}{{ $clusterSettings.configMapKey }}{{ else }}{{ $clusterDefaults.configMapKey }}{{ end }}
+          {{ $prefix }} {{ $name | quote }}:
+              {{- $clusterSettings := dict }}
+              {{- if hasKey $root.Values.bundlePublisher.externalK8sConfigMap.clusters $name }}
+              {{- $clusterSettings = index $root.Values.bundlePublisher.externalK8sConfigMap.clusters $name }}
+              {{- end }}
+              {{- if hasKey $clusterSettings "kubeConfigName" }}
+              kubeconfig_path: /kubeconfigs/{{ $clusterSettings.kubeConfigName }}
+              {{- else }}
+              kubeconfig_path: /kubeconfigs/{{ $name }}
+              {{- end }}
+              format: {{ if hasKey $clusterSettings "format" }}{{ $clusterSettings.format }}{{ else }}{{ $clusterDefaults.format }}{{ end }}
+              namespace: {{ if hasKey $clusterSettings "namespace" }}{{ $clusterSettings.namespace }}{{ else }}{{ $clusterDefaults.namespace }}{{ end }}
+              configmap_name: {{ if hasKey $clusterSettings "configMapName" }}{{ $clusterSettings.configMapName }}{{ else }}{{ $clusterDefaults.configMapName }}{{ end }}
+              configmap_key: {{ if hasKey $clusterSettings "configMapKey" }}{{ $clusterSettings.configMapKey }}{{ else }}{{ $clusterDefaults.configMapKey }}{{ end }}
+              {{- $prefix := " " }}
           {{- end }}
         {{- end }}
     {{- end }}
