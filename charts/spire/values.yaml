@@ -219,3 +219,24 @@ spiffe-oidc-discovery-provider:
 tornjak-frontend:
   ## @param tornjak-frontend.enabled Enables deployment of Tornjak frontend/UI (Not for production)
   enabled: false
+
+## @section SPIKE Keeper parameters
+## Parameter values for SPIKE Keeper
+##
+spike-keeper:
+  ## @param spike-keeper.enabled Enables deployment of SPIKE Keeper (Not for production)
+  enabled: false
+
+## @section SPIKE Nexus parameters
+## Parameter values for SPIKE Nexus
+##
+spike-nexus:
+  ## @param spike-nexus.enabled Enables deployment of SPIKE Nexus (Not for production)
+  enabled: false
+
+## @section SPIKE Pilot parameters
+## Parameter values for SPIKE Pilot
+##
+spike-pilot:
+  ## @param spike-pilot.enabled Enables deployment of SPIKE Pilot (Not for production)
+  enabled: false

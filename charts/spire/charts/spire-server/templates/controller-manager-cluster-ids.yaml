@@ -17,6 +17,21 @@ matchLabels:
   release: {{ .Release.Name }}
   release-namespace: {{ .Release.Namespace }}
   component: oidc-discovery-provider
+{{-   else if eq .type "spike-keeper" }}
+matchLabels:
+  release: {{ .Release.Name }}
+  release-namespace: {{ .Release.Namespace }}
+  component: spike-keeper
+{{-   else if eq .type "spike-nexus" }}
+matchLabels:
+  release: {{ .Release.Name }}
+  release-namespace: {{ .Release.Namespace }}
+  component: spike-nexus
+{{-   else if eq .type "spike-pilot" }}
+matchLabels:
+  release: {{ .Release.Name }}
+  release-namespace: {{ .Release.Namespace }}
+  component: spike-pilot
 {{-   else if eq .type "test-keys" }}
 matchLabels:
   release: {{ .Release.Name }}
@@ -38,8 +53,8 @@ matchLabels:
 {{-   if eq ($root.Values.controllerManager.enabled | toString) "true" }}
 {{-     if or (not (hasKey $value "enabled")) (eq ($value.enabled | toString) "true") }}
 {{-       $type := dig "type" "base" $value }}
-{{-       if not (has $type (list "base" "raw" "child-servers" "oidc-discovery-provider" "test-keys")) }}
-{{-         fail (printf "Type given: %s, must be one of [base, raw, child-servers, oidc-discovery-provider, test-keys]" $type) }}
+{{-       if not (has $type (list "base" "raw" "child-servers" "oidc-discovery-provider" "spike-keeper" "spike-nexus" "spike-pilot" "test-keys")) }}
+{{-         fail (printf "Type given: %s, must be one of [base, raw, child-servers, oidc-discovery-provider, spike-keeper, spike-nexus, spike-pilot, test-keys]" $type) }}
 {{-       end }}
 {{-       $namespaceSelector := deepCopy (dig "namespaceSelector" (dict) $value) }}
 {{-       if ne $type "raw" }}
