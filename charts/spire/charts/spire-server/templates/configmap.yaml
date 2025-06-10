@@ -311,8 +311,8 @@ plugins:
     k8s_configmap:
       plugin_data:
         clusters:
-          chart-internal:
           {{- if eq (.Values.bundlePublisher.k8sConfigMap.enabled | toString) "true" }}
+          chart-internal:
             format: {{ .Values.bundlePublisher.k8sConfigMap.format }}
             namespace: {{ include "spire-server.bundle-namespace-bundlepublisher" . | quote }}
             configmap_name: {{ include "spire-lib.bundle-configmap" . | quote }}
