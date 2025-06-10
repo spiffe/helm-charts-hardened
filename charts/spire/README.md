@@ -88,6 +88,11 @@ kubectl delete crds clusterfederatedtrustdomains.spire.spiffe.io clusterspiffeid
 
 We only support upgrading one major/minor version at a time. Version skipping isn't supported. Please see <https://spiffe.io/docs/latest/spire-helm-charts-hardened-about/upgrading/> for details.
 
+### 0.26.X
+
+- The notifier.k8sBundle plugin has been deprecated in favor of bundlePublisher.k8sConfigMap. The only features it does not provide are the settings `apiServiceLabel` and `webhookLabel`. If you are using either of these two features, set the chart to use the notifier.k8sBundle plugin again, and let us know. We don't think anyone is using these features.
+- The default trust bundle format has been changed to `spiffe`. This switch should be transparent unless you ware fetching the bundle from the configmap manually, or have a nested setup and dont upgrade the root, then child clusters in short order.
+
 ### 0.24.X
 
 - You must upgrade [spire-crds](https://artifacthub.io/packages/helm/spiffe/spire-crds) to 0.5.0+ before performing this upgrade.
