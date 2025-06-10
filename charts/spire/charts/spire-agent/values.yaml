@@ -94,7 +94,7 @@ trustDomain: example.org
 ## @param trustBundleURL If set, obtain trust bundle from url instead of Kubernetes ConfigMap
 trustBundleURL: ""
 ## @param trustBundleFormat If using trustBundleURL, what format is the url. Choices are "pem" and "spiffe"
-trustBundleFormat: pem
+trustBundleFormat: spiffe
 ## @param trustBundleHostPath If set, obtain trust bundle from a file on the host instead of from the ConfigMap
 trustBundleHostPath: ""
 ## @param bundleConfigMap Configmap name for Spire bundle
