@@ -973,7 +973,7 @@ bundlePublisher:
       ## @param bundlePublisher.externalK8sConfigMap.defaults.configMapName ConfigMap name to push the bundle into on external clusters
       configMapName: "spire-bundle-upstream"
       ## @param bundlePublisher.externalK8sConfigMap.defaults.configMapKey ConfigMap key to push the bundle into on external clusters
-      configMapKey: "bundle.crt"
+      configMapKey: ""
       ## @param bundlePublisher.externalK8sConfigMap.defaults.format Format of the trust bundle. Can be pem or spiffe
       format: spiffe
     ## @param bundlePublisher.externalK8sConfigMap.clusters [object] A dictionary of clusters to add with optional overrides. If empty, all clusters defined in kubeConfigs will be used.

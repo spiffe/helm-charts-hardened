@@ -44,7 +44,7 @@ agent:
   {{- else if ne (len .Values.trustBundleHostPath) 0 }}
   trust_bundle_path: {{ .Values.trustBundleHostPath | quote }}
   {{- else }}
-  trust_bundle_path: "/run/spire/bundle/bundle.crt"
+  trust_bundle_path: {{ printf "/run/spire/bundle/bundle.%s" (include "spire-lib.trust-bundle-ext" (dict "trustBundleFormat" .Values.trustBundleFormat)) | quote }}
   {{- end }}
   trust_domain: {{ include "spire-lib.trust-domain" . | quote }}
   {{- with .Values.availabilityTarget }}

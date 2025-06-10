@@ -314,10 +314,10 @@ plugins:
           {{- $prefix := "-" }}
           {{- if eq (.Values.bundlePublisher.k8sConfigMap.enabled | toString) "true" }}
           {{ $prefix }} chart-internal:
-              format: {{ .Values.bundlePublisher.k8sConfigMap.format }}
+              format: {{ .Values.bundlePublisher.k8sConfigMap.format | quote }}
               namespace: {{ include "spire-server.bundle-namespace-bundlepublisher" . | quote }}
               configmap_name: {{ include "spire-lib.bundle-configmap" . | quote }}
-              configmap_key: "bundle.crt"
+              configmap_key: {{ printf "bundle.%s" (include "spire-lib.trust-bundle-ext" (dict "trustBundleFormat" .Values.bundlePublisher.k8sConfigMap.format)) | quote }}
           {{- $prefix := " " }}
           {{- end }}
           {{- if and (eq (.Values.bundlePublisher.externalK8sConfigMap.enabled | toString) "true") (ne (len $externalK8sConfigMapClusters) 0) }}
@@ -333,10 +333,18 @@ plugins:
               {{- else }}
               kubeconfig_path: /kubeconfigs/{{ $name }}
               {{- end }}
-              format: {{ if hasKey $clusterSettings "format" }}{{ $clusterSettings.format }}{{ else }}{{ $clusterDefaults.format }}{{ end }}
+              {{- $format := $clusterDefaults.format }}
+              {{- if hasKey $clusterSettings "format" }}{{- $format = $clusterSettings.format }}{{- end }}
+              format: {{ $format | quote }}
               namespace: {{ if hasKey $clusterSettings "namespace" }}{{ $clusterSettings.namespace }}{{ else }}{{ $clusterDefaults.namespace }}{{ end }}
               configmap_name: {{ if hasKey $clusterSettings "configMapName" }}{{ $clusterSettings.configMapName }}{{ else }}{{ $clusterDefaults.configMapName }}{{ end }}
-              configmap_key: {{ if hasKey $clusterSettings "configMapKey" }}{{ $clusterSettings.configMapKey }}{{ else }}{{ $clusterDefaults.configMapKey }}{{ end }}
+              {{- if hasKey $clusterSettings "configMapKey" }}
+              configmap_key: {{ $clusterSettings.configMapKey | quote }}
+              {{- else if ne $clusterDefaults.configMapKey "" }}
+              configmap_key: {{ $clusterDefaults.configMapKey | quote }}
+              {{- else }}
+              configmap_key: {{ printf "bundle.%s" (include "spire-lib.trust-bundle-ext" (dict "trustBundleFormat" $format)) | quote }}
+              {{- end }}
               {{- $prefix := " " }}
           {{- end }}
         {{- end }}
