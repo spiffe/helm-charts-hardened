@@ -11,6 +11,12 @@ agentSocketName: spire-agent.sock
 ## @param csiDriverName The csi driver to use
 csiDriverName: csi.spiffe.io
 
+## @param bundleSource Configure where to fetch the trust bundle. Must be CSI or ConfigMap.
+bundleSource: CSI
+
+## @param bundleConfigMap Configmap name for SPIRE bundle when bundleSource is ConfigMap
+bundleConfigMap: spire-bundle
+
 ## @param replicaCount Replica count
 replicaCount: 1
 
@@ -29,7 +35,8 @@ image:
   registry: ghcr.io
   repository: spiffe/oidc-discovery-provider
   pullPolicy: IfNotPresent
-  tag: ""
+  #KMF FIXME this is just for testing until 1.12.3 is released
+  tag: "nightly"
 
 ## @param expandEnv Set to true to enable environment variable substitution of config file options
 expandEnv: false
