@@ -62,7 +62,7 @@ spec:
             - name: SPIKE_TRUST_ROOT
               value: {{ include "spire-lib.trust-domain" . }}
             - name: SPIKE_TRUST_ROOT_NEXUS
-              value: {{ include "spire-lib.trust-domain" . }}
+              value: {{if eq .Values.trustRoot.Nexus "" }}{{ include "spire-lib.trust-domain" . }}{{ else }}{{.Values.trustRoot.Nexus }}{{ end }}
           volumeMounts:
             - name: spiffe-workload-api
               mountPath: {{ include "spike-pilot.workload-api-socket-path" . | dir }}

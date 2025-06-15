@@ -36,9 +36,17 @@ spec:
               containerPort: 8443
               protocol: TCP
           env:
-            #FIXME make this configurable
+            - name: SPIKE_NEXUS_SHAMIR_SHARES
+              value: {{ .Values.shamir.shares | quote }}
+            - name: SPIKE_NEXUS_SHAMIR_THRESHOLD
+              value: {{ .Values.shamir.threshold | quote }}
+            # Note: IP will depend on the testbed.
             - name: SPIKE_NEXUS_KEEPER_PEERS
+              {{- if gt (len .Values.keeperPeers) 0 }}
+              value: {{ .Values.keeperPeers | join "," | quote }}
+              {{- else }}
               value: https://{{ .Release.Name }}-spike-keeper-0.{{ .Release.Name }}-spike-keeper-headless:8443,https://{{ .Release.Name }}-spike-keeper-1.{{ .Release.Name }}-spike-keeper-headless:8443,https://{{ .Release.Name }}-spike-keeper-2.{{ .Release.Name }}-spike-keeper-headless:8443
+              {{- end }}
             - name: SPIFFE_ENDPOINT_SOCKET
               value: unix://{{ include "spike-nexus.workload-api-socket-path" . }}
             - name: SPIKE_SYSTEM_LOG_LEVEL
@@ -46,9 +54,9 @@ spec:
             - name: SPIKE_TRUST_ROOT
               value: {{ include "spire-lib.trust-domain" . }}
             - name: SPIKE_TRUST_ROOT_KEEPER
-              value: {{ include "spire-lib.trust-domain" . }}
+              value: {{ if gt (len .Values.trustRoot.keepers) 0 }}{{ .Values.trustRoot.keepers | join "," | quote}}{{ else }}{{ include "spire-lib.trust-domain" . }}{{ end }}
             - name: SPIKE_TRUST_ROOT_PILOT
-              value: {{ include "spire-lib.trust-domain" . }}
+              value: {{if eq .Values.trustRoot.Pilot "" }}{{ include "spire-lib.trust-domain" . }}{{ else }}{{.Values.trustRoot.Pilot }}{{ end }}
             - name: SPIKE_NEXUS_TLS_PORT
               value: ":8443"
           {{- if .Values.startupProbe.enabled }}

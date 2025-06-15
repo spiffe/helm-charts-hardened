@@ -20,6 +20,23 @@ image:
 ## @param replicas The number of keepers to launch
 replicas: 1
 
+shamir:
+  ## @param shamir.shares How many shares to configure for shamir secrets
+  shares: 3
+  ## @param shamir.threshold How many shares needed to recover
+  threshold: 2
+
+## @param keeperPeers keeper peer configuration. If blank, it will be autodetected
+keeperPeers: []
+
+trustRoot:
+  ## @param trustRoot.nexus Override which trustRoot Nexus is in
+  nexus: ""
+  ## @param trustRoot.keepers Override which trustRoot Keepers are in
+  keepers: []
+  ## @param trustRoot.pilot Override which trustRoot Pilot is in
+  pilot: ""
+
 ## @param logLevel The log level, valid values are "debug", "info", "warn", and "error"
 logLevel: debug
 
