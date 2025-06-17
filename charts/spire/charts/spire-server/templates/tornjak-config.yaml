@@ -39,6 +39,13 @@ data:
         }
       }
     {{- end }}
+
+      SPIRECRDManager {
+        plugin_data {
+          classname = "{{ .Values.controllerManager.className }}"
+        }
+      }
+
     {{- if ne .Values.tornjak.config.userManagement.issuer "" }}
       Authenticator "Keycloak" {
         plugin_data {
