@@ -15,11 +15,11 @@ replicaCount: 1
 ## @param image.tag Overrides the image tag whose default is the chart appVersion
 ##
 image:
-  #FIXME just for testing until release
-  registry: docker.io
-  repository: kfox1111/misc2
+  registry: ghcr.io
+  repository: spiffe/spire-server
   pullPolicy: IfNotPresent
-  tag: "spire-server-bpk8s"
+  #FIXME just for testing until release
+  tag: "nightly"
 
 ## @param kind Define SPIRE server deployment type. Can be statefulset/deployment. Defaults to statefulset if not set. This feature is experimental.
 kind: statefulset
@@ -1173,7 +1173,7 @@ chown:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: Always
-    tag: latest@sha256:dcd67ed564ff8f70914157a1b15526cd66196d84a0f968f05c6aaf09056cb70e
+    tag: latest@sha256:5a1b374162dc37e9d78f52ca64ed1922817fea6c67e1b3433c444cc3d44d18aa
 
   ## @param chown.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
@@ -1208,7 +1208,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:dcd67ed564ff8f70914157a1b15526cd66196d84a0f968f05c6aaf09056cb70e
+      tag: latest@sha256:5a1b374162dc37e9d78f52ca64ed1922817fea6c67e1b3433c444cc3d44d18aa
 
 ## @param kubeConfigs [object] Manage additional kubeconfig files to talk to external Kubernetes clusters
 kubeConfigs: {}
