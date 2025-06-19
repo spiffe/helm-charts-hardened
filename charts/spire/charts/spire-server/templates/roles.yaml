@@ -18,6 +18,7 @@ rules:
 {{- if .Values.bundlePublisher.k8sConfigMap.enabled }}
       - create
 {{- end }}
+{{- end }}
 {{- if and .Values.upstreamAuthority.certManager.enabled .Values.upstreamAuthority.certManager.rbac.create }}
 ---
 # Role to be able to manage cert requests with Cert-Manager
