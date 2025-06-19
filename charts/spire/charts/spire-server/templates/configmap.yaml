@@ -274,7 +274,7 @@ plugins:
     k8sbundle:
       plugin_data:
         {{- if eq (.Values.notifier.k8sBundle.enabled | toString) "true" }}
-        namespace: {{ include "spire-server.bundle-namespace" . | quote }}
+        namespace: {{ include "spire-server.bundle-namespace-notifier" . | quote }}
         config_map: {{ include "spire-lib.bundle-configmap" . | quote }}
         {{- with .Values.notifier.k8sBundle.apiServiceLabel }}
         api_service_label: {{ . | quote }}
@@ -304,8 +304,51 @@ plugins:
         {{- end }}
   {{- end }}
 
-  {{- if or .Values.bundlePublisher.awsRolesAnywhereTrustAnchor.enabled .Values.bundlePublisher.awsS3.enabled .Values.bundlePublisher.gcpCloudStorage.enabled }}
+  {{- $externalK8sConfigMapClusters := default .Values.kubeConfigs .Values.bundlePublisher.externalK8sConfigMap.clusters }}
+  {{- if or .Values.bundlePublisher.awsRolesAnywhereTrustAnchor.enabled .Values.bundlePublisher.awsS3.enabled .Values.bundlePublisher.gcpCloudStorage.enabled .Values.bundlePublisher.k8sConfigMap.enabled (and .Values.bundlePublisher.externalK8sConfigMap.enabled (ne (len $externalK8sConfigMapClusters) 0)) }}
   BundlePublisher:
+    {{- if or .Values.bundlePublisher.k8sConfigMap.enabled (and .Values.bundlePublisher.externalK8sConfigMap.enabled (ne (len $externalK8sConfigMapClusters) 0)) }}
+    k8s_configmap:
+      plugin_data:
+        clusters:
+          {{- $prefix := "-" }}
+          {{- if eq (.Values.bundlePublisher.k8sConfigMap.enabled | toString) "true" }}
+          {{ $prefix }} chart-internal:
+              format: {{ .Values.bundlePublisher.k8sConfigMap.format | quote }}
+              namespace: {{ include "spire-server.bundle-namespace-bundlepublisher" . | quote }}
+              configmap_name: {{ include "spire-lib.bundle-configmap" . | quote }}
+              configmap_key: {{ printf "bundle.%s" (include "spire-lib.trust-bundle-ext" (dict "trustBundleFormat" .Values.bundlePublisher.k8sConfigMap.format)) | quote }}
+          {{- $prefix := " " }}
+          {{- end }}
+          {{- if and (eq (.Values.bundlePublisher.externalK8sConfigMap.enabled | toString) "true") (ne (len $externalK8sConfigMapClusters) 0) }}
+          {{- $clusterDefaults := .Values.bundlePublisher.externalK8sConfigMap.defaults }}
+          {{- range $name, $_ := $externalK8sConfigMapClusters }}
+          {{ $prefix }} {{ $name | quote }}:
+              {{- $clusterSettings := dict }}
+              {{- if hasKey $root.Values.bundlePublisher.externalK8sConfigMap.clusters $name }}
+              {{- $clusterSettings = index $root.Values.bundlePublisher.externalK8sConfigMap.clusters $name }}
+              {{- end }}
+              {{- if hasKey $clusterSettings "kubeConfigName" }}
+              kubeconfig_path: /kubeconfigs/{{ $clusterSettings.kubeConfigName }}
+              {{- else }}
+              kubeconfig_path: /kubeconfigs/{{ $name }}
+              {{- end }}
+              {{- $format := $clusterDefaults.format }}
+              {{- if hasKey $clusterSettings "format" }}{{- $format = $clusterSettings.format }}{{- end }}
+              format: {{ $format | quote }}
+              namespace: {{ if hasKey $clusterSettings "namespace" }}{{ $clusterSettings.namespace }}{{ else }}{{ $clusterDefaults.namespace }}{{ end }}
+              configmap_name: {{ if hasKey $clusterSettings "configMapName" }}{{ $clusterSettings.configMapName }}{{ else }}{{ $clusterDefaults.configMapName }}{{ end }}
+              {{- if hasKey $clusterSettings "configMapKey" }}
+              configmap_key: {{ $clusterSettings.configMapKey | quote }}
+              {{- else if ne $clusterDefaults.configMapKey "" }}
+              configmap_key: {{ $clusterDefaults.configMapKey | quote }}
+              {{- else }}
+              configmap_key: {{ printf "bundle.%s" (include "spire-lib.trust-bundle-ext" (dict "trustBundleFormat" $format)) | quote }}
+              {{- end }}
+              {{- $prefix := " " }}
+          {{- end }}
+        {{- end }}
+    {{- end }}
     {{- if .Values.bundlePublisher.awsRolesAnywhereTrustAnchor.enabled }}
     aws_rolesanywhere_trustanchor:
       plugin_data:
