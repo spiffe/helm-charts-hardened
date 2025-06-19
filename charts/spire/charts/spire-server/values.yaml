@@ -15,11 +15,11 @@ replicaCount: 1
 ## @param image.tag Overrides the image tag whose default is the chart appVersion
 ##
 image:
-  #FIXME just for testing until release
-  registry: docker.io
-  repository: kfox1111/misc2
+  registry: ghcr.io
+  repository: spiffe/spire-server
   pullPolicy: IfNotPresent
-  tag: "spire-server-bpk8s"
+  #FIXME just for testing until release
+  tag: "nightly"
 
 ## @param kind Define SPIRE server deployment type. Can be statefulset/deployment. Defaults to statefulset if not set. This feature is experimental.
 kind: statefulset

@@ -13,9 +13,14 @@ rules:
     resources: [configmaps]
     resourceNames: [{{ include "spire-lib.bundle-configmap" . }}]
     verbs:
+{{- if .Values.bundlePublisher.k8sConfigMap.enabled }}
+      - get
+      - update
+      - create
+{{- else }}
       - get
       - patch
-      - update
+{{- end }}
 {{- end }}
 {{- if and .Values.upstreamAuthority.certManager.enabled .Values.upstreamAuthority.certManager.rbac.create }}
 ---
