@@ -56,7 +56,7 @@ spec:
             - name: SPIKE_TRUST_ROOT_KEEPER
               value: {{ if gt (len .Values.trustRoot.keepers) 0 }}{{ .Values.trustRoot.keepers | join "," | quote}}{{ else }}{{ include "spire-lib.trust-domain" . }}{{ end }}
             - name: SPIKE_TRUST_ROOT_PILOT
-              value: {{if eq .Values.trustRoot.Pilot "" }}{{ include "spire-lib.trust-domain" . }}{{ else }}{{.Values.trustRoot.Pilot }}{{ end }}
+              value: {{if eq .Values.trustRoot.pilot "" }}{{ include "spire-lib.trust-domain" . }}{{ else }}{{.Values.trustRoot.pilot }}{{ end }}
             - name: SPIKE_NEXUS_TLS_PORT
               value: ":8443"
           {{- if .Values.startupProbe.enabled }}

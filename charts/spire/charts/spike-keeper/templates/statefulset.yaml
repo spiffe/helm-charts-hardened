@@ -44,7 +44,7 @@ spec:
             - name: SPIKE_TRUST_ROOT
               value: {{ include "spire-lib.trust-domain" . }}
             - name: SPIKE_TRUST_ROOT_NEXUS
-              value: {{if eq .Values.trustRoot.Nexus "" }}{{ include "spire-lib.trust-domain" . }}{{ else }}{{.Values.trustRoot.Nexus }}{{ end }}
+              value: {{if eq .Values.trustRoot.nexus "" }}{{ include "spire-lib.trust-domain" . }}{{ else }}{{.Values.trustRoot.nexus }}{{ end }}
             - name: SPIKE_KEEPER_TLS_PORT
               value: ":8443"
           {{- if .Values.startupProbe.enabled }}
