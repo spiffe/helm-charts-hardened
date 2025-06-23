@@ -26,7 +26,7 @@ shamir:
   ## @param shamir.threshold How many shares needed to recover
   threshold: 2
 
-## @param keeperPeers keeper peer configuration. If blank, it will be autodetected
+## @param keeperPeers Keeper peer configuration. If blank, it will be autodetected
 keeperPeers: []
 
 trustRoot:
