@@ -378,3 +378,21 @@ Now you can interact with the Spire agent socket from your own application. The 
 | Name                       | Description                                                    | Value   |
 | -------------------------- | -------------------------------------------------------------- | ------- |
 | `tornjak-frontend.enabled` | Enables deployment of Tornjak frontend/UI (Not for production) | `false` |
+
+### SPIKE Keeper parameters
+
+| Name                   | Description                                             | Value   |
+| ---------------------- | ------------------------------------------------------- | ------- |
+| `spike-keeper.enabled` | Enables deployment of SPIKE Keeper (Not for production) | `false` |
+
+### SPIKE Nexus parameters
+
+| Name                  | Description                                            | Value   |
+| --------------------- | ------------------------------------------------------ | ------- |
+| `spike-nexus.enabled` | Enables deployment of SPIKE Nexus (Not for production) | `false` |
+
+### SPIKE Pilot parameters
+
+| Name                  | Description                                            | Value   |
+| --------------------- | ------------------------------------------------------ | ------- |
+| `spike-pilot.enabled` | Enables deployment of SPIKE Pilot (Not for production) | `false` |
