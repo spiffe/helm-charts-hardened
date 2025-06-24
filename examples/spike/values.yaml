@@ -1,0 +1,15 @@
+global:
+  spire:
+    ingressControllerType: ingress-nginx
+spike-keeper:
+  enabled: true
+  #ingress:
+  #  enabled: true
+  #  className: nginx
+spike-nexus:
+  enabled: true
+  ingress:
+    enabled: true
+    className: nginx
+spike-pilot:
+  enabled: true
