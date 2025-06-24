@@ -695,6 +695,28 @@ controllerManager:
         ## @param controllerManager.identities.clusterSPIFFEIDs.test-keys.type The type of rule this is.
         type: test-keys
 
+      spike-keeper:
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spike-keeper.enabled Enable this identity for controller manager
+        enabled: true
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spike-keeper.type The type of rule this is.
+        type: spike-keeper
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spike-keeper.spiffeIDTemplate The template to use for this rule.
+        spiffeIDTemplate: spiffe://{{ .TrustDomain }}/spike/keeper
+      spike-nexus:
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spike-nexus.enabled Enable this identity for controller manager
+        enabled: true
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spike-nexus.type The type of rule this is.
+        type: spike-nexus
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spike-nexus.spiffeIDTemplate The template to use for this rule.
+        spiffeIDTemplate: spiffe://{{ .TrustDomain }}/spike/nexus
+      spike-pilot:
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spike-pilot.enabled Enable this identity for controller manager
+        enabled: true
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spike-pilot.type The type of rule this is.
+        type: spike-pilot
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spike-pilot.spiffeIDTemplate The template to use for this rule.
+        spiffeIDTemplate: spiffe://{{ .TrustDomain }}/spike/pilot/role/superuser
+
       # You can specify additional ClusterSPIFFEIDs following this example:
       # foo:
       #   labels:
