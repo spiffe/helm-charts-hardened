@@ -1,7 +1,7 @@
 {{- define "valid-service-name" -}}
 {{- $name := . -}}
-{{- /* Truncate the name to ensure it fits within the length limit */ -}}
-{{- $maxLength := 15 -}}
+{{- /* Set the max length of the suffix to ensure total length is at most 15 characters */ -}}
+{{- $maxLength := 7 -}}
 {{- if gt (len $name) $maxLength -}}
 {{- $name = substr $name 0 $maxLength -}}
 {{- end -}}
