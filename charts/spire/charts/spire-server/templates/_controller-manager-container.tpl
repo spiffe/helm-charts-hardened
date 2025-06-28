@@ -1,3 +1,23 @@
+{{- define "valid-service-name" -}}
+{{- $name := . -}}
+{{- /* Truncate the name to ensure it fits within the length limit */ -}}
+{{- $maxLength := 15 -}}
+{{- if gt (len $name) $maxLength -}}
+{{- $name = substr $name 0 $maxLength -}}
+{{- end -}}
+{{- /* Replace or sanitize any invalid characters to ensure RFC compliance */ -}}
+{{- $name = regexReplaceAll "[^a-zA-Z0-9-]" $name "-" -}}
+{{- $name = regexReplaceAll "^-+|-+$" $name "" -}}  {{/* Remove leading or trailing hyphens */ -}}
+{{- $name = regexReplaceAll "--+" $name "-" -}}    {{/* Replace multiple hyphens with a single one */ -}}
+{{- if not (regexMatch "[a-zA-Z]" $name) -}}       {{/* Ensure it contains at least one letter */ -}}
+{{- fail "The resulting name must contain at least one letter (A-Z or a-z)." -}}
+{{- end -}}
+{{- if eq (len $name) 0 -}}
+{{- fail "The resulting name must be at least 1 character long." -}}
+{{- end -}}
+{{- $name -}}
+{{- end -}}
+
 {{- define "spire-controller-manager.containers" }}
 {{-   $root := . }}
 {{-   $settings := dict }}
@@ -48,6 +68,7 @@
 {{- define "spire-controller-manager.container" }}
 {{-   $promPort := .startPort }}
 {{-   $healthPort := add .startPort 1 }}
+{{-   $sanitizedSuffix := include "valid-service-name" .suffix }}
 {{-   $extraEnv := .defaults.extraEnv }}
 {{-   if hasKey .settings "extraEnv" }}
 {{-     $extraEnv = .settings.extraEnv }}
@@ -60,7 +81,7 @@
 {{-   if hasKey .settings "securityContext" }}
 {{-     $securityContext = mergeOverwrite .defaults.securityContext .settings.securityContext }}
 {{-   end }}
-- name: spire-controller-manager{{ .suffix }}
+- name: spire-controller-manager{{ $sanitizedSuffix }}
   securityContext:
     {{- include "spire-lib.securitycontext-extended" (dict "root" . "securityContext" $securityContext) | nindent 4 }}
   image: {{ template "spire-lib.image" (dict "appVersion" .Chart.AppVersion "image" .Values.controllerManager.image "global" .Values.global) }}
@@ -69,7 +90,7 @@
     {{- if hasKey . "kubeConfig" }}
     - --kubeconfig=/kubeconfigs/{{ .kubeConfig }}
     {{- end }}
-    - --config=controller-manager-config{{ .suffix }}.yaml
+    - --config=controller-manager-config{{ $sanitizedSuffix }}.yaml
     {{- if $expandEnv }}
     - --expand-env
     {{- end }}
@@ -93,7 +114,7 @@
       name: healthz
     {{- if or (dig "telemetry" "prometheus" "enabled" .Values.telemetry.prometheus.enabled .Values.global) (and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "prometheus" true .Values.global)) }}
     - containerPort: {{ $promPort }}
-      name: prom-cm{{ .suffix }}
+      name: prom-cm-{{ $sanitizedSuffix }}
     {{- end }}
 {{- if eq .Values.controllerManager.staticManifestMode "off" }}
   livenessProbe:
@@ -116,8 +137,8 @@
       mountPath: /manifests
     {{- end }}
     - name: controller-manager-config
-      mountPath: /controller-manager-config{{ .suffix }}.yaml
-      subPath: controller-manager-config{{ .suffix }}.yaml
+      mountPath: /controller-manager-config{{ $sanitizedSuffix }}.yaml
+      subPath: controller-manager-config{{ $sanitizedSuffix }}.yaml
       readOnly: true
     {{- with .kubeConfig }}
     - name: kubeconfigs
@@ -127,7 +148,7 @@
     {{- end }}
     - name: spire-controller-manager-tmp
       mountPath: /tmp
-      subPath: {{ printf "spire-controller-manager%s" .suffix }}
+      subPath: {{ printf "spire-controller-manager%s" $sanitizedSuffix }}
       readOnly: false
     {{- if gt (len .Values.extraVolumeMounts) 0 }}
     {{- toYaml .Values.extraVolumeMounts | nindent 4 }}
