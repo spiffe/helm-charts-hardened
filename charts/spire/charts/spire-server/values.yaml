@@ -18,8 +18,7 @@ image:
   registry: ghcr.io
   repository: spiffe/spire-server
   pullPolicy: IfNotPresent
-  #FIXME just for testing until release
-  tag: "nightly"
+  tag: ""
 
 ## @param kind Define SPIRE server deployment type. Can be statefulset/deployment. Defaults to statefulset if not set. This feature is experimental.
 kind: statefulset
