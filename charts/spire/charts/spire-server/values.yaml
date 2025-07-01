@@ -514,7 +514,7 @@ upstreamAuthority:
 notifier:
   k8sBundle:
     ## @param notifier.k8sBundle.enabled Enable local k8s bundle uploader
-    enabled: true
+    enabled: false
     ## @param notifier.k8sBundle.namespace Namespace to push the bundle into, if blank will default to SPIRE Server namespace
     namespace: ""
     ## @param notifier.k8sBundle.apiServiceLabel If set, rotate the CA Bundle in API services with this label set to true.
@@ -523,7 +523,7 @@ notifier:
     webhookLabel: ""
   externalK8sBundle:
     ## @param notifier.externalK8sBundle.enabled Enable external k8s bundle uploader
-    enabled: true
+    enabled: false
     defaults:
       ## @param notifier.externalK8sBundle.defaults.namespace Namespace to push the bundle into on clusters
       namespace: "spire-system"
@@ -978,6 +978,30 @@ nodeAttestor:
 
 # The secrets needed for this plugin are configured in the secrets: section
 bundlePublisher:
+  k8sConfigMap:
+    ## @param bundlePublisher.k8sConfigMap.enabled Enable local k8s bundle uploader
+    enabled: true
+    ## @param bundlePublisher.k8sConfigMap.namespace Namespace to push the bundle into, if blank will default to SPIRE Server namespace
+    namespace: ""
+    ## @param bundlePublisher.k8sConfigMap.format Format of the trust bundle. Can be pem or spiffe
+    format: spiffe
+  externalK8sConfigMap:
+    ## @param bundlePublisher.externalK8sConfigMap.enabled Enable external k8s bundle uploader
+    enabled: true
+    defaults:
+      ## @param bundlePublisher.externalK8sConfigMap.defaults.namespace Namespace to push the bundle into on clusters
+      namespace: "spire-system"
+      ## @param bundlePublisher.externalK8sConfigMap.defaults.configMapName ConfigMap name to push the bundle into on external clusters
+      configMapName: "spire-bundle-upstream"
+      ## @param bundlePublisher.externalK8sConfigMap.defaults.configMapKey ConfigMap key to push the bundle into on external clusters
+      configMapKey: ""
+      ## @param bundlePublisher.externalK8sConfigMap.defaults.format Format of the trust bundle. Can be pem or spiffe
+      format: spiffe
+    ## @param bundlePublisher.externalK8sConfigMap.clusters [object] A dictionary of clusters to add with optional overrides. If empty, all clusters defined in kubeConfigs will be used.
+    clusters: {}
+    # clustera:
+    #   namespace: foo
+    # clusterb: {}
   awsRolesAnywhereTrustAnchor:
     ## @param bundlePublisher.awsRolesAnywhereTrustAnchor.enabled Enable the AWS S3 bundle publisher
     enabled: false

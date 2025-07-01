@@ -1,6 +1,6 @@
 # spire
 
-![Version: 0.25.0](https://img.shields.io/badge/Version-0.25.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.12.2](https://img.shields.io/badge/AppVersion-1.12.2-informational?style=flat-square)
+![Version: 0.25.0](https://img.shields.io/badge/Version-0.25.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.12.4](https://img.shields.io/badge/AppVersion-1.12.4-informational?style=flat-square)
 [![Development Phase](https://github.com/spiffe/spiffe/blob/main/.img/maturity/dev.svg)](https://github.com/spiffe/spiffe/blob/main/MATURITY.md#development)
 
 A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
@@ -87,6 +87,11 @@ kubectl delete crds clusterfederatedtrustdomains.spire.spiffe.io clusterspiffeid
 ## Upgrade notes
 
 We only support upgrading one major/minor version at a time. Version skipping isn't supported. Please see <https://spiffe.io/docs/latest/spire-helm-charts-hardened-about/upgrading/> for details.
+
+### 0.26.X
+
+- The notifier.k8sBundle plugin has been deprecated in favor of bundlePublisher.k8sConfigMap. The only features it does not provide are the settings `apiServiceLabel` and `webhookLabel`. If you are using either of these two features, set the chart to use the notifier.k8sBundle plugin again, and let us know. We don't think anyone is using these features.
+- The default trust bundle format has been changed to `spiffe`. This switch should be transparent unless you ware fetching the bundle from the configmap manually, or have a nested setup and dont upgrade the root, then child clusters in short order.
 
 ### 0.24.X
 
