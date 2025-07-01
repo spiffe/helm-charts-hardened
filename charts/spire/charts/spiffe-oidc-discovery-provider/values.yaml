@@ -11,10 +11,10 @@ agentSocketName: spire-agent.sock
 ## @param csiDriverName The csi driver to use
 csiDriverName: csi.spiffe.io
 
-## @param bundleSource Configure where to fetch the trust bundle. Must be CSI or ConfigMap.
+## @param bundleSource Configure where to fetch the trust bundle from. Must be CSI or ConfigMap.
 bundleSource: CSI
 
-## @param bundleConfigMap Configmap name for SPIRE bundle when bundleSource is ConfigMap
+## @param bundleConfigMap ConfigMap name for SPIRE bundle when bundleSource is ConfigMap
 bundleConfigMap: spire-bundle
 
 ## @param replicaCount Replica count
