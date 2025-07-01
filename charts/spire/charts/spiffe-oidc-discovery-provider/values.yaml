@@ -35,8 +35,7 @@ image:
   registry: ghcr.io
   repository: spiffe/oidc-discovery-provider
   pullPolicy: IfNotPresent
-  #KMF FIXME this is just for testing until 1.12.3 is released
-  tag: "nightly"
+  tag: ""
 
 ## @param expandEnv Set to true to enable environment variable substitution of config file options
 expandEnv: false
