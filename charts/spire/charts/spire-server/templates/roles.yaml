@@ -1,7 +1,7 @@
 {{- $subject := include "spire-server.subject" . }}
 {{- $namespace := include "spire-server.namespace" . }}
 {{- $bundleNamespace := include "spire-server.bundle-namespace" . }}
-{{- if .Values.notifier.k8sBundle.enabled }}
+{{- if or .Values.notifier.k8sBundle.enabled .Values.bundlePublisher.k8sConfigMap.enabled }}
 # Role to be able to push certificate bundles to a configmap
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
@@ -15,6 +15,9 @@ rules:
     verbs:
       - get
       - patch
+{{- if .Values.bundlePublisher.k8sConfigMap.enabled }}
+      - create
+{{- end }}
 {{- end }}
 {{- if and .Values.upstreamAuthority.certManager.enabled .Values.upstreamAuthority.certManager.rbac.create }}
 ---
@@ -48,7 +51,7 @@ roleRef:
   name: {{ include "spire-server.fullname" . }}-cm
   apiGroup: rbac.authorization.k8s.io
 {{- end }}
-{{- if .Values.notifier.k8sBundle.enabled }}
+{{- if or .Values.notifier.k8sBundle.enabled .Values.bundlePublisher.k8sConfigMap.enabled }}
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1

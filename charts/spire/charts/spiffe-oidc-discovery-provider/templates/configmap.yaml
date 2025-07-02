@@ -1,3 +1,6 @@
+{{- if and (ne .Values.bundleSource "ConfigMap") (ne .Values.bundleSource "CSI") }}
+{{-   fail "Bundle source must be CSI or ConfigmMap" }}
+{{- end }}
 {{- $tlsCount := 0 }}
 {{- if and .Values.enabled .Values.tls.spire.enabled }}
 {{-   $tlsCount = add $tlsCount 1 }}
@@ -44,9 +47,14 @@ serving_cert_file:
 jwks_uri: {{ .Values.config.jwksUri | quote }}
 {{- end }}
 
+{{- if eq .Values.bundleSource "ConfigMap" }}
+file:
+  path: /bundle/bundle.spiffe
+{{- else }}
 workload_api:
   socket_path: {{ include "spiffe-oidc-discovery-provider.workload-api-socket-path" . | quote }}
   trust_domain: {{ include "spire-lib.trust-domain" . | quote }}
+{{- end }}
 
 health_checks:
   bind_port: "8008"

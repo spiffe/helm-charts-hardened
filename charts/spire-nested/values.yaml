@@ -384,9 +384,9 @@ external-spire-server:
       server:
         ## @param external-spire-server.upstreamAuthority.spire.server.nameOverride The name override setting of the root SPIRE server
         nameOverride: root-server
-  notifier:
-    k8sBundle:
-      ## @param external-spire-server.notifier.k8sBundle.enabled Enable local k8s bundle uploader
+  bundlePublisher:
+    k8sConfigMap:
+      ## @param external-spire-server.bundlePublisher.k8sConfigMap.enabled Enable local k8s bundle uploader
       enabled: false
   nodeAttestor:
     k8sPSAT:

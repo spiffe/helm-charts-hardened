@@ -336,3 +336,11 @@ Anything lower has an incompatible API.
 {{- fail "Unsupported autoscaling API version" }}
 {{- end }}
 {{- end }}
+
+{{- define "spire-lib.trust-bundle-ext" -}}
+{{- if eq .trustBundleFormat "spiffe" }}
+{{- print "spiffe" }}
+{{- else }}
+{{- print "crt" }}
+{{- end }}
+{{- end }}
