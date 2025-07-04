@@ -94,7 +94,7 @@ trustDomain: example.org
 ## @param trustBundleURL If set, obtain trust bundle from url instead of Kubernetes ConfigMap
 trustBundleURL: ""
 ## @param trustBundleFormat If using trustBundleURL, what format is the url. Choices are "pem" and "spiffe"
-trustBundleFormat: pem
+trustBundleFormat: spiffe
 ## @param trustBundleHostPath If set, obtain trust bundle from a file on the host instead of from the ConfigMap
 trustBundleHostPath: ""
 ## @param bundleConfigMap Configmap name for Spire bundle
@@ -153,7 +153,7 @@ fsGroupFix:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: Always
-    tag: latest@sha256:57ed0cb7b67f52ea7678128da5c4cf99c1a71d269db92a6a40c179fa57f00ce4
+    tag: latest@sha256:eefb26b2a87b897e4dad65909dad8a7896fe3ed97aa76ac874fa3594011256ea
 
   ## @param fsGroupFix.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
@@ -280,7 +280,7 @@ socketAlternate:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: Always
-    tag: latest@sha256:57ed0cb7b67f52ea7678128da5c4cf99c1a71d269db92a6a40c179fa57f00ce4
+    tag: latest@sha256:eefb26b2a87b897e4dad65909dad8a7896fe3ed97aa76ac874fa3594011256ea
 
   ## @param socketAlternate.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
@@ -295,7 +295,7 @@ hostCert:
     registry: cgr.dev
     repository: chainguard/min-toolkit-debug
     pullPolicy: IfNotPresent
-    tag: latest@sha256:3e5ee5ed41e764999f8e499b48d2e62d1f8ffd526aad5b4c3aa7a0759e0139db
+    tag: latest@sha256:3dd03ca4056a6c8024ed1e5dc0999aa836c0c28777dcc3b85bd1d9d853e1ed38
 
   ## @param hostCert.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}

@@ -65,7 +65,23 @@ Allow the release namespace to be overridden for multi-namespace deployments in 
   {{- end -}}
 {{- end -}}
 
-{{- define "spire-server.bundle-namespace" -}}
+{{- define "spire-server.bundle-namespace-bundlepublisher" -}}
+  {{- if .Values.bundlePublisher.k8sConfigMap.namespace }}
+    {{- .Values.bundlePublisher.k8sConfigMap.namespace }}
+  {{- else if .Values.namespaceOverride -}}
+    {{- .Values.namespaceOverride -}}
+  {{- else if and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "namespaceLayout" true .Values.global) }}
+    {{- if ne (len (dig "spire" "namespaces" "system" "name" "" .Values.global)) 0 }}
+      {{- .Values.global.spire.namespaces.system.name }}
+    {{- else }}
+      {{- printf "spire-system" }}
+    {{- end }}
+  {{- else -}}
+    {{- .Release.Namespace -}}
+  {{- end -}}
+{{- end -}}
+
+{{- define "spire-server.bundle-namespace-notifier" -}}
   {{- if .Values.notifier.k8sBundle.namespace }}
     {{- .Values.notifier.k8sBundle.namespace }}
   {{- else if .Values.namespaceOverride -}}
@@ -80,6 +96,14 @@ Allow the release namespace to be overridden for multi-namespace deployments in 
     {{- .Release.Namespace -}}
   {{- end -}}
 {{- end -}}
+
+{{- define "spire-server.bundle-namespace" -}}
+  {{- if .Values.notifier.k8sBundle.namespace }}
+    {{- .Values.notifier.k8sBundle.namespace }}
+  {{- else }}
+    {{- include "spire-server.bundle-namespace-bundlepublisher" . -}}
+  {{- end }}
+{{- end }}
 
 {{- define "spire-server.podMonitor.namespace" -}}
   {{- if ne (len .Values.telemetry.prometheus.podMonitor.namespace) 0 }}
