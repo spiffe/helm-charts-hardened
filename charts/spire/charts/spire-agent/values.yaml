@@ -207,6 +207,13 @@ nodeAttestor:
         repository: spiffe/spire-tpm-plugin-get-tpm-pubhash
         pullPolicy: IfNotPresent
         tag: "v1.9.0"
+  aws_iid:
+    ## @param nodeAttestor.awsiid.enabled Enable the AWS IID Node Attestor
+    enabled: false
+    ## @param nodeAttestor.awsiid.region AWS region to use for the attestation
+    region: ""
+    ## @param nodeAttestor.awsiid.roleARN AWS IAM role ARN to use for the attestation
+    roleARN: ""
 
 # workloadAttestors determine a workload's properties and then generate a set of selectors associated with it.
 workloadAttestors:

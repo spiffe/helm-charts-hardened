@@ -139,7 +139,7 @@ plugins:
         {{- end }}
         disable_migration: {{ .Values.dataStore.sql.disableMigration }}
 
-  {{- if or .Values.nodeAttestor.k8sPSAT.enabled .Values.nodeAttestor.externalK8sPSAT.enabled .Values.nodeAttestor.joinToken.enabled .Values.nodeAttestor.httpChallenge.enabled .Values.nodeAttestor.tpmDirect.enabled }}
+  {{- if or .Values.nodeAttestor.k8sPSAT.enabled .Values.nodeAttestor.externalK8sPSAT.enabled .Values.nodeAttestor.joinToken.enabled .Values.nodeAttestor.httpChallenge.enabled .Values.nodeAttestor.tpmDirect.enabled .Values.nodeAttestor.awsiid.enabled }}
   NodeAttestor:
   {{- $clusters := default .Values.kubeConfigs .Values.nodeAttestor.externalK8sPSAT.clusters }}
   {{- if or (eq (.Values.nodeAttestor.k8sPSAT.enabled | toString) "true") (and (eq (.Values.nodeAttestor.externalK8sPSAT.enabled | toString) "true") (gt (len $clusters) 0)) }}
@@ -216,6 +216,16 @@ plugins:
         hash_path: /tmp-direct-hashes
         {{- else }}
         hash_path: /run/spire/data/tpm-direct/hashes
+        {{- end }}
+  {{- end }}
+  {{- end }}
+  {{- with .Values.nodeAttestor.awsiid }}
+  {{- if eq (.enabled | toString) "true" }}
+    aws_iid:
+      plugin_data:
+        region: {{ .region | quote }}
+        {{- if ne .assumeRoleArn "" }}
+        assume_role: {{ .assumeRoleArn | quote }}
         {{- end }}
   {{- end }}
   {{- end }}

@@ -104,6 +104,15 @@ plugins:
     {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
     {{- end }}
     {{- end }}
+    aws_iid:
+      plugin_data:
+        region: {{ .region | quote }}
+        {{- if ne .assumeRoleArn "" }}
+        assume_role: {{ .assumeRoleArn | quote }}
+        {{- end }}
+    {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
+    {{- end }}
+    {{- end }}
 {{- if ne $nodeAttestorUsed 1 }}
 {{- fail (printf "You have to enable exactly one Node Attestor. There are %d enabled." $nodeAttestorUsed) }}
 {{- end }}
