@@ -12,6 +12,6 @@
   {
     "name": "envoy-gateway",
     "registry": "docker.io/envoyproxy/gateway-helm",
-    "version": "v1.4.1"
+    "version": "v1.4.2"
   }
 ]
