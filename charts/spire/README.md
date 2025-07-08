@@ -24,11 +24,6 @@ Preparing a production deployment requires a few steps.
 
 1. Save the following to your-values.yaml, ideally in your git repo.
 
-> [!NOTE]
-> Please note that `rancher/kubectl` image does not always correspond to the most
-> recent version of Kubernetes. In order to find the most up-to-date version,
-> please visit their [releases](https://github.com/rancher/kubectl/releases) page.
-
 ```yaml
 global:
   openshift: false # If running on openshift, set to true
@@ -45,10 +40,6 @@ global:
       country: ARPA
       organization: Example
       commonName: example.org
-# If rancher/kubectl doesn't have a version that matches your cluster, uncomment and update:
-#    tools:
-#       kubectl:
-#         tag: "v1.23.3"
 ```
 
 2. If you need a non default storageClass, append the following to the global.spire section and update:
