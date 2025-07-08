@@ -219,7 +219,7 @@ plugins:
         {{- end }}
   {{- end }}
   {{- end }}
-  {{- with .Values.nodeAttestor.awsiid }}
+  {{- with .Values.nodeAttestor.awsIid }}
   {{- if eq (.enabled | toString) "true" }}
     aws_iid:
       plugin_data:
