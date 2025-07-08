@@ -1191,10 +1191,10 @@ chown:
   ## @param chown.image.tag Overrides the image tag whose default is the chart appVersion
   ##
   image:
-    registry: cgr.dev
-    repository: chainguard/bash
+    registry: ""
+    repository: busybox
     pullPolicy: Always
-    tag: latest@sha256:28c83a645bb2d55d617d9bc8874ac62362b07cc6ad446bdd5c3d53177da21edc
+    tag: 1.37.0-uclibc
 
   ## @param chown.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
