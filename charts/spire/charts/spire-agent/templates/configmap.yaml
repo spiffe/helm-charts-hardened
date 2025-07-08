@@ -104,7 +104,7 @@ plugins:
     {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
     {{- end }}
     {{- end }}
-  {{- with .Values.nodeAttestor.awsIid }}
+  {{- with .Values.nodeAttestor.awsIID }}
   {{- if eq (.enabled | toString) "true" }}
     aws_iid:
       plugin_data:
