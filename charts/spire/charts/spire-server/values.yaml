@@ -975,12 +975,12 @@ nodeAttestor:
     cas: {}
     ## @param nodeAttestor.tpmDirect.hashes A list of TPM hashes that are allowed to connect.
     hashes: []
-  awsIid:
-    ## @param nodeAttestor.awsIid.enabled Enable the aws_iid node attestor
+  awsIID:
+    ## @param nodeAttestor.awsIID.enabled Enable the aws_iid node attestor
     enabled: false
-    ## @param nodeAttestor.awsIid.region AWS region to use for the attestation
+    ## @param nodeAttestor.awsIID.region AWS region to use for the attestation
     region: ""
-    ## @param nodeAttestor.awsIid.assumeRole AWS IAM Role NAME to use for the attestation
+    ## @param nodeAttestor.awsIID.assumeRole AWS IAM Role NAME to use for the attestation
     assumeRole: ""
 
 # The secrets needed for this plugin are configured in the secrets: section
