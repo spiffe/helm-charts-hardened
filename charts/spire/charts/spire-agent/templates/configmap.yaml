@@ -109,8 +109,8 @@ plugins:
     aws_iid:
       plugin_data:
         region: {{ .region | quote }}
-        {{- if ne .assumeRoleArn "" }}
-        assume_role: {{ .assumeRoleArn | quote }}
+        {{- if ne .assumeRole "" }}
+        assume_role: {{ .assumeRole | quote }}
         {{- end }}
     {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
     {{- end }}

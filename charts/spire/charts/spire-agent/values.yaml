@@ -208,12 +208,12 @@ nodeAttestor:
         pullPolicy: IfNotPresent
         tag: "v1.9.0"
   awsIid:
-    ## @param nodeAttestor.awsIid.enabled Enable the AWS IID Node Attestor
+    ## @param nodeAttestor.awsIid.enabled Enable the aws_iid Node Attestor
     enabled: false
     ## @param nodeAttestor.awsIid.region AWS region to use for the attestation
     region: ""
-    ## @param nodeAttestor.awsIid.assumeRoleArn AWS IAM role ARN to use for the attestation
-    assumeRoleArn: ""
+    ## @param nodeAttestor.awsIid.assumeRole AWS IAM Role NAME to use for the attestation
+    assumeRole: ""
 
 # workloadAttestors determine a workload's properties and then generate a set of selectors associated with it.
 workloadAttestors:
