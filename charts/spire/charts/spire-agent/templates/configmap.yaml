@@ -107,11 +107,7 @@ plugins:
   {{- with .Values.nodeAttestor.awsIID }}
   {{- if eq (.enabled | toString) "true" }}
     aws_iid:
-      plugin_data:
-        region: {{ .region | quote }}
-        {{- if ne .assumeRole "" }}
-        assume_role: {{ .assumeRole | quote }}
-        {{- end }}
+      plugin_data: {}
     {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
     {{- end }}
     {{- end }}
