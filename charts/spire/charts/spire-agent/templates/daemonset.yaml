@@ -256,6 +256,11 @@ spec:
             - name: spire-config
               mountPath: /opt/spire/conf/agent
               readOnly: true
+            {{- if .Values.keyManager.disk.enabled }}
+            - name: spire-key-manager
+              mountPath: /opt/spire/data/agent
+              readOnly: false
+            {{- end }}
             - name: spire-agent-persistence
               mountPath: /var/lib/spire
             {{- if .Values.sockets.admin.enabled }}
@@ -324,6 +329,12 @@ spec:
         - name: spire-config
           configMap:
             name: {{ include "spire-agent.fullname" . }}
+        {{- if .Values.keyManager.disk.enabled }}
+        - name: spire-key-manager
+          hostPath:
+            path: /opt/spire/data/agent
+            type: DirectoryOrCreate
+        {{- end }}
         {{- if .Values.sockets.admin.mountOnHost }}
         - name: spire-agent-admin-socket-dir
           hostPath:
