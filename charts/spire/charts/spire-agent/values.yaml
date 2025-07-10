@@ -164,7 +164,7 @@ keyManager:
     enabled: true
   disk:
     ## @param keyManager.disk.enabled Enable the disk based Key Manager
-    enabled: true
+    enabled: false
 
 nodeAttestor:
   k8sPSAT:
