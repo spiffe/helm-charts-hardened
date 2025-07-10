@@ -905,6 +905,8 @@ initContainers: []
 caKeyType: rsa-2048
 ## @param caTTL TTL for CA
 caTTL: 24h
+## @param agentTTL The TTL to use for agent SVIDs
+agentTTL: 72h
 ## @param defaultX509SvidTTL TTL for X509 Svids
 defaultX509SvidTTL: 4h
 ## @param defaultJwtSvidTTL TTL for JWT Svids

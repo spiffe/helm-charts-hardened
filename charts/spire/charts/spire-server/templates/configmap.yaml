@@ -58,6 +58,7 @@ server:
   ca_key_type: {{ .Values.caKeyType | quote }}
   ca_ttl: {{ .Values.caTTL | quote }}
 
+  agent_ttl: {{ .Values.agentTTL | quote }}
   default_x509_svid_ttl: {{ .Values.defaultX509SvidTTL | quote }}
   default_jwt_svid_ttl: {{ .Values.defaultJwtSvidTTL | quote }}
 
