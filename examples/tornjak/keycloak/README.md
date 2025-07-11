@@ -49,11 +49,10 @@ The example below demonstrates port forward for local access. In cloud deploymen
 enable Ingress to the Keycloak service accordingly.
 
 ```shell
-# Start an auth Service [Keycloak] in separate terminal
 kubectl -n keycloak port-forward service/keycloak 8080:80
 ```
 
-See the helm Notes for more information about accessing Keycloak
+You can access Keycloak at [http://localhost:8080](http://localhost:8080).
 
 ## Deploy SPIRE with Tornjak User Management Enabled
 
@@ -61,15 +60,17 @@ Please follow the instructions for [deploying Tornjak](../README.md)
 with addition of the User Management values `--values examples/tornjak/values-auth.yaml`.
 
 > [!IMPORTANT]
-> Make sure Tornjak backend User Management issuer points to the correct Keycloak issuer URL. Which is in format
+> Make sure Tornjak backend User Management issuer points to the correct Keycloak issuer URL, which has the format
 > `http://<your-keycloakServicename>.<keycloak-namespace>:<your-keycloak-portnumber>/realms/tornjak`.
-> For the example above it will be: `http://keycloak.keycloak:8080/realms/tornjak`
-> You can set the issuer URL using `--set spire-server.tornjak.config.userManagement.issuer=http://tornjak.tornjak:8080/realms/tornjak`
 >
+> For the example above it will be: `http://keycloak.keycloak:8080/realms/tornjak`
+>
+> You can set the issuer URL using `--set spire-server.tornjak.config.userManagement.issuer=http://tornjak.tornjak:8080/realms/tornjak`
+
 > [!IMPORTANT]
 > If audience is set, make sure the Tornjak backend `audience` is set correctly. You can set it using:
 > `--set spire-server.tornjak.config.userManagement.audience=your-audience`
->
+
 > [!TIP]
 > Keep in mind, when redeploying Tornjak, you might have to recreate port forwarding for that service.
 
