@@ -980,8 +980,6 @@ nodeAttestor:
   awsIID:
     ## @param nodeAttestor.awsIID.enabled Enable the aws_iid node attestor
     enabled: false
-    ## @param nodeAttestor.awsIID.region AWS region to use for the attestation
-    region: ""
     ## @param nodeAttestor.awsIID.assumeRole AWS IAM Role NAME to use for the attestation
     assumeRole: ""
 
