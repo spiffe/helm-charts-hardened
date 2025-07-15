@@ -9,7 +9,6 @@ The AWS IID node attestor can be configured with the following properties:
 | Parameter                     | Description                                         | Default |
 |-------------------------------|-----------------------------------------------------|---------|
 | **nodeAttestor.awsIID.enabled** | Enable the AWS IID node attestor                    | false   |
-| **nodeAttestor.awsIID.region** | AWS region to use for the attestation               | ""      |
 | **nodeAttestor.awsIID.assumeRole** | AWS IAM Role NAME to use for the attestation      | ""      |
 
 ### Sample Configuration

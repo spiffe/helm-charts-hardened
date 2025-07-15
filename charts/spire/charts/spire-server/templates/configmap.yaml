@@ -226,7 +226,6 @@ plugins:
   {{- if eq (.enabled | toString) "true" }}
     aws_iid:
       plugin_data:
-        region: {{ .region | quote }}
         {{- if ne .assumeRole "" }}
         assume_role: {{ .assumeRole | quote }}
         {{- end }}
