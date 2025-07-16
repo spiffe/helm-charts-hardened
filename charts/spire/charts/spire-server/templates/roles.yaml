@@ -96,3 +96,26 @@ roleRef:
   name: {{ .Release.Namespace}}-{{ include "spire-server.fullname" . }}
   apiGroup: rbac.authorization.k8s.io
 {{- end }}
+---
+# Role to manage configmaps in the spire-server namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: configmap-manager
+  namespace: {{ $namespace }}
+rules:
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+# Binds the configmap-manager role to the spire-server service account
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: configmap-manager-binding
+  namespace: {{ $namespace }}
+{{ $subject }}
+roleRef:
+  kind: Role
+  name: configmap-manager
+  apiGroup: rbac.authorization.k8s.io
