@@ -9,6 +9,9 @@
 {{- if hasKey .Values.sds "disableSpiffeCertValidation" }}
 {{-   fail "disableSpiffeCertValidation was renamed to disableSPIFFECertValidation. Please update your config." }}
 {{- end }}
+{{- if and .Values.keyManager.disk.enabled (ne .Values.persistence.type "hostPath") }}
+{{-   fail "keyManager.disk.enabled is true but persistence.type is not hostPath. Ensure persistence.type is hostPath when keyManager.disk.enabled is true." }}
+{{- end }}
 {{- range $name := (concat (list "default") (keys .Values.agents)) | uniq }}
 {{- with (dict "Release" $root.Release "Chart" $root.Chart "Values" (deepCopy $root.Values)) }}
 {{- $nameSuffix := "" }}
@@ -258,7 +261,7 @@ spec:
               readOnly: true
             {{- if .Values.keyManager.disk.enabled }}
             - name: spire-key-manager
-              mountPath: /opt/spire/data/agent
+              mountPath: {{ .Values.persistence.hostPath }}
               readOnly: false
             {{- end }}
             - name: spire-agent-persistence
@@ -332,7 +335,7 @@ spec:
         {{- if .Values.keyManager.disk.enabled }}
         - name: spire-key-manager
           hostPath:
-            path: /opt/spire/data/agent
+            path: {{ .Values.persistence.hostPath }}
             type: DirectoryOrCreate
         {{- end }}
         {{- if .Values.sockets.admin.mountOnHost }}
