@@ -163,7 +163,7 @@ keyManager:
     ## @param keyManager.memory.enabled Enable the memory based Key Manager
     enabled: true
   disk:
-    ## @param keyManager.disk.enabled Enable the disk based Key Manager (must have persistence.type set to hostPath when enabled)
+    ## @param keyManager.disk.enabled Enable the disk based Key Manager (persistence.type must be hostPath when enabled)
     enabled: false
 
 nodeAttestor:
