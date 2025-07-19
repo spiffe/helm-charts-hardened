@@ -153,7 +153,7 @@ fsGroupFix:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: Always
-    tag: latest@sha256:28c83a645bb2d55d617d9bc8874ac62362b07cc6ad446bdd5c3d53177da21edc
+    tag: latest@sha256:1d3fa92a7ad5cfad6fbc3817bf82d25d0b6b4fa6c9711bcd273ffb3bfc926bce
 
   ## @param fsGroupFix.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
@@ -210,6 +210,9 @@ nodeAttestor:
         repository: spiffe/spire-tpm-plugin-get-tpm-pubhash
         pullPolicy: IfNotPresent
         tag: "v1.9.0"
+  awsIID:
+    ## @param nodeAttestor.awsIID.enabled Enable the aws_iid Node Attestor
+    enabled: false
 
 # workloadAttestors determine a workload's properties and then generate a set of selectors associated with it.
 workloadAttestors:
@@ -283,7 +286,7 @@ socketAlternate:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: Always
-    tag: latest@sha256:28c83a645bb2d55d617d9bc8874ac62362b07cc6ad446bdd5c3d53177da21edc
+    tag: latest@sha256:1d3fa92a7ad5cfad6fbc3817bf82d25d0b6b4fa6c9711bcd273ffb3bfc926bce
 
   ## @param socketAlternate.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
@@ -298,7 +301,7 @@ hostCert:
     registry: cgr.dev
     repository: chainguard/min-toolkit-debug
     pullPolicy: IfNotPresent
-    tag: latest@sha256:f32f16ef21f34b221e60989176d7b5f4a5d1668c45c5face4b12627bcda14761
+    tag: latest@sha256:75b191776b3ff75ab497c3c7a9979ef7bcc4c55f6640d00e14ccdc479f527f9a
 
   ## @param hostCert.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}

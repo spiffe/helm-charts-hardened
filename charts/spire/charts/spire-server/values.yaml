@@ -905,6 +905,8 @@ initContainers: []
 caKeyType: rsa-2048
 ## @param caTTL TTL for CA
 caTTL: 24h
+## @param agentTTL The TTL to use for agent SVIDs. If unset, the defaultX509SvidTTL will be used.
+agentTTL: ""
 ## @param defaultX509SvidTTL TTL for X509 Svids
 defaultX509SvidTTL: 4h
 ## @param defaultJwtSvidTTL TTL for JWT Svids
@@ -975,6 +977,11 @@ nodeAttestor:
     cas: {}
     ## @param nodeAttestor.tpmDirect.hashes A list of TPM hashes that are allowed to connect.
     hashes: []
+  awsIID:
+    ## @param nodeAttestor.awsIID.enabled Enable the aws_iid node attestor
+    enabled: false
+    ## @param nodeAttestor.awsIID.assumeRole AWS IAM Role NAME to use for the attestation
+    assumeRole: ""
 
 # The secrets needed for this plugin are configured in the secrets: section
 bundlePublisher:
@@ -1229,7 +1236,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:28c83a645bb2d55d617d9bc8874ac62362b07cc6ad446bdd5c3d53177da21edc
+      tag: latest@sha256:1d3fa92a7ad5cfad6fbc3817bf82d25d0b6b4fa6c9711bcd273ffb3bfc926bce
 
 ## @param kubeConfigs [object] Manage additional kubeconfig files to talk to external Kubernetes clusters
 kubeConfigs: {}
