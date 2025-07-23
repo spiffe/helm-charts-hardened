@@ -29,7 +29,7 @@ helm upgrade --install -n spire-mgmt spire spire \
 --render-subchart-notes
 
 # test the Tornjak deployment
-helm test spire -n spire-server
+helm test spire -n spire-mgmt
 ```
 
 Port forward the Tornjak backend (APIs) and Tornjak frontend (UI) services. Execute these commands in separate consoles.

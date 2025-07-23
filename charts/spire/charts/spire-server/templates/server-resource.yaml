@@ -180,7 +180,7 @@ spec:
         - name: chown
           image: {{ template "spire-lib.image" (dict "image" .Values.chown.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.chown.image.pullPolicy }}
-          command: ["bash", "-c"]
+          command: ["sh", "-c"]
           args:
             - |
               chown -R {{ $podSecurityContext.runAsUser }}:{{ $podSecurityContext.runAsGroup }} /var/lib/spire

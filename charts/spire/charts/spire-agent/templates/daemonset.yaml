@@ -9,6 +9,9 @@
 {{- if hasKey .Values.sds "disableSpiffeCertValidation" }}
 {{-   fail "disableSpiffeCertValidation was renamed to disableSPIFFECertValidation. Please update your config." }}
 {{- end }}
+{{- if and .Values.keyManager.disk.enabled (ne .Values.persistence.type "hostPath") }}
+{{-   fail "keyManager.disk.enabled is true but persistence.type is not hostPath. Ensure persistence.type is hostPath when keyManager.disk.enabled is true." }}
+{{- end }}
 {{- range $name := (concat (list "default") (keys .Values.agents)) | uniq }}
 {{- with (dict "Release" $root.Release "Chart" $root.Chart "Values" (deepCopy $root.Values)) }}
 {{- $nameSuffix := "" }}
@@ -256,6 +259,11 @@ spec:
             - name: spire-config
               mountPath: /opt/spire/conf/agent
               readOnly: true
+            {{- if .Values.keyManager.disk.enabled }}
+            - name: spire-key-manager
+              mountPath: {{ .Values.persistence.hostPath }}
+              readOnly: false
+            {{- end }}
             - name: spire-agent-persistence
               mountPath: /var/lib/spire
             {{- if .Values.sockets.admin.enabled }}
@@ -324,6 +332,12 @@ spec:
         - name: spire-config
           configMap:
             name: {{ include "spire-agent.fullname" . }}
+        {{- if .Values.keyManager.disk.enabled }}
+        - name: spire-key-manager
+          hostPath:
+            path: {{ .Values.persistence.hostPath }}
+            type: DirectoryOrCreate
+        {{- end }}
         {{- if .Values.sockets.admin.mountOnHost }}
         - name: spire-agent-admin-socket-dir
           hostPath:
