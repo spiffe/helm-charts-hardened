@@ -2,7 +2,7 @@
   {
     "name": "mysql",
     "registry": "docker.io/bitnamicharts/mysql",
-    "version": "13.0.4"
+    "version": "14.0.0"
   },
   {
     "name": "postgresql",
