@@ -17,6 +17,9 @@ image:
   pullPolicy: IfNotPresent
   tag: ""
 
+## @param backendStore The backend store to use. Must be one of [sqlite, memory, lite]
+backendStore: sqlite
+
 ## @param replicas The number of keepers to launch
 replicas: 1
 

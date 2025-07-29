@@ -19,8 +19,11 @@
 {{-     end }}
 {{-   end }}
 {{- end }}
+{{- if and .Values.keyManager.disk.enabled (ne .Values.persistence.type "hostPath") }}
+{{-   fail "keyManager.disk.enabled is true but persistence.type is not hostPath. Ensure persistence.type is hostPath when keyManager.disk.enabled is true." }}
+{{- end }}
 {{- if hasPrefix (.Values.socketPath | dir | clean) (.Values.sockets.hostBasePath | clean) }}
-{{- fail "The sockets.hostBasePath can not be located under the socketPath direcotry" }}
+{{- fail "The sockets.hostBasePath can not be located under the socketPath directory" }}
 {{- end }}
 {{- end }}
 {{- define "spire-agent.yaml-config" -}}
@@ -104,6 +107,13 @@ plugins:
     {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
     {{- end }}
     {{- end }}
+  {{- with .Values.nodeAttestor.awsIID }}
+  {{- if eq (.enabled | toString) "true" }}
+    aws_iid:
+      plugin_data: {}
+    {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
+    {{- end }}
+    {{- end }}
 {{- if ne $nodeAttestorUsed 1 }}
 {{- fail (printf "You have to enable exactly one Node Attestor. There are %d enabled." $nodeAttestorUsed) }}
 {{- end }}
@@ -112,6 +122,12 @@ plugins:
     {{- if .Values.keyManager.memory.enabled }}
     memory:
       plugin_data:
+    {{- $keyManagerUsed = add1 $keyManagerUsed }}
+    {{- end }}
+    {{- if .Values.keyManager.disk.enabled }}
+    disk:
+      plugin_data:
+        directory: {{ .Values.persistence.hostPath }}
     {{- $keyManagerUsed = add1 $keyManagerUsed }}
     {{- end }}
 {{- if ne $keyManagerUsed 1 }}
