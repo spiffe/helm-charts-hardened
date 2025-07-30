@@ -546,7 +546,7 @@ controllerManager:
 
   ## @param controllerManager.className specify to use an explicit class name. If empty, it will be automatically set to Release.Namespace-Release.Name to not conflict with other installs, enabling parallel installs.
   className: ""
-  
+
   ## @param controllerManager.watchClassless specify to process custom resources without class name specified. Useful to slowly migrate to class names from classless installs. Do not have two installs on the same k8s cluster both set to true.
   watchClassless: false
 
@@ -1138,6 +1138,10 @@ tornjak:
       type: Secret
       ## @param tornjak.config.clientCA.name Name of the resource secret or configMap with user CA for TLS
       name: tornjak-client-ca
+
+    crdManager:
+      ## @param tornjak.config.crdManager.enabled Allow the Tornjak CRD manager to start
+      enabled: true
 
   ## @param tornjak.resources [object] Resource requests and limits
   resources: {}
