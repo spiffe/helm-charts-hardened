@@ -263,6 +263,13 @@ telemetry:
       namespace: ""
       ## @param telemetry.prometheus.podMonitor.labels [object] Pod labels to filter for prometheus monitoring
       labels: {}
+  datadog:
+    ## @param telemetry.datadog.enabled Flag to enable datadog monitoring
+    enabled: false
+    ## @param telemetry.datadog.address The address of the datadog agent to send metrics to
+    address: "v-datadog.kube-system.svc.cluster.local"
+    ## @param telemetry.datadog.port The port of the datadog agent to send metrics to
+    port: 8125
 
 ## @param kubeletConnectByHostname If true, connect to kubelet using the nodes hostname. If false, uses localhost. If unset, defaults to true on OpenShift and false otherwise.
 kubeletConnectByHostname: ""
