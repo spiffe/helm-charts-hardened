@@ -35,7 +35,7 @@ maintainers:
 dependencies:
   - name: spire-lib
     repository: file://../spire/charts/spire-lib
-    version: 0.1.1
+    version: 0.1.0
   - name: step-certificates
     alias: step
     repository: https://smallstep.github.io/helm-charts/
