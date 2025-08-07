@@ -97,7 +97,7 @@ podSecurityContext: {}
 
 ## @param securityContext [object] Security context for CSI driver containers
 ##
-securityContext: 
+securityContext:
   readOnlyRootFilesystem: true
   privileged: true
   capabilities:
