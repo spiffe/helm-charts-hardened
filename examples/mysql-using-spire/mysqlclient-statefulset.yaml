@@ -17,7 +17,7 @@ spec:
       initContainers:
       - name: init-tls
         image: ghcr.io/spiffe/spiffe-helper:0.8.0
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         command:
         - /spiffe-helper
         - -config
@@ -48,7 +48,7 @@ spec:
           mountPath: /certs
       - name: refresh-tls
         image: ghcr.io/spiffe/spiffe-helper:0.8.0
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         command:
         - /spiffe-helper
         - -config
