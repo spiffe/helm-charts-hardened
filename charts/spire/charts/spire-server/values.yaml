@@ -1207,7 +1207,7 @@ chown:
   image:
     registry: ""
     repository: busybox
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
     tag: 1.37.0-uclibc
 
   ## @param chown.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/

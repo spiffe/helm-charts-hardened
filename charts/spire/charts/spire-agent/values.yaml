@@ -152,7 +152,7 @@ fsGroupFix:
   image:
     registry: cgr.dev
     repository: chainguard/bash
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
     tag: latest@sha256:330ad2ea11cf3018a331326fb08e44cedd0c0c604cfbfcff32b81272460bb679
 
   ## @param fsGroupFix.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
@@ -292,7 +292,7 @@ socketAlternate:
   image:
     registry: cgr.dev
     repository: chainguard/bash
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
     tag: latest@sha256:330ad2ea11cf3018a331326fb08e44cedd0c0c604cfbfcff32b81272460bb679
 
   ## @param socketAlternate.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
