@@ -219,7 +219,7 @@ To utilize Spire in your own workloads you should add the following to your work
    containers:
      - name: my-app
        image: "my-app:latest"
-       imagePullPolicy: IfNotPresent
+       imagePullPolicy: Always
 +      volumeMounts:
 +        - name: spiffe-workload-api
 +          mountPath: /spiffe-workload-api
