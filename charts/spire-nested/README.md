@@ -148,10 +148,10 @@ To utilize Spire in your own workloads you should add the following to your work
      - name: my-app
        image: "my-app:latest"
        imagePullPolicy: Always
-       volumeMounts:
-         - name: spiffe-workload-api
-           mountPath: /spiffe-workload-api
-           readOnly: true
++      volumeMounts:
++        - name: spiffe-workload-api
++          mountPath: /spiffe-workload-api
++          readOnly: true
        resources:
          requests:
            cpu: 200m
