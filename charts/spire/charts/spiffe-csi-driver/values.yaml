@@ -172,5 +172,5 @@ selinux:
   image:
     registry: registry.access.redhat.com
     repository: ubi9
-    pullPolicy: Always
-    tag: latest
+    pullPolicy: IfNotPresent
+    tag: 9.6-1754586119
