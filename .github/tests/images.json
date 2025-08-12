@@ -38,6 +38,11 @@
       "query": "nodeDriverRegistrar.image",
       "filter": "^v",
       "sort-flags": []
+    },
+    {
+      "query": "selinux.image",
+      "filter": "^[0-9]\\+\\.[0-9]\\+-[0-9]\\+$",
+      "sort-flags": []
     }
   ],
   "spiffe-oidc-discovery-provider/values.yaml": [
