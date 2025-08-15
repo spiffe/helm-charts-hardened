@@ -206,6 +206,44 @@ helm install -n spire-server spire-crds charts/spire-crds
 
 For any issues see our [FAQ](../../FAQ.md)…
 
+## Cloud SQL Proxy Support
+
+SPIRE Server supports using Google Cloud SQL with IAM authentication via the Cloud SQL Auth Proxy.
+
+### Quick Setup
+
+1. Create a GCP service account with `Cloud SQL Client` role
+2. Set up Workload Identity to bind your Kubernetes service account
+3. Create a database user for IAM authentication
+4. Use the example configuration from [examples/cloud-sql-proxy-gcp/](examples/cloud-sql-proxy-gcp/)
+
+### Example
+
+```yaml
+spire-server:
+  serviceAccount:
+    annotations:
+      iam.gke.io/gcp-service-account: "sa-spire@PROJECT_ID.iam.gserviceaccount.com"
+
+  initContainers:
+    - name: cloud-sql-proxy
+      image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.14.1
+      restartPolicy: Always
+      args:
+        - "--auto-iam-authn"
+        - "--port=3306"
+        - "PROJECT_ID:REGION:INSTANCE_NAME"
+
+  dataStore:
+    sql:
+      databaseType: mysql
+      host: 127.0.0.1
+      username: "sa-spire"
+      iamAuth: true
+```
+
+See the [Cloud SQL Proxy example](examples/cloud-sql-proxy-gcp/README.md) for complete setup instructions.
+
 ## Usage
 
 To utilize Spire in your own workloads you should add the following to your workload:

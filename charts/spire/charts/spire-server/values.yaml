@@ -910,6 +910,15 @@ extraContainers: []
 
 ## @param initContainers [array] Additional init containers to create
 initContainers: []
+# Example: Cloud SQL Proxy for GCP IAM authentication
+# initContainers:
+#   - name: cloud-sql-proxy
+#     image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.14.1
+#     restartPolicy: Always
+#     args:
+#       - "--auto-iam-authn"
+#       - "--port=3306"
+#       - "PROJECT_ID:REGION:INSTANCE_NAME"
 
 ## @param caKeyType The CA key type to use, possible values are rsa-2048, rsa-4096, ec-p256, ec-p384 (AWS requires the use of RSA. EC cryptography is not supported)
 caKeyType: rsa-2048
