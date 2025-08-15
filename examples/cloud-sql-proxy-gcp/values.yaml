@@ -1,0 +1,58 @@
+global:
+  spire:
+    clusterName: gke_example-cluster_us-central1-a_example-cluster
+    trustDomain: example.org
+    caSubject:
+      country: ARPA
+      organization: Example
+      commonName: example.org
+
+spire-server:
+  serviceAccount:
+    create: true
+    annotations:
+      iam.gke.io/gcp-service-account: "sa-spire@PROJECT_ID.iam.gserviceaccount.com"
+    name: "sa-spire"
+  
+  initContainers:
+    - name: cloud-sql-proxy
+      image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.14.1
+      restartPolicy: Always
+      args:
+        - "--auto-iam-authn"
+        - "--structured-logs"
+        - "--port=3306"
+        - "PROJECT_ID:REGION:INSTANCE_NAME"
+      env:
+        - name: GOOGLE_CLOUD_PROJECT
+          value: "PROJECT_ID"
+        - name: GOOGLE_CLOUD_REGION
+          value: "REGION"
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]
+        seccompProfile:
+          type: RuntimeDefault
+      resources:
+        requests:
+          memory: "512Mi"
+          cpu: "250m"
+        limits:
+          memory: "1Gi"
+          cpu: "500m"
+  
+  dataStore:
+    sql:
+      databaseType: mysql
+      databaseName: spire
+      host: 127.0.0.1
+      port: 3306
+      username: "sa-spire"
+      password: ""
+      iamAuth: true
+      externalSecret:
+        enabled: false 
