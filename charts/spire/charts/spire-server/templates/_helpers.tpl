@@ -237,18 +237,31 @@ Create the name of the service account to use
 {{- else if or (eq .Values.dataStore.sql.databaseType "mysql") (eq .Values.dataStore.sql.databaseType "aws_mysql") }}
   {{- if eq .Values.dataStore.sql.databaseType "mysql" }}
   {{-   $_ := set $config "database_type" "mysql" }}
-  {{-   $pw = "${DBPW}" }}
-  {{-   $ropw = "${RODBPW}" }}
-  {{- else }}
+  {{-   if .Values.dataStore.sql.iamAuth }}
+  {{-     $pw = "" }}
+  {{-     $ropw = "" }}
+  {{-   else }}
+  {{-     $pw = "${DBPW}" }}
+  {{-     $ropw = "${RODBPW}" }}
+  {{-   end }}
+  {{-   else }}
   {{-   $_ := set $config "database_type" (list (dict "aws_mysql" (dict "region" .Values.dataStore.sql.region))) }}
-  {{- end }}
+  {{-   end }}
   {{- $port := int .Values.dataStore.sql.port | default 3306 }}
   {{- $query := include "spire-server.config-mysql-query" .Values.dataStore.sql.options }}
-  {{- $_ := set $config "connection_string" (printf "%s:%s@tcp(%s:%d)/%s%s" .Values.dataStore.sql.username $pw .Values.dataStore.sql.host $port .Values.dataStore.sql.databaseName $query) }}
+  {{- if .Values.dataStore.sql.iamAuth }}
+  {{-   $_ := set $config "connection_string" (printf "%s@tcp(%s:%d)/%s%s" .Values.dataStore.sql.username .Values.dataStore.sql.host $port .Values.dataStore.sql.databaseName $query) }}
+  {{- else }}
+  {{-   $_ := set $config "connection_string" (printf "%s:%s@tcp(%s:%d)/%s%s" .Values.dataStore.sql.username $pw .Values.dataStore.sql.host $port .Values.dataStore.sql.databaseName $query) }}
+  {{- end }}
   {{- if .Values.dataStore.sql.readOnly.enabled }}
   {{-   $roPort := int .Values.dataStore.sql.readOnly.port | default 3306 }}
   {{-   $roQuery := include "spire-server.config-mysql-query" .Values.dataStore.sql.readOnly.options }}
-  {{-   $_ := set $config "ro_connection_string" (printf "%s:%s@tcp(%s:%d)/%s%s" .Values.dataStore.sql.readOnly.username $ropw .Values.dataStore.sql.readOnly.host $roPort .Values.dataStore.sql.readOnly.databaseName $roQuery) }}
+  {{-   if .Values.dataStore.sql.iamAuth }}
+  {{-     $_ := set $config "ro_connection_string" (printf "%s@tcp(%s:%d)/%s%s" .Values.dataStore.sql.readOnly.username .Values.dataStore.sql.readOnly.host $roPort .Values.dataStore.sql.readOnly.databaseName $roQuery) }}
+  {{-   else }}
+  {{-     $_ := set $config "ro_connection_string" (printf "%s:%s@tcp(%s:%d)/%s%s" .Values.dataStore.sql.readOnly.username $ropw .Values.dataStore.sql.readOnly.host $roPort .Values.dataStore.sql.readOnly.databaseName $roQuery) }}
+  {{-   end }}
   {{- end }}
 {{- else if or (eq .Values.dataStore.sql.databaseType "postgres") (eq .Values.dataStore.sql.databaseType "aws_postgres") }}
   {{- if eq .Values.dataStore.sql.databaseType "postgres" }}
