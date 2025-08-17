@@ -234,22 +234,23 @@ Create the name of the service account to use
   {{- $_ := set $config "database_type" "sqlite3" }}
   {{- $query := include "spire-server.config-sqlite-query" .Values.dataStore.sql.options }}
   {{- $_ := set $config "connection_string" (printf "%s%s" .Values.dataStore.sql.file $query) }}
-{{- else if or (eq .Values.dataStore.sql.databaseType "mysql") (eq .Values.dataStore.sql.databaseType "aws_mysql") }}
+{{- else if or (eq .Values.dataStore.sql.databaseType "mysql") (eq .Values.dataStore.sql.databaseType "aws_mysql") (eq .Values.dataStore.sql.databaseType "gcp_mysql_sa_iam") }}
   {{- if eq .Values.dataStore.sql.databaseType "mysql" }}
   {{-   $_ := set $config "database_type" "mysql" }}
-  {{-   if .Values.dataStore.sql.iamAuth }}
-  {{-     $pw = "" }}
-  {{-     $ropw = "" }}
-  {{-   else }}
-  {{-     $pw = "${DBPW}" }}
-  {{-     $ropw = "${RODBPW}" }}
-  {{-   end }}
-  {{-   else }}
+  {{-   $pw = "${DBPW}" }}
+  {{-   $ropw = "${RODBPW}" }}
+  {{- else if eq .Values.dataStore.sql.databaseType "gcp_mysql_sa_iam" }}
+  {{-   $_ := set $config "database_type" "mysql" }}
+  {{-   $pw = "" }}
+  {{-   $ropw = "" }}
+  {{- else }}
   {{-   $_ := set $config "database_type" (list (dict "aws_mysql" (dict "region" .Values.dataStore.sql.region))) }}
+  {{-   $pw = "${DBPW}" }}
+  {{-   $ropw = "${RODBPW}" }}
   {{-   end }}
   {{- $port := int .Values.dataStore.sql.port | default 3306 }}
   {{- $query := include "spire-server.config-mysql-query" .Values.dataStore.sql.options }}
-  {{- if .Values.dataStore.sql.iamAuth }}
+  {{- if eq $pw "" }}
   {{-   $_ := set $config "connection_string" (printf "%s@tcp(%s:%d)/%s%s" .Values.dataStore.sql.username .Values.dataStore.sql.host $port .Values.dataStore.sql.databaseName $query) }}
   {{- else }}
   {{-   $_ := set $config "connection_string" (printf "%s:%s@tcp(%s:%d)/%s%s" .Values.dataStore.sql.username $pw .Values.dataStore.sql.host $port .Values.dataStore.sql.databaseName $query) }}
@@ -257,7 +258,7 @@ Create the name of the service account to use
   {{- if .Values.dataStore.sql.readOnly.enabled }}
   {{-   $roPort := int .Values.dataStore.sql.readOnly.port | default 3306 }}
   {{-   $roQuery := include "spire-server.config-mysql-query" .Values.dataStore.sql.readOnly.options }}
-  {{-   if .Values.dataStore.sql.iamAuth }}
+  {{-   if eq $ropw "" }}
   {{-     $_ := set $config "ro_connection_string" (printf "%s@tcp(%s:%d)/%s%s" .Values.dataStore.sql.readOnly.username .Values.dataStore.sql.readOnly.host $roPort .Values.dataStore.sql.readOnly.databaseName $roQuery) }}
   {{-   else }}
   {{-     $_ := set $config "ro_connection_string" (printf "%s:%s@tcp(%s:%d)/%s%s" .Values.dataStore.sql.readOnly.username $ropw .Values.dataStore.sql.readOnly.host $roPort .Values.dataStore.sql.readOnly.databaseName $roQuery) }}
