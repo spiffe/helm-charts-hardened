@@ -42,4 +42,5 @@ helm upgrade --install -n spire spire spire \
 1. Cloud SQL Proxy runs as an init container with `restartPolicy: Always`
 2. Proxy connects to your database using IAM authentication
 3. SPIRE connects to `127.0.0.1:3306` through the proxy
-4. No passwords needed - everything uses IAM authentication 
+4. Uses `gcp_mysql_sa_iam` database type for automatic IAM authentication
+5. No passwords needed - everything uses IAM authentication 

@@ -47,12 +47,11 @@ spire-server:
   
   dataStore:
     sql:
-      databaseType: mysql
+      databaseType: gcp_mysql_sa_iam
       databaseName: spire
       host: 127.0.0.1
       port: 3306
       username: "sa-spire"
       password: ""
-      iamAuth: true
       externalSecret:
         enabled: false 
