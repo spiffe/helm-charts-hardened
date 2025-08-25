@@ -173,4 +173,4 @@ selinux:
     registry: registry.access.redhat.com
     repository: ubi9
     pullPolicy: IfNotPresent
-    tag: 9.6-1754586119
+    tag: 9.6-1755678605
