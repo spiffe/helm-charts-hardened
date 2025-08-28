@@ -26,6 +26,12 @@ namespaceOverride: ""
 ## @param annotations [object] Annotations for the deployment
 annotations: {}
 
+## @param labels [object] Labels for the deployment
+labels: {}
+  # if you configured your controller manager to register pods based on labels, you need to add these labels here too
+  # For instance:
+  # spiffe.io/spiffe-id: "true"
+
 image:
   ## @param image.registry The OCI registry to pull the image from
   ## @param image.repository The repository within the registry
