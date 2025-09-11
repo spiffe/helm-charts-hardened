@@ -48,6 +48,7 @@ metrics:
 health:
   healthProbeBindAddress: 0.0.0.0:{{ $healthPort }}
 gcInterval: {{ .Values.controllerManager.gcInterval }}
+logLevel: {{ .Values.controllerManager.logLevel }}
 {{- if eq .Values.controllerManager.staticManifestMode "off" }}
 leaderElection:
   leaderElect: true
