@@ -101,6 +101,9 @@ server:
         - {{ . | quote }}
       {{- end }}
     {{- end }}
+    {{- if .extraExperimentalConfigs }}
+    {{- toYaml .extraExperimentalConfigs | nindent 4 }}
+    {{- end }}
   {{- end }}
   {{- end }}
 
