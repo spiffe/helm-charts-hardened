@@ -47,6 +47,7 @@ metrics:
   bindAddress: 0.0.0.0:{{ $promPort }}
 health:
   healthProbeBindAddress: 0.0.0.0:{{ $healthPort }}
+gcInterval: {{ .Values.controllerManager.gcInterval }}
 {{- if eq .Values.controllerManager.staticManifestMode "off" }}
 leaderElection:
   leaderElect: true
