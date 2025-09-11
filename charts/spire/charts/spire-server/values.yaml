@@ -1235,6 +1235,8 @@ experimental:
   pruneEventsOlderThan: 12h
   ## @param experimental.featureFlags [array] List of developer feature flags
   featureFlags: []
+  ## @param experimental.extraExperimentalConfigs [object] Any additional experimental configurations to set on the SPIRE Server.
+  extraExperimentalConfigs: {}
 
 tests:
   ## @param tests.hostAliases [array] List of host aliases for testing
