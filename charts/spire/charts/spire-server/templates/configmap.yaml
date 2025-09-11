@@ -520,4 +520,8 @@ metadata:
 data:
   server.conf: |
     {{- include "spire-lib.reformat-and-yaml2json" (dict "config" (include "spire-server.yaml-config" .) "root" .) | nindent 4 }}
+  {{- range $file, $contents := .Values.configMap.additionalMappings }}
+  {{$file}}: |
+    {{- $contents | toString | nindent 4 }}
+  {{- end }}
 {{- end }}
