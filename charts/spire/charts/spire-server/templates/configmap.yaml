@@ -101,8 +101,9 @@ server:
         - {{ . | quote }}
       {{- end }}
     {{- end }}
-    {{- if .extraExperimentalConfigs }}
-    {{- toYaml .extraExperimentalConfigs | nindent 4 }}
+    {{- if .authOpaPolicyEngine }}
+    auth_opa_policy_engine:
+      {{- toYaml .authOpaPolicyEngine | nindent 6 }}
     {{- end }}
   {{- end }}
   {{- end }}

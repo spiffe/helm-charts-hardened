@@ -1235,8 +1235,8 @@ experimental:
   pruneEventsOlderThan: 12h
   ## @param experimental.featureFlags [array] List of developer feature flags
   featureFlags: []
-  ## @param experimental.extraExperimentalConfigs [object] Any additional experimental configurations to set on the SPIRE Server.
-  extraExperimentalConfigs: {}
+  ## @param experimental.authOpaPolicyEngine [object] The [auth opa_policy engine](https://github.com/spiffe/spire/blob/main/doc/authorization_policy_engine.md) used for authorization decisions. Defaults to the default SPIRE authorization policy.
+  authOpaPolicyEngine: {}
 
 tests:
   ## @param tests.hostAliases [array] List of host aliases for testing
