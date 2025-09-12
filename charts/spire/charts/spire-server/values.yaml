@@ -84,6 +84,8 @@ service:
 configMap:
   ## @param configMap.annotations [object] Annotations to add to the SPIRE Server ConfigMap
   annotations: {}
+  ## @param configMap.additionalMappings [object] Additional file:contents pairs to map to the SPIRE Server ConfigMap
+  additionalMappings: {}
 
 ## @param resources [object] Resource requests and limits
 resources: {}
@@ -1224,6 +1226,8 @@ experimental:
   pruneEventsOlderThan: 12h
   ## @param experimental.featureFlags [array] List of developer feature flags
   featureFlags: []
+  ## @param experimental.authOpaPolicyEngine [object] The [auth opa_policy engine](https://github.com/spiffe/spire/blob/main/doc/authorization_policy_engine.md) used for authorization decisions. Defaults to the default SPIRE authorization policy.
+  authOpaPolicyEngine: {}
 
 tests:
   ## @param tests.hostAliases [array] List of host aliases for testing
