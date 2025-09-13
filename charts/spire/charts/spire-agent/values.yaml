@@ -87,6 +87,8 @@ affinity: {}
 authorizedDelegates: []
 ## @param logLevel The log level, valid values are "debug", "info", "warn", and "error"
 logLevel: info
+## @param logFormat The log format, valid values are "text" and "json"
+logFormat: text
 ## @param clusterName The name of the Kubernetes cluster (`kubeadm init --service-dns-domain`)
 clusterName: example-cluster
 ## @param trustDomain The trust domain to be used for the SPIFFE identifiers
