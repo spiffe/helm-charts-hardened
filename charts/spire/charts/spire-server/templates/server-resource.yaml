@@ -228,10 +228,8 @@ spec:
           {{- with .Values.extraEnv }}
           {{- . | toYaml | nindent 10 }}
           {{- end }}
-          {{- if ne .Values.dataStore.sql.databaseType "sqlite3" }}
-          {{- if eq .Values.dataStore.sql.databaseType "gcp_mysql_sa_iam" }}
-          # No DBPW environment variable needed for IAM authentication
-          {{- else if .Values.dataStore.sql.externalSecret.enabled }}
+          {{- if and (ne .Values.dataStore.sql.databaseType "sqlite3") (ne .Values.dataStore.sql.databaseType "gcp_mysql_sa_iam") }}
+          {{- if .Values.dataStore.sql.externalSecret.enabled }}
           - name: DBPW
             valueFrom:
               secretKeyRef:
@@ -244,10 +242,8 @@ spec:
                 name: {{ $fullname }}-dbpw
                 key: DBPW
           {{- end }}
-          {{- if .Values.dataStore.sql.readOnly.enabled }}
-          {{- if eq .Values.dataStore.sql.databaseType "gcp_mysql_sa_iam" }}
-          # No RODBPW environment variable needed for IAM authentication
-          {{- else if .Values.dataStore.sql.readOnly.externalSecret.enabled }}
+          {{- if and .Values.dataStore.sql.readOnly.enabled (ne .Values.dataStore.sql.databaseType "gcp_mysql_sa_iam") }}
+          {{- if .Values.dataStore.sql.readOnly.externalSecret.enabled }}
           - name: RODBPW
             valueFrom:
               secretKeyRef:
