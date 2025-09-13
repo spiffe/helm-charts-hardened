@@ -179,8 +179,6 @@ dataStore:
     ## @param dataStore.sql.clientKeyPath Path to private key for client certificate (MySQL only)
     clientKeyPath: ""
 
-
-
     ## When an external source creates the secret. The secret should reside in the same namespace as the spire server
     externalSecret:
       ## @param dataStore.sql.externalSecret.enabled Enable external secret for datastore creds
