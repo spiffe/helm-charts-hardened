@@ -1236,7 +1236,14 @@ experimental:
   ## @param experimental.featureFlags [array] List of developer feature flags
   featureFlags: []
   ## @param experimental.authOpaPolicyEngine [object] The [auth opa_policy engine](https://github.com/spiffe/spire/blob/main/doc/authorization_policy_engine.md) used for authorization decisions. Defaults to the default SPIRE authorization policy.
-  authOpaPolicyEngine: {}
+  authOpaPolicyEngine:
+    local:
+      ## @param experimental.authOpaPolicyEngine.local.policy_data A JSON blob that defines additional data that can be used in the rego policy.
+      policy_data: ''
+      ## @param experimental.authOpaPolicyEngine.local.policy_data [string] The contents of a rego policy file defining how to authorize the API calls.
+      rego: ''
+      ## Use rego V1 when evaluating the policy. This was made default in SPIRE server v1.13.0, and the option to configure it was removed.
+      use_rego_v1: false
 
 tests:
   ## @param tests.hostAliases [array] List of host aliases for testing

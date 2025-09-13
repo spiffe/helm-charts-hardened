@@ -101,9 +101,15 @@ server:
         - {{ . | quote }}
       {{- end }}
     {{- end }}
-    {{- if .authOpaPolicyEngine }}
+    {{- if (and .authOpaPolicyEngine.local.policy_data  .authOpaPolicyEngine.local.rego) }}
     auth_opa_policy_engine:
-      {{- toYaml .authOpaPolicyEngine | nindent 6 }}
+      local:
+        policy_data_path: /run/spire/config/policy_data.json
+        rego_path: /run/spire/config/policy.rego
+        {{/* use_rego_v1 was removed in SPIRE server v1.13.0. */}}
+        {{- if .authOpaPolicyEngine.local.use_rego_v1 }}
+        use_rego_v1: {{ .authOpaPolicyEngine.local.use_rego_v1 }}
+        {{- end }}
     {{- end }}
   {{- end }}
   {{- end }}
@@ -524,8 +530,10 @@ metadata:
 data:
   server.conf: |
     {{- include "spire-lib.reformat-and-yaml2json" (dict "config" (include "spire-server.yaml-config" .) "root" .) | nindent 4 }}
-  {{- range $file, $contents := .Values.configMap.additionalMappings }}
-  {{$file}}: |
-    {{- $contents | toString | nindent 4 }}
+  {{- if (and .Values.experimental.enabled .Values.experimental.authOpaPolicyEngine.local.policy_data  .Values.experimental.authOpaPolicyEngine.local.rego) }}
+  policy_data.json: |
+    {{- .Values.experimental.authOpaPolicyEngine.local.policy_data | toString | nindent 4 }}
+  policy.rego: |
+    {{- .Values.experimental.authOpaPolicyEngine.local.rego | toString | nindent 4 }}
   {{- end }}
 {{- end }}
