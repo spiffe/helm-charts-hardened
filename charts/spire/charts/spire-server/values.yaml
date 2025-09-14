@@ -695,6 +695,11 @@ controllerManager:
         ## @param controllerManager.identities.clusterSPIFFEIDs.test-keys.type The type of rule this is.
         type: test-keys
 
+      spike-bootstrap:
+        enabled: true
+        spiffeIDTemplate: spiffe://{{ .TrustDomain }}/spike/bootstrap
+        type: spike-bootstrap
+
       spike-keeper:
         ## @param controllerManager.identities.clusterSPIFFEIDs.spike-keeper.enabled Enable this identity for controller manager
         enabled: true
