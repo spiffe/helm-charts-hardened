@@ -69,10 +69,8 @@ validatingWebhookConfigurationName: {{ .Release.Namespace }}-{{ include "spire-c
 {{- if typeIs "string" $entryIDPrefixCleanup }}
 entryIDPrefixCleanup: {{ $entryIDPrefixCleanup | quote }}
 {{- end }}
-{{- if not (quote .Values.controllerManager.entryIDPrefix) }}
+{{- if  .Values.controllerManager.addEntryIDPrefix }}
 entryIDPrefix: {{ .clusterName }}
-{{- else }}
-entryIDPrefix: {{ .Values.controllerManager.entryIDPrefix }}
 {{- end }}
 clusterName: {{ .clusterName }}
 trustDomain: {{ include "spire-lib.trust-domain" . }}
