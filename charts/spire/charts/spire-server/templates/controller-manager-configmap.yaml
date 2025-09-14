@@ -47,6 +47,8 @@ metrics:
   bindAddress: 0.0.0.0:{{ $promPort }}
 health:
   healthProbeBindAddress: 0.0.0.0:{{ $healthPort }}
+gcInterval: {{ .Values.controllerManager.gcInterval }}
+logLevel: {{ .Values.controllerManager.logLevel }}
 {{- if eq .Values.controllerManager.staticManifestMode "off" }}
 leaderElection:
   leaderElect: true
@@ -67,7 +69,9 @@ validatingWebhookConfigurationName: {{ .Release.Namespace }}-{{ include "spire-c
 {{- if typeIs "string" $entryIDPrefixCleanup }}
 entryIDPrefixCleanup: {{ $entryIDPrefixCleanup | quote }}
 {{- end }}
+{{- if  .Values.controllerManager.addEntryIDPrefix }}
 entryIDPrefix: {{ .clusterName }}
+{{- end }}
 clusterName: {{ .clusterName }}
 trustDomain: {{ include "spire-lib.trust-domain" . }}
 {{- $ignoreNamespaces := .defaults.ignoreNamespaces }}

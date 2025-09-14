@@ -552,6 +552,15 @@ controllerManager:
   ## @param controllerManager.entryIDPrefixCleanup Sets which entry prefixes to remove for migrations. Consult the spiffe.io docs about this option before changing. Its unlikely you will need to ever change it.
   entryIDPrefixCleanup: false
 
+  ## @param controllerManager.addEntryIDPrefix If true, prepends the clusterName to the entryID of each entry the controller manager registers.
+  addEntryIDPrefix: true
+
+  ## @param controllerManager.gcInterval How often the SPIRE state is reconciled when the controller is otherwise idle. This impacts how quickly SPIRE state will converge after CRDs are removed or SPIRE state is mutated underneath the controller. Values are in nanoseconds.
+  gcInterval: 10000000000
+
+  ## @param controllerManager.logLevel The log level for the controller manager. Supported values are info, error, warn and debug.
+  logLevel: info
+
   ## @param controllerManager.parentIDTemplate The template that is used to register workloads.
   parentIDTemplate: "spiffe://{{ .TrustDomain }}/spire/agent/k8s_psat/{{ .ClusterName }}/{{ .NodeMeta.UID }}"
 
