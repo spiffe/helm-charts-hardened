@@ -709,6 +709,13 @@ controllerManager:
         type: spike-nexus
         ## @param controllerManager.identities.clusterSPIFFEIDs.spike-nexus.spiffeIDTemplate The template to use for this rule.
         spiffeIDTemplate: spiffe://{{ .TrustDomain }}/spike/nexus
+      spike-bootstrap:
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spike-bootstrap.enabled Enable this identity for controller manager
+        enabled: true
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spike-bootstrap.type The type of rule this is.
+        type: spike-bootstrap
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spike-bootstrap.spiffeIDTemplate The template to use for this rule.
+        spiffeIDTemplate: spiffe://{{ .TrustDomain }}/spike/bootstrap
       spike-pilot:
         ## @param controllerManager.identities.clusterSPIFFEIDs.spike-pilot.enabled Enable this identity for controller manager
         enabled: true

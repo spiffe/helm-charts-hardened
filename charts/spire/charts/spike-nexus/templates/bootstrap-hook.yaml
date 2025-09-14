@@ -57,6 +57,9 @@ spec:
   template:
     metadata:
       name: {{ include "spike-nexus.fullname" . }}-bootstrap
+      labels:
+        {{- include "spike-nexus.labels" . | nindent 8 }}
+        component: spike-bootstrap
     spec:
       restartPolicy: Never
       serviceAccountName: {{ include "spike-nexus.serviceAccountName" . }}-bootstrap
