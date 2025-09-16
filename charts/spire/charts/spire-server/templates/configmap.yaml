@@ -101,6 +101,12 @@ server:
         - {{ . | quote }}
       {{- end }}
     {{- end }}
+    {{- if (and .authOpaPolicyEngine.local.policy_data .authOpaPolicyEngine.local.rego) }}
+    auth_opa_policy_engine:
+      local:
+        policy_data_path: /run/spire/config/policy_data.json
+        rego_path: /run/spire/config/policy.rego
+    {{- end }}
   {{- end }}
   {{- end }}
 
@@ -520,4 +526,10 @@ metadata:
 data:
   server.conf: |
     {{- include "spire-lib.reformat-and-yaml2json" (dict "config" (include "spire-server.yaml-config" .) "root" .) | nindent 4 }}
+  {{- if (and .Values.experimental.enabled .Values.experimental.authOpaPolicyEngine.local.policy_data .Values.experimental.authOpaPolicyEngine.local.rego) }}
+  policy_data.json: |
+    {{- .Values.experimental.authOpaPolicyEngine.local.policy_data | toString | nindent 4 }}
+  policy.rego: |
+    {{- .Values.experimental.authOpaPolicyEngine.local.rego | toString | nindent 4 }}
+  {{- end }}
 {{- end }}
