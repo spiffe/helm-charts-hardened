@@ -84,8 +84,6 @@ service:
 configMap:
   ## @param configMap.annotations [object] Annotations to add to the SPIRE Server ConfigMap
   annotations: {}
-  ## @param configMap.additionalMappings [object] Additional file:contents pairs to map to the SPIRE Server ConfigMap
-  additionalMappings: {}
 
 ## @param resources [object] Resource requests and limits
 resources: {}
