@@ -1233,6 +1233,13 @@ experimental:
   pruneEventsOlderThan: 12h
   ## @param experimental.featureFlags [array] List of developer feature flags
   featureFlags: []
+  ## @param experimental.authOpaPolicyEngine [object] The [auth opa_policy engine](https://github.com/spiffe/spire/blob/main/doc/authorization_policy_engine.md) used for authorization decisions. Defaults to the default SPIRE authorization policy.
+  authOpaPolicyEngine:
+    local:
+      ## @param experimental.authOpaPolicyEngine.local.policy_data [string] A JSON blob that defines additional data that can be used in the rego policy.
+      policy_data: ""
+      ## @param experimental.authOpaPolicyEngine.local.rego [string] The contents of a rego policy file defining how to authorize the API calls.
+      rego: ""
 
 tests:
   ## @param tests.hostAliases [array] List of host aliases for testing
