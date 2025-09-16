@@ -80,6 +80,8 @@ service:
   type: ClusterIP
   port: 443
   annotations: {}
+  ## @param service.loadBalancerIP IP address to assign to load balancer (if supported)
+  loadBalancerIP: ""
 
 configMap:
   ## @param configMap.annotations [object] Annotations to add to the SPIRE Server ConfigMap
