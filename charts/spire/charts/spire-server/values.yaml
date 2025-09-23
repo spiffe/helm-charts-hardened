@@ -80,6 +80,8 @@ service:
   type: ClusterIP
   port: 443
   annotations: {}
+  ## @param service.loadBalancerIP IP address to assign to load balancer (if supported)
+  loadBalancerIP: ""
 
 configMap:
   ## @param configMap.annotations [object] Annotations to add to the SPIRE Server ConfigMap
@@ -155,7 +157,7 @@ persistence:
 
 dataStore:
   sql:
-    ## @param dataStore.sql.databaseType Other supported databases are ["postgres", "mysql", "aws_postgresql", "aws_mysql"]. Note: aws type databases are still experimental
+    ## @param dataStore.sql.databaseType Other supported databases are ["postgres", "mysql", "aws_postgresql", "aws_mysql", "gcp_mysql_sa_iam"]. Note: aws type databases are still experimental. gcp_mysql_sa_iam uses IAM authentication by default.
     databaseType: sqlite3
     ## @param dataStore.sql.databaseName Only used when type != "sqlite3"
     databaseName: spire
