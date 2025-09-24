@@ -26,6 +26,12 @@ namespaceOverride: ""
 ## @param annotations [object] Annotations for the deployment
 annotations: {}
 
+## @param labels [object] Labels for the deployment
+labels: {}
+  # if you configured your controller manager to register pods based on labels, you need to add these labels here too
+  # For instance:
+  # spiffe.io/spiffe-id: "true"
+
 image:
   ## @param image.registry The OCI registry to pull the image from
   ## @param image.repository The repository within the registry
@@ -82,6 +88,8 @@ service:
     https: 443
   annotations: {}
   # external-dns.alpha.kubernetes.io/hostname: oidc-discovery.example.org
+  ## @param service.loadBalancerIP IP address to assign to load balancer (if supported)
+  loadBalancerIP: ""
 
 configMap:
   ## @param configMap.annotations [object] Annotations to add to the SPIFFE OIDC Discovery Provider ConfigMap
@@ -176,7 +184,7 @@ insecureScheme:
       registry: docker.io
       repository: nginxinc/nginx-unprivileged
       pullPolicy: IfNotPresent
-      tag: 1.29.0-alpine
+      tag: 1.29.1-alpine
     ## @param insecureScheme.nginx.ipMode IP modes supported by the cluster. Must be one of [ipv4, ipv6, both]
     ipMode: both
     ## @param insecureScheme.nginx.resources Resource requests and limits
@@ -346,7 +354,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:809764150d09e67cc6ea8b7051555ff620381b7e900306d1374137a69855145b
+      tag: latest@sha256:e86de1df7a1fd81185ec64e0c154626ed87537ac390271a3a10f0a54cea9a7b0
 
   toolkit:
     ## @param tests.toolkit.image.registry The OCI registry to pull the image from
@@ -358,7 +366,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/min-toolkit-debug
       pullPolicy: IfNotPresent
-      tag: latest@sha256:f3fdb9fb32e0dd9fe474e077047712044f6faa04a2f9a4fb3a91543b2736f6f4
+      tag: latest@sha256:171460fe39c543746a955c93bc1f57f195e4f2ab52d38942aa1b064399a1fecc
 
   step:
     ## @param tests.step.image.registry The OCI registry to pull the image from

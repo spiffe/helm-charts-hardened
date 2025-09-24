@@ -87,6 +87,8 @@ affinity: {}
 authorizedDelegates: []
 ## @param logLevel The log level, valid values are "debug", "info", "warn", and "error"
 logLevel: info
+## @param logFormat The log format, valid values are "text" and "json"
+logFormat: text
 ## @param clusterName The name of the Kubernetes cluster (`kubeadm init --service-dns-domain`)
 clusterName: example-cluster
 ## @param trustDomain The trust domain to be used for the SPIFFE identifiers
@@ -101,6 +103,10 @@ trustBundleHostPath: ""
 bundleConfigMap: spire-bundle
 ## @param availabilityTarget The minimum amount of time desired to gracefully handle SPIRE Server or Agent downtime. This configurable influences how aggressively X509 SVIDs should be rotated. If set, must be at least 24h.
 availabilityTarget: ""
+## @param rebootstrapMode How the agent will behave when seeing an unknown x509 cert from the server. It can be set to never, auto, or always
+rebootstrapMode: always
+## @param rebootstrapDelay The agent will rebootstrap after configured amount of time on unknown x509 cert from the server
+rebootstrapDelay: 10m
 
 ## @skip upstream
 upstream: false
@@ -152,8 +158,8 @@ fsGroupFix:
   image:
     registry: cgr.dev
     repository: chainguard/bash
-    pullPolicy: Always
-    tag: latest@sha256:809764150d09e67cc6ea8b7051555ff620381b7e900306d1374137a69855145b
+    pullPolicy: IfNotPresent
+    tag: latest@sha256:e86de1df7a1fd81185ec64e0c154626ed87537ac390271a3a10f0a54cea9a7b0
 
   ## @param fsGroupFix.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
@@ -263,6 +269,13 @@ telemetry:
       namespace: ""
       ## @param telemetry.prometheus.podMonitor.labels [object] Pod labels to filter for prometheus monitoring
       labels: {}
+  datadog:
+    ## @param telemetry.datadog.enabled Flag to enable datadog monitoring
+    enabled: false
+    ## @param telemetry.datadog.address The address of the datadog service to send metrics to. The default URL for services are `<service-name>.<namespace>.svc`
+    address: "datadog.kube-system.svc"
+    ## @param telemetry.datadog.port The port of the datadog service to send metrics to
+    port: 8125
 
 ## @param kubeletConnectByHostname If true, connect to kubelet using the nodes hostname. If false, uses localhost. If unset, defaults to true on OpenShift and false otherwise.
 kubeletConnectByHostname: ""
@@ -285,8 +298,8 @@ socketAlternate:
   image:
     registry: cgr.dev
     repository: chainguard/bash
-    pullPolicy: Always
-    tag: latest@sha256:809764150d09e67cc6ea8b7051555ff620381b7e900306d1374137a69855145b
+    pullPolicy: IfNotPresent
+    tag: latest@sha256:e86de1df7a1fd81185ec64e0c154626ed87537ac390271a3a10f0a54cea9a7b0
 
   ## @param socketAlternate.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
@@ -301,7 +314,7 @@ hostCert:
     registry: cgr.dev
     repository: chainguard/min-toolkit-debug
     pullPolicy: IfNotPresent
-    tag: latest@sha256:f3fdb9fb32e0dd9fe474e077047712044f6faa04a2f9a4fb3a91543b2736f6f4
+    tag: latest@sha256:171460fe39c543746a955c93bc1f57f195e4f2ab52d38942aa1b064399a1fecc
 
   ## @param hostCert.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}

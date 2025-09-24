@@ -80,6 +80,8 @@ service:
   type: ClusterIP
   port: 443
   annotations: {}
+  ## @param service.loadBalancerIP IP address to assign to load balancer (if supported)
+  loadBalancerIP: ""
 
 configMap:
   ## @param configMap.annotations [object] Annotations to add to the SPIRE Server ConfigMap
@@ -155,7 +157,7 @@ persistence:
 
 dataStore:
   sql:
-    ## @param dataStore.sql.databaseType Other supported databases are ["postgres", "mysql", "aws_postgresql", "aws_mysql"]. Note: aws type databases are still experimental
+    ## @param dataStore.sql.databaseType Other supported databases are ["postgres", "mysql", "aws_postgresql", "aws_mysql", "gcp_mysql_sa_iam"]. Note: aws type databases are still experimental. gcp_mysql_sa_iam uses IAM authentication by default.
     databaseType: sqlite3
     ## @param dataStore.sql.databaseName Only used when type != "sqlite3"
     databaseName: spire
@@ -552,6 +554,15 @@ controllerManager:
   ## @param controllerManager.entryIDPrefixCleanup Sets which entry prefixes to remove for migrations. Consult the spiffe.io docs about this option before changing. Its unlikely you will need to ever change it.
   entryIDPrefixCleanup: false
 
+  ## @param controllerManager.addEntryIDPrefix If true, prepends the clusterName to the entryID of each entry the controller manager registers.
+  addEntryIDPrefix: true
+
+  ## @param controllerManager.gcInterval How often the SPIRE state is reconciled when the controller is otherwise idle. This impacts how quickly SPIRE state will converge after CRDs are removed or SPIRE state is mutated underneath the controller. Values are in nanoseconds.
+  gcInterval: 10000000000
+
+  ## @param controllerManager.logLevel The log level for the controller manager. Supported values are info, error, warn and debug.
+  logLevel: info
+
   ## @param controllerManager.parentIDTemplate The template that is used to register workloads.
   parentIDTemplate: "spiffe://{{ .TrustDomain }}/spire/agent/k8s_psat/{{ .ClusterName }}/{{ .NodeMeta.UID }}"
 
@@ -852,6 +863,13 @@ telemetry:
       namespace: ""
       ## @param telemetry.prometheus.podMonitor.labels [object] Pod labels to filter for prometheus monitoring
       labels: {}
+  datadog:
+    ## @param telemetry.datadog.enabled Flag to enable datadog monitoring
+    enabled: false
+    ## @param telemetry.datadog.address The address of the datadog service to send metrics to. The default URL for services are `<service-name>.<namespace>.svc`
+    address: "datadog.kube-system.svc"
+    ## @param telemetry.datadog.port The port of the datadog service to send metrics to
+    port: 8125
 
 ingress:
   ## @param ingress.enabled Flag to enable ingress
@@ -1200,7 +1218,7 @@ chown:
   image:
     registry: ""
     repository: busybox
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
     tag: 1.37.0-uclibc
 
   ## @param chown.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
@@ -1217,6 +1235,13 @@ experimental:
   pruneEventsOlderThan: 12h
   ## @param experimental.featureFlags [array] List of developer feature flags
   featureFlags: []
+  ## @param experimental.authOpaPolicyEngine [object] The [auth opa_policy engine](https://github.com/spiffe/spire/blob/main/doc/authorization_policy_engine.md) used for authorization decisions. Defaults to the default SPIRE authorization policy.
+  authOpaPolicyEngine:
+    local:
+      ## @param experimental.authOpaPolicyEngine.local.policy_data [string] A JSON blob that defines additional data that can be used in the rego policy.
+      policy_data: ""
+      ## @param experimental.authOpaPolicyEngine.local.rego [string] The contents of a rego policy file defining how to authorize the API calls.
+      rego: ""
 
 tests:
   ## @param tests.hostAliases [array] List of host aliases for testing
@@ -1236,7 +1261,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:809764150d09e67cc6ea8b7051555ff620381b7e900306d1374137a69855145b
+      tag: latest@sha256:e86de1df7a1fd81185ec64e0c154626ed87537ac390271a3a10f0a54cea9a7b0
 
 ## @param kubeConfigs [object] Manage additional kubeconfig files to talk to external Kubernetes clusters
 kubeConfigs: {}
