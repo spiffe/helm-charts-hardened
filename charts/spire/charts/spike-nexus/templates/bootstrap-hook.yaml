@@ -62,6 +62,8 @@ spec:
       name: {{ include "spike-nexus.fullname" . }}-bootstrap
       labels:
         {{- include "spike-nexus.labels" . | nindent 8 }}
+        release: {{ .Release.Name }}
+        release-namespace: {{ .Release.Namespace }}
         component: spike-bootstrap
     spec:
       restartPolicy: Never
