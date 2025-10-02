@@ -48,8 +48,8 @@ replicas: 1
 trustRoot:
   ## @param trustRoot.nexus Override which trustRoot Nexus is in
   nexus: ""
-  ## @param trustRoot.pilot Override which trustRoot Pilot is in
-  pilot: ""
+  ## @param trustRoot.self Override which trustRoot this SPIKE Pilot instance is in
+  self: ""
 
 ## @param logLevel The log level, valid values are "debug", "info", "warn", and "error"
 logLevel: debug

@@ -50,8 +50,8 @@ shamir:
 keeperPeers: []
 
 trustRoot:
-  ## @param trustRoot.nexus Override which trustRoot Nexus is in
-  nexus: ""
+  ## @param trustRoot.self Override which trustRoot this SPIKE Nexus instance is in
+  self: ""
   ## @param trustRoot.keepers Override which trustRoot Keepers are in
   keepers: []
   ## @param trustRoot.pilot Override which trustRoot Pilot is in
