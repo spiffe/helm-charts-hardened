@@ -29,7 +29,7 @@ A Helm chart to deploy spike pilot
 ### Chart parameters
 
 | Name                             | Description                                                                                 | Value                |
-|----------------------------------|---------------------------------------------------------------------------------------------|----------------------|
+| -------------------------------- | ------------------------------------------------------------------------------------------- | -------------------- |
 | `image.registry`                 | The OCI registry to pull the image from                                                     | `ghcr.io`            |
 | `image.repository`               | The repository within the registry                                                          | `spiffe/spike-pilot` |
 | `image.pullPolicy`               | The image pull policy                                                                       | `IfNotPresent`       |
