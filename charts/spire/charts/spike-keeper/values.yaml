@@ -24,6 +24,11 @@ trustRoot:
   ## @param trustRoot.nexus Override which trustRoot Nexus is in
   nexus: ""
 
+  bootstrap: ""
+
+  ## @param trustRoot.keeper Override which trustRoot keepers are in
+  keepers: []
+
 ## @param logLevel The log level, valid values are "debug", "info", "warn", and "error"
 logLevel: debug
 
@@ -109,7 +114,7 @@ topologySpreadConstraints: []
 ## @param startupProbe.successThreshold Success threshold count for startupProbe
 ##
 startupProbe:
-  enabled: true
+  enabled: true # false?
   initialDelaySeconds: 5
   periodSeconds: 10
   timeoutSeconds: 5

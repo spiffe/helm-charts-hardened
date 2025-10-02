@@ -54,6 +54,7 @@ metadata:
     "helm.sh/hook": "post-install,post-upgrade"
     "helm.sh/hook-delete-policy": before-hook-creation, hook-succeeded, hook-failed
 spec:
+  ttlSecondsAfterFinished: 3600 # 1 hour
   template:
     metadata:
       name: {{ include "spike-nexus.fullname" . }}-bootstrap
@@ -62,7 +63,7 @@ spec:
         release-namespace: {{ .Release.Namespace }}
         component: spike-bootstrap
     spec:
-      restartPolicy: OnFailure
+      restartPolicy: Never
       serviceAccountName: {{ include "spike-nexus.serviceAccountName" . }}-bootstrap
       securityContext:
         {{- include "spire-lib.podsecuritycontext" . | nindent 8 }}
@@ -86,6 +87,8 @@ spec:
             value: {{ include "spire-lib.trust-domain" . }}
           - name: SPIKE_TRUST_ROOT_KEEPER
             value: {{ if gt (len .Values.trustRoot.keepers) 0 }}{{ .Values.trustRoot.keepers | join "," | quote}}{{ else }}{{ include "spire-lib.trust-domain" . }}{{ end }}
+          - name: SPIKE_TRUST_ROOT_BOOTSTRAP
+            value: {{if eq .Values.trustRoot.bootstrap "" }}{{ include "spire-lib.trust-domain" . }}{{ else }}{{.Values.trustRoot.bootstrap }}{{ end }}
           - name: SPIKE_SYSTEM_LOG_LEVEL
             value: {{ .Values.logLevel | upper }}
           - name: SPIKE_NEXUS_KEEPER_PEERS
