@@ -24,6 +24,12 @@ trustRoot:
   ## @param trustRoot.nexus Override which trustRoot Nexus is in
   nexus: ""
 
+  ## @param trustRoot.bootstrap Override which trustRoot Bootstrap is in
+  bootstrap: ""
+
+  ## @param trustRoot.keeper Override which trustRoot keepers are in
+  keepers: []
+
 ## @param logLevel The log level, valid values are "debug", "info", "warn", and "error"
 logLevel: debug
 
