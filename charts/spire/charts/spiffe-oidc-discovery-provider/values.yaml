@@ -88,6 +88,8 @@ service:
     https: 443
   annotations: {}
   # external-dns.alpha.kubernetes.io/hostname: oidc-discovery.example.org
+  ## @param service.loadBalancerIP IP address to assign to load balancer (if supported)
+  loadBalancerIP: ""
 
 configMap:
   ## @param configMap.annotations [object] Annotations to add to the SPIFFE OIDC Discovery Provider ConfigMap
@@ -352,7 +354,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:a91822a6dcb07b972aab88d43c97a5234115fb01786044eb937950d7b9d06555
+      tag: latest@sha256:e86de1df7a1fd81185ec64e0c154626ed87537ac390271a3a10f0a54cea9a7b0
 
   toolkit:
     ## @param tests.toolkit.image.registry The OCI registry to pull the image from
@@ -364,7 +366,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/min-toolkit-debug
       pullPolicy: IfNotPresent
-      tag: latest@sha256:b9c9e83cce5376a7e9e1443c6a587871ec6c43b7e65469a2c514a40afbc960ab
+      tag: latest@sha256:d9128194d12271533653ef6b7dc47115bbf3bf85acdaa7b08fda5e714cf30b2b
 
   step:
     ## @param tests.step.image.registry The OCI registry to pull the image from
