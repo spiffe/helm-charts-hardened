@@ -11,3 +11,9 @@ auth:
   username: spire
   password: sp1ff3Test
   postgresPassword: sp1ff3TestPassword
+image:
+  repository: bitnamilegacy/postgresql
+global:
+  security:
+    # required to use bitnamilegacy images
+    allowInsecureImages: true
