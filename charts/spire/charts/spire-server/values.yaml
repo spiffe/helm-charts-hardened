@@ -991,6 +991,16 @@ nodeAttestor:
     checksum: 46d0caad8c25a027dd11c93e18b58a8bc6fbd9f1fe2e36fa2a0dd440986de4dc
     ## @param nodeAttestor.tpmDirect.pluginPath The filename in the container of the plugin
     pluginPath: /app/tpm_attestor_server
+    ## @param nodeAttestor.tpmDirect.mountPath Mount path where the TPM plugin binary will be staged for the main container
+    mountPath: /tpm
+    ## @param nodeAttestor.tpmDirect.pluginDestinationPath Override the destination path of the plugin inside the mount path
+    pluginDestinationPath: ""
+    ## @param nodeAttestor.tpmDirect.stateDir Directory (within spire-data) used to hold TPM plugin state (certs, hashes)
+    stateDir: /run/spire/data/tpm-direct
+    ## @param nodeAttestor.tpmDirect.chownAfterCopy Chown TPM state directory to match pod security context after files are staged
+    chownAfterCopy: true
+    ## @param nodeAttestor.tpmDirect.initSecurityContext Security context overrides for the TPM init container
+    initSecurityContext: {}
     ## @param nodeAttestor.tpmDirect.cas A dictionary of TPM CA PEM or DER files that are allowed to connect.
     cas: {}
     ## @param nodeAttestor.tpmDirect.hashes A list of TPM hashes that are allowed to connect.
