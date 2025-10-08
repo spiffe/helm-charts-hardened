@@ -1,3 +1,4 @@
+fullnameOverride: mysql
 primary:
   containerSecurityContext:
     allowPrivilegeEscalation: false

@@ -1,8 +1,8 @@
 [
   {
-    "name": "mysql",
-    "registry": "docker.io/bitnamicharts/mysql",
-    "version": "14.0.3"
+    "name": "mariadb",
+    "registry": "docker.io/bitnamicharts/mariadb",
+    "version": "23.0.4"
   },
   {
     "name": "postgresql",
