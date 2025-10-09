@@ -147,9 +147,11 @@ readinessProbe:
   initialDelaySeconds: 10
   periodSeconds: 30
 
-# When running as non root, needed to ensure the socket path has the correct permissions.
+# When running as non root, sometimes needed to ensure the socket path has the correct permissions.
 # Set runAsUser to a non-zero value in podSecurityContext to run as non-root user.
 fsGroupFix:
+  ## @param fsGroupFix.enabled Enable the fsGroupFix init container.
+  enabled: true
   ## @param fsGroupFix.image.registry The OCI registry to pull the image from
   ## @param fsGroupFix.image.repository The repository within the registry
   ## @param fsGroupFix.image.pullPolicy The image pull policy
