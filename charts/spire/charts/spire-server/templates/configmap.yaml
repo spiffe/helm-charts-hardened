@@ -213,18 +213,18 @@ plugins:
   {{- with .Values.nodeAttestor.tpmDirect }}
   {{- if eq (.enabled | toString) "true" }}
     tpm:
-      plugin_cmd: "/tpm/tpm_attestor_server"
+      plugin_cmd: "{{ include "spire-server.tpm-direct-plugin-destination" $ | trim }}"
       plugin_checksum: {{ .checksum }}
       plugin_data:
         {{- if ne (len .cas) 0 }}
         ca_path: /tpm-direct-cas
         {{- else }}
-        ca_path: /run/spire/data/tpm-direct/certs
+        ca_path: {{ printf "%s/certs" (include "spire-server.tpm-direct-state-dir" $ | trim) }}
         {{- end }}
         {{- if ne (len .hashes) 0 }}
         hash_path: /tmp-direct-hashes
         {{- else }}
-        hash_path: /run/spire/data/tpm-direct/hashes
+        hash_path: {{ printf "%s/hashes" (include "spire-server.tpm-direct-state-dir" $ | trim) }}
         {{- end }}
   {{- end }}
   {{- end }}

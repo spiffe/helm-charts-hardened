@@ -157,21 +157,30 @@ spec:
           imagePullPolicy: {{ .Values.credentialComposer.cel.image.pullPolicy }}
         {{- end }}
         {{- if .Values.nodeAttestor.tpmDirect.enabled }}
+        {{- $tpmPluginDst := (include "spire-server.tpm-direct-plugin-destination" . | trim) }}
+        {{- $tpmMountPath := (include "spire-server.tpm-direct-mount-path" . | trim) }}
+        {{- $tpmStateDir := (include "spire-server.tpm-direct-state-dir" . | trim) }}
+        {{- $runAsUser := (dig "runAsUser" nil $podSecurityContext) }}
+        {{- $runAsGroup := (dig "runAsGroup" nil $podSecurityContext) | default $runAsUser }}
+        {{- $tpmInitChown := (and $runAsUser (dig "chownAfterCopy" true .Values.nodeAttestor.tpmDirect)) }}
         - name: init-tpm-direct
           securityContext:
-            {{- include "spire-lib.securitycontext" . | nindent 12 }}
+            {{- include "spire-server.tpm-direct-init-security-context" . | nindent 12 }}
           image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.nodeAttestor.tpmDirect.image "global" .Values.global) }}
           command:
             - sh
             - -ec
             - |
               # SPIRE must be able to fork the plugin directly within its container. Copy the plugin into a volume that can be mounted where SPIRE can execute it.
-              cp -a {{ .Values.nodeAttestor.tpmDirect.pluginPath }} /tpm/tpm_attestor_server
-              mkdir -p /run/spire/data/tpm-direct/certs
-              mkdir -p /run/spire/data/tpm-direct/hashes
+              cp {{ .Values.nodeAttestor.tpmDirect.pluginPath }} {{ $tpmPluginDst }}
+              mkdir -p {{ $tpmStateDir }}/certs
+              mkdir -p {{ $tpmStateDir }}/hashes
+              {{- if $tpmInitChown }}
+              chown -R {{ $runAsUser }}:{{ $runAsGroup }} {{ $tpmStateDir }}
+              {{- end }}
           volumeMounts:
             - name: tpm-direct
-              mountPath: /tpm
+              mountPath: {{ $tpmMountPath }}
             - name: spire-data
               mountPath: /run/spire/data
           imagePullPolicy: {{ .Values.nodeAttestor.tpmDirect.image.pullPolicy }}
@@ -343,8 +352,9 @@ spec:
               readOnly: true
             {{- end }}
             {{- if .Values.nodeAttestor.tpmDirect.enabled }}
+            {{- $tpmMountPath := (include "spire-server.tpm-direct-mount-path" . | trim) }}
             - name: tpm-direct
-              mountPath: /tpm
+              mountPath: {{ $tpmMountPath }}
               readOnly: true
             {{- if ne (len .Values.nodeAttestor.tpmDirect.cas) 0 }}
             - name: tpm-direct-cas

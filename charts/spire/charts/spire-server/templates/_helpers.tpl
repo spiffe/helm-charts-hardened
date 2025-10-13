@@ -286,6 +286,56 @@ Create the name of the service account to use
 {{- $config | toYaml }}
 {{- end }}
 
+{{- define "spire-server.tpm-direct-mount-path" -}}
+{{- $mountPath := default "/tpm" .Values.nodeAttestor.tpmDirect.mountPath -}}
+{{- if not (hasPrefix "/" $mountPath) }}
+{{-   fail "nodeAttestor.tpmDirect.mountPath must be an absolute path" }}
+{{- end }}
+{{- $mountPath -}}
+{{- end }}
+
+{{- define "spire-server.tpm-direct-state-dir" -}}
+{{- $stateDir := default "/run/spire/data/tpm-direct" .Values.nodeAttestor.tpmDirect.stateDir -}}
+{{- if not (hasPrefix "/" $stateDir) }}
+{{-   fail "nodeAttestor.tpmDirect.stateDir must be an absolute path" }}
+{{- end }}
+{{- $stateDir -}}
+{{- end }}
+
+{{- define "spire-server.tpm-direct-plugin-destination" -}}
+{{- $mountPath := (include "spire-server.tpm-direct-mount-path" . | trim) -}}
+{{- $mountPath = trimSuffix "/" $mountPath -}}
+{{- $defaultTarget := printf "%s/%s" $mountPath "tpm_attestor_server" -}}
+{{- $dest := default $defaultTarget .Values.nodeAttestor.tpmDirect.pluginDestinationPath -}}
+{{- if not (hasPrefix "/" $dest) }}
+{{-   fail "nodeAttestor.tpmDirect.pluginDestinationPath must be an absolute path" }}
+{{- end }}
+{{- $dest -}}
+{{- end }}
+
+{{- define "spire-server.tpm-direct-init-security-context" -}}
+{{- $defaults := dict "runAsUser" 0 "runAsGroup" 0 "allowPrivilegeEscalation" false }}
+{{- $overrides := deepCopy (default (dict) .Values.nodeAttestor.tpmDirect.initSecurityContext) }}
+{{- $merged := mergeOverwrite (deepCopy $defaults) $overrides }}
+{{- if hasKey $merged "runAsUser" }}
+{{- $_ := set $merged "runAsUser" (int (index $merged "runAsUser")) }}
+{{- end }}
+{{- if hasKey $merged "runAsGroup" }}
+{{- $_ := set $merged "runAsGroup" (int (index $merged "runAsGroup")) }}
+{{- end }}
+{{- if hasKey $merged "supplementalGroups" }}
+{{- $supGroups := list }}
+{{- range $merged.supplementalGroups }}
+{{- $supGroups = append $supGroups (int .) }}
+{{- end }}
+{{- $_ := set $merged "supplementalGroups" $supGroups }}
+{{- end }}
+{{- if not (hasKey $merged "seccompProfile") }}
+{{-   $_ := set $merged "seccompProfile" (dict "type" "RuntimeDefault") }}
+{{- end }}
+{{- toYaml $merged }}
+{{- end }}
+
 {{- define "spire-server.upstream-spire-address" }}
 {{- if ne (len (dig "spire" "upstreamSpireAddress" "" .Values.global)) 0 }}
 {{- print .Values.global.spire.upstreamSpireAddress }}
