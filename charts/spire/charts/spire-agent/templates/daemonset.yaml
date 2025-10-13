@@ -179,7 +179,7 @@ spec:
               mountPath: /tpm
           imagePullPolicy: {{ .Values.nodeAttestor.tpmDirect.plugin.image.pullPolicy | quote }}
         {{- end }}
-        {{- if gt (len $socketAlternateNames) 0 }}
+        {{- if $socketAlternateNames }}
         - name: ensure-alternate-names
           image: {{ template "spire-lib.image" (dict "image" .Values.socketAlternate.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.socketAlternate.image.pullPolicy | quote }}
