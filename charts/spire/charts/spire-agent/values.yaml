@@ -159,7 +159,7 @@ fsGroupFix:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: IfNotPresent
-    tag: latest@sha256:ee1707f407f06887b4dc488830f83909072e91ee46accf7456e2b3744b10757b
+    tag: latest@sha256:4ffdc1c8829919ec534d039f559de6b37d7296eac021e3527d9f9da84efdcb27
 
   ## @param fsGroupFix.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
@@ -299,7 +299,7 @@ socketAlternate:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: IfNotPresent
-    tag: latest@sha256:ee1707f407f06887b4dc488830f83909072e91ee46accf7456e2b3744b10757b
+    tag: latest@sha256:4ffdc1c8829919ec534d039f559de6b37d7296eac021e3527d9f9da84efdcb27
 
   ## @param socketAlternate.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
@@ -314,7 +314,7 @@ hostCert:
     registry: cgr.dev
     repository: chainguard/min-toolkit-debug
     pullPolicy: IfNotPresent
-    tag: latest@sha256:d811ec542162e36a46ced2aa5f0e5384f57ea479f4c1c82ddc08a927d2ed5e5a
+    tag: latest@sha256:d2c3bc1679adec5979453abf43808e7d58bcdc99e650227e3698a43939e19406
 
   ## @param hostCert.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   resources: {}
