@@ -124,6 +124,8 @@ spec:
               echo Mode detected as hostCert.
               {{- end }}
               chmod 644 /hostCert/kubelet.crt
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
           env:
           {{- if $cbh }}
           - name: NODE_NAME
@@ -196,7 +198,7 @@ spec:
               [ -L {{ $socketPath | base }} ] && rm -f {{ $socketPath | base }}
               exit 0
           resources:
-            {{- toYaml .Values.socketAlternate.resources | nindent 12 }}
+            {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
             - name: spire-agent-socket-dir
               mountPath: {{ $socketPath | dir }}
@@ -214,7 +216,7 @@ spec:
               chown -R {{ printf "%v:%v" $podSecurityContext.runAsUser $podSecurityContext.fsGroup | quote }} {{ $socketPath | dir }} /tmp/spire-agent/private
               chown -R {{ printf "%v:%v" $podSecurityContext.runAsUser $podSecurityContext.fsGroup | quote }} /var/lib/spire
           resources:
-            {{- toYaml .Values.fsGroupFix.resources | nindent 12 }}
+            {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
             - name: spire-agent-socket-dir
               mountPath: {{ $socketPath | dir }}
