@@ -47,6 +47,10 @@ serving_cert_file:
 jwks_uri: {{ .Values.config.jwksUri | quote }}
 {{- end }}
 
+{{- if .Values.config.serverPathPrefix }}
+server_path_prefix: {{ .Values.config.serverPathPrefix | quote }}
+{{- end }}
+
 {{- if eq .Values.bundleSource "ConfigMap" }}
 file:
   path: /bundle/bundle.spiffe

@@ -210,6 +210,8 @@ config:
   jwtDomain: ""
   ## @param config.jwksUri [string] The JWKS URI
   jwksUri: ""
+  ## @param config.serverPathPrefix [string] If specified, all endpoints listened to will be prefixed by this value
+  serverPathPrefix: ""
   ## @param config.additionalDomains [array] Add additional domains that can be used for oidc discovery
   additionalDomains: []
   # - localhost
