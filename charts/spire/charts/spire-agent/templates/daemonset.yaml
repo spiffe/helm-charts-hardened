@@ -124,6 +124,8 @@ spec:
               echo Mode detected as hostCert.
               {{- end }}
               chmod 644 /hostCert/kubelet.crt
+          resources:
+            {{- toYaml .Values.hostCert.resources | nindent 12 }}
           env:
           {{- if $cbh }}
           - name: NODE_NAME
