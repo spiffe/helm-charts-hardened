@@ -61,7 +61,7 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
-## @param resources [object] Resource requests and limits
+## @param resources [object] Resource requests and limits for the spire-agent container and all its initContainers
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
@@ -159,10 +159,7 @@ fsGroupFix:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: IfNotPresent
-    tag: latest@sha256:e86de1df7a1fd81185ec64e0c154626ed87537ac390271a3a10f0a54cea9a7b0
-
-  ## @param fsGroupFix.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-  resources: {}
+    tag: latest@sha256:d965934bc289d795540aa1204f39b2586cd023cc9deb2695e4e284b21492c77c
 
 keyManager:
   memory:
@@ -299,10 +296,7 @@ socketAlternate:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: IfNotPresent
-    tag: latest@sha256:e86de1df7a1fd81185ec64e0c154626ed87537ac390271a3a10f0a54cea9a7b0
-
-  ## @param socketAlternate.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-  resources: {}
+    tag: latest@sha256:d965934bc289d795540aa1204f39b2586cd023cc9deb2695e4e284b21492c77c
 
 hostCert:
   ## @param hostCert.image.registry The OCI registry to pull the image from
@@ -314,10 +308,7 @@ hostCert:
     registry: cgr.dev
     repository: chainguard/min-toolkit-debug
     pullPolicy: IfNotPresent
-    tag: latest@sha256:171460fe39c543746a955c93bc1f57f195e4f2ab52d38942aa1b064399a1fecc
-
-  ## @param hostCert.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-  resources: {}
+    tag: latest@sha256:a24a6a1c506cd9fc5a2a3661294393fafe74b0a3993b11050179081be122b855
 
 ## @param priorityClassName Priority class assigned to daemonset pods. Can be auto set with global.recommendations.priorityClassName.
 priorityClassName: ""

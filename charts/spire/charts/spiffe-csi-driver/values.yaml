@@ -20,7 +20,7 @@ image:
   pullPolicy: IfNotPresent
   tag: ""
 
-## @param resources [object] Resource requests and limits for spiffe-csi-driver
+## @param resources [object] Resource requests and limits for spiffe-csi-driver and its initContainers
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
@@ -127,18 +127,6 @@ nodeDriverRegistrar:
     repository: sig-storage/csi-node-driver-registrar
     pullPolicy: IfNotPresent
     tag: v2.9.4
-  ## @param nodeDriverRegistrar.resources Resource requests and limits for CSI driver pods
-  resources: {}
-    # We usually recommend not to specify default resources and to leave this as a conscious
-    # choice for the user. This also increases chances charts run on environments with little
-    # resources, such as Minikube. If you do want to specify resources, uncomment the following
-    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-    # requests:
-    #   cpu: 50m
-    #   memory: 32Mi
-    # limits:
-    #   cpu: 100m
-    #   memory: 64Mi
   ## @param nodeDriverRegistrar.extraEnvVars [array] Extra environment variables to be added to the nodeDriverRegistrar container
   extraEnvVars: []
 
@@ -173,4 +161,4 @@ selinux:
     registry: registry.access.redhat.com
     repository: ubi9
     pullPolicy: IfNotPresent
-    tag: 9.6-1758184894
+    tag: 9.7-1763340522

@@ -59,7 +59,7 @@ spiffeHelper:
     registry: ghcr.io
     repository: spiffe/spiffe-helper
     pullPolicy: IfNotPresent
-    tag: 0.10.1
+    tag: 0.11.0
   ## @param spiffeHelper.resources [object] Resource requests and limits
   resources: {}
 
@@ -184,7 +184,7 @@ insecureScheme:
       registry: docker.io
       repository: nginxinc/nginx-unprivileged
       pullPolicy: IfNotPresent
-      tag: 1.29.1-alpine
+      tag: 1.29.2-alpine
     ## @param insecureScheme.nginx.ipMode IP modes supported by the cluster. Must be one of [ipv4, ipv6, both]
     ipMode: both
     ## @param insecureScheme.nginx.resources Resource requests and limits
@@ -210,6 +210,8 @@ config:
   jwtDomain: ""
   ## @param config.jwksUri [string] The JWKS URI
   jwksUri: ""
+  ## @param config.serverPathPrefix [string] If specified, all endpoints listened to will be prefixed by this value
+  serverPathPrefix: ""
   ## @param config.additionalDomains [array] Add additional domains that can be used for oidc discovery
   additionalDomains: []
   # - localhost
@@ -288,7 +290,7 @@ telemetry:
         registry: docker.io
         repository: nginx/nginx-prometheus-exporter
         pullPolicy: IfNotPresent
-        tag: "1.4.2"
+        tag: "1.5.1"
 
       ## @param telemetry.prometheus.nginxExporter.resources [object] Resource requests and limits
       resources: {}
@@ -354,7 +356,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:e86de1df7a1fd81185ec64e0c154626ed87537ac390271a3a10f0a54cea9a7b0
+      tag: latest@sha256:d965934bc289d795540aa1204f39b2586cd023cc9deb2695e4e284b21492c77c
 
   toolkit:
     ## @param tests.toolkit.image.registry The OCI registry to pull the image from
@@ -366,7 +368,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/min-toolkit-debug
       pullPolicy: IfNotPresent
-      tag: latest@sha256:171460fe39c543746a955c93bc1f57f195e4f2ab52d38942aa1b064399a1fecc
+      tag: latest@sha256:a24a6a1c506cd9fc5a2a3661294393fafe74b0a3993b11050179081be122b855
 
   step:
     ## @param tests.step.image.registry The OCI registry to pull the image from
