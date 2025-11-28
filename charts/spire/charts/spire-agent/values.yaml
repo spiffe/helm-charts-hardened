@@ -259,6 +259,8 @@ telemetry:
     enabled: false
     ## @param telemetry.prometheus.port Port for prometheus metrics
     port: 9988
+    ## @param telemetry.prometheus.host Host for prometheus metrics
+    host: "0.0.0.0"
     podMonitor:
       ## @param telemetry.prometheus.podMonitor.enabled Enable podMonitor for prometheus
       enabled: false
