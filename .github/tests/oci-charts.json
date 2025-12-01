@@ -2,7 +2,7 @@
   {
     "name": "mariadb",
     "registry": "docker.io/bitnamicharts/mariadb",
-    "version": "23.2.4"
+    "version": "24.0.0"
   },
   {
     "name": "postgresql",
