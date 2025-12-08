@@ -332,6 +332,15 @@ initContainers: []
 ## @param hostAliases [array] Customize /etc/hosts file as described here https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/
 hostAliases: []
 
+## @param hostNetwork sets hostNetwork on the daemonset
+hostNetwork: true
+
+## @param hostPID sets hostPID on the daemonset
+hostPID: true
+
+## @param dnsPolicy [string] sets dnsPolicy on the daemonset. See valid options here: https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-dns-policy.
+dnsPolicy: ClusterFirstWithHostNet
+
 # NOTE: This is unsupported and only to configure currently supported spire built in plugins but plugins unsupported by the chart.
 # Upgrades wont be tested for anything under this config. If you need this, please let the chart developers know your needs so we
 # can prioritize proper support.
