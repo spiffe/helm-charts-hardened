@@ -276,8 +276,18 @@ telemetry:
     ## @param telemetry.datadog.port The port of the datadog service to send metrics to
     port: 8125
 
-## @param kubeletConnectByHostname If true, connect to kubelet using the nodes hostname. If false, uses localhost. If unset, defaults to true on OpenShift and false otherwise.
+## @param kubeletConnectByHostname [DEPRECATED] Use kubeletAddress.mode instead. If true, connect to kubelet using the nodes hostname. If false, uses localhost. If unset, defaults to true on OpenShift and false otherwise.
 kubeletConnectByHostname: ""
+
+kubeletAddress:
+  ## @param kubeletAddress.mode How to connect to kubelet for workload attestation
+  ## Valid options: [auto, localhost, hostname, hostip, custom]
+  ## - auto: hostname for OpenShift, localhost otherwise (default)
+  ## - localhost: Use SPIRE default (connects to 127.0.0.1:10250)
+  ## - hostname: Connect via node hostname using downward API
+  ## - hostip: Connect via node IP using downward API
+  ## - custom: Set KUBELET_ADDR manually via extraEnvVars
+  mode: auto
 
 ## @param socketPath The unix socket path to the spire-agent
 socketPath: /run/spire/agent-sockets/spire-agent.sock
