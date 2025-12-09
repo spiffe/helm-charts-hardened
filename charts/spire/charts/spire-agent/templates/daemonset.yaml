@@ -269,8 +269,8 @@ spec:
                 fieldRef:
                   fieldPath: status.hostIP
           {{- end }}
-          {{- /* Note: For localhost and custom modes, KUBELET_ADDR is not set here */ }}
-          {{- /* For custom mode, user sets KUBELET_ADDR via extraEnvVars */ }}
+          {{- /* Note: For localhost and custom modes, KUBELET_ADDR is not set here */ -}}
+          {{- /* For custom mode, user sets KUBELET_ADDR via extraEnvVars */ -}}
           {{- with .Values.extraEnvVars }}
           {{- toYaml . | nindent 12 }}
           {{- end }}
