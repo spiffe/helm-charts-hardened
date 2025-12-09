@@ -117,14 +117,18 @@ Create the name of the service account to use
 {{/*
 Determine the kubelet address mode (handles backward compatibility)
 Returns: auto, localhost, hostname, hostip, or custom
+Priority:
+1. If kubeletAddress.mode is set to non-default (not auto/empty), use it
+2. Else if kubeletConnectByHostname is set, use it (maps to hostname/localhost)
+3. Else default to auto
 */}}
 {{- define "spire-agent.kubelet-address-mode" -}}
-{{-   if and (hasKey .Values "kubeletAddress") (ne .Values.kubeletAddress.mode "") }}
+{{-   if and (hasKey .Values "kubeletAddress") (ne .Values.kubeletAddress.mode "") (ne .Values.kubeletAddress.mode "auto") }}
 {{-     if not (has .Values.kubeletAddress.mode (list "auto" "localhost" "hostname" "hostip" "custom")) }}
 {{-       fail (printf "kubeletAddress.mode must be one of [auto, localhost, hostname, hostip, custom], got: %s" .Values.kubeletAddress.mode) }}
 {{-     end }}
 {{-     .Values.kubeletAddress.mode }}
-{{-   else if ne .Values.kubeletConnectByHostname "" }}
+{{-   else if ne (.Values.kubeletConnectByHostname | toString) "" }}
 {{-     if eq (.Values.kubeletConnectByHostname | toString) "true" }}
 {{-       printf "hostname" }}
 {{-     else }}

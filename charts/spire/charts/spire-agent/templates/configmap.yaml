@@ -32,7 +32,7 @@
 {{-   end }}
 {{- end }}
 {{- /* Prevent using both old and new config */ -}}
-{{- if and (ne .Values.kubeletConnectByHostname "") (and (hasKey .Values "kubeletAddress") (ne .Values.kubeletAddress.mode "")) }}
+{{- if and (ne (.Values.kubeletConnectByHostname | toString) "") (and (hasKey .Values "kubeletAddress") (ne .Values.kubeletAddress.mode "") (ne .Values.kubeletAddress.mode "auto")) }}
 {{-   fail "Both kubeletConnectByHostname (deprecated) and kubeletAddress.mode are set. Please use only kubeletAddress.mode." }}
 {{- end }}
 {{- end }}
