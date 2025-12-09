@@ -114,14 +114,62 @@ Create the name of the service account to use
 {{- print .Values.socketPath }}
 {{- end }}
 
-{{- define "spire-agent.connect-by-hostname" -}}
-{{-   if ne .Values.kubeletConnectByHostname "" }}
-{{-     if eq (.Values.kubeletConnectByHostname | toString) "true" }}
-{{-       printf "true" }}
-{{-     else }}
-{{-       printf "false" }}
+{{/*
+Determine the kubelet address mode (handles backward compatibility)
+Returns: auto, localhost, hostname, hostip, or custom
+*/}}
+{{- define "spire-agent.kubelet-address-mode" -}}
+{{-   if and (hasKey .Values "kubeletAddress") (ne .Values.kubeletAddress.mode "") }}
+{{-     if not (has .Values.kubeletAddress.mode (list "auto" "localhost" "hostname" "hostip" "custom")) }}
+{{-       fail (printf "kubeletAddress.mode must be one of [auto, localhost, hostname, hostip, custom], got: %s" .Values.kubeletAddress.mode) }}
 {{-     end }}
-{{-   else if (dig "openshift" false .Values.global) }}
+{{-     .Values.kubeletAddress.mode }}
+{{-   else if ne .Values.kubeletConnectByHostname "" }}
+{{-     if eq (.Values.kubeletConnectByHostname | toString) "true" }}
+{{-       printf "hostname" }}
+{{-     else }}
+{{-       printf "localhost" }}
+{{-     end }}
+{{-   else }}
+{{-     printf "auto" }}
+{{-   end }}
+{{- end }}
+
+{{/*
+Resolve auto mode to actual mode based on platform
+Returns: localhost, hostname, hostip, or custom (never auto)
+*/}}
+{{- define "spire-agent.kubelet-address-mode-resolved" -}}
+{{-   $mode := include "spire-agent.kubelet-address-mode" . }}
+{{-   if eq $mode "auto" }}
+{{-     if (dig "openshift" false .Values.global) }}
+{{-       printf "hostname" }}
+{{-     else }}
+{{-       printf "localhost" }}
+{{-     end }}
+{{-   else }}
+{{-     $mode }}
+{{-   end }}
+{{- end }}
+
+{{/*
+Check if node_name_env should be set in workload attestor config
+Returns: "true" if we should set it, empty string otherwise
+*/}}
+{{- define "spire-agent.should-set-node-name-env" -}}
+{{-   $resolvedMode := include "spire-agent.kubelet-address-mode-resolved" . }}
+{{-   if or (eq $resolvedMode "hostname") (eq $resolvedMode "hostip") (eq $resolvedMode "custom") }}
+{{-     printf "true" }}
+{{-   end }}
+{{- end }}
+
+{{/*
+DEPRECATED: Use spire-agent.kubelet-address-mode-resolved instead
+Kept for backward compatibility
+*/}}
+{{- define "spire-agent.connect-by-hostname" -}}
+{{-   $resolvedMode := include "spire-agent.kubelet-address-mode-resolved" . }}
+{{-   if or (eq $resolvedMode "hostname") (eq $resolvedMode "hostip") }}
 {{-     printf "true" }}
 {{-   else }}
 {{-     printf "false" }}
