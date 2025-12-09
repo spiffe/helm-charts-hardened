@@ -27,7 +27,8 @@
 {{-   $podSecurityContext =  mergeOverwrite (dict "runAsUser" 0 "runAsGroup" 0) .Values.podSecurityContext }}
 {{-   $_ := set $mainSecurityContext "privileged" true }}
 {{- end }}
-{{- $cbh := eq (include "spire-agent.connect-by-hostname" .) "true" }}
+{{- $resolvedMode := include "spire-agent.kubelet-address-mode-resolved" . }}
+{{- $cbh := or (eq $resolvedMode "hostname") (eq $resolvedMode "hostip") }}
 {{- $socketAlternateNames := index (include "spire-agent.socket-alternate-names" . | fromYaml) "names" }}
 {{- $socketPath := include "spire-agent.socket-path" . }}
 ---
@@ -131,7 +132,11 @@ spec:
           - name: NODE_NAME
             valueFrom:
               fieldRef:
+                {{- if eq $resolvedMode "hostname" }}
                 fieldPath: spec.nodeName
+                {{- else }}
+                fieldPath: status.hostIP
+                {{- end }}
           {{- end }}
           volumeMounts:
           - name: host-cert-isolated
@@ -245,12 +250,27 @@ spec:
           env:
             - name: PATH
               value: "/opt/spire/bin:/bin"
-          {{- if $cbh }}
+          {{- if eq $resolvedMode "hostname" }}
+            - name: KUBELET_ADDR
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
             - name: MY_NODE_NAME
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+          {{- else if eq $resolvedMode "hostip" }}
+            - name: KUBELET_ADDR
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: MY_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
           {{- end }}
+          {{- /* Note: For localhost and custom modes, KUBELET_ADDR is not set here */ }}
+          {{- /* For custom mode, user sets KUBELET_ADDR via extraEnvVars */ }}
           {{- with .Values.extraEnvVars }}
           {{- toYaml . | nindent 12 }}
           {{- end }}
