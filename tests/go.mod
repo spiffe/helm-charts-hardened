@@ -3,7 +3,7 @@ module github.com/spiffe/helm-charts/tests
 go 1.24.3
 
 require (
-	github.com/onsi/ginkgo/v2 v2.27.2
+	github.com/onsi/ginkgo/v2 v2.27.3
 	github.com/onsi/gomega v1.38.2
 	helm.sh/helm/v3 v3.19.2
 )
