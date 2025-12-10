@@ -333,13 +333,13 @@ initContainers: []
 hostAliases: []
 
 ## @param hostNetwork sets hostNetwork on the daemonset
-hostNetwork: true
+hostNetwork: false
 
 ## @param hostPID sets hostPID on the daemonset
-hostPID: true
+hostPID: false
 
 ## @param dnsPolicy [string] sets dnsPolicy on the daemonset. See valid options here: https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-dns-policy.
-dnsPolicy: ClusterFirstWithHostNet
+dnsPolicy: ""
 
 # NOTE: This is unsupported and only to configure currently supported spire built in plugins but plugins unsupported by the chart.
 # Upgrades wont be tested for anything under this config. If you need this, please let the chart developers know your needs so we
