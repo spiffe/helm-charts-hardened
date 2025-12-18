@@ -930,6 +930,11 @@ defaultX509SvidTTL: 4h
 ## @param defaultJwtSvidTTL TTL for JWT Svids
 defaultJwtSvidTTL: 1h
 
+## @param pruneAttestedNodesExpiredFor Enables periodic pruning of attested node entries with expired SVIDs. Set to a duration (e.g. "168h" for 7 days) to prune nodes that expired longer ago than the specified duration. Set to "" (empty) to disable pruning. When enabled, expired nodes are pruned at a regular interval.
+pruneAttestedNodesExpiredFor: ""
+## @param pruneTOFUNodes If true, includes non-reattestable (TOFU) nodes in the pruning process when pruneAttestedNodesExpiredFor is set. Banned nodes are never pruned.
+pruneTOFUNodes: false
+
 nodeAttestor:
   k8sPSAT:
     ## @param nodeAttestor.k8sPSAT.enabled Enable PSAT k8s nodeattestor
