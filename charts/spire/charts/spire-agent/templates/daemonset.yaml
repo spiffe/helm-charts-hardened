@@ -74,9 +74,9 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      hostPID: true
-      hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
+      hostPID: {{ .Values.hostPID }}
+      hostNetwork: {{ .Values.hostNetwork }}
+      dnsPolicy: {{ .Values.dnsPolicy }}
       serviceAccountName: {{ include "spire-agent.serviceAccountName" . | quote }}
       securityContext:
         {{- toYaml $podSecurityContext | nindent 8 }}
