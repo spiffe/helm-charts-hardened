@@ -289,8 +289,8 @@ plugins:
   {{- end }}
   {{- end }}
 
-{{- if ne $keyManagerUsed 1 }}
-{{- fail (printf "You have to enable exactly one Key Manager. There are %d enabled." $keyManagerUsed) }}
+{{- if gt $keyManagerUsed 1 }}
+{{- fail "You can only enable a single Key Manager." }}
 {{- end }}
 
   {{- $externalK8sBundleClusters := default .Values.kubeConfigs .Values.notifier.externalK8sBundle.clusters }}
