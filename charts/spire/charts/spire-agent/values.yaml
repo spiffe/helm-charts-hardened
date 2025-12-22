@@ -310,7 +310,7 @@ hostCert:
     registry: cgr.dev
     repository: chainguard/min-toolkit-debug
     pullPolicy: IfNotPresent
-    tag: latest@sha256:d872056bb29c27955db212bb5464649b91a2b36a4017900d5b5968f50492e700
+    tag: latest@sha256:ed56c04bf2cf221bfc7ce4d20792912096098660c9f7adea165737187e7c8a03
 
 ## @param priorityClassName Priority class assigned to daemonset pods. Can be auto set with global.recommendations.priorityClassName.
 priorityClassName: ""
