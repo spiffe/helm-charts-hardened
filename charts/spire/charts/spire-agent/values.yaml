@@ -276,7 +276,7 @@ telemetry:
     ## @param telemetry.datadog.port The port of the datadog service to send metrics to
     port: 8125
 
-## @param kubeletConnectByHostname [DEPRECATED] Use kubeletAddress.mode instead. If true, connect to kubelet using the nodes hostname. If false, uses localhost. If unset, defaults to true on OpenShift and false otherwise.
+## @param kubeletConnectByHostname (DEPRECATED) Use kubeletAddress.mode instead. If true, connect to kubelet using the nodes hostname. If false, uses localhost. If unset, defaults to true on OpenShift and false otherwise.
 kubeletConnectByHostname: ""
 
 kubeletAddress:
