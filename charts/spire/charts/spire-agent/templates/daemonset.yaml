@@ -255,16 +255,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
-            - name: MY_NODE_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: spec.nodeName
           {{- else if eq $resolvedMode "hostip" }}
             - name: KUBELET_ADDR
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.hostIP
-            - name: MY_NODE_NAME
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
