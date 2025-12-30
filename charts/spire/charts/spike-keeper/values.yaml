@@ -21,14 +21,12 @@ image:
 replicas: 3
 
 trustRoot:
-  ## @param trustRoot.nexus Override which trustRoot Nexus is in
-  nexus: ""
-
-  ## @param trustRoot.bootstrap Override which trustRoot Bootstrap is in
-  bootstrap: ""
-
-  ## @param trustRoot.self Override which trustRoot this Keeper instance is in
-  self: ""
+  ## @param trustRoot.nexus Override which trustRoot(s) Nexus is in (array)
+  nexus: []
+  ## @param trustRoot.bootstrap Override which trustRoot(s) Bootstrap is in (array)
+  bootstrap: []
+  ## @param trustRoot.self Override which trustRoot(s) this Keeper instance is in (array)
+  self: []
 
 ## @param logLevel The log level, valid values are "debug", "info", "warn", and "error"
 logLevel: debug

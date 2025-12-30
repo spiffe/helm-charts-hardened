@@ -56,7 +56,7 @@ metadata:
     "helm.sh/hook": "post-install,post-upgrade"
     "helm.sh/hook-delete-policy": before-hook-creation, hook-succeeded, hook-failed
 spec:
-  # ttlSecondsAfterFinished: 3600 # 1 hour
+  ttlSecondsAfterFinished: 3600 # 1 hour; useful for debugging
   template:
     metadata:
       name: {{ include "spike-nexus.fullname" . }}-bootstrap
@@ -88,9 +88,12 @@ spec:
           - name: SPIKE_TRUST_ROOT
             value: {{ include "spire-lib.trust-domain" . }}
           - name: SPIKE_TRUST_ROOT_KEEPER
-            value: {{ if gt (len .Values.trustRoot.keepers) 0 }}{{ .Values.trustRoot.keepers | join "," | quote}}{{ else }}{{ include "spire-lib.trust-domain" . }}{{ end }}
+            value: {{ if gt (len .Values.trustRoot.keeper) 0 }}{{ .Values.trustRoot.keeper | join "," | quote }}{{ else }}{{ include "spire-lib.trust-domain" . }}{{ end }}
           - name: SPIKE_TRUST_ROOT_BOOTSTRAP
-            value: {{if eq .Values.trustRoot.bootstrap "" }}{{ include "spire-lib.trust-domain" . }}{{ else }}{{.Values.trustRoot.bootstrap }}{{ end }}
+            value: {{ if gt (len .Values.trustRoot.bootstrap) 0 }}{{ .Values.trustRoot.bootstrap | join "," | quote }}{{ else }}{{ include "spire-lib.trust-domain" . }}{{ end }}
+            # This is required for bootstrap to work while calling nexus for a pop validation.
+          - name: SPIKE_TRUST_ROOT_NEXUS
+            value: {{ if gt (len .Values.trustRoot.nexus) 0 }}{{ .Values.trustRoot.nexus | join "," | quote }}{{ else }}{{ include "spire-lib.trust-domain" . }}{{ end }}
           - name: SPIKE_SYSTEM_LOG_LEVEL
             value: {{ .Values.logLevel | upper }}
           - name: SPIKE_NEXUS_KEEPER_PEERS
