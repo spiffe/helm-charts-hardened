@@ -37,7 +37,9 @@ agent:
   {{- end }}
   data_dir: "/var/lib/spire"
   log_level: {{ .Values.logLevel | quote }}
-  retry_bootstrap: true
+  log_format: {{ .Values.logFormat | quote }}
+  rebootstrap_mode: {{ .Values.rebootstrapMode | quote }}
+  rebootstrap_delay: {{ .Values.rebootstrapDelay | quote }}
   server_address: {{ include "spire-agent.server-address" . | trim | quote }}
   server_port: {{ .Values.server.port | quote }}
   socket_path: /tmp/spire-agent/public/{{ include "spire-agent.socket-path" . | base }}
@@ -167,7 +169,7 @@ health_checks:
 {{- if or (dig "telemetry" "prometheus" "enabled" .Values.telemetry.prometheus.enabled .Values.global) (and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "prometheus" true .Values.global)) }}
 telemetry:
   - Prometheus:
-      - host: "0.0.0.0"
+      - host: {{ .Values.telemetry.prometheus.host }}
         port: {{ .Values.telemetry.prometheus.port }}
 {{- end }}
 

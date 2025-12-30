@@ -64,6 +64,13 @@ server:
   default_x509_svid_ttl: {{ .Values.defaultX509SvidTTL | quote }}
   default_jwt_svid_ttl: {{ .Values.defaultJwtSvidTTL | quote }}
 
+  {{- if .Values.pruneAttestedNodesExpiredFor }}
+  prune_attested_nodes_expired_for: {{ .Values.pruneAttestedNodesExpiredFor | quote }}
+  {{- end }}
+  {{- if .Values.pruneTOFUNodes }}
+  prune_tofu_nodes: {{ .Values.pruneTOFUNodes }}
+  {{- end }}
+
   ca_subject:
     - country: [{{ include "spire-server.ca-subject-country" . | quote }}]
       organization: [{{ include "spire-server.ca-subject-organization" . | quote }}]
@@ -100,6 +107,12 @@ server:
       {{- range .featureFlags }}
         - {{ . | quote }}
       {{- end }}
+    {{- end }}
+    {{- if (and .authOpaPolicyEngine.local.policy_data .authOpaPolicyEngine.local.rego) }}
+    auth_opa_policy_engine:
+      local:
+        policy_data_path: /run/spire/config/policy_data.json
+        rego_path: /run/spire/config/policy.rego
     {{- end }}
   {{- end }}
   {{- end }}
@@ -520,4 +533,10 @@ metadata:
 data:
   server.conf: |
     {{- include "spire-lib.reformat-and-yaml2json" (dict "config" (include "spire-server.yaml-config" .) "root" .) | nindent 4 }}
+  {{- if (and .Values.experimental.enabled .Values.experimental.authOpaPolicyEngine.local.policy_data .Values.experimental.authOpaPolicyEngine.local.rego) }}
+  policy_data.json: |
+    {{- .Values.experimental.authOpaPolicyEngine.local.policy_data | toString | nindent 4 }}
+  policy.rego: |
+    {{- .Values.experimental.authOpaPolicyEngine.local.rego | toString | nindent 4 }}
+  {{- end }}
 {{- end }}

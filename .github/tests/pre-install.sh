@@ -37,7 +37,7 @@ kubectl wait --namespace ingress-nginx --for=condition=ready --timeout 60s pod -
 # external database
 
 # mysql
-"${helm_install[@]}" mysql "${HELM_REGISTRY_MYSQL}" --version "$VERSION_MYSQL" \
+"${helm_install[@]}" mysql "${HELM_REGISTRY_MARIADB}" --version "$VERSION_MARIADB" \
   --namespace mysql \
   --values "${DEPS}/mysql.yaml" \
   --wait
