@@ -286,9 +286,9 @@ plugins:
         {{- if or (ne .keyPolicy.policy "") (ne .keyPolicy.existingConfigMap "") }}
         key_policy_file: "/run/spire/data/aws-kms-key-policy.json"
         {{- end }}
-        {{- if .keyTags }}
+        {{- with .keyTags }}
         key_tags:
-          {{- range $key, $value := .keyTags }}
+          {{- range $key, $value := . }}
           {{ $key }}: {{ $value | quote }}
           {{- end }}
         {{- end }}
