@@ -400,6 +400,11 @@ keyManager:
       policy: ""
       ## @param keyManager.awsKMS.keyPolicy.existingConfigMap [nullable] Name of a ConfigMap that has a `policy.json` file with the key policy in JSON format.
       existingConfigMap: ""
+    ## @param keyManager.awsKMS.keyTags [object] Custom tags to apply to KMS keys created by the plugin. Tags are key-value pairs used for resource management and cost allocation. When using key tagging, you must add the `kms:TagResource` permission to your IAM policy. Constraints: keys (1-128 chars), values (0-256 chars), max 50 tags, valid chars (letters, numbers, spaces, + - = . _ : / @), keys cannot start with 'aws:' or 'spire-'.
+    keyTags: {}
+      # Environment: "production"
+      # Team: "security"
+      # Component: "spire"
     ## @param keyManager.awsKMS.accessKeyID [nullable] Access key ID for the AWS account. It's recommended to use an IAM role instead. See [here](https://docs.aws.amazon.com/eks/latest/userguide/associate-service-account-role.html) to learn how to annotate your SPIRE Server Service Account to assume an IAM role.
     accessKeyID: ""
     ## @param keyManager.awsKMS.secretAccessKey [nullable] Secret access key for the AWS account.
