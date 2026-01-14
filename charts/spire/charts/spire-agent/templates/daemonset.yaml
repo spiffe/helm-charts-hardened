@@ -106,7 +106,13 @@ spec:
               else
                 {{- if eq .Values.workloadAttestors.k8s.verification.type "auto" }}
                 {{- if $cbh }}
-                URL="https://$NODE_NAME:10250/spec/"
+                URL="https://$KUBELET_ADDR:10250/spec/"
+                {{- else if eq $resolvedMode "custom" }}
+                if [ -z "$KUBELET_ADDR" ]; then
+                  echo "ERROR: kubeletAddress.mode=custom requires KUBELET_ADDR environment variable to be set via extraEnvVars"
+                  exit 1
+                fi
+                URL="https://$KUBELET_ADDR:10250/spec/"
                 {{- else }}
                 URL="https://localhost:10250/spec/"
                 {{- end }}
@@ -129,14 +135,17 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           env:
           {{- if $cbh }}
-          - name: NODE_NAME
+          - name: KUBELET_ADDR
             valueFrom:
               fieldRef:
                 {{- if eq $resolvedMode "hostname" }}
                 fieldPath: spec.nodeName
-                {{- else }}
+                {{- else if eq $resolvedMode "hostip" }}
                 fieldPath: status.hostIP
                 {{- end }}
+          {{- end }}
+          {{- with .Values.extraEnvVars }}
+          {{- toYaml . | nindent 12 }}
           {{- end }}
           volumeMounts:
           - name: host-cert-isolated

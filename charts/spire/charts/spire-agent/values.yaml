@@ -286,11 +286,12 @@ kubeletAddress:
   ## - localhost: Use SPIRE default (connects to 127.0.0.1:10250)
   ## - hostname: Connect via node hostname using downward API
   ## - hostip: Connect via node IP using downward API
-  ## - custom: Set KUBELET_ADDR manually via extraEnvVars or other injection mechanisms
-  ##   Note: This mode configures the workload attestor but does not validate that
-  ##   KUBELET_ADDR is set, allowing for external secret injection, ConfigMap references,
-  ##   or other advanced configuration methods. Users must ensure KUBELET_ADDR is provided
-  ##   at runtime or SPIRE agent will fail to attest workloads.
+  ## - custom: Set KUBELET_ADDR manually via extraEnvVars or other injection mechanisms.
+  ##   Note: extraEnvVars is passed to both the main container and init containers, so
+  ##   KUBELET_ADDR will be available for certificate verification if using verification
+  ##   type "auto" or "hostCert". The init container will validate that KUBELET_ADDR is set
+  ##   and fail with a clear error message if missing. Users must ensure KUBELET_ADDR is
+  ##   provided at runtime or SPIRE agent will fail to start.
   mode: auto
 
 ## @param socketPath The unix socket path to the spire-agent
@@ -329,7 +330,7 @@ hostCert:
 ## @param priorityClassName Priority class assigned to daemonset pods. Can be auto set with global.recommendations.priorityClassName.
 priorityClassName: ""
 
-## @param extraEnvVars [array] Extra environment variables to be added to the Spire Agent container
+## @param extraEnvVars [array] Extra environment variables to be added to the Spire Agent container and init containers
 extraEnvVars: []
 
 ## @param extraVolumes [array] Extra volumes to be mounted on Spire Agent pods
