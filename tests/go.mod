@@ -5,7 +5,7 @@ go 1.24.3
 require (
 	github.com/onsi/ginkgo/v2 v2.27.5
 	github.com/onsi/gomega v1.39.0
-	helm.sh/helm/v3 v3.19.4
+	helm.sh/helm/v3 v3.19.5
 )
 
 require (
