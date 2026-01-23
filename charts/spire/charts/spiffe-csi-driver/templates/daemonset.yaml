@@ -70,6 +70,8 @@ spec:
               mountPath: /spire-agent-socket
           terminationMessagePolicy: File
           terminationMessagePath: /dev/termination-log
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
       {{- end }}
       {{- if gt (len .Values.initContainers) 0 }}
         {{- toYaml .Values.initContainers | nindent 8 }}
@@ -145,7 +147,7 @@ spec:
               port: healthz
             {{- toYaml .Values.livenessProbe | nindent 12 }}
           resources:
-            {{- toYaml .Values.nodeDriverRegistrar.resources | nindent 12 }}
+            {{- toYaml .Values.resources | nindent 12 }}
       volumes:
         - name: spire-agent-socket-dir
           hostPath:

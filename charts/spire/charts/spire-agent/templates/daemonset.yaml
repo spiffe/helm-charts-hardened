@@ -27,7 +27,8 @@
 {{-   $podSecurityContext =  mergeOverwrite (dict "runAsUser" 0 "runAsGroup" 0) .Values.podSecurityContext }}
 {{-   $_ := set $mainSecurityContext "privileged" true }}
 {{- end }}
-{{- $cbh := eq (include "spire-agent.connect-by-hostname" .) "true" }}
+{{- $resolvedMode := include "spire-agent.kubelet-address-mode-resolved" . }}
+{{- $cbh := or (eq $resolvedMode "hostname") (eq $resolvedMode "hostip") }}
 {{- $socketAlternateNames := index (include "spire-agent.socket-alternate-names" . | fromYaml) "names" }}
 {{- $socketPath := include "spire-agent.socket-path" . }}
 ---
@@ -105,7 +106,13 @@ spec:
               else
                 {{- if eq .Values.workloadAttestors.k8s.verification.type "auto" }}
                 {{- if $cbh }}
-                URL="https://$NODE_NAME:10250/spec/"
+                URL="https://$KUBELET_ADDR:10250/spec/"
+                {{- else if eq $resolvedMode "custom" }}
+                if [ -z "$KUBELET_ADDR" ]; then
+                  echo "ERROR: kubeletAddress.mode=custom requires KUBELET_ADDR environment variable to be set via extraEnvVars"
+                  exit 1
+                fi
+                URL="https://$KUBELET_ADDR:10250/spec/"
                 {{- else }}
                 URL="https://localhost:10250/spec/"
                 {{- end }}
@@ -124,12 +131,21 @@ spec:
               echo Mode detected as hostCert.
               {{- end }}
               chmod 644 /hostCert/kubelet.crt
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
           env:
           {{- if $cbh }}
-          - name: NODE_NAME
+          - name: KUBELET_ADDR
             valueFrom:
               fieldRef:
+                {{- if eq $resolvedMode "hostname" }}
                 fieldPath: spec.nodeName
+                {{- else if eq $resolvedMode "hostip" }}
+                fieldPath: status.hostIP
+                {{- end }}
+          {{- end }}
+          {{- with .Values.extraEnvVars }}
+          {{- toYaml . | nindent 12 }}
           {{- end }}
           volumeMounts:
           - name: host-cert-isolated
@@ -156,6 +172,8 @@ spec:
               else
                 /app/get_tpm_pubhash
               fi
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
             - name: tpm
               mountPath: /dev/tpmrm0
@@ -174,12 +192,14 @@ spec:
             - |
               # SPIRE must be able to fork the plugin directly within its container. Copy the plugin into a volume that can be mounted where SPIRE can execute it.
               cp -a {{ .Values.nodeAttestor.tpmDirect.plugin.path | quote }} /tpm/tpm_attestor_agent
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
             - name: tpm-direct
               mountPath: /tpm
           imagePullPolicy: {{ .Values.nodeAttestor.tpmDirect.plugin.image.pullPolicy | quote }}
         {{- end }}
-        {{- if gt (len $socketAlternateNames) 0 }}
+        {{- if $socketAlternateNames }}
         - name: ensure-alternate-names
           image: {{ template "spire-lib.image" (dict "image" .Values.socketAlternate.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.socketAlternate.image.pullPolicy | quote }}
@@ -196,7 +216,7 @@ spec:
               [ -L {{ $socketPath | base }} ] && rm -f {{ $socketPath | base }}
               exit 0
           resources:
-            {{- toYaml .Values.socketAlternate.resources | nindent 12 }}
+            {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
             - name: spire-agent-socket-dir
               mountPath: {{ $socketPath | dir }}
@@ -214,7 +234,7 @@ spec:
               chown -R {{ printf "%v:%v" $podSecurityContext.runAsUser $podSecurityContext.fsGroup | quote }} {{ $socketPath | dir }} /tmp/spire-agent/private
               chown -R {{ printf "%v:%v" $podSecurityContext.runAsUser $podSecurityContext.fsGroup | quote }} /var/lib/spire
           resources:
-            {{- toYaml .Values.fsGroupFix.resources | nindent 12 }}
+            {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
             - name: spire-agent-socket-dir
               mountPath: {{ $socketPath | dir }}
@@ -239,12 +259,19 @@ spec:
           env:
             - name: PATH
               value: "/opt/spire/bin:/bin"
-          {{- if $cbh }}
-            - name: MY_NODE_NAME
+          {{- if eq $resolvedMode "hostname" }}
+            - name: KUBELET_ADDR
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+          {{- else if eq $resolvedMode "hostip" }}
+            - name: KUBELET_ADDR
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
           {{- end }}
+          {{- /* Note: For localhost and custom modes, KUBELET_ADDR is not set here */ -}}
+          {{- /* For custom mode, user sets KUBELET_ADDR via extraEnvVars */ -}}
           {{- with .Values.extraEnvVars }}
           {{- toYaml . | nindent 12 }}
           {{- end }}

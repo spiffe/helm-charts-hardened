@@ -1,0 +1,13 @@
+spire-server:
+  keyManager:
+    disk:
+      enabled: false
+    awsKMS:
+      enabled: true
+      region: "us-east-1"
+      keyIdentifierFile:
+        enabled: true
+      keyTags:
+        Environment: "production"
+        Team: "security"
+        Component: "spire"
