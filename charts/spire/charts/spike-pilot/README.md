@@ -43,7 +43,8 @@ A Helm chart to deploy spike pilot
 | `tools.busybox.image.pullPolicy` | The image pull policy                                                                       | `IfNotPresent`       |
 | `tools.busybox.image.tag`        | Overrides the image tag whose default is the chart appVersion                               | `1.37.0-uclibc`      |
 | `replicas`                       | The number of keepers to launch                                                             | `1`                  |
-| `trustRoot.nexus`                | Override which trustRoot Nexus is in                                                        | `""`                 |
+| `trustRoot.nexus`                | Override which trustRoot(s) Nexus is in (array)                                             | `[]`                 |
+| `trustRoot.pilot`                | Override which trustRoot(s) this SPIKE Pilot instance is in (array)                         | `[]`                 |
 | `logLevel`                       | The log level, valid values are "debug", "info", "warn", and "error"                        | `debug`              |
 | `agentSocketName`                | The name of the spire-agent unix socket                                                     | `spire-agent.sock`   |
 | `csiDriverName`                  | The csi driver to use                                                                       | `csi.spiffe.io`      |
