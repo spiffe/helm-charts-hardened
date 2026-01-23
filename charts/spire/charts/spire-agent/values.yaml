@@ -159,7 +159,7 @@ fsGroupFix:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: IfNotPresent
-    tag: latest@sha256:a5f38cc349adb497285eef3934c03c1ddeac535c5b3606a465b291ddaf5e0b18
+    tag: latest@sha256:0b3c18d0fd5f01c21f2be0359b12e19bb86cd0eaf15d31d14ae1991685fea657
 
 keyManager:
   memory:
@@ -276,8 +276,23 @@ telemetry:
     ## @param telemetry.datadog.port The port of the datadog service to send metrics to
     port: 8125
 
-## @param kubeletConnectByHostname If true, connect to kubelet using the nodes hostname. If false, uses localhost. If unset, defaults to true on OpenShift and false otherwise.
+## @param kubeletConnectByHostname (DEPRECATED) Use kubeletAddress.mode instead. If true, connect to kubelet using the nodes hostname. If false, uses localhost. If unset, defaults to true on OpenShift and false otherwise.
 kubeletConnectByHostname: ""
+
+kubeletAddress:
+  ## @param kubeletAddress.mode How to connect to kubelet for workload attestation
+  ## Valid options: [auto, localhost, hostname, hostip, custom]
+  ## - auto: hostname for OpenShift, localhost otherwise (default)
+  ## - localhost: Use SPIRE default (connects to 127.0.0.1:10250)
+  ## - hostname: Connect via node hostname using downward API
+  ## - hostip: Connect via node IP using downward API
+  ## - custom: Set KUBELET_ADDR manually via extraEnvVars or other injection mechanisms.
+  ##   Note: extraEnvVars is passed to both the main container and init containers, so
+  ##   KUBELET_ADDR will be available for certificate verification if using verification
+  ##   type "auto" or "hostCert". The init container will validate that KUBELET_ADDR is set
+  ##   and fail with a clear error message if missing. Users must ensure KUBELET_ADDR is
+  ##   provided at runtime or SPIRE agent will fail to start.
+  mode: auto
 
 ## @param socketPath The unix socket path to the spire-agent
 socketPath: /run/spire/agent-sockets/spire-agent.sock
@@ -298,7 +313,7 @@ socketAlternate:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: IfNotPresent
-    tag: latest@sha256:a5f38cc349adb497285eef3934c03c1ddeac535c5b3606a465b291ddaf5e0b18
+    tag: latest@sha256:0b3c18d0fd5f01c21f2be0359b12e19bb86cd0eaf15d31d14ae1991685fea657
 
 hostCert:
   ## @param hostCert.image.registry The OCI registry to pull the image from
@@ -310,12 +325,12 @@ hostCert:
     registry: cgr.dev
     repository: chainguard/min-toolkit-debug
     pullPolicy: IfNotPresent
-    tag: latest@sha256:33cb77b4a8da19cde56457c18d0744816d69a82db08a6547fe2b29e4251c5be3
+    tag: latest@sha256:abd9d6efa507b657a2fba77e9d6bdeaa3e5dcbc143749f7da62e88cef9b6b629
 
 ## @param priorityClassName Priority class assigned to daemonset pods. Can be auto set with global.recommendations.priorityClassName.
 priorityClassName: ""
 
-## @param extraEnvVars [array] Extra environment variables to be added to the Spire Agent container
+## @param extraEnvVars [array] Extra environment variables to be added to the Spire Agent container and init containers
 extraEnvVars: []
 
 ## @param extraVolumes [array] Extra volumes to be mounted on Spire Agent pods

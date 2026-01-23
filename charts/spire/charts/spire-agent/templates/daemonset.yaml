@@ -27,7 +27,8 @@
 {{-   $podSecurityContext =  mergeOverwrite (dict "runAsUser" 0 "runAsGroup" 0) .Values.podSecurityContext }}
 {{-   $_ := set $mainSecurityContext "privileged" true }}
 {{- end }}
-{{- $cbh := eq (include "spire-agent.connect-by-hostname" .) "true" }}
+{{- $resolvedMode := include "spire-agent.kubelet-address-mode-resolved" . }}
+{{- $cbh := or (eq $resolvedMode "hostname") (eq $resolvedMode "hostip") }}
 {{- $socketAlternateNames := index (include "spire-agent.socket-alternate-names" . | fromYaml) "names" }}
 {{- $socketPath := include "spire-agent.socket-path" . }}
 ---
@@ -105,7 +106,13 @@ spec:
               else
                 {{- if eq .Values.workloadAttestors.k8s.verification.type "auto" }}
                 {{- if $cbh }}
-                URL="https://$NODE_NAME:10250/spec/"
+                URL="https://$KUBELET_ADDR:10250/spec/"
+                {{- else if eq $resolvedMode "custom" }}
+                if [ -z "$KUBELET_ADDR" ]; then
+                  echo "ERROR: kubeletAddress.mode=custom requires KUBELET_ADDR environment variable to be set via extraEnvVars"
+                  exit 1
+                fi
+                URL="https://$KUBELET_ADDR:10250/spec/"
                 {{- else }}
                 URL="https://localhost:10250/spec/"
                 {{- end }}
@@ -128,10 +135,17 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           env:
           {{- if $cbh }}
-          - name: NODE_NAME
+          - name: KUBELET_ADDR
             valueFrom:
               fieldRef:
+                {{- if eq $resolvedMode "hostname" }}
                 fieldPath: spec.nodeName
+                {{- else if eq $resolvedMode "hostip" }}
+                fieldPath: status.hostIP
+                {{- end }}
+          {{- end }}
+          {{- with .Values.extraEnvVars }}
+          {{- toYaml . | nindent 12 }}
           {{- end }}
           volumeMounts:
           - name: host-cert-isolated
@@ -245,12 +259,19 @@ spec:
           env:
             - name: PATH
               value: "/opt/spire/bin:/bin"
-          {{- if $cbh }}
-            - name: MY_NODE_NAME
+          {{- if eq $resolvedMode "hostname" }}
+            - name: KUBELET_ADDR
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+          {{- else if eq $resolvedMode "hostip" }}
+            - name: KUBELET_ADDR
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
           {{- end }}
+          {{- /* Note: For localhost and custom modes, KUBELET_ADDR is not set here */ -}}
+          {{- /* For custom mode, user sets KUBELET_ADDR via extraEnvVars */ -}}
           {{- with .Values.extraEnvVars }}
           {{- toYaml . | nindent 12 }}
           {{- end }}
