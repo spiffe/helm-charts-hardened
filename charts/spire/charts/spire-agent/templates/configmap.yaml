@@ -25,6 +25,16 @@
 {{- if hasPrefix (.Values.socketPath | dir | clean) (.Values.sockets.hostBasePath | clean) }}
 {{- fail "The sockets.hostBasePath can not be located under the socketPath directory" }}
 {{- end }}
+{{- /* Validate kubeletAddress.mode */ -}}
+{{- if and (hasKey .Values "kubeletAddress") (ne .Values.kubeletAddress.mode "") }}
+{{-   if not (has .Values.kubeletAddress.mode (list "auto" "localhost" "hostname" "hostip" "custom")) }}
+{{-     fail (printf "kubeletAddress.mode must be one of [auto, localhost, hostname, hostip, custom], got: %s" .Values.kubeletAddress.mode) }}
+{{-   end }}
+{{- end }}
+{{- /* Prevent using both old and new config */ -}}
+{{- if and (ne (.Values.kubeletConnectByHostname | toString) "") (and (hasKey .Values "kubeletAddress") (ne .Values.kubeletAddress.mode "") (ne .Values.kubeletAddress.mode "auto")) }}
+{{-   fail "Both kubeletConnectByHostname (deprecated) and kubeletAddress.mode are set. Please use only kubeletAddress.mode." }}
+{{- end }}
 {{- end }}
 {{- define "spire-agent.yaml-config" -}}
 agent:
@@ -149,8 +159,8 @@ plugins:
         disable_container_selectors: {{ eq .Values.workloadAttestors.k8s.disableContainerSelectors true}}
         use_new_container_locator: {{ eq .Values.workloadAttestors.k8s.useNewContainerLocator true }}
         verbose_container_locator_logs: {{ eq .Values.workloadAttestors.k8s.verboseContainerLocatorLogs true }}
-        {{- if eq (include "spire-agent.connect-by-hostname" .) "true" }}
-        node_name_env: "MY_NODE_NAME"
+        {{- if eq (include "spire-agent.should-set-node-name-env" .) "true" }}
+        node_name_env: "KUBELET_ADDR"
         {{- end }}
   {{- end }}
 
@@ -169,7 +179,7 @@ health_checks:
 {{- if or (dig "telemetry" "prometheus" "enabled" .Values.telemetry.prometheus.enabled .Values.global) (and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "prometheus" true .Values.global)) }}
 telemetry:
   - Prometheus:
-      - host: "0.0.0.0"
+      - host: {{ .Values.telemetry.prometheus.host }}
         port: {{ .Values.telemetry.prometheus.port }}
 {{- end }}
 

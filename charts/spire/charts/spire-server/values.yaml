@@ -400,6 +400,11 @@ keyManager:
       policy: ""
       ## @param keyManager.awsKMS.keyPolicy.existingConfigMap [nullable] Name of a ConfigMap that has a `policy.json` file with the key policy in JSON format.
       existingConfigMap: ""
+    ## @param keyManager.awsKMS.keyTags [object] Custom tags to apply to KMS keys created by the plugin. Tags are key-value pairs used for resource management and cost allocation. When using key tagging, you must add the `kms:TagResource` permission to your IAM policy. Constraints: keys (1-128 chars), values (0-256 chars), max 50 tags, valid chars (letters, numbers, spaces, + - = . _ : / @), keys cannot start with 'aws:' or 'spire-'.
+    keyTags: {}
+      # Environment: "production"
+      # Team: "security"
+      # Component: "spire"
     ## @param keyManager.awsKMS.accessKeyID [nullable] Access key ID for the AWS account. It's recommended to use an IAM role instead. See [here](https://docs.aws.amazon.com/eks/latest/userguide/associate-service-account-role.html) to learn how to annotate your SPIRE Server Service Account to assume an IAM role.
     accessKeyID: ""
     ## @param keyManager.awsKMS.secretAccessKey [nullable] Secret access key for the AWS account.
@@ -712,14 +717,21 @@ controllerManager:
         ## @param controllerManager.identities.clusterSPIFFEIDs.spike-keeper.type The type of rule this is.
         type: spike-keeper
         ## @param controllerManager.identities.clusterSPIFFEIDs.spike-keeper.spiffeIDTemplate The template to use for this rule.
-        spiffeIDTemplate: spiffe://{{ .TrustDomain }}/spike/keeper
+        spiffeIDTemplate: spiffe://{{ .TrustDomain }}/spike/keeper/{{ .PodMeta.Name }}
       spike-nexus:
         ## @param controllerManager.identities.clusterSPIFFEIDs.spike-nexus.enabled Enable this identity for controller manager
         enabled: true
         ## @param controllerManager.identities.clusterSPIFFEIDs.spike-nexus.type The type of rule this is.
         type: spike-nexus
         ## @param controllerManager.identities.clusterSPIFFEIDs.spike-nexus.spiffeIDTemplate The template to use for this rule.
-        spiffeIDTemplate: spiffe://{{ .TrustDomain }}/spike/nexus
+        spiffeIDTemplate: spiffe://{{ .TrustDomain }}/spike/nexus/{{ .PodMeta.Name }}
+      spike-bootstrap:
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spike-bootstrap.enabled Enable this identity for controller manager
+        enabled: true
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spike-bootstrap.type The type of rule this is.
+        type: spike-bootstrap
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spike-bootstrap.spiffeIDTemplate The template to use for this rule.
+        spiffeIDTemplate: spiffe://{{ .TrustDomain }}/spike/bootstrap/{{ .PodMeta.Name }}
       spike-pilot:
         ## @param controllerManager.identities.clusterSPIFFEIDs.spike-pilot.enabled Enable this identity for controller manager
         enabled: true
@@ -929,6 +941,11 @@ agentTTL: ""
 defaultX509SvidTTL: 4h
 ## @param defaultJwtSvidTTL TTL for JWT Svids
 defaultJwtSvidTTL: 1h
+
+## @param pruneAttestedNodesExpiredFor Enables periodic pruning of attested node entries with expired SVIDs. Set to a duration (e.g. "168h" for 7 days) to prune nodes that expired longer ago than the specified duration. Set to "" (empty) to disable pruning. When enabled, expired nodes are pruned at a regular interval.
+pruneAttestedNodesExpiredFor: ""
+## @param pruneTOFUNodes If true, includes non-reattestable (TOFU) nodes in the pruning process when pruneAttestedNodesExpiredFor is set. Banned nodes are never pruned.
+pruneTOFUNodes: false
 
 nodeAttestor:
   k8sPSAT:
@@ -1261,7 +1278,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:d965934bc289d795540aa1204f39b2586cd023cc9deb2695e4e284b21492c77c
+      tag: latest@sha256:0b3c18d0fd5f01c21f2be0359b12e19bb86cd0eaf15d31d14ae1991685fea657
 
 ## @param kubeConfigs [object] Manage additional kubeconfig files to talk to external Kubernetes clusters
 kubeConfigs: {}
