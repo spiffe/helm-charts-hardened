@@ -230,6 +230,8 @@ adminIDs: []
 auditLogEnabled: false
 ## @param logLevel The log level, valid values are "debug", "info", "warn", and "error"
 logLevel: info
+## @param logFormat The log format, valid values are "text" and "json"
+logFormat: ""
 ## @param jwtIssuer The JWT issuer domain. Defaults to oidc-discovery.$trustDomain if unset
 jwtIssuer: ""
 
