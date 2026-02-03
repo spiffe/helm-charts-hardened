@@ -54,6 +54,15 @@ leaderElection:
   leaderElect: true
   resourceName: {{ printf "%s-%s%s" .Release.Namespace (default .Release.Name .Values.crNameOverride) .suffix | sha256sum | trunc 8 }}.spiffe.io
   resourceNamespace: {{ include "spire-server.namespace" . }}
+  {{- with .defaults.leaderElection.leaseDuration }}
+  leaseDuration: {{ . }}
+  {{- end }}
+  {{- with .defaults.leaderElection.renewDeadline }}
+  renewDeadline: {{ . }}
+  {{- end }}
+  {{- with .defaults.leaderElection.retryPeriod }}
+  retryPeriod: {{ . }}
+  {{- end }}
 {{- end }}
 {{- with .settings.cacheNamespaces }}
 cacheNamespaces:
