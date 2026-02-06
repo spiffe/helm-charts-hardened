@@ -59,6 +59,10 @@ spec:
       name: {{ include "spire-server.fullname" . }}-post-install
     spec:
       restartPolicy: Never
+      {{- with (or .Values.global.imagePullSecrets .Values.imagePullSecrets) }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       serviceAccountName: {{ include "spire-server.serviceAccountName" . }}-post-install
       securityContext:
         {{- include "spire-lib.podsecuritycontext" . | nindent 8 }}

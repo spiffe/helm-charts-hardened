@@ -57,6 +57,10 @@ spec:
       name: {{ include "spiffe-oidc-discovery-provider.fullname" . }}-pre-delete
     spec:
       restartPolicy: Never
+      {{- with (or .Values.global.imagePullSecrets .Values.imagePullSecrets) }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       serviceAccountName: {{ include "spiffe-oidc-discovery-provider.serviceAccountName" . }}-pre-delete
       securityContext:
         {{- include "spire-lib.podsecuritycontext" . | nindent 8 }}
