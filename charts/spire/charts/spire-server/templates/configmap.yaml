@@ -298,6 +298,8 @@ plugins:
   {{- end }}
   {{- end }}
 
+{{- $keyManagerUsed = add $keyManagerUsed (len .Values.unsupportedBuiltInPlugins.keyManager) }}
+
 {{- if ne $keyManagerUsed 1 }}
 {{- fail (printf "You have to enable exactly one Key Manager. There are %d enabled." $keyManagerUsed) }}
 {{- end }}
