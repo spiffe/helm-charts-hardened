@@ -58,6 +58,10 @@ spec:
     metadata:
       name: {{ include "spire-server.fullname" . }}-post-install
     spec:
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       restartPolicy: Never
       serviceAccountName: {{ include "spire-server.serviceAccountName" . }}-post-install
       securityContext:

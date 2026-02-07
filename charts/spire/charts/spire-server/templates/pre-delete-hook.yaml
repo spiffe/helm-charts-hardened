@@ -61,6 +61,10 @@ spec:
     metadata:
       name: {{ include "spire-server.fullname" . }}-pre-delete
     spec:
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       restartPolicy: Never
       serviceAccountName: {{ include "spire-server.serviceAccountName" . }}-pre-delete
       securityContext:
