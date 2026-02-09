@@ -31,6 +31,9 @@ spec:
       {{- end }}
       labels:
         {{- include "spiffe-csi-driver.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
