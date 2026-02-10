@@ -91,6 +91,9 @@ serviceAccount:
 ## @param podAnnotations [object] Pod annotations for spiffe-csi-driver
 podAnnotations: {}
 
+## @param podLabels [object] Labels to add to pods
+podLabels: {}
+
 ## @param podSecurityContext [object] Security context for CSI driver pods
 podSecurityContext: {}
   # fsGroup: 2000
