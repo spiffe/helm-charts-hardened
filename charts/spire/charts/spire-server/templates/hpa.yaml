@@ -23,17 +23,31 @@ spec:
   maxReplicas: {{ .Values.autoscaling.maxReplicas }}
   metrics:
     {{- if .Values.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- if .Values.autoscaling.scaleOnSpireServerOnly }}
+    - type: ContainerResource
+    {{- else }}
     - type: Resource
+    {{- end }}
       resource:
         name: memory
+        {{- if .Values.autoscaling.scaleOnSpireServerOnly }}
+        container: {{ .Chart.Name }}
+        {{- end }}
         target:
           type: Utilization
           averageUtilization: {{ .Values.autoscaling.targetMemoryUtilizationPercentage }}
     {{- end }}
     {{- if .Values.autoscaling.targetCPUUtilizationPercentage }}
+    {{- if .Values.autoscaling.scaleOnSpireServerOnly }}
+    - type: ContainerResource
+    {{- else }}
     - type: Resource
+    {{- end }}
       resource:
         name: cpu
+        {{- if .Values.autoscaling.scaleOnSpireServerOnly }}
+        container: {{ .Chart.Name }}
+        {{- end }}
         target:
           type: Utilization
           averageUtilization: {{ .Values.autoscaling.targetCPUUtilizationPercentage }}
