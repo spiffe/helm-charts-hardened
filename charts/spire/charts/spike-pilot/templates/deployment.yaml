@@ -18,7 +18,7 @@ spec:
         release-namespace: {{ .Release.Namespace }}
         component: spike-pilot
     spec:
-      {{- with .Values.imagePullSecrets }}
+      {{- with (coalesce .Values.imagePullSecrets .Values.global.imagePullSecrets) }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
