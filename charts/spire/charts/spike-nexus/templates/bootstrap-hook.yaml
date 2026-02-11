@@ -68,6 +68,10 @@ spec:
         component: spike-bootstrap
     spec:
       restartPolicy: Never
+      {{- with (coalesce .Values.imagePullSecrets .Values.global.imagePullSecrets) }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       serviceAccountName: {{ include "spike-nexus.serviceAccountName" . }}-bootstrap
       securityContext:
         {{- include "spire-lib.podsecuritycontext" . | nindent 8 }}
