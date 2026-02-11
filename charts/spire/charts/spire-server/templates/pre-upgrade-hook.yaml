@@ -58,6 +58,10 @@ spec:
     metadata:
       name: {{ include "spire-server.fullname" . }}-pre-upgrade
     spec:
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       restartPolicy: Never
       {{- with (coalesce .Values.imagePullSecrets .Values.global.imagePullSecrets) }}
       imagePullSecrets:
