@@ -31,7 +31,7 @@ spec:
         release-namespace: {{ .Release.Namespace }}
         component: oidc-discovery-provider
     spec:
-      {{- with (or .Values.global.imagePullSecrets .Values.imagePullSecrets) }}
+      {{- with (coalesce .Values.imagePullSecrets .Values.global.imagePullSecrets) }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
