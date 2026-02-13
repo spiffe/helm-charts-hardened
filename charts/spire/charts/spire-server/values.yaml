@@ -103,14 +103,14 @@ resources: {}
 ## @param autoscaling.enabled Flag to enable autoscaling
 ## @param autoscaling.minReplicas Minimum replicas for autoscaling
 ## @param autoscaling.maxReplicas Maximum replicas for autoscaling
-## @param autoscaling.scaleOnSpireServerOnly Flag to only consider the main SPIRE container for autoscaling purposes
+## @param autoscaling.scaleOnSPIREServerOnly Flag to only consider the main SPIRE container for autoscaling purposes
 ## @param autoscaling.targetCPUUtilizationPercentage Target CPU utilization that triggers autoscaling
 ##
 autoscaling:
   enabled: false
   minReplicas: 1
   maxReplicas: 100
-  scaleOnSpireServerOnly: false
+  scaleOnSPIREServerOnly: false
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
