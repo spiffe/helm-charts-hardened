@@ -5,6 +5,9 @@
 ## Note: the parameter values specified here will override the chart level values for these parameters.
 ##
 global:
+  ## @param global.imagePullSecrets [array] Image pull secret names
+  imagePullSecrets: []
+
   k8s:
     ## @param global.k8s.clusterDomain Cluster domain name configured for Spire install
     clusterDomain: cluster.local
