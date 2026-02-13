@@ -572,6 +572,14 @@ controllerManager:
   ## @param controllerManager.logLevel The log level for the controller manager. Supported values are info, error, warn and debug.
   logLevel: info
 
+  ## @param controllerManager.leaderElection.leaseDuration Duration that non-leader candidates will wait to force acquire leadership. Increase this in high-load clusters to reduce API server pressure.
+  ## @param controllerManager.leaderElection.renewDeadline Duration the acting leader will retry refreshing leadership before giving up. Must be less than leaseDuration.
+  ## @param controllerManager.leaderElection.retryPeriod Duration the LeaderElector clients should wait between tries of actions. Must be less than renewDeadline.
+  leaderElection:
+    leaseDuration: "15s"
+    renewDeadline: "10s"
+    retryPeriod: "2s"
+
   ## @param controllerManager.parentIDTemplate The template that is used to register workloads.
   parentIDTemplate: "spiffe://{{ .TrustDomain }}/spire/agent/k8s_psat/{{ .ClusterName }}/{{ .NodeMeta.UID }}"
 
@@ -812,6 +820,13 @@ externalControllerManagers:
     entryIDPrefixCleanup: false
     ## @param externalControllerManagers.defaults.parentIDTemplate The template that is used to register workloads.
     parentIDTemplate: "spiffe://{{ .TrustDomain }}/spire/agent/k8s_psat/{{ .ClusterName }}/{{ .NodeMeta.UID }}"
+    ## @param externalControllerManagers.defaults.leaderElection.leaseDuration Duration that non-leader candidates will wait to force acquire leadership. Increase this in high-load clusters to reduce API server pressure.
+    ## @param externalControllerManagers.defaults.leaderElection.renewDeadline Duration the acting leader will retry refreshing leadership before giving up. Must be less than leaseDuration.
+    ## @param externalControllerManagers.defaults.leaderElection.retryPeriod Duration the LeaderElector clients should wait between tries of actions. Must be less than renewDeadline.
+    leaderElection:
+      leaseDuration: "15s"
+      renewDeadline: "10s"
+      retryPeriod: "2s"
     ## @param externalControllerManagers.defaults.expandEnv Set to true to enable environment variable substitution of config file options
     expandEnv: false
     ## @param externalControllerManagers.defaults.extraEnv [array] Extra environment variables to add to the controller manager
@@ -1282,7 +1297,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:9ef1ae8ce2ecc540ca45188df13141afd42a77359efe9958080df90659a314ca
+      tag: latest@sha256:65403bab01e0f5049456b75d148fdddf91109dbef46c6c69e2c386050826ba0c
 
 ## @param kubeConfigs [object] Manage additional kubeconfig files to talk to external Kubernetes clusters
 kubeConfigs: {}

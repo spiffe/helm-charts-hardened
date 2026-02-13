@@ -91,6 +91,9 @@ serviceAccount:
 ## @param podAnnotations [object] Pod annotations for spiffe-csi-driver
 podAnnotations: {}
 
+## @param podLabels [object] Labels to add to pods
+podLabels: {}
+
 ## @param podSecurityContext [object] Security context for CSI driver pods
 podSecurityContext: {}
   # fsGroup: 2000
@@ -163,4 +166,4 @@ selinux:
     registry: registry.access.redhat.com
     repository: ubi9
     pullPolicy: IfNotPresent
-    tag: 9.7-1769417801
+    tag: 9.7-1770238273

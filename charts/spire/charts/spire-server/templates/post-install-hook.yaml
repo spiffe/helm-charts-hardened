@@ -63,6 +63,10 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       restartPolicy: Never
+      {{- with (coalesce .Values.imagePullSecrets .Values.global.imagePullSecrets) }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       serviceAccountName: {{ include "spire-server.serviceAccountName" . }}-post-install
       securityContext:
         {{- include "spire-lib.podsecuritycontext" . | nindent 8 }}
