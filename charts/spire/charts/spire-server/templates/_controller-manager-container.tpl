@@ -13,7 +13,7 @@
 {{-     if or .Values.controllerManager.reconcile.clusterSPIFFEIDs .Values.controllerManager.reconcile.clusterStaticEntries }}
 {{-       $reconcileEntries = add $reconcileEntries 1 }}
 {{-     end }}
-{{-     include "spire-controller-manager.container" (dict "Values" .Values "Chart" .Chart "startPort" $startPort "suffix" "" "settings" $settings "defaults" $defaults "webhooksEnabled" $webhooksEnabled) }}
+{{-     include "spire-controller-manager.container" (dict "Values" .Values "Chart" .Chart "startPort" $startPort "suffix" "" "portSuffix" "" "settings" $settings "defaults" $defaults "webhooksEnabled" $webhooksEnabled) }}
 {{-   end }}
 {{-   if .Values.externalControllerManagers.enabled }}
 {{-     $clusters := default .Values.kubeConfigs .Values.externalControllerManagers.clusters }}
@@ -23,7 +23,33 @@
 {{-       if hasKey $root.Values.externalControllerManagers.clusters $name }}
 {{-         $clusterSettings = index $root.Values.externalControllerManagers.clusters $name }}
 {{-       end }}
+
+{{/*
+Generate port suffix for controller-manager ports.
+Port names must comply with RFC 6335: max 15 chars, [-a-z0-9] only.
+Preserves trailing numbers from cluster names when possible.
+Uses hash for uniqueness when names don't end with numbers.
+*/}}
 {{-       $suffix := printf "-%s" $name }}
+{{-       $portSuffix := $suffix }}
+{{-       if gt (len $name) 9 }}
+{{-         $numberMatch := regexFind "[-]?[0-9]{1,2}$" $name }}
+{{-         if $numberMatch }}
+{{-           $numLen := len $numberMatch }}
+{{-           $baseLen := sub (len $name) $numLen | int }}
+{{-           $baseName := substr 0 $baseLen $name }}
+{{-           if not (hasPrefix "-" $numberMatch) }}
+{{-             $numberMatch = printf "-%s" $numberMatch }}
+{{-           end }}
+{{-           $maxBase := sub 9 (len $numberMatch) | int }}
+{{-           $baseName = $baseName | trunc $maxBase | trimSuffix "-" }}
+{{-           $portSuffix = printf "-%s%s" $baseName $numberMatch }}
+{{-         else }}
+{{-           $hash := sha256sum $name | trunc 3 }}
+{{-           $portSuffix = printf "-%s-%s" ($name | trunc 5 | trimSuffix "-") $hash }}
+{{-         end }}
+{{-       end }}
+
 {{-       $startPort = add $startPort 2 }}
 {{-       $kubeConfig := $name }}
 {{-       if hasKey $clusterSettings "kubeConfigName" }}
@@ -41,7 +67,7 @@
 {{-       if gt $reconcileFederation 1 }}
 {{-         fail "You can only have one controller-manager with reconcile.clusterFederatedTrustDomains set to true" }}
 {{-       end }}
-{{-       include "spire-controller-manager.container" (dict "Values" $root.Values "Chart" $root.Chart "startPort" $startPort "suffix" $suffix "settings" $clusterSettings "defaults" $clusterDefaults "webhooksEnabled" false "kubeConfig" $kubeConfig ) }}
+{{-       include "spire-controller-manager.container" (dict "Values" $root.Values "Chart" $root.Chart "startPort" $startPort "suffix" $suffix "portSuffix" $portSuffix "settings" $clusterSettings "defaults" $clusterDefaults "webhooksEnabled" false "kubeConfig" $kubeConfig ) }}
 {{-     end }}
 {{-   end }}
 {{- end }}
@@ -83,6 +109,7 @@
   {{- if gt (len $extraEnv) 0 }}
   {{-   $extraEnv | toYaml | nindent 4 }}
   {{- end }}
+  {{/* Port names: hp-cm (health), pm-cm (prometheus) - abbreviated for 15 char limit */}}
   ports:
     {{- if .webhooksEnabled }}
     - name: https
@@ -90,20 +117,20 @@
       protocol: TCP
     {{- end }}
     - containerPort: {{ $healthPort }}
-      name: healthz
+      name: hp-cm{{ .portSuffix }}
     {{- if or (dig "telemetry" "prometheus" "enabled" .Values.telemetry.prometheus.enabled .Values.global) (and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "prometheus" true .Values.global)) }}
     - containerPort: {{ $promPort }}
-      name: prom-cm{{ .suffix }}
+      name: pm-cm{{ .portSuffix }}
     {{- end }}
 {{- if eq .Values.controllerManager.staticManifestMode "off" }}
   livenessProbe:
     httpGet:
       path: /healthz
-      port: healthz
+      port: hp-cm{{ .portSuffix }}
   readinessProbe:
     httpGet:
       path: /readyz
-      port: healthz
+      port: hp-cm{{ .portSuffix }}
 {{- end }}
   resources:
     {{- toYaml .Values.controllerManager.resources | nindent 4 }}
