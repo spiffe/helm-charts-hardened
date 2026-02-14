@@ -29,9 +29,13 @@
 {{- end }}
 {{- $resolvedMode := include "spire-agent.kubelet-address-mode-resolved" . }}
 {{- $cbh := or (eq $resolvedMode "hostname") (eq $resolvedMode "hostip") }}
+{{- $hostNetwork := not $cbh }}
+{{- if ne (.Values.hostNetwork | toString) "" }}
+{{-   $hostNetwork = eq (.Values.hostNetwork | toString) "true" }}
+{{- end }}
 {{- $dnsPolicy := .Values.dnsPolicy }}
-{{- if (and (eq $dnsPolicy "") (not $cbh)) }}
-{{- $dnsPolicy = "ClusterFirstWithHostNet" }}
+{{- if (and (eq $dnsPolicy "") $hostNetwork) }}
+{{-   $dnsPolicy = "ClusterFirstWithHostNet" }}
 {{- end }}
 {{- $socketAlternateNames := index (include "spire-agent.socket-alternate-names" . | fromYaml) "names" }}
 {{- $socketPath := include "spire-agent.socket-path" . }}
@@ -80,7 +84,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       hostPID: true
-      {{- if not $cbh }}
+      {{- if $hostNetwork }}
       hostNetwork: true
       {{- end }}
       {{- if ne $dnsPolicy "" }}
