@@ -2,12 +2,12 @@
   {
     "name": "mariadb",
     "registry": "docker.io/bitnamicharts/mariadb",
-    "version": "24.0.4"
+    "version": "24.1.1"
   },
   {
     "name": "postgresql",
     "registry": "docker.io/bitnamicharts/postgresql",
-    "version": "18.2.4"
+    "version": "18.3.0"
   },
   {
     "name": "envoy-gateway",
