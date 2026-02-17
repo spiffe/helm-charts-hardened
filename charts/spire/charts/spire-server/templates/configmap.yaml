@@ -153,7 +153,7 @@ plugins:
         {{- end }}
         max_open_conns: {{ .Values.dataStore.sql.maxOpenConns }}
         max_idle_conns: {{ .Values.dataStore.sql.maxIdleConns }}
-        {{- if ne (int .Values.dataStore.sql.connMaxLifetime) 0 }}
+        {{- if and .Values.dataStore.sql.connMaxLifetime (ne (toString .Values.dataStore.sql.connMaxLifetime) "0") }}
         conn_max_lifetime: {{ .Values.dataStore.sql.connMaxLifetime }}
         {{- end }}
         disable_migration: {{ .Values.dataStore.sql.disableMigration }}
