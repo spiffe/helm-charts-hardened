@@ -196,7 +196,7 @@ dataStore:
     maxOpenConns: 100
     ## @param dataStore.sql.maxIdleConns The maximum number of idle connections in the pool
     maxIdleConns: 2
-    ## @param dataStore.sql.connMaxLifetime The maximum amount of time a connection may be reused. Supports duration strings (e.g., "1h", "30m", "3600s") or 0 for unlimited.
+    ## @param dataStore.sql.connMaxLifetime The maximum amount of time a connection may be reused. Supports duration strings (e.g., "1h", "30m", "3600s") or 0 for unlimited. Duration strings are recommended to prevent connection accumulation.
     connMaxLifetime: 0
     ## @param dataStore.sql.disableMigration True to disable auto-migration functionality
     disableMigration: false
