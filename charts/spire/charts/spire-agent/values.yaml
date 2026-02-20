@@ -159,7 +159,7 @@ fsGroupFix:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: IfNotPresent
-    tag: latest@sha256:9ef1ae8ce2ecc540ca45188df13141afd42a77359efe9958080df90659a314ca
+    tag: latest@sha256:e3eebefe1806fd4e67100167655894211fb2f8bd4166a8e1d87055a8e8465cae
 
 keyManager:
   memory:
@@ -294,7 +294,9 @@ kubeletAddress:
   ##   provided at runtime or SPIRE agent will fail to start.
   mode: auto
 
-## @param dnsPolicy [string] dnsPolicy to assign to the DaemonSet. See valid values here: https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-dns-policy. If left empty, ClusterFirstWithHostNet will be used if kubeletAddress.mode does not resolve to hostip or hostname, otherwise, the default dnsPolicy will be used.
+## @param hostNetwork [string] Enable hostNetwork for the DaemonSet. If empty, auto-disables when kubeletAddress.mode is hostname/hostip. Set true/false to override.
+hostNetwork: ""
+## @param dnsPolicy [string] DNS policy for the DaemonSet. If empty, uses ClusterFirstWithHostNet when hostNetwork is enabled. See https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-dns-policy
 dnsPolicy: ""
 ## @param socketPath The unix socket path to the spire-agent
 socketPath: /run/spire/agent-sockets/spire-agent.sock
@@ -315,7 +317,7 @@ socketAlternate:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: IfNotPresent
-    tag: latest@sha256:9ef1ae8ce2ecc540ca45188df13141afd42a77359efe9958080df90659a314ca
+    tag: latest@sha256:e3eebefe1806fd4e67100167655894211fb2f8bd4166a8e1d87055a8e8465cae
 
 hostCert:
   ## @param hostCert.image.registry The OCI registry to pull the image from
@@ -327,7 +329,7 @@ hostCert:
     registry: cgr.dev
     repository: chainguard/min-toolkit-debug
     pullPolicy: IfNotPresent
-    tag: latest@sha256:fe25a67bebf425a79c623c5edd9c82a37c71a8e3c45e1f51178dbde2080706d2
+    tag: latest@sha256:68d2eec2bb2b3d864384c13d531aa5da7c39a49c2e05a134b35984f9a4ffaa43
 
 ## @param priorityClassName Priority class assigned to daemonset pods. Can be auto set with global.recommendations.priorityClassName.
 priorityClassName: ""

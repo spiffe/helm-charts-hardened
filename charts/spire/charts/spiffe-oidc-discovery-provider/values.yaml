@@ -125,6 +125,9 @@ livenessProbe:
 ## @param podAnnotations [object] Pod annotations for Spire OIDC discovery provider
 podAnnotations: {}
 
+## @param podLabels [object] Labels to add to pods
+podLabels: {}
+
 # Select from one of the options below to be the source of certificates for OIDC Discovery Provider.
 # If none are enabled, connections won't be TLS encrypted.
 tls:
@@ -184,7 +187,7 @@ insecureScheme:
       registry: docker.io
       repository: nginxinc/nginx-unprivileged
       pullPolicy: IfNotPresent
-      tag: 1.29.3-alpine
+      tag: 1.29.5-alpine
     ## @param insecureScheme.nginx.ipMode IP modes supported by the cluster. Must be one of [ipv4, ipv6, both]
     ipMode: both
     ## @param insecureScheme.nginx.resources Resource requests and limits
@@ -356,7 +359,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:9ef1ae8ce2ecc540ca45188df13141afd42a77359efe9958080df90659a314ca
+      tag: latest@sha256:e3eebefe1806fd4e67100167655894211fb2f8bd4166a8e1d87055a8e8465cae
 
   toolkit:
     ## @param tests.toolkit.image.registry The OCI registry to pull the image from
@@ -368,7 +371,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/min-toolkit-debug
       pullPolicy: IfNotPresent
-      tag: latest@sha256:fe25a67bebf425a79c623c5edd9c82a37c71a8e3c45e1f51178dbde2080706d2
+      tag: latest@sha256:68d2eec2bb2b3d864384c13d531aa5da7c39a49c2e05a134b35984f9a4ffaa43
 
   step:
     ## @param tests.step.image.registry The OCI registry to pull the image from
