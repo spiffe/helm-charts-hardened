@@ -1,0 +1,198 @@
+# Default configuration for Spire Agent
+# SPDX-License-Identifier: APACHE-2.0
+
+## @skip global
+global: {}
+
+## @section Chart parameters
+##
+## @param image.registry The OCI registry to pull the image from
+## @param image.repository The repository within the registry
+## @param image.pullPolicy The image pull policy
+## @param image.tag Overrides the image tag whose default is the chart appVersion
+##
+image:
+  registry: ghcr.io
+  repository: spiffe/spire-ha-agent
+  pullPolicy: IfNotPresent
+  tag: ""
+
+## @param singleSocket If in singleSocket mode, only one driver is used
+singleSocket: false
+
+## @param sockets.single.admin.hostPath Where the sockets are on disk when in single socket mode
+## @param sockets.a.admin.hostPath Where the sockets are on disk
+## @param sockets.b.admin.hostPath Where the sockets are on disk
+sockets:
+  single:
+    admin:
+      hostPath: /var/run/spire/agent/sockets/main/csi.spiffe.io/admin
+  a:
+    admin:
+      hostPath: /var/run/spire/agent/sockets/a/csi.spiffe.io/admin
+  b:
+    admin:
+      hostPath: /var/run/spire/agent/sockets/b/csi.spiffe.io/admin
+
+## @param vsock Use a vsockets to expose the service rather then a unix socket
+vsock: false
+
+## @param port Port number to listen on
+port: 999
+
+## @param imagePullSecrets [array] Pull secrets for images
+imagePullSecrets: []
+
+## @param nameOverride Name override
+nameOverride: ""
+
+## @param namespaceOverride Namespace override
+namespaceOverride: ""
+
+## @param fullnameOverride Fullname override
+fullnameOverride: ""
+
+serviceAccount:
+  ## @param serviceAccount.create Specifies whether a service account should be created
+  create: true
+  ## @param serviceAccount.annotations [object] Annotations to add to the service account
+  annotations: {}
+  ## @param serviceAccount.name The name of the service account to use.
+  ## If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+## @param podAnnotations [object] Annotations to add to pods
+podAnnotations: {}
+
+## @param podLabels [object] Labels to add to pods
+podLabels: {}
+
+## @param podSecurityContext [object] Pod security context
+podSecurityContext: {}
+  # fsGroup: 2000
+
+## @param securityContext [object] Security context
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+## @param resources [object] Resource requests and limits
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # requests:
+  #   cpu: 50m
+  #   memory: 64Mi
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+## @param nodeSelector [object] Node selector
+nodeSelector: {}
+
+## @param tolerations [array] List of tolerations
+tolerations: []
+
+## @param affinity [object] Node affinity
+affinity: {}
+
+## @param updateStrategy.type The update strategy to use to replace existing DaemonSet pods with new pods. Can be RollingUpdate or OnDelete.
+## @param updateStrategy.rollingUpdate.maxUnavailable Max unavailable pods during update. Can be a number or a percentage.
+updateStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 1
+
+# When running as non root, needed to ensure the socket path has the correct permissions.
+# Set runAsUser to a non-zero value in podSecurityContext to run as non-root user.
+fsGroupFix:
+  ## @param fsGroupFix.image.registry The OCI registry to pull the image from
+  ## @param fsGroupFix.image.repository The repository within the registry
+  ## @param fsGroupFix.image.pullPolicy The image pull policy
+  ## @param fsGroupFix.image.tag Overrides the image tag whose default is the chart appVersion
+  ##
+  image:
+    registry: cgr.dev
+    repository: chainguard/bash
+    pullPolicy: Always
+    tag: latest@sha256:e16830b0cc7e9e3258588fbcb82714ee67d9043221632832d7504080151bb1d2
+
+  ## @param fsGroupFix.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+  resources: {}
+
+cid2PID:
+  ## @param cid2PID.image.registry The OCI registry to pull the image from
+  ## @param cid2PID.image.repository The repository within the registry
+  ## @param cid2PID.image.pullPolicy The image pull policy
+  ## @param cid2PID.image.tag Overrides the image tag whose default is the chart appVersion
+  ##
+  image:
+    registry: ghcr.io
+    repository: kfox1111/cid2pid
+    pullPolicy: Always
+    tag: v0.0.3
+
+  ## @param cid2PID.busybox.image.registry The OCI registry to pull the image from
+  ## @param cid2PID.busybox.image.repository The repository within the registry
+  ## @param cid2PID.busybox.image.pullPolicy The image pull policy
+  ## @param cid2PID.busybox.image.tag Overrides the image tag whose default is the chart appVersion
+  ##
+  busybox:
+    image:
+      registry: docker.io
+      repository: library/busybox
+      pullPolicy: IfNotPresent
+      tag: 1.36.1-uclibc
+
+    ## @param cid2PID.busybox.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+    resources: {}
+
+## @param socketPath The unix socket path to the spire-agent
+socketPath: /run/spire/agent-sockets/spire-agent.sock
+
+socketAlternate:
+  ## @param socketAlternate.names List of alternate names for the socket that workloads might expect to be able to access in the driver mount.
+  names:
+    - socket
+    - spire-agent.sock
+    - api.sock
+
+  ## @param socketAlternate.image.registry The OCI registry to pull the image from
+  ## @param socketAlternate.image.repository The repository within the registry
+  ## @param socketAlternate.image.pullPolicy The image pull policy
+  ## @param socketAlternate.image.tag Overrides the image tag whose default is the chart appVersion
+  ##
+  image:
+    registry: cgr.dev
+    repository: chainguard/bash
+    pullPolicy: Always
+    tag: latest@sha256:e16830b0cc7e9e3258588fbcb82714ee67d9043221632832d7504080151bb1d2
+
+  ## @param socketAlternate.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+  resources: {}
+
+## @param priorityClassName Priority class assigned to daemonset pods. Can be auto set with global.recommendations.priorityClassName.
+priorityClassName: ""
+
+## @param extraEnvVars [array] Extra environment variables to be added to the Spire Agent container
+extraEnvVars: []
+
+## @param extraVolumes [array] Extra volumes to be mounted on Spire Agent pods
+extraVolumes: []
+
+## @param extraVolumeMounts [array] Extra volume mounts for Spire Agent pods
+extraVolumeMounts: []
+
+## @param extraContainers [array] Additional containers to create with Spire Agent pods
+extraContainers: []
+
+## @param initContainers [array] Additional init containers to create with Spire Agent pods
+initContainers: []
+## @param hostAliases [array] Customize /etc/hosts file as described here https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/
+hostAliases: []
