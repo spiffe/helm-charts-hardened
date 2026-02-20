@@ -40,7 +40,7 @@ Auto-generation preserves trailing numbers from cluster names or uses hash for u
 {{-       if hasKey $clusterSettings "prometheusPortName" }}
 {{-         $prometheusPortName = $clusterSettings.prometheusPortName }}
 {{-       end }}
-{{-       if and (eq $healthPortName "") (eq $prometheusPortName "") }}
+{{-       if or (eq $healthPortName "") (eq $prometheusPortName "") }}
 {{-         if gt (len $name) 9 }}
 {{-           $numberMatch := regexFind "[-]?[0-9]{1,2}$" $name }}
 {{-           if $numberMatch }}
