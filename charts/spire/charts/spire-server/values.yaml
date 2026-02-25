@@ -605,7 +605,7 @@ controllerManager:
     registry: ghcr.io
     repository: spiffe/spire-controller-manager
     pullPolicy: IfNotPresent
-    tag: "0.6.2"
+    tag: "0.6.3"
 
   ## @param controllerManager.resources [object] Resource requests and limits for controller manager
   resources: {}
