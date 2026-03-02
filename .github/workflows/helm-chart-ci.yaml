@@ -2,6 +2,11 @@ name: Helm Chart CI
 
 on:
   workflow_dispatch:
+    inputs:
+      target_branch:
+        description: 'Target branch to lint/test against (e.g. main, release)'
+        required: false
+        default: 'main'
   pull_request:
     types: [synchronize, opened, reopened]
     paths:
@@ -114,7 +119,7 @@ jobs:
           version: ${{ env.CHART_TESTING_VERSION }}
 
       - name: Run chart-testing (lint)
-        run: TARGET_BRANCH=${{ github.base_ref }} make lint${{ github.base_ref == 'release' && '-release' || '' }}
+        run: TARGET_BRANCH=${{ github.base_ref || inputs.target_branch }} make lint${{ (github.base_ref == 'release' || inputs.target_branch == 'release') && '-release' || '' }}
 
   test:
     runs-on: ubuntu-22.04
@@ -130,9 +135,9 @@ jobs:
         # Kubernetes, but can go back farther as long as we don't need heroics
         # to pull it off (i.e. kubectl version juggling).
         k8s:
-          - v1.31.1
-          - v1.30.4
-          - v1.29.8
+          - v1.33.7
+          - v1.34.3
+          - v1.35.1
 
     steps:
       - name: Checkout
@@ -172,7 +177,7 @@ jobs:
         run: |
           helm install -n spire-server spire-crds charts/spire-crds
           ct install --config ct.yaml --excluded-charts spire-crds,spiffe-step-ssh \
-            --target-branch ${{ github.base_ref }}
+            --target-branch ${{ github.base_ref || inputs.target_branch }}
 
       - name: Test summary
         if: always()
@@ -218,9 +223,9 @@ jobs:
       fail-fast: false
       matrix:
         k8s:
-          - v1.31.1
-          - v1.30.4
-          - v1.29.8
+          - v1.33.7
+          - v1.34.3
+          - v1.35.1
         example:
           - ${{ fromJson(needs.build-matrix.outputs.examples) }}
 
@@ -270,9 +275,9 @@ jobs:
       fail-fast: false
       matrix:
         k8s:
-          - v1.31.1
-          - v1.30.4
-          - v1.29.8
+          - v1.33.7
+          - v1.34.3
+          - v1.35.1
         integrationtest:
           - ${{ fromJson(needs.build-matrix.outputs.integrationtests) }}
 
@@ -315,9 +320,9 @@ jobs:
       fail-fast: false
       matrix:
         k8s:
-          - v1.31.1
-          - v1.30.4
-          - v1.29.8
+          - v1.33.7
+          - v1.34.3
+          - v1.35.1
 
     steps:
       - name: Checkout
