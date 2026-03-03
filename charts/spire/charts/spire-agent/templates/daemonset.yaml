@@ -30,8 +30,9 @@
 {{- $resolvedMode := include "spire-agent.kubelet-address-mode-resolved" . }}
 {{- $cbh := or (eq $resolvedMode "hostname") (eq $resolvedMode "hostip") }}
 {{- $hostNetwork := not $cbh }}
-{{- if ne (.Values.hostNetwork | toString) "" }}
-{{-   $hostNetwork = eq (.Values.hostNetwork | toString) "true" }}
+{{- $hostNetworkValue := .Values.hostNetwork | toString }}
+{{- if and (ne $hostNetworkValue "") (ne $hostNetworkValue "auto") }}
+{{-   $hostNetwork = eq $hostNetworkValue "true" }}
 {{- end }}
 {{- $dnsPolicy := .Values.dnsPolicy }}
 {{- if (and (eq $dnsPolicy "") $hostNetwork) }}

@@ -294,8 +294,8 @@ kubeletAddress:
   ##   provided at runtime or SPIRE agent will fail to start.
   mode: auto
 
-## @param hostNetwork [string] Enable hostNetwork for the DaemonSet. If empty, auto-disables when kubeletAddress.mode is hostname/hostip. Set true/false to override.
-hostNetwork: ""
+## @param hostNetwork [string] Enable hostNetwork for the DaemonSet. If auto or empty, auto-disables when kubeletAddress.mode is hostname/hostip. Set true/false to override.
+hostNetwork: auto
 ## @param dnsPolicy [string] DNS policy for the DaemonSet. If empty, uses ClusterFirstWithHostNet when hostNetwork is enabled. See https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-dns-policy
 dnsPolicy: ""
 ## @param socketPath The unix socket path to the spire-agent
