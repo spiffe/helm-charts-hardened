@@ -376,6 +376,8 @@ experimental:
   enabled: false
   ## @param experimental.syncInterval Sync interval with SPIRE server with exponential backoff
   syncInterval: 5s
+  ## @param experimental.requirePQKEM Require use of a post-quantum-safe key exchange method for TLS handshakes.
+  requirePQKEM: false
   ## @param experimental.featureFlags [array] List of developer feature flags
   featureFlags: []
 

@@ -1271,6 +1271,8 @@ experimental:
   eventsBasedCache: false
   ## @param experimental.pruneEventsOlderThan How old an event can be before being deleted. Used with events based cache.
   pruneEventsOlderThan: 12h
+  ## @param experimental.requirePQKEM Require use of a post-quantum-safe key exchange method for TLS handshakes.
+  requirePQKEM: false
   ## @param experimental.featureFlags [array] List of developer feature flags
   featureFlags: []
   ## @param experimental.authOpaPolicyEngine [object] The [auth opa_policy engine](https://github.com/spiffe/spire/blob/main/doc/authorization_policy_engine.md) used for authorization decisions. Defaults to the default SPIRE authorization policy.
