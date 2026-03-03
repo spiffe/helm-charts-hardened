@@ -52,6 +52,9 @@ server:
   trust_domain: {{ include "spire-lib.trust-domain" . | quote }}
   data_dir: "/run/spire/data"
   log_level: {{ .Values.logLevel | quote }}
+  {{- if .Values.logFormat }}
+  log_format: {{ .Values.logFormat | quote }}
+  {{- end }}
   jwt_issuer: {{ include "spire-lib.jwt-issuer" . | quote }}
   audit_log_enabled: {{ .Values.auditLogEnabled }}
 
@@ -102,6 +105,7 @@ server:
     cache_reload_interval: {{ .cacheReloadInterval | quote }}
     events_based_cache: {{ .eventsBasedCache }}
     prune_events_older_than: {{ .pruneEventsOlderThan | quote }}
+    require_pq_kem: {{ .requirePQKEM }}
     {{- if gt (len .featureFlags) 0 }}
     feature_flags:
       {{- range .featureFlags }}
@@ -150,7 +154,7 @@ plugins:
         {{- end }}
         max_open_conns: {{ .Values.dataStore.sql.maxOpenConns }}
         max_idle_conns: {{ .Values.dataStore.sql.maxIdleConns }}
-        {{- if ne (int .Values.dataStore.sql.connMaxLifetime) 0 }}
+        {{- if and .Values.dataStore.sql.connMaxLifetime (ne (toString .Values.dataStore.sql.connMaxLifetime) "0") }}
         conn_max_lifetime: {{ .Values.dataStore.sql.connMaxLifetime }}
         {{- end }}
         disable_migration: {{ .Values.dataStore.sql.disableMigration }}
@@ -294,6 +298,8 @@ plugins:
         {{- end }}
   {{- end }}
   {{- end }}
+
+{{- $keyManagerUsed = add $keyManagerUsed (len .Values.unsupportedBuiltInPlugins.keyManager) }}
 
 {{- if ne $keyManagerUsed 1 }}
 {{- fail (printf "You have to enable exactly one Key Manager. There are %d enabled." $keyManagerUsed) }}

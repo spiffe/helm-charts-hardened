@@ -1,6 +1,6 @@
 # spire
 
-![Version: 0.28.1](https://img.shields.io/badge/Version-0.28.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.14.1](https://img.shields.io/badge/AppVersion-1.14.1-informational?style=flat-square)
+![Version: 0.28.2](https://img.shields.io/badge/Version-0.28.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.14.1](https://img.shields.io/badge/AppVersion-1.14.1-informational?style=flat-square)
 [![Development Phase](https://github.com/spiffe/spiffe/blob/main/.img/maturity/dev.svg)](https://github.com/spiffe/spiffe/blob/main/MATURITY.md#development)
 
 A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
@@ -273,6 +273,7 @@ Now you can interact with the Spire agent socket from your own application. The 
 
 | Name                                             | Description                                                                                                                                                                                                                            | Value             |
 | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| `global.imagePullSecrets`                        | Image pull secret names                                                                                                                                                                                                                | `[]`              |
 | `global.k8s.clusterDomain`                       | Cluster domain name configured for Spire install                                                                                                                                                                                       | `cluster.local`   |
 | `global.spire.bundleConfigMap`                   | A configmap containing the Spire bundle                                                                                                                                                                                                | `""`              |
 | `global.spire.clusterName`                       | The name of the k8s cluster for Spire install                                                                                                                                                                                          | `example-cluster` |

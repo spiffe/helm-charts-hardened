@@ -18,7 +18,7 @@ spec:
         release-namespace: {{ .Release.Namespace }}
         component: spike-nexus
     spec:
-      {{- with .Values.imagePullSecrets }}
+      {{- with (coalesce .Values.imagePullSecrets .Values.global.imagePullSecrets) }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}

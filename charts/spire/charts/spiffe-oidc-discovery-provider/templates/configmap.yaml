@@ -21,6 +21,7 @@
 {{- $oidcSocket := .oidcSocket }}
 {{- with .root }}
 log_level: {{ .Values.config.logLevel | quote }}
+log_format: {{ .Values.config.logFormat | quote }}
 
 domains:
   - "{{ include "spiffe-oidc-discovery-provider.fullname" . }}"

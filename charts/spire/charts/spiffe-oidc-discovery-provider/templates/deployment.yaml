@@ -30,8 +30,11 @@ spec:
         release: {{ .Release.Name }}
         release-namespace: {{ .Release.Namespace }}
         component: oidc-discovery-provider
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
-      {{- with .Values.imagePullSecrets }}
+      {{- with (coalesce .Values.imagePullSecrets .Values.global.imagePullSecrets) }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
