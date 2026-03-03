@@ -77,6 +77,7 @@ agent:
   {{- if eq (.enabled | toString) "true" }}
   experimental:
     sync_interval: {{ .syncInterval | quote }}
+    require_pq_kem: {{ .requirePQKEM }}
     {{- if gt (len .featureFlags) 0 }}
     feature_flags:
       {{- range .featureFlags }}
