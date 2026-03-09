@@ -1304,7 +1304,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:3a1830320b1d57167a7317fcd6efd8c72cd872440da8055fa25730d600c9c39a
+      tag: latest@sha256:d65cf89ca7ee0781c8f5c165332aa9e71127e7d8b2d240746720c2c44c4d9ea2
 
 ## @param kubeConfigs [object] Manage additional kubeconfig files to talk to external Kubernetes clusters
 kubeConfigs: {}
