@@ -112,6 +112,9 @@ securityContext:
   #   drop:
   #   - ALL
 
+## @param hostNetwork Enable hostNetwork for the DaemonSet
+hostNetwork: false
+
 ## @param nodeSelector [object] Node selector for CSI driver pods
 nodeSelector: {}
 

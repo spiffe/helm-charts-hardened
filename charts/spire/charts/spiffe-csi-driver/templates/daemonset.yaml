@@ -52,6 +52,9 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.hostNetwork }}
+      hostNetwork: true
+      {{- end }}
       {{- include "spire-lib.default_node_priority_class_name" . | nindent 6 }}
       {{- if or (gt (len .Values.initContainers) 0) (dig "openshift" false .Values.global) (dig "selinux" false .Values.global) .Values.selinux.enabled }}
       securityContext:
