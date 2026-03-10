@@ -19,9 +19,9 @@ volumes:
 allowedCapabilities: null
 allowHostDirVolumePlugin: true
 allowHostIPC: false
-allowHostNetwork: false
+allowHostNetwork: {{ .Values.hostNetwork }}
 allowHostPID: false
-allowHostPorts: false
+allowHostPorts: {{ .Values.hostNetwork }}
 allowPrivilegeEscalation: true
 allowPrivilegedContainer: true
 defaultAddCapabilities: null
