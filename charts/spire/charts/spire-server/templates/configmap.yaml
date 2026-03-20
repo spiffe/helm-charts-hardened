@@ -507,6 +507,23 @@ plugins:
         {{- end }}
   {{- end }}
   {{- end }}
+  {{- with .Values.upstreamAuthority.awsSecret }}
+  {{- if eq (.enabled | toString) "true" }}
+  {{- $upstreamAuthorityUsed = add1 $upstreamAuthorityUsed }}
+  UpstreamAuthority:
+    awssecret:
+      plugin_data:
+        region: {{ .region | quote }}
+        cert_file_arn: {{ .certFileArn | quote }}
+        key_file_arn: {{ .keyFileArn | quote }}
+        {{- if ne .bundleFileArn "" }}
+        bundle_file_arn: {{ .bundleFileArn | quote }}
+        {{- end }}
+        {{- if ne .assumeRoleArn "" }}
+        assume_role_arn: {{ .assumeRoleArn | quote }}
+        {{- end }}
+  {{- end }}
+  {{- end }}
 {{- if gt $upstreamAuthorityUsed 1 }}
 {{- fail "You can only enable a single Upstream Authority." }}
 {{- end }}
