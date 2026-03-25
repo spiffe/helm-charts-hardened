@@ -52,6 +52,10 @@ jwks_uri: {{ .Values.config.jwksUri | quote }}
 server_path_prefix: {{ .Values.config.serverPathPrefix | quote }}
 {{- end }}
 
+{{- if .Values.config.setKeyUse }}
+set_key_use: true
+{{- end }}
+
 {{- if eq .Values.bundleSource "ConfigMap" }}
 file:
   path: /bundle/bundle.spiffe

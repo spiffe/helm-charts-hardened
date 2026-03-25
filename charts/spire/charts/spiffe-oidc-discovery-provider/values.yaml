@@ -220,6 +220,8 @@ config:
   ## @param config.additionalDomains [array] Add additional domains that can be used for oidc discovery
   additionalDomains: []
   # - localhost
+  ## @param config.setKeyUse [bool] Add "use":"sig" field to JWKs (required for Keycloak SPIFFE provider)
+  setKeyUse: false
 
 ## @param imagePullSecrets [array] Image pull secret names
 imagePullSecrets: []
