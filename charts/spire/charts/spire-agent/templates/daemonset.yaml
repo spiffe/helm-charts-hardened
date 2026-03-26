@@ -114,9 +114,11 @@ spec:
               {{- else }}
               if [ -f "{{ .Values.workloadAttestors.k8s.verification.hostCert.basePath }}/kubelet-server-current.pem" ]; then
                 openssl x509 -in {{ printf "%s/kubelet-server-current.pem" .Values.workloadAttestors.k8s.verification.hostCert.basePath | quote }} -out /hostCert/kubelet.crt
-              elif [ -f "{{ .Values.workloadAttestors.k8s.verification.hostCert.basePath }}/kubelet.crt" ]; then
+              fi
+              if [ ! -f /hostCert/kubelet.crt ] && [ -f "{{ .Values.workloadAttestors.k8s.verification.hostCert.basePath }}/kubelet.crt" ]; then
                 openssl x509 -in {{ printf "%s/kubelet.crt" .Values.workloadAttestors.k8s.verification.hostCert.basePath | quote }} -out /hostCert/kubelet.crt
-              else
+              fi
+              if [ ! -f /hostCert/kubelet.crt ]; then
                 {{- if eq .Values.workloadAttestors.k8s.verification.type "auto" }}
                 {{- if $cbh }}
                 URL="https://$KUBELET_ADDR:10250/spec/"
