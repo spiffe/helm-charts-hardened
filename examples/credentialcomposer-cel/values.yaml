@@ -1,0 +1,14 @@
+# Details at https://github.com/spiffe/spire-credentialcomposer-cel/blob/main/README.md
+spire-server:
+  credentialComposer:
+    cel:
+      enabled: true
+      jwt:
+        expression: |
+          spire.plugin.server.credentialcomposer.v1.ComposeWorkloadJWTSVIDResponse{
+            attributes: spire.plugin.server.credentialcomposer.v1.JWTSVIDAttributes{
+              claims: request.attributes.claims.mapOverrideEntries(
+                {'newclaim': "value"}
+              )
+            }
+          }

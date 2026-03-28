@@ -1,6 +1,6 @@
 # spire
 
-![Version: 0.24.1](https://img.shields.io/badge/Version-0.24.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.11.0](https://img.shields.io/badge/AppVersion-1.11.0-informational?style=flat-square)
+![Version: 0.28.3](https://img.shields.io/badge/Version-0.28.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.14.2](https://img.shields.io/badge/AppVersion-1.14.2-informational?style=flat-square)
 [![Development Phase](https://github.com/spiffe/spiffe/blob/main/.img/maturity/dev.svg)](https://github.com/spiffe/spiffe/blob/main/MATURITY.md#development)
 
 A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
@@ -24,11 +24,6 @@ Preparing a production deployment requires a few steps.
 
 1. Save the following to your-values.yaml, ideally in your git repo.
 
-> [!NOTE]
-> Please note that `rancher/kubectl` image does not always correspond to the most
-> recent version of Kubernetes. In order to find the most up-to-date version,
-> please visit their [releases](https://github.com/rancher/kubectl/releases) page.
-
 ```yaml
 global:
   openshift: false # If running on openshift, set to true
@@ -45,10 +40,6 @@ global:
       country: ARPA
       organization: Example
       commonName: example.org
-# If rancher/kubectl doesn't have a version that matches your cluster, uncomment and update:
-#    tools:
-#       kubectl:
-#         tag: "v1.23.3"
 ```
 
 2. If you need a non default storageClass, append the following to the global.spire section and update:
@@ -87,6 +78,11 @@ kubectl delete crds clusterfederatedtrustdomains.spire.spiffe.io clusterspiffeid
 ## Upgrade notes
 
 We only support upgrading one major/minor version at a time. Version skipping isn't supported. Please see <https://spiffe.io/docs/latest/spire-helm-charts-hardened-about/upgrading/> for details.
+
+### 0.26.X
+
+- The notifier.k8sBundle plugin has been deprecated in favor of bundlePublisher.k8sConfigMap. The only features it does not provide are the settings `apiServiceLabel` and `webhookLabel`. If you are using either of these two features, set the chart to use the notifier.k8sBundle plugin again, and let us know. We don't think anyone is using these features.
+- The default trust bundle format has been changed to `spiffe`. This switch should be transparent unless you ware fetching the bundle from the configmap manually, or have a nested setup and dont upgrade the root, then child clusters in short order.
 
 ### 0.24.X
 
@@ -277,6 +273,7 @@ Now you can interact with the Spire agent socket from your own application. The 
 
 | Name                                             | Description                                                                                                                                                                                                                            | Value             |
 | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| `global.imagePullSecrets`                        | Image pull secret names                                                                                                                                                                                                                | `[]`              |
 | `global.k8s.clusterDomain`                       | Cluster domain name configured for Spire install                                                                                                                                                                                       | `cluster.local`   |
 | `global.spire.bundleConfigMap`                   | A configmap containing the Spire bundle                                                                                                                                                                                                | `""`              |
 | `global.spire.clusterName`                       | The name of the k8s cluster for Spire install                                                                                                                                                                                          | `example-cluster` |
@@ -373,3 +370,21 @@ Now you can interact with the Spire agent socket from your own application. The 
 | Name                       | Description                                                    | Value   |
 | -------------------------- | -------------------------------------------------------------- | ------- |
 | `tornjak-frontend.enabled` | Enables deployment of Tornjak frontend/UI (Not for production) | `false` |
+
+### SPIKE Keeper parameters
+
+| Name                   | Description                                             | Value   |
+| ---------------------- | ------------------------------------------------------- | ------- |
+| `spike-keeper.enabled` | Enables deployment of SPIKE Keeper (Not for production) | `false` |
+
+### SPIKE Nexus parameters
+
+| Name                  | Description                                            | Value   |
+| --------------------- | ------------------------------------------------------ | ------- |
+| `spike-nexus.enabled` | Enables deployment of SPIKE Nexus (Not for production) | `false` |
+
+### SPIKE Pilot parameters
+
+| Name                  | Description                                            | Value   |
+| --------------------- | ------------------------------------------------------ | ------- |
+| `spike-pilot.enabled` | Enables deployment of SPIKE Pilot (Not for production) | `false` |

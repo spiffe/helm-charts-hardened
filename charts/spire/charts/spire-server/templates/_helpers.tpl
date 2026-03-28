@@ -65,7 +65,23 @@ Allow the release namespace to be overridden for multi-namespace deployments in 
   {{- end -}}
 {{- end -}}
 
-{{- define "spire-server.bundle-namespace" -}}
+{{- define "spire-server.bundle-namespace-bundlepublisher" -}}
+  {{- if .Values.bundlePublisher.k8sConfigMap.namespace }}
+    {{- .Values.bundlePublisher.k8sConfigMap.namespace }}
+  {{- else if .Values.namespaceOverride -}}
+    {{- .Values.namespaceOverride -}}
+  {{- else if and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "namespaceLayout" true .Values.global) }}
+    {{- if ne (len (dig "spire" "namespaces" "system" "name" "" .Values.global)) 0 }}
+      {{- .Values.global.spire.namespaces.system.name }}
+    {{- else }}
+      {{- printf "spire-system" }}
+    {{- end }}
+  {{- else -}}
+    {{- .Release.Namespace -}}
+  {{- end -}}
+{{- end -}}
+
+{{- define "spire-server.bundle-namespace-notifier" -}}
   {{- if .Values.notifier.k8sBundle.namespace }}
     {{- .Values.notifier.k8sBundle.namespace }}
   {{- else if .Values.namespaceOverride -}}
@@ -80,6 +96,14 @@ Allow the release namespace to be overridden for multi-namespace deployments in 
     {{- .Release.Namespace -}}
   {{- end -}}
 {{- end -}}
+
+{{- define "spire-server.bundle-namespace" -}}
+  {{- if .Values.notifier.k8sBundle.namespace }}
+    {{- .Values.notifier.k8sBundle.namespace }}
+  {{- else }}
+    {{- include "spire-server.bundle-namespace-bundlepublisher" . -}}
+  {{- end }}
+{{- end }}
 
 {{- define "spire-server.podMonitor.namespace" -}}
   {{- if ne (len .Values.telemetry.prometheus.podMonitor.namespace) 0 }}
@@ -161,6 +185,20 @@ Create the name of the service account to use
 {{- end }}
 {{- end }}
 
+{{- define "spire-server.config-sqlite-query" }}
+{{- $lst := list }}
+{{- range . }}
+{{- range $key, $value := . }}
+{{- $eValue := toString $value }}
+{{- $entry := printf "%s=%s" (urlquery $key) (urlquery $eValue) }}
+{{- $lst = append $lst $entry }}
+{{- end }}
+{{- end }}
+{{- if gt (len $lst) 0 }}
+{{- printf "?%s" (join "&" (uniq $lst)) }}
+{{- end }}
+{{- end }}
+
 {{- define "spire-server.config-mysql-query" }}
 {{- $lst := list }}
 {{- range . }}
@@ -194,22 +232,37 @@ Create the name of the service account to use
 {{- $ropw := "" }}
 {{- if eq .Values.dataStore.sql.databaseType "sqlite3" }}
   {{- $_ := set $config "database_type" "sqlite3" }}
-  {{- $_ := set $config "connection_string" "/run/spire/data/datastore.sqlite3" }}
-{{- else if or (eq .Values.dataStore.sql.databaseType "mysql") (eq .Values.dataStore.sql.databaseType "aws_mysql") }}
+  {{- $query := include "spire-server.config-sqlite-query" .Values.dataStore.sql.options }}
+  {{- $_ := set $config "connection_string" (printf "%s%s" .Values.dataStore.sql.file $query) }}
+{{- else if or (eq .Values.dataStore.sql.databaseType "mysql") (eq .Values.dataStore.sql.databaseType "aws_mysql") (eq .Values.dataStore.sql.databaseType "gcp_mysql_sa_iam") }}
   {{- if eq .Values.dataStore.sql.databaseType "mysql" }}
   {{-   $_ := set $config "database_type" "mysql" }}
   {{-   $pw = "${DBPW}" }}
   {{-   $ropw = "${RODBPW}" }}
+  {{- else if eq .Values.dataStore.sql.databaseType "gcp_mysql_sa_iam" }}
+  {{-   $_ := set $config "database_type" "mysql" }}
+  {{-   $pw = "" }}
+  {{-   $ropw = "" }}
   {{- else }}
   {{-   $_ := set $config "database_type" (list (dict "aws_mysql" (dict "region" .Values.dataStore.sql.region))) }}
-  {{- end }}
+  {{-   $pw = "${DBPW}" }}
+  {{-   $ropw = "${RODBPW}" }}
+  {{-   end }}
   {{- $port := int .Values.dataStore.sql.port | default 3306 }}
   {{- $query := include "spire-server.config-mysql-query" .Values.dataStore.sql.options }}
-  {{- $_ := set $config "connection_string" (printf "%s:%s@tcp(%s:%d)/%s%s" .Values.dataStore.sql.username $pw .Values.dataStore.sql.host $port .Values.dataStore.sql.databaseName $query) }}
+  {{- if eq $pw "" }}
+  {{-   $_ := set $config "connection_string" (printf "%s@tcp(%s:%d)/%s%s" .Values.dataStore.sql.username .Values.dataStore.sql.host $port .Values.dataStore.sql.databaseName $query) }}
+  {{- else }}
+  {{-   $_ := set $config "connection_string" (printf "%s:%s@tcp(%s:%d)/%s%s" .Values.dataStore.sql.username $pw .Values.dataStore.sql.host $port .Values.dataStore.sql.databaseName $query) }}
+  {{- end }}
   {{- if .Values.dataStore.sql.readOnly.enabled }}
   {{-   $roPort := int .Values.dataStore.sql.readOnly.port | default 3306 }}
   {{-   $roQuery := include "spire-server.config-mysql-query" .Values.dataStore.sql.readOnly.options }}
-  {{-   $_ := set $config "ro_connection_string" (printf "%s:%s@tcp(%s:%d)/%s%s" .Values.dataStore.sql.readOnly.username $ropw .Values.dataStore.sql.readOnly.host $roPort .Values.dataStore.sql.readOnly.databaseName $roQuery) }}
+  {{-   if eq $ropw "" }}
+  {{-     $_ := set $config "ro_connection_string" (printf "%s@tcp(%s:%d)/%s%s" .Values.dataStore.sql.readOnly.username .Values.dataStore.sql.readOnly.host $roPort .Values.dataStore.sql.readOnly.databaseName $roQuery) }}
+  {{-   else }}
+  {{-     $_ := set $config "ro_connection_string" (printf "%s:%s@tcp(%s:%d)/%s%s" .Values.dataStore.sql.readOnly.username $ropw .Values.dataStore.sql.readOnly.host $roPort .Values.dataStore.sql.readOnly.databaseName $roQuery) }}
+  {{-   end }}
   {{- end }}
 {{- else if or (eq .Values.dataStore.sql.databaseType "postgres") (eq .Values.dataStore.sql.databaseType "aws_postgres") }}
   {{- if eq .Values.dataStore.sql.databaseType "postgres" }}
@@ -225,7 +278,7 @@ Create the name of the service account to use
   {{- if .Values.dataStore.sql.readOnly.enabled }}
   {{-   $roPort := int .Values.dataStore.sql.readOnly.port | default 5432 }}
   {{-   $roOptions:= include "spire-server.config-postgresql-options" .Values.dataStore.sql.readOnly.options }}
-  {{-   $_ := set $config "ro_connection_string" (printf "dbname=%s user=%s%s host=%s port=%d%s" .Values.dataStore.sql.readOnly.databaseName $ropw .Values.dataStore.sql.readOnly.username .Values.dataStore.sql.readOnly.host $roPort $roOptions) }}
+  {{-   $_ := set $config "ro_connection_string" (printf "dbname=%s user=%s%s host=%s port=%d%s" .Values.dataStore.sql.readOnly.databaseName .Values.dataStore.sql.readOnly.username $ropw .Values.dataStore.sql.readOnly.host $roPort $roOptions) }}
   {{- end }}
 {{- else }}
   {{- fail "Unsupported database type" }}

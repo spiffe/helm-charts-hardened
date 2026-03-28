@@ -5,6 +5,9 @@
 ## Note: the parameter values specified here will override the chart level values for these parameters.
 ##
 global:
+  ## @param global.imagePullSecrets [array] Image pull secret names
+  imagePullSecrets: []
+
   k8s:
     ## @param global.k8s.clusterDomain Cluster domain name configured for Spire install
     clusterDomain: cluster.local
@@ -218,4 +221,25 @@ spiffe-oidc-discovery-provider:
 ##
 tornjak-frontend:
   ## @param tornjak-frontend.enabled Enables deployment of Tornjak frontend/UI (Not for production)
+  enabled: false
+
+## @section SPIKE Keeper parameters
+## Parameter values for SPIKE Keeper
+##
+spike-keeper:
+  ## @param spike-keeper.enabled Enables deployment of SPIKE Keeper (Not for production)
+  enabled: false
+
+## @section SPIKE Nexus parameters
+## Parameter values for SPIKE Nexus
+##
+spike-nexus:
+  ## @param spike-nexus.enabled Enables deployment of SPIKE Nexus (Not for production)
+  enabled: false
+
+## @section SPIKE Pilot parameters
+## Parameter values for SPIKE Pilot
+##
+spike-pilot:
+  ## @param spike-pilot.enabled Enables deployment of SPIKE Pilot (Not for production)
   enabled: false

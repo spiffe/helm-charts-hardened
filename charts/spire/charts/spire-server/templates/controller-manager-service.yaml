@@ -1,4 +1,5 @@
 {{- if not .Values.externalServer }}
+{{- if eq .Values.controllerManager.staticManifestMode "off" }}
 {{- if eq (.Values.controllerManager.enabled | toString) "true" }}
 apiVersion: v1
 kind: Service
@@ -20,5 +21,6 @@ spec:
       protocol: TCP
   selector:
     {{- include "spire-server.selectorLabels" . | nindent 4 }}
+{{- end }}
 {{- end }}
 {{- end }}

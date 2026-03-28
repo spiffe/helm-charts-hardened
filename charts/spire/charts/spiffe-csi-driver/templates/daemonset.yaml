@@ -1,3 +1,6 @@
+{{- $mainSecurityContext := deepCopy .Values.securityContext }}
+{{- $podSecurityContext := deepCopy .Values.podSecurityContext }}
+---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -28,8 +31,11 @@ spec:
       {{- end }}
       labels:
         {{- include "spiffe-csi-driver.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
-      {{- with .Values.imagePullSecrets }}
+      {{- with (coalesce .Values.imagePullSecrets .Values.global.imagePullSecrets) }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -46,8 +52,13 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.hostNetwork }}
+      hostNetwork: true
+      {{- end }}
       {{- include "spire-lib.default_node_priority_class_name" . | nindent 6 }}
       {{- if or (gt (len .Values.initContainers) 0) (dig "openshift" false .Values.global) (dig "selinux" false .Values.global) .Values.selinux.enabled }}
+      securityContext:
+        {{- toYaml $podSecurityContext | nindent 8 }}
       initContainers:
       {{- if or (dig "openshift" false .Values.global) (dig "selinux" false .Values.global) .Values.selinux.enabled }}
         - name: set-context
@@ -59,15 +70,14 @@ spec:
           image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.selinux.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.selinux.image.pullPolicy }}
           securityContext:
-            capabilities:
-              drop:
-                - all
-            privileged: true
+            {{- $mainSecurityContext | toYaml | nindent 12 }}
           volumeMounts:
             - name: spire-agent-socket-dir
               mountPath: /spire-agent-socket
           terminationMessagePolicy: File
           terminationMessagePath: /dev/termination-log
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
       {{- end }}
       {{- if gt (len .Values.initContainers) 0 }}
         {{- toYaml .Values.initContainers | nindent 8 }}
@@ -108,11 +118,7 @@ spec:
               mountPropagation: Bidirectional
               name: mountpoint-dir
           securityContext:
-            readOnlyRootFilesystem: true
-            capabilities:
-              drop:
-                - all
-            privileged: true
+            {{- $mainSecurityContext | toYaml | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
         # This container runs the CSI Node Driver Registrar which takes care
@@ -147,7 +153,7 @@ spec:
               port: healthz
             {{- toYaml .Values.livenessProbe | nindent 12 }}
           resources:
-            {{- toYaml .Values.nodeDriverRegistrar.resources | nindent 12 }}
+            {{- toYaml .Values.resources | nindent 12 }}
       volumes:
         - name: spire-agent-socket-dir
           hostPath:

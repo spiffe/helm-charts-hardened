@@ -1,3 +1,6 @@
+{{- if and (ne .Values.bundleSource "ConfigMap") (ne .Values.bundleSource "CSI") }}
+{{-   fail "Bundle source must be CSI or ConfigmMap" }}
+{{- end }}
 {{- $tlsCount := 0 }}
 {{- if and .Values.enabled .Values.tls.spire.enabled }}
 {{-   $tlsCount = add $tlsCount 1 }}
@@ -18,6 +21,7 @@
 {{- $oidcSocket := .oidcSocket }}
 {{- with .root }}
 log_level: {{ .Values.config.logLevel | quote }}
+log_format: {{ .Values.config.logFormat | quote }}
 
 domains:
   - "{{ include "spiffe-oidc-discovery-provider.fullname" . }}"
@@ -40,9 +44,22 @@ serving_cert_file:
   addr: ':8443'
 {{- end }}
 
+{{- if .Values.config.jwksUri}}
+jwks_uri: {{ .Values.config.jwksUri | quote }}
+{{- end }}
+
+{{- if .Values.config.serverPathPrefix }}
+server_path_prefix: {{ .Values.config.serverPathPrefix | quote }}
+{{- end }}
+
+{{- if eq .Values.bundleSource "ConfigMap" }}
+file:
+  path: /bundle/bundle.spiffe
+{{- else }}
 workload_api:
   socket_path: {{ include "spiffe-oidc-discovery-provider.workload-api-socket-path" . | quote }}
   trust_domain: {{ include "spire-lib.trust-domain" . | quote }}
+{{- end }}
 
 health_checks:
   bind_port: "8008"

@@ -1,6 +1,6 @@
 # spire
 
-![Version: 0.24.1](https://img.shields.io/badge/Version-0.24.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.11.0](https://img.shields.io/badge/AppVersion-1.11.0-informational?style=flat-square)
+![Version: 0.28.3](https://img.shields.io/badge/Version-0.28.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.14.2](https://img.shields.io/badge/AppVersion-1.14.2-informational?style=flat-square)
 [![Development Phase](https://github.com/spiffe/spiffe/blob/main/.img/maturity/dev.svg)](https://github.com/spiffe/spiffe/blob/main/MATURITY.md#development)
 
 A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
@@ -350,6 +350,6 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `external-spire-server.upstreamAuthority.spire.enabled`                                                            | Enable upstream SPIRE server                                                          | `true`                       |
 | `external-spire-server.upstreamAuthority.spire.upstreamDriver`                                                     | Use an upstream driver for authentication                                             | `upstream.csi.spiffe.io`     |
 | `external-spire-server.upstreamAuthority.spire.server.nameOverride`                                                | The name override setting of the root SPIRE server                                    | `root-server`                |
-| `external-spire-server.notifier.k8sBundle.enabled`                                                                 | Enable local k8s bundle uploader                                                      | `false`                      |
+| `external-spire-server.bundlePublisher.k8sConfigMap.enabled`                                                       | Enable local k8s bundle uploader                                                      | `false`                      |
 | `external-spire-server.nodeAttestor.k8sPSAT.enabled`                                                               | Enable PSAT k8s nodeattestor                                                          | `false`                      |
 | `external-spire-server.nodeAttestor.joinToken.enabled`                                                             | Enable the join_token nodeattestor                                                    | `true`                       |

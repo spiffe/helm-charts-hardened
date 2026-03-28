@@ -30,8 +30,11 @@ spec:
         release: {{ .Release.Name }}
         release-namespace: {{ .Release.Namespace }}
         component: oidc-discovery-provider
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
-      {{- with .Values.imagePullSecrets }}
+      {{- with (coalesce .Values.imagePullSecrets .Values.global.imagePullSecrets) }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -71,6 +74,13 @@ spec:
           args:
             - -config
             - /run/spire/oidc/config/oidc-discovery-provider.conf
+            {{- if .Values.expandEnv }}
+            - -expandEnv
+            {{- end }}
+          {{- with .Values.extraEnv }}
+          env:
+          {{- . | toYaml | nindent 12 }}
+          {{- end }}
           ports:
             - containerPort: 8008
               name: healthz
@@ -79,9 +89,15 @@ spec:
               name: https
           {{- end }}
           volumeMounts:
+            {{- if eq .Values.bundleSource "ConfigMap" }}
+            - name: spiffe-bundle
+              mountPath: /bundle
+              readOnly: true
+            {{- else }}
             - name: spiffe-workload-api
               mountPath: {{ include "spiffe-oidc-discovery-provider.workload-api-socket-path" . | dir }}
               readOnly: true
+            {{- end }}
             - name: spire-oidc-sockets
               mountPath: /run/spire/oidc-sockets
               readOnly: false
@@ -164,10 +180,17 @@ spec:
         {{- end }}
         {{- end }}
       volumes:
+        {{- if or .Values.tls.spire.enabled (eq .Values.bundleSource "CSI") }}
         - name: spiffe-workload-api
           csi:
             driver: "{{ .Values.csiDriverName }}"
             readOnly: true
+        {{- end }}
+        {{- if eq .Values.bundleSource "ConfigMap" }}
+        - name: spiffe-bundle
+          configMap:
+            name: {{ include "spire-lib.bundle-configmap" . }}
+        {{- end }}
         - name: spire-oidc-sockets
           emptyDir: {}
         - name: spire-oidc-config

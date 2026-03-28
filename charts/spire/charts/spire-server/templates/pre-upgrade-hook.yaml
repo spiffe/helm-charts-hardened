@@ -1,5 +1,6 @@
 {{- if not .Values.externalServer }}
 {{- if eq ((dig "installAndUpgradeHooks" "enabled" .Values.controllerManager.installAndUpgradeHook.enabled .Values.global) | toString) "true" }}
+{{- if eq .Values.controllerManager.staticManifestMode "off" }}
 {{- if and (eq (.Values.controllerManager.enabled | toString) "true") .Values.controllerManager.validatingWebhookConfiguration.enabled }}
 {{- if eq .Values.controllerManager.validatingWebhookConfiguration.failurePolicy "Fail" }}
 apiVersion: v1
@@ -57,7 +58,15 @@ spec:
     metadata:
       name: {{ include "spire-server.fullname" . }}-pre-upgrade
     spec:
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       restartPolicy: Never
+      {{- with (coalesce .Values.imagePullSecrets .Values.global.imagePullSecrets) }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       serviceAccountName: {{ include "spire-server.serviceAccountName" . }}-pre-upgrade
       securityContext:
         {{- include "spire-lib.podsecuritycontext" . | nindent 8 }}
@@ -89,6 +98,7 @@ spec:
         resources:
           {{- toYaml . | nindent 10 }}
         {{- end }}
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}

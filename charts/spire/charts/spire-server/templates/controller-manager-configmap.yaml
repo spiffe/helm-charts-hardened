@@ -47,10 +47,20 @@ metrics:
   bindAddress: 0.0.0.0:{{ $promPort }}
 health:
   healthProbeBindAddress: 0.0.0.0:{{ $healthPort }}
+gcInterval: {{ .Values.controllerManager.gcInterval }}
+logLevel: {{ .Values.controllerManager.logLevel }}
+{{- with .Values.controllerManager.logEncoding }}
+logEncoding: {{ . }}
+{{- end }}
+{{- if eq .Values.controllerManager.staticManifestMode "off" }}
 leaderElection:
   leaderElect: true
   resourceName: {{ printf "%s-%s%s" .Release.Namespace (default .Release.Name .Values.crNameOverride) .suffix | sha256sum | trunc 8 }}.spiffe.io
   resourceNamespace: {{ include "spire-server.namespace" . }}
+  leaseDuration: {{ .defaults.leaderElection.leaseDuration }}
+  renewDeadline: {{ .defaults.leaderElection.renewDeadline }}
+  retryPeriod: {{ .defaults.leaderElection.retryPeriod }}
+{{- end }}
 {{- with .settings.cacheNamespaces }}
 cacheNamespaces:
   {{- toYaml . | nindent 2 }}
@@ -65,7 +75,9 @@ validatingWebhookConfigurationName: {{ .Release.Namespace }}-{{ include "spire-c
 {{- if typeIs "string" $entryIDPrefixCleanup }}
 entryIDPrefixCleanup: {{ $entryIDPrefixCleanup | quote }}
 {{- end }}
+{{- if  .Values.controllerManager.addEntryIDPrefix }}
 entryIDPrefix: {{ .clusterName }}
+{{- end }}
 clusterName: {{ .clusterName }}
 trustDomain: {{ include "spire-lib.trust-domain" . }}
 {{- $ignoreNamespaces := .defaults.ignoreNamespaces }}
@@ -85,7 +97,12 @@ parentIDTemplate: {{ if hasKey .settings "parentIDTemplate" }}{{ .settings.paren
 {{-   $reconcile = .settings.reconcile }}
 {{- end }}
 reconcile:
+  {{- if eq .Values.controllerManager.staticManifestMode "off" }}
   clusterSPIFFEIDs: {{ if hasKey $reconcile "clusterSPIFFEIDs" }}{{ toYaml $reconcile.clusterSPIFFEIDs }}{{ else }}{{ toYaml .defaults.reconcile.clusterSPIFFEIDs }}{{ end }}
+  {{- end }}
   clusterStaticEntries: {{ if hasKey $reconcile "clusterStaticEntries" }}{{ toYaml $reconcile.clusterStaticEntries }}{{ else }}{{ toYaml .defaults.reconcile.clusterStaticEntries }}{{ end }}
   clusterFederatedTrustDomains: {{ if hasKey $reconcile "clusterFederatedTrustDomains" }}{{ toYaml $reconcile.clusterFederatedTrustDomains }}{{ else }}{{ toYaml .defaults.reconcile.clusterFederatedTrustDomains }}{{ end }}
+{{- if ne .Values.controllerManager.staticManifestMode "off" }}
+staticManifestPath: /manifests
+{{- end }}
 {{- end }}

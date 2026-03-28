@@ -53,7 +53,7 @@
 {{- $repo := .image.repository }}
 {{- $tag := .image.tag | toString }}
 {{- if eq (substr 0 7 $tag) "sha256:" }}
-{{- printf "%s/%s@%s" $registry $repo $tag | quote }}
+{{- printf "%s%s@%s" $registry $repo $tag | quote }}
 {{- else if .appVersion }}
 {{- $appVersion := .appVersion }}
 {{- if and (hasKey . "ubi") (dig "openshift" false .global) }}
@@ -334,5 +334,13 @@ Anything lower has an incompatible API.
 {{- print "autoscaling/v2beta2" }}
 {{- else }}
 {{- fail "Unsupported autoscaling API version" }}
+{{- end }}
+{{- end }}
+
+{{- define "spire-lib.trust-bundle-ext" -}}
+{{- if eq .trustBundleFormat "spiffe" }}
+{{- print "spiffe" }}
+{{- else }}
+{{- print "crt" }}
 {{- end }}
 {{- end }}

@@ -52,14 +52,27 @@ server:
   trust_domain: {{ include "spire-lib.trust-domain" . | quote }}
   data_dir: "/run/spire/data"
   log_level: {{ .Values.logLevel | quote }}
+  {{- if .Values.logFormat }}
+  log_format: {{ .Values.logFormat | quote }}
+  {{- end }}
   jwt_issuer: {{ include "spire-lib.jwt-issuer" . | quote }}
   audit_log_enabled: {{ .Values.auditLogEnabled }}
 
   ca_key_type: {{ .Values.caKeyType | quote }}
   ca_ttl: {{ .Values.caTTL | quote }}
 
+  {{- if .Values.agentTTL }}
+  agent_ttl: {{ .Values.agentTTL | quote }}
+  {{- end }}
   default_x509_svid_ttl: {{ .Values.defaultX509SvidTTL | quote }}
   default_jwt_svid_ttl: {{ .Values.defaultJwtSvidTTL | quote }}
+
+  {{- if .Values.pruneAttestedNodesExpiredFor }}
+  prune_attested_nodes_expired_for: {{ .Values.pruneAttestedNodesExpiredFor | quote }}
+  {{- end }}
+  {{- if .Values.pruneTOFUNodes }}
+  prune_tofu_nodes: {{ .Values.pruneTOFUNodes }}
+  {{- end }}
 
   ca_subject:
     - country: [{{ include "spire-server.ca-subject-country" . | quote }}]
@@ -92,19 +105,38 @@ server:
     cache_reload_interval: {{ .cacheReloadInterval | quote }}
     events_based_cache: {{ .eventsBasedCache }}
     prune_events_older_than: {{ .pruneEventsOlderThan | quote }}
+    require_pq_kem: {{ .requirePQKEM }}
     {{- if gt (len .featureFlags) 0 }}
     feature_flags:
       {{- range .featureFlags }}
         - {{ . | quote }}
       {{- end }}
     {{- end }}
+    {{- if (and .authOpaPolicyEngine.local.policy_data .authOpaPolicyEngine.local.rego) }}
+    auth_opa_policy_engine:
+      local:
+        policy_data_path: /run/spire/config/policy_data.json
+        rego_path: /run/spire/config/policy.rego
+    {{- end }}
   {{- end }}
   {{- end }}
 
 plugins:
-  {{- if .Values.credentialComposer.uniqueID.enabled }}
+  {{- if or .Values.credentialComposer.uniqueID.enabled .Values.credentialComposer.cel.enabled }}
   CredentialComposer:
+    {{- if or .Values.credentialComposer.uniqueID.enabled }}
     uniqueid: {}
+    {{- end }}
+    {{- with .Values.credentialComposer.cel }}
+    {{- if .enabled }}
+    cel:
+      plugin_cmd: "/cel/credentialcomposer-cel"
+      plugin_checksum: {{ .checksum }}
+      plugin_data:
+        jwt:
+          expression_string: {{ .jwt.expression | quote }}
+    {{- end }}
+    {{- end }}
   {{- end }}
 
   DataStore:
@@ -122,12 +154,12 @@ plugins:
         {{- end }}
         max_open_conns: {{ .Values.dataStore.sql.maxOpenConns }}
         max_idle_conns: {{ .Values.dataStore.sql.maxIdleConns }}
-        {{- if ne (int .Values.dataStore.sql.connMaxLifetime) 0 }}
+        {{- if and .Values.dataStore.sql.connMaxLifetime (ne (toString .Values.dataStore.sql.connMaxLifetime) "0") }}
         conn_max_lifetime: {{ .Values.dataStore.sql.connMaxLifetime }}
         {{- end }}
         disable_migration: {{ .Values.dataStore.sql.disableMigration }}
 
-  {{- if or .Values.nodeAttestor.k8sPSAT.enabled .Values.nodeAttestor.externalK8sPSAT.enabled .Values.nodeAttestor.joinToken.enabled .Values.nodeAttestor.httpChallenge.enabled .Values.nodeAttestor.tpmDirect.enabled }}
+  {{- if or .Values.nodeAttestor.k8sPSAT.enabled .Values.nodeAttestor.externalK8sPSAT.enabled .Values.nodeAttestor.joinToken.enabled .Values.nodeAttestor.httpChallenge.enabled .Values.nodeAttestor.tpmDirect.enabled .Values.nodeAttestor.awsIID.enabled }}
   NodeAttestor:
   {{- $clusters := default .Values.kubeConfigs .Values.nodeAttestor.externalK8sPSAT.clusters }}
   {{- if or (eq (.Values.nodeAttestor.k8sPSAT.enabled | toString) "true") (and (eq (.Values.nodeAttestor.externalK8sPSAT.enabled | toString) "true") (gt (len $clusters) 0)) }}
@@ -207,6 +239,15 @@ plugins:
         {{- end }}
   {{- end }}
   {{- end }}
+  {{- with .Values.nodeAttestor.awsIID }}
+  {{- if eq (.enabled | toString) "true" }}
+    aws_iid:
+      plugin_data:
+        {{- if ne .assumeRole "" }}
+        assume_role: {{ .assumeRole | quote }}
+        {{- end }}
+  {{- end }}
+  {{- end }}
   {{- end }}
 
   {{- with .Values.keyManager.disk }}
@@ -249,8 +290,16 @@ plugins:
         {{- if or (ne .keyPolicy.policy "") (ne .keyPolicy.existingConfigMap "") }}
         key_policy_file: "/run/spire/data/aws-kms-key-policy.json"
         {{- end }}
+        {{- with .keyTags }}
+        key_tags:
+          {{- range $key, $value := . }}
+          {{ $key }}: {{ $value | quote }}
+          {{- end }}
+        {{- end }}
   {{- end }}
   {{- end }}
+
+{{- $keyManagerUsed = add $keyManagerUsed (len .Values.unsupportedBuiltInPlugins.keyManager) }}
 
 {{- if ne $keyManagerUsed 1 }}
 {{- fail (printf "You have to enable exactly one Key Manager. There are %d enabled." $keyManagerUsed) }}
@@ -262,8 +311,14 @@ plugins:
     k8sbundle:
       plugin_data:
         {{- if eq (.Values.notifier.k8sBundle.enabled | toString) "true" }}
-        namespace: {{ include "spire-server.bundle-namespace" . | quote }}
+        namespace: {{ include "spire-server.bundle-namespace-notifier" . | quote }}
         config_map: {{ include "spire-lib.bundle-configmap" . | quote }}
+        {{- with .Values.notifier.k8sBundle.apiServiceLabel }}
+        api_service_label: {{ . | quote }}
+        {{- end }}
+        {{- with .Values.notifier.k8sBundle.webhookLabel }}
+        webhook_label: {{ . | quote }}
+        {{- end }}
         {{- end }}
         {{- if and (eq (.Values.notifier.externalK8sBundle.enabled | toString) "true") (ne (len $externalK8sBundleClusters) 0) }}
         clusters:
@@ -286,8 +341,51 @@ plugins:
         {{- end }}
   {{- end }}
 
-  {{- if or .Values.bundlePublisher.awsRolesAnywhereTrustAnchor.enabled .Values.bundlePublisher.awsS3.enabled .Values.bundlePublisher.gcpCloudStorage.enabled }}
+  {{- $externalK8sConfigMapClusters := default .Values.kubeConfigs .Values.bundlePublisher.externalK8sConfigMap.clusters }}
+  {{- if or .Values.bundlePublisher.awsRolesAnywhereTrustAnchor.enabled .Values.bundlePublisher.awsS3.enabled .Values.bundlePublisher.gcpCloudStorage.enabled .Values.bundlePublisher.k8sConfigMap.enabled (and .Values.bundlePublisher.externalK8sConfigMap.enabled (ne (len $externalK8sConfigMapClusters) 0)) }}
   BundlePublisher:
+    {{- if or .Values.bundlePublisher.k8sConfigMap.enabled (and .Values.bundlePublisher.externalK8sConfigMap.enabled (ne (len $externalK8sConfigMapClusters) 0)) }}
+    k8s_configmap:
+      plugin_data:
+        clusters:
+          {{- $prefix := "-" }}
+          {{- if eq (.Values.bundlePublisher.k8sConfigMap.enabled | toString) "true" }}
+          {{ $prefix }} chart-internal:
+              format: {{ .Values.bundlePublisher.k8sConfigMap.format | quote }}
+              namespace: {{ include "spire-server.bundle-namespace-bundlepublisher" . | quote }}
+              configmap_name: {{ include "spire-lib.bundle-configmap" . | quote }}
+              configmap_key: {{ printf "bundle.%s" (include "spire-lib.trust-bundle-ext" (dict "trustBundleFormat" .Values.bundlePublisher.k8sConfigMap.format)) | quote }}
+          {{- $prefix := " " }}
+          {{- end }}
+          {{- if and (eq (.Values.bundlePublisher.externalK8sConfigMap.enabled | toString) "true") (ne (len $externalK8sConfigMapClusters) 0) }}
+          {{- $clusterDefaults := .Values.bundlePublisher.externalK8sConfigMap.defaults }}
+          {{- range $name, $_ := $externalK8sConfigMapClusters }}
+          {{ $prefix }} {{ $name | quote }}:
+              {{- $clusterSettings := dict }}
+              {{- if hasKey $root.Values.bundlePublisher.externalK8sConfigMap.clusters $name }}
+              {{- $clusterSettings = index $root.Values.bundlePublisher.externalK8sConfigMap.clusters $name }}
+              {{- end }}
+              {{- if hasKey $clusterSettings "kubeConfigName" }}
+              kubeconfig_path: /kubeconfigs/{{ $clusterSettings.kubeConfigName }}
+              {{- else }}
+              kubeconfig_path: /kubeconfigs/{{ $name }}
+              {{- end }}
+              {{- $format := $clusterDefaults.format }}
+              {{- if hasKey $clusterSettings "format" }}{{- $format = $clusterSettings.format }}{{- end }}
+              format: {{ $format | quote }}
+              namespace: {{ if hasKey $clusterSettings "namespace" }}{{ $clusterSettings.namespace }}{{ else }}{{ $clusterDefaults.namespace }}{{ end }}
+              configmap_name: {{ if hasKey $clusterSettings "configMapName" }}{{ $clusterSettings.configMapName }}{{ else }}{{ $clusterDefaults.configMapName }}{{ end }}
+              {{- if hasKey $clusterSettings "configMapKey" }}
+              configmap_key: {{ $clusterSettings.configMapKey | quote }}
+              {{- else if ne $clusterDefaults.configMapKey "" }}
+              configmap_key: {{ $clusterDefaults.configMapKey | quote }}
+              {{- else }}
+              configmap_key: {{ printf "bundle.%s" (include "spire-lib.trust-bundle-ext" (dict "trustBundleFormat" $format)) | quote }}
+              {{- end }}
+              {{- $prefix := " " }}
+          {{- end }}
+        {{- end }}
+    {{- end }}
     {{- if .Values.bundlePublisher.awsRolesAnywhereTrustAnchor.enabled }}
     aws_rolesanywhere_trustanchor:
       plugin_data:
@@ -297,6 +395,7 @@ plugins:
     {{- if .Values.bundlePublisher.awsS3.enabled }}
     aws_s3:
       plugin_data:
+        endpoint: {{ .Values.bundlePublisher.awsS3.endpoint | quote }}
         region: {{ .Values.bundlePublisher.awsS3.region | quote }}
         bucket: {{ .Values.bundlePublisher.awsS3.bucket | quote }}
         object_key: {{ .Values.bundlePublisher.awsS3.objectKey | quote }}
@@ -408,6 +507,23 @@ plugins:
         {{- end }}
   {{- end }}
   {{- end }}
+  {{- with .Values.upstreamAuthority.awsSecret }}
+  {{- if eq (.enabled | toString) "true" }}
+  {{- $upstreamAuthorityUsed = add1 $upstreamAuthorityUsed }}
+  UpstreamAuthority:
+    awssecret:
+      plugin_data:
+        region: {{ .region | quote }}
+        cert_file_arn: {{ .certFileArn | quote }}
+        key_file_arn: {{ .keyFileArn | quote }}
+        {{- if ne .bundleFileArn "" }}
+        bundle_file_arn: {{ .bundleFileArn | quote }}
+        {{- end }}
+        {{- if ne .assumeRoleArn "" }}
+        assume_role_arn: {{ .assumeRoleArn | quote }}
+        {{- end }}
+  {{- end }}
+  {{- end }}
 {{- if gt $upstreamAuthorityUsed 1 }}
 {{- fail "You can only enable a single Upstream Authority." }}
 {{- end }}
@@ -425,6 +541,13 @@ telemetry:
       - host: "0.0.0.0"
         port: 9988
 {{- end }}
+
+{{- if .Values.telemetry.datadog.enabled }}
+telemetry:
+  - DogStatsd:
+      - address: "{{ .Values.telemetry.datadog.address }}:{{ .Values.telemetry.datadog.port }}"
+{{- end }}
+
 {{- end }}
 {{- if not .Values.externalServer }}
 apiVersion: v1
@@ -439,4 +562,10 @@ metadata:
 data:
   server.conf: |
     {{- include "spire-lib.reformat-and-yaml2json" (dict "config" (include "spire-server.yaml-config" .) "root" .) | nindent 4 }}
+  {{- if (and .Values.experimental.enabled .Values.experimental.authOpaPolicyEngine.local.policy_data .Values.experimental.authOpaPolicyEngine.local.rego) }}
+  policy_data.json: |
+    {{- .Values.experimental.authOpaPolicyEngine.local.policy_data | toString | nindent 4 }}
+  policy.rego: |
+    {{- .Values.experimental.authOpaPolicyEngine.local.rego | toString | nindent 4 }}
+  {{- end }}
 {{- end }}

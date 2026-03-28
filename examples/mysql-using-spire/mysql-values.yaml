@@ -32,7 +32,7 @@ primary:
         mountPath: /helper
     - name: init-tls
       image: ghcr.io/spiffe/spiffe-helper:0.8.0
-      imagePullPolicy: Always
+      imagePullPolicy: IfNotPresent
       command:
       - /spiffe-helper
       - -config

@@ -1,4 +1,5 @@
 {{- if not .Values.externalServer }}
+{{- if eq .Values.controllerManager.staticManifestMode "off" }}
 {{- if and (eq (.Values.controllerManager.enabled | toString) "true") .Values.controllerManager.validatingWebhookConfiguration.enabled }}
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
@@ -37,5 +38,6 @@ webhooks:
         operations: ["CREATE", "UPDATE"]
         resources: ["clusterspiffeids"]
     sideEffects: None
+{{- end }}
 {{- end }}
 {{- end }}

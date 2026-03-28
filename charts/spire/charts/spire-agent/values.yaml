@@ -61,7 +61,7 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
-## @param resources [object] Resource requests and limits
+## @param resources [object] Resource requests and limits for the spire-agent container and all its initContainers
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
@@ -87,6 +87,8 @@ affinity: {}
 authorizedDelegates: []
 ## @param logLevel The log level, valid values are "debug", "info", "warn", and "error"
 logLevel: info
+## @param logFormat The log format, valid values are "text" and "json"
+logFormat: text
 ## @param clusterName The name of the Kubernetes cluster (`kubeadm init --service-dns-domain`)
 clusterName: example-cluster
 ## @param trustDomain The trust domain to be used for the SPIFFE identifiers
@@ -94,13 +96,17 @@ trustDomain: example.org
 ## @param trustBundleURL If set, obtain trust bundle from url instead of Kubernetes ConfigMap
 trustBundleURL: ""
 ## @param trustBundleFormat If using trustBundleURL, what format is the url. Choices are "pem" and "spiffe"
-trustBundleFormat: pem
+trustBundleFormat: spiffe
 ## @param trustBundleHostPath If set, obtain trust bundle from a file on the host instead of from the ConfigMap
 trustBundleHostPath: ""
 ## @param bundleConfigMap Configmap name for Spire bundle
 bundleConfigMap: spire-bundle
 ## @param availabilityTarget The minimum amount of time desired to gracefully handle SPIRE Server or Agent downtime. This configurable influences how aggressively X509 SVIDs should be rotated. If set, must be at least 24h.
 availabilityTarget: ""
+## @param rebootstrapMode How the agent will behave when seeing an unknown x509 cert from the server. It can be set to never, auto, or always
+rebootstrapMode: always
+## @param rebootstrapDelay The agent will rebootstrap after configured amount of time on unknown x509 cert from the server
+rebootstrapDelay: 10m
 
 ## @skip upstream
 upstream: false
@@ -152,16 +158,16 @@ fsGroupFix:
   image:
     registry: cgr.dev
     repository: chainguard/bash
-    pullPolicy: Always
-    tag: latest@sha256:b3a24feb9793b991fac76e87125632f11e568bef620a552f88569c4df1c2b72e
-
-  ## @param fsGroupFix.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-  resources: {}
+    pullPolicy: IfNotPresent
+    tag: latest@sha256:ea74a5487d6a76198fb651b48e953a01d13128c68ecf38df3d6e22307f0b93c1
 
 keyManager:
   memory:
     ## @param keyManager.memory.enabled Enable the memory based Key Manager
     enabled: true
+  disk:
+    ## @param keyManager.disk.enabled Enable the disk based Key Manager (must have persistence.type set to hostPath when enabled)
+    enabled: false
 
 nodeAttestor:
   k8sPSAT:
@@ -186,12 +192,12 @@ nodeAttestor:
       ## @param nodeAttestor.tpmDirect.plugin.image.tag Overrides the image tag
       ##
       image:
-        registry: docker.io
-        repository: boxboat/spire-tpm-plugin-tpm-attestor-agent
+        registry: ghcr.io
+        repository: spiffe/spire-tpm-plugin-tpm-attestor-agent
         pullPolicy: IfNotPresent
-        tag: "v1.8.7"
+        tag: "v1.9.0"
       ## @param nodeAttestor.tpmDirect.plugin.checksum The sha256 checksum of the plugin binary
-      checksum: 1d7c73ccac948ee86cbd78ddde2d30128a1838b403f7bb2100d38d916a252244
+      checksum: 22f67063f1699330e70cdedc9b923e517688f5ae71085a26bd9b83b3060ee86e
       ## @param nodeAttestor.tpmDirect.plugin.path The filename in the container of the plugin
       path: /app/tpm_attestor_agent
     pubHash:
@@ -203,10 +209,13 @@ nodeAttestor:
       ## @param nodeAttestor.tpmDirect.pubHash.image.tag Overrides the image tag
       ##
       image:
-        registry: docker.io
-        repository: boxboat/spire-tpm-plugin-get-tpm-pubhash
+        registry: ghcr.io
+        repository: spiffe/spire-tpm-plugin-get-tpm-pubhash
         pullPolicy: IfNotPresent
-        tag: "v1.8.7"
+        tag: "v1.9.0"
+  awsIID:
+    ## @param nodeAttestor.awsIID.enabled Enable the aws_iid Node Attestor
+    enabled: false
 
 # workloadAttestors determine a workload's properties and then generate a set of selectors associated with it.
 workloadAttestors:
@@ -250,6 +259,8 @@ telemetry:
     enabled: false
     ## @param telemetry.prometheus.port Port for prometheus metrics
     port: 9988
+    ## @param telemetry.prometheus.host Host for prometheus metrics
+    host: "0.0.0.0"
     podMonitor:
       ## @param telemetry.prometheus.podMonitor.enabled Enable podMonitor for prometheus
       enabled: false
@@ -257,10 +268,36 @@ telemetry:
       namespace: ""
       ## @param telemetry.prometheus.podMonitor.labels [object] Pod labels to filter for prometheus monitoring
       labels: {}
+  datadog:
+    ## @param telemetry.datadog.enabled Flag to enable datadog monitoring
+    enabled: false
+    ## @param telemetry.datadog.address The address of the datadog service to send metrics to. The default URL for services are `<service-name>.<namespace>.svc`
+    address: "datadog.kube-system.svc"
+    ## @param telemetry.datadog.port The port of the datadog service to send metrics to
+    port: 8125
 
-## @param kubeletConnectByHostname If true, connect to kubelet using the nodes hostname. If false, uses localhost. If unset, defaults to true on OpenShift and false otherwise.
+## @param kubeletConnectByHostname (DEPRECATED) Use kubeletAddress.mode instead. If true, connect to kubelet using the nodes hostname. If false, uses localhost. If unset, defaults to true on OpenShift and false otherwise.
 kubeletConnectByHostname: ""
 
+kubeletAddress:
+  ## @param kubeletAddress.mode How to connect to kubelet for workload attestation
+  ## Valid options: [auto, localhost, hostname, hostip, custom]
+  ## - auto: hostname for OpenShift, localhost otherwise (default)
+  ## - localhost: Use SPIRE default (connects to 127.0.0.1:10250)
+  ## - hostname: Connect via node hostname using downward API
+  ## - hostip: Connect via node IP using downward API
+  ## - custom: Set KUBELET_ADDR manually via extraEnvVars or other injection mechanisms.
+  ##   Note: extraEnvVars is passed to both the main container and init containers, so
+  ##   KUBELET_ADDR will be available for certificate verification if using verification
+  ##   type "auto" or "hostCert". The init container will validate that KUBELET_ADDR is set
+  ##   and fail with a clear error message if missing. Users must ensure KUBELET_ADDR is
+  ##   provided at runtime or SPIRE agent will fail to start.
+  mode: auto
+
+## @param hostNetwork [string] Enable hostNetwork for the DaemonSet. If auto or empty, auto-disables when kubeletAddress.mode is hostname/hostip. Set true/false to override.
+hostNetwork: auto
+## @param dnsPolicy [string] DNS policy for the DaemonSet. If empty, uses ClusterFirstWithHostNet when hostNetwork is enabled. See https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-dns-policy
+dnsPolicy: ""
 ## @param socketPath The unix socket path to the spire-agent
 socketPath: /run/spire/agent-sockets/spire-agent.sock
 
@@ -279,11 +316,8 @@ socketAlternate:
   image:
     registry: cgr.dev
     repository: chainguard/bash
-    pullPolicy: Always
-    tag: latest@sha256:b3a24feb9793b991fac76e87125632f11e568bef620a552f88569c4df1c2b72e
-
-  ## @param socketAlternate.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-  resources: {}
+    pullPolicy: IfNotPresent
+    tag: latest@sha256:ea74a5487d6a76198fb651b48e953a01d13128c68ecf38df3d6e22307f0b93c1
 
 hostCert:
   ## @param hostCert.image.registry The OCI registry to pull the image from
@@ -295,15 +329,12 @@ hostCert:
     registry: cgr.dev
     repository: chainguard/min-toolkit-debug
     pullPolicy: IfNotPresent
-    tag: latest@sha256:2f8ac6547029ed217bb40167bf39883b4bc606b3b747ecaf710fab9779ef786f
-
-  ## @param hostCert.resources Specify resource needs as per https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-  resources: {}
+    tag: latest@sha256:85bba9f6475c744413aae9b0e8abb34d88049e559de1cda1681bd5dabc345e82
 
 ## @param priorityClassName Priority class assigned to daemonset pods. Can be auto set with global.recommendations.priorityClassName.
 priorityClassName: ""
 
-## @param extraEnvVars [array] Extra environment variables to be added to the Spire Agent container
+## @param extraEnvVars [array] Extra environment variables to be added to the Spire Agent container and init containers
 extraEnvVars: []
 
 ## @param extraVolumes [array] Extra volumes to be mounted on Spire Agent pods
@@ -345,6 +376,8 @@ experimental:
   enabled: false
   ## @param experimental.syncInterval Sync interval with SPIRE server with exponential backoff
   syncInterval: 5s
+  ## @param experimental.requirePQKEM Require use of a post-quantum-safe key exchange method for TLS handshakes.
+  requirePQKEM: false
   ## @param experimental.featureFlags [array] List of developer feature flags
   featureFlags: []
 
@@ -370,8 +403,8 @@ tools:
     ## @param tools.kubectl.image.tag Overrides the image tag whose default is the chart appVersion
     ##
     image:
-      registry: docker.io
-      repository: rancher/kubectl
+      registry: registry.k8s.io
+      repository: kubectl
       pullPolicy: IfNotPresent
       tag: ""
 
