@@ -25,9 +25,11 @@ spec:
           curl -k -f -s 'https://{{ include "spire-server.fullname" . }}:{{ .Values.service.port }}'
           IGNORECA=$?
           echo $NOCA $IGNORECA
-          if [ $NOCA -eq 60 -a $IGNORECA -eq 22 ]; then
-            # We were able to connect to the server but didn't recognize the ca (60) and the page not found (22) because we're not using grpc
-            exit 0
+          if [ $NOCA -eq 60 ]; then
+            if [ $IGNORECA -eq 22 -o $IGNORECA -eq 55 -o $IGNORECA -eq 56 ]; then
+              # We were able to connect to the server but didn't recognize the ca (60) and the page not found (22) because we're not using grpc
+              exit 0
+            fi
           fi
           exit 1
       securityContext:
