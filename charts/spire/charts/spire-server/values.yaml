@@ -448,6 +448,19 @@ upstreamAuthority:
     endpoint: ""
     ## @param upstreamAuthority.awsPCA.supplementalBundlePath (Optional) Path to a file containing PEM-encoded CA certificates that should be additionally included in the bundle.
     supplementalBundlePath: ""
+  awsSecret:
+    ## @param upstreamAuthority.awsSecret.enabled Flag to enable upstream authority plugin with AWS Secrets Manager
+    enabled: false
+    ## @param upstreamAuthority.awsSecret.region AWS Region to use
+    region: ""
+    ## @param upstreamAuthority.awsSecret.certFileArn ARN or name of the secret containing the intermediate CA certificate
+    certFileArn: ""
+    ## @param upstreamAuthority.awsSecret.keyFileArn ARN or name of the secret containing the intermediate CA private key
+    keyFileArn: ""
+    ## @param upstreamAuthority.awsSecret.bundleFileArn (Optional) ARN or name of the secret containing the root CA bundle
+    bundleFileArn: ""
+    ## @param upstreamAuthority.awsSecret.assumeRoleArn (Optional) ARN of an IAM role to assume
+    assumeRoleArn: ""
   certManager:
     ## @param upstreamAuthority.certManager.enabled Flag to enable upstream authority plugin with cert manager
     enabled: false
