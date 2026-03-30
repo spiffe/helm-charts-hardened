@@ -413,6 +413,13 @@ keyManager:
     accessKeyID: ""
     ## @param keyManager.awsKMS.secretAccessKey [nullable] Secret access key for the AWS account.
     secretAccessKey: ""
+  azureKeyVault:
+    ## @param keyManager.azureKeyVault.enabled Flag to enable keyManager in Azure Key Vault
+    enabled: false
+    ## @param keyManager.azureKeyVault.keyVaultURI Specify an URI for Azure Key Vault
+    keyVaultURI: ""
+    ## @param keyManager.azureKeyVault.keyIdentifierValue Specify a static identifier for the SPIRE server instance
+    keyIdentifierValue: ""
 
 upstreamAuthority:
   disk:

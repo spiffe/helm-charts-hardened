@@ -299,6 +299,17 @@ plugins:
   {{- end }}
   {{- end }}
 
+  {{- with .Values.keyManager.azureKeyVault }}
+  {{- if eq (.enabled | toString) "true" }}
+  {{- $keyManagerUsed = add1 $keyManagerUsed }}
+  KeyManager:
+    azure_key_vault:
+      plugin_data:
+        key_vault_uri:  {{ .keyVaultURI }}
+        key_identifier_value: {{ .keyIdentifierValue }}
+  {{- end }}
+  {{- end }}
+
 {{- $keyManagerUsed = add $keyManagerUsed (len .Values.unsupportedBuiltInPlugins.keyManager) }}
 
 {{- if ne $keyManagerUsed 1 }}
