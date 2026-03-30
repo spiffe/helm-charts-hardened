@@ -126,9 +126,18 @@ spec:
             runAsGroup: 0
         #{- $mainSecurityContext | toYaml | nindent 12 }}
           env:
+            - name: SPIRE_HA_AGENT_SOCK
+              value: /tmp/spire-ha-agent/public/spire-agent.sock
           {{- if .Values.singleSocket }}
             - name: SPIRE_HA_AGENT_SINGLE
               value: enabled
+            - name: SPIRE_HA_AGENT_SOCKET
+              value: unix:///var/run/spire/agent/sockets/a/csi.spiffe.io/admin/admin.sock
+          {{- else }}
+            - name: SPIRE_HA_AGENT_SOCKET_A
+              value: unix:///var/run/spire/agent/sockets/a/csi.spiffe.io/admin/admin.sock
+            - name: SPIRE_HA_AGENT_SOCKET_B
+              value: unix:///var/run/spire/agent/sockets/b/csi.spiffe.io/admin/admin.sock
           {{- end }}
           {{- if .Values.vsock }}
             - name: SPIRE_HA_AGENT_VSOCK
@@ -153,10 +162,10 @@ spec:
               readOnly: false
             {{- end }}
             - name: spire-ha-admin-socket-dir-upstream-a
-              mountPath: /var/run/spire/agent/sockets/a/private
+              mountPath: /var/run/spire/agent/sockets/a/csi.spiffe.io/admin
             {{- if not .Values.singleSocket }}
             - name: spire-ha-admin-socket-dir-upstream-b
-              mountPath: /var/run/spire/agent/sockets/b/private
+              mountPath: /var/run/spire/agent/sockets/b/csi.spiffe.io/admin
             {{- end }}
             - name: dev
               mountPath: /dev
