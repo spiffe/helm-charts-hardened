@@ -19,5 +19,5 @@ maintainers:
     email: fymemon@yahoo.com
 dependencies:
   - name: spire-lib
-    repository: file://../spire/charts/spire-lib
+    repository: file://../spire-lib
     version: 0.1.0
