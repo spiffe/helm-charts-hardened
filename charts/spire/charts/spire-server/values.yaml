@@ -596,6 +596,26 @@ controllerManager:
     renewDeadline: "10s"
     retryPeriod: "2s"
 
+  ## @param controllerManager.livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
+  ## @param controllerManager.livenessProbe.periodSeconds Period seconds for livenessProbe
+  ## @param controllerManager.livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
+  ## @param controllerManager.livenessProbe.failureThreshold Failure threshold for livenessProbe
+  livenessProbe:
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+  ## @param controllerManager.readinessProbe.initialDelaySeconds Initial delay seconds for readinessProbe
+  ## @param controllerManager.readinessProbe.periodSeconds Period seconds for readinessProbe
+  ## @param controllerManager.readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
+  ## @param controllerManager.readinessProbe.failureThreshold Failure threshold for readinessProbe
+  readinessProbe:
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
   ## @param controllerManager.parentIDTemplate The template that is used to register workloads.
   parentIDTemplate: "spiffe://{{ .TrustDomain }}/spire/agent/k8s_psat/{{ .ClusterName }}/{{ .NodeMeta.UID }}"
 
