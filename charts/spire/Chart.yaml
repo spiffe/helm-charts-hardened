@@ -68,5 +68,6 @@ dependencies:
     repository: file://./charts/spike-pilot
     version: 0.1.0
 annotations:
+  org.opencontainers.image.source: https://github.com/spiffe/helm-charts-hardened
   artifacthub.io/category: security
   artifacthub.io/license: Apache-2.0
