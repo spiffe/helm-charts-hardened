@@ -15,6 +15,8 @@ source "${SCRIPTPATH}/../../../.github/scripts/parse-versions.sh"
 # shellcheck source=/dev/null
 source "${TESTDIR}/common.sh"
 
+"${SCRIPTPATH}/../../../.github/scripts/prepare-local-chart-deps.sh"
+
 helm_install=(helm upgrade --install --create-namespace)
 ns=spire-server
 

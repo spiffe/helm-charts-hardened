@@ -11,6 +11,8 @@ source "${SCRIPTPATH}/../../.github/scripts/parse-versions.sh"
 # shellcheck source=/dev/null
 source "${TESTDIR}/common.sh"
 
+"${SCRIPTPATH}/../../.github/scripts/prepare-local-chart-deps.sh"
+
 CLEANUP=1
 
 for i in "$@"; do
