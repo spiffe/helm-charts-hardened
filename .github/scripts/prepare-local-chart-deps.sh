@@ -9,6 +9,7 @@ REPO_ROOT="$(dirname "${SCRIPTPATH}")/.."
 charts=(
   "charts/spire"
   "charts/spire-ha-agent"
+  "charts/spire-nested"
 )
 
 for chart in "${charts[@]}"; do
