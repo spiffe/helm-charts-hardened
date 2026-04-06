@@ -29,6 +29,8 @@ This file is a lightweight working guide for Codex and human contributors in thi
 - Prefer focused changes to a single chart or feature area per branch
 - Preserve existing Helm templating patterns and values structure unless the task requires a broader refactor
 - When possible, validate template changes with `cd tests/unit && ginkgo` before broader cluster tests
+- PR commits should include a `Signed-off-by:` trailer to satisfy the repository's DCO check
+- If DCO fails after commits are already pushed, fix it by rewriting the affected commits with signoff and force-pushing the branch
 
 ## Testing Notes
 
