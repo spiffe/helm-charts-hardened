@@ -45,8 +45,7 @@ teardown() {
 
 trap 'EC=$? && trap - SIGTERM && teardown $EC' SIGINT SIGTERM EXIT
 
-# Update deps
-helm dep up charts/spire-nested
+"${SCRIPTPATH}/../../.github/scripts/prepare-local-chart-deps.sh"
 
 # List nodes
 kubectl get nodes
@@ -136,4 +135,3 @@ helm test --namespace spire-mgmt spire
 
 helm test --kubeconfig "${SCRIPTPATH}/kubeconfig-child" --namespace spire-mgmt spire
 helm test --kubeconfig "${SCRIPTPATH}/kubeconfig-other" --namespace spire-mgmt spire
-

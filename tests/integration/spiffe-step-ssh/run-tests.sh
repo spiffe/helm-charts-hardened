@@ -80,8 +80,7 @@ sudo -u spiffe-test chmod 600 /home/spiffe-test/.ssh/id_ed25519
 sudo -u spiffe-test cp /home/spiffe-test/.ssh/id_ed25519.pub /home/spiffe-test/.ssh/authorized_keys
 sudo -u spiffe-test ssh -T -n -i /home/spiffe-test/.ssh/id_ed25519 spiffe-test@test.production.other hostname || echo Expected fail here
 
-# Update deps
-helm dep up charts/spire-nested
+"${SCRIPTPATH}/../../../.github/scripts/prepare-local-chart-deps.sh"
 
 # List nodes
 kubectl get nodes
