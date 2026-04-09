@@ -1,4 +1,4 @@
-# CODEX
+# AGENTS
 
 This file is a lightweight working guide for Codex and human contributors in this repository.
 
