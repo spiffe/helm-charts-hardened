@@ -40,7 +40,7 @@ install-test-deps: ## Install test dependency resources
 .PHONY: test-charts
 test-charts: ## Run tests on charts using Helm chart-testing
 	@echo Running tests…
-	@ct install --config ct.yaml
+	@ct install --config ct.yaml --excluded-charts spire-crds,spiffe-step-ssh,spire-ha-agent,spire-lib
 
 .PHONY: cleanup-test-deps
 cleanup-test-deps: ## Cleans up all test dependencies resources
