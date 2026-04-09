@@ -113,14 +113,12 @@ dependencies:
     repository: file://../spire/charts/tornjak-frontend
     version: 0.1.0
   - name: spiffe-csi-driver
-    condition: spiffe-csi-driver.enabled
     repository: file://../spire/charts/spiffe-csi-driver
     version: 0.1.0
     condition: spiffe-csi-driver.enabled
     tags:
     - haAgentCommon
   - name: spire-ha-agent
-    condition: spiffe-csi-driver.enabled
     repository: file://../spire-ha-agent
     version: 0.1.0
     condition: spire-ha-agent.enabled
