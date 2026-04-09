@@ -202,7 +202,7 @@ Take a copy of the config and merge in .Values.customPlugins and .Values.unsuppo
 {{- $pluginsToMerge := dict "plugins" dict }}
 {{- range $type, $val := .root.Values.customPlugins }}
 {{-   if . }}
-{{-     if eq $type "svidstore" }}
+{{-     if eq $type "svidStore" }}
 {{-       $_ := set $pluginsToMerge.plugins "SVIDStore" (deepCopy $val) }}
 {{-     else }}
 {{-       $nt := printf "%s%s" (substr 0 1 $type | upper) (substr 1 -1 $type) }}
@@ -212,7 +212,7 @@ Take a copy of the config and merge in .Values.customPlugins and .Values.unsuppo
 {{- end }}
 {{- range $type, $val := .root.Values.unsupportedBuiltInPlugins }}
 {{-   if . }}
-{{-     if eq $type "svidstore" }}
+{{-     if eq $type "svidStore" }}
 {{-       $_ := set $pluginsToMerge.plugins "SVIDStore" (deepCopy $val) }}
 {{-     else }}
 {{-       $nt := printf "%s%s" (substr 0 1 $type | upper) (substr 1 -1 $type) }}
