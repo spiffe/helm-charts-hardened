@@ -101,6 +101,8 @@ tags:
   nestedChildFull: false
   ## @param tags.nestedChildSecurity Set the chart mode to a child cluster for use with a security cluster
   nestedChildSecurity: false
+  ## @param tags.haAgentCommon Set the chart mode to deploy the common portion of a spire-ha-agent setup
+  haAgentCommon: false
 
 ## subcharts
 
@@ -197,7 +199,7 @@ upstream-spiffe-csi-driver:
 ## @section SPIFFE oidc discovery provider parameters
 ## Parameter values for spiffe-oidc-discovery-provider
 ##
-# Used with tags [nestedRoot, nestedChildFull, nestedChildSecurity]
+# Used with tags [nestedRoot, nestedChildFull, nestedChildSecurity, haAgentCommon]
 spiffe-oidc-discovery-provider:
   # enabled: true
   ## @param spiffe-oidc-discovery-provider.fullnameOverride Fullname override
@@ -395,3 +397,14 @@ external-spire-server:
     joinToken:
       ## @param external-spire-server.nodeAttestor.joinToken.enabled Enable the join_token nodeattestor
       enabled: true
+
+# Used with tags [haAgentCommon]
+spiffe-csi-driver:
+  # enabled: true
+  agentSocketPath: /var/run/spire/agent-sockets/spire-agent.sock
+  healthChecks:
+    port: 9814
+
+# Used with tags [haAgentCommon]
+spire-ha-agent: {}
+  # enabled: true
