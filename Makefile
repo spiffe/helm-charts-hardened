@@ -37,6 +37,11 @@ install-test-deps: ## Install test dependency resources
 	@echo Installing test dependencies…
 	@.github/tests/pre-install.sh
 
+.PHONY: chart-deps
+chart-deps: ## Prepare local Helm chart dependencies
+	@echo Preparing local chart dependencies…
+	@.github/scripts/prepare-local-chart-deps.sh
+
 .PHONY: test-charts
 test-charts: ## Run tests on charts using Helm chart-testing
 	@echo Running tests…
