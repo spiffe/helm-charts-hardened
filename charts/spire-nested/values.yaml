@@ -401,10 +401,13 @@ external-spire-server:
 # Used with tags [haAgentCommon]
 spiffe-csi-driver:
   # enabled: true
+  ## @param spiffe-csi-driver.agentSocketPath The socket path where Spiffe CSI driver mounts agent socket
   agentSocketPath: /var/run/spire/agent-sockets/spire-agent.sock
   healthChecks:
+    ## @param spiffe-csi-driver.healthChecks.port Health check port number for upstream Spire agent
     port: 9814
 
+## @param spire-ha-agent The configuration overrides for a spire-ha-agent
 # Used with tags [haAgentCommon]
 spire-ha-agent: {}
   # enabled: true
