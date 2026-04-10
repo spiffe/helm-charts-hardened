@@ -146,10 +146,12 @@ Auto-generation preserves trailing numbers from cluster names or uses hash for u
     httpGet:
       path: /healthz
       port: {{ $hpName }}
+    {{- toYaml .Values.controllerManager.livenessProbe | nindent 4 }}
   readinessProbe:
     httpGet:
       path: /readyz
       port: {{ $hpName }}
+    {{- toYaml .Values.controllerManager.readinessProbe | nindent 4 }}
 {{- end }}
   resources:
     {{- toYaml .Values.controllerManager.resources | nindent 4 }}
