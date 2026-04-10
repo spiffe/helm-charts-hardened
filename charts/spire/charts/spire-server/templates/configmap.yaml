@@ -3,7 +3,7 @@
 {{- include "spire-lib.check-strict-mode" (list . "jwtIssuer must be set" (eq (include "spire-lib.jwt-issuer" .) "https://oidc-discovery.example.org"))}}
 {{- include "spire-lib.check-strict-mode" (list . "caSubject.country must be set" (eq (include "spire-server.ca-subject-country" .) "ARPA"))}}
 {{- include "spire-lib.check-strict-mode" (list . "caSubject.organization must be set" (eq (include "spire-server.ca-subject-organization" .) "Example"))}}
-{{- include "spire-lib.check-strict-mode" (list . "caSubject.commonNname must be set" (eq (include "spire-server.ca-subject-common-name" .) "example.org"))}}
+{{- include "spire-lib.check-strict-mode" (list . "caSubject.commonName must be set" (eq (include "spire-server.ca-subject-common-name" .) "example.org"))}}
 {{- range $type, $tvals := .Values.customPlugins }}
 {{-   if not (has $type (list "bundlePublisher" "credentialComposer" "keyManager" "nodeAttestor" "upstreamAuthority" "notifier")) }}
 {{-     fail (printf "Unknown plugin type specified: %s" $type) }}
