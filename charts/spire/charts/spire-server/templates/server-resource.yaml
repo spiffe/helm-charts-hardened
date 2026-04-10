@@ -27,7 +27,7 @@
 {{- if hasKey .Values.nodeAttestor "k8sPsat" }}
 {{-   fail "k8sPsat was renamed to k8sPSAT. Please update your config." }}
 {{- end }}
-{{- if hasKey .Values.nodeAttestor "externalK8sPSA" }}
+{{- if hasKey .Values.nodeAttestor "externalK8sPsat" }}
 {{-   fail "externalK8sPsat was renamed to externalK8sPSAT. Please update your config." }}
 {{- end }}
 {{- if hasKey .Values.notifier "k8sbundle" }}
