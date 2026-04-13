@@ -216,6 +216,9 @@ nodeAttestor:
   awsIID:
     ## @param nodeAttestor.awsIID.enabled Enable the aws_iid Node Attestor
     enabled: false
+  gcpIIT:
+    ## @param nodeAttestor.gcpIIT.enabled Enable the gcp_iit Node Attestor
+    enabled: false
 
 # workloadAttestors determine a workload's properties and then generate a set of selectors associated with it.
 workloadAttestors:

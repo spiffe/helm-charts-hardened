@@ -127,6 +127,13 @@ plugins:
     {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
     {{- end }}
     {{- end }}
+  {{- with .Values.nodeAttestor.gcpIIT }}
+  {{- if eq (.enabled | toString) "true" }}
+    gcp_iit:
+      plugin_data: {}
+    {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
+    {{- end }}
+    {{- end }}
 {{- if ne $nodeAttestorUsed 1 }}
 {{- fail (printf "You have to enable exactly one Node Attestor. There are %d enabled." $nodeAttestorUsed) }}
 {{- end }}
