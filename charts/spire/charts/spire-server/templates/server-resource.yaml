@@ -27,11 +27,11 @@
 {{- if hasKey .Values.nodeAttestor "k8sPsat" }}
 {{-   fail "k8sPsat was renamed to k8sPSAT. Please update your config." }}
 {{- end }}
-{{- if hasKey .Values.nodeAttestor "externalK8sPSA" }}
+{{- if hasKey .Values.nodeAttestor "externalK8sPsat" }}
 {{-   fail "externalK8sPsat was renamed to externalK8sPSAT. Please update your config." }}
 {{- end }}
 {{- if hasKey .Values.notifier "k8sbundle" }}
-{{-   fail "k8sbundle was renmaed to k8sBundle. Please update your config." }}
+{{-   fail "k8sbundle was renamed to k8sBundle. Please update your config." }}
 {{- end }}
 {{- if eq .Values.kind "statefulset" }}
 {{-   if not (has .Values.persistence.type (list "pvc" "hostPath" "emptyDir")) }}

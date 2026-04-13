@@ -3,8 +3,8 @@ name: spire-nested
 description: >
   A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
 type: application
-version: 0.28.3
-appVersion: "1.14.2"
+version: 0.28.4
+appVersion: "1.14.5"
 keywords: ["spiffe", "spire", "spire-server", "spire-agent", "oidc", "spire-controller-manager"]
 home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire
 sources:
@@ -21,7 +21,7 @@ maintainers:
 kubeVersion: ">=1.21.0-0"
 dependencies:
   - name: spire-lib
-    repository: file://../spire/charts/spire-lib
+    repository: file://../spire-lib
     version: 0.1.0
   - name: spire-server
     alias: root-spire-server
@@ -105,12 +105,25 @@ dependencies:
     - nestedRoot
     - nestedChildFull
     - nestedChildSecurity
+    - haAgentCommon
     repository: file://../spire/charts/spiffe-oidc-discovery-provider
     version: 0.1.0
   - name: tornjak-frontend
     condition: tornjak-frontend.enabled
     repository: file://../spire/charts/tornjak-frontend
     version: 0.1.0
+  - name: spiffe-csi-driver
+    repository: file://../spire/charts/spiffe-csi-driver
+    version: 0.1.0
+    condition: spiffe-csi-driver.enabled
+    tags:
+    - haAgentCommon
+  - name: spire-ha-agent
+    repository: file://../spire-ha-agent
+    version: 0.1.0
+    condition: spire-ha-agent.enabled
+    tags:
+    - haAgentCommon
 annotations:
   artifacthub.io/category: security
   artifacthub.io/license: Apache-2.0

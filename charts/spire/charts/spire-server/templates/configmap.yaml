@@ -3,7 +3,7 @@
 {{- include "spire-lib.check-strict-mode" (list . "jwtIssuer must be set" (eq (include "spire-lib.jwt-issuer" .) "https://oidc-discovery.example.org"))}}
 {{- include "spire-lib.check-strict-mode" (list . "caSubject.country must be set" (eq (include "spire-server.ca-subject-country" .) "ARPA"))}}
 {{- include "spire-lib.check-strict-mode" (list . "caSubject.organization must be set" (eq (include "spire-server.ca-subject-organization" .) "Example"))}}
-{{- include "spire-lib.check-strict-mode" (list . "caSubject.commonNname must be set" (eq (include "spire-server.ca-subject-common-name" .) "example.org"))}}
+{{- include "spire-lib.check-strict-mode" (list . "caSubject.commonName must be set" (eq (include "spire-server.ca-subject-common-name" .) "example.org"))}}
 {{- range $type, $tvals := .Values.customPlugins }}
 {{-   if not (has $type (list "bundlePublisher" "credentialComposer" "keyManager" "nodeAttestor" "upstreamAuthority" "notifier")) }}
 {{-     fail (printf "Unknown plugin type specified: %s" $type) }}
@@ -504,6 +504,23 @@ plugins:
         {{- end }}
         {{- if ne .supplementalBundlePath "" }}
         supplemental_bundle_path: {{ .supplementalBundlePath  | quote }}
+        {{- end }}
+  {{- end }}
+  {{- end }}
+  {{- with .Values.upstreamAuthority.awsSecret }}
+  {{- if eq (.enabled | toString) "true" }}
+  {{- $upstreamAuthorityUsed = add1 $upstreamAuthorityUsed }}
+  UpstreamAuthority:
+    awssecret:
+      plugin_data:
+        region: {{ .region | quote }}
+        cert_file_arn: {{ .certFileArn | quote }}
+        key_file_arn: {{ .keyFileArn | quote }}
+        {{- if ne .bundleFileArn "" }}
+        bundle_file_arn: {{ .bundleFileArn | quote }}
+        {{- end }}
+        {{- if ne .assumeRoleArn "" }}
+        assume_role_arn: {{ .assumeRoleArn | quote }}
         {{- end }}
   {{- end }}
   {{- end }}

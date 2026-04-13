@@ -2,16 +2,16 @@
   {
     "name": "kube-prometheus-stack",
     "repo": "https://prometheus-community.github.io/helm-charts",
-    "version": "82.4.3"
+    "version": "82.18.0"
   },
   {
     "name": "cert-manager",
     "repo": "https://charts.jetstack.io",
-    "version": "v1.19.4"
+    "version": "v1.20.1"
   },
   {
     "name": "ingress-nginx",
     "repo": "https://kubernetes.github.io/ingress-nginx",
-    "version": "4.14.3"
+    "version": "4.15.1"
   }
 ]

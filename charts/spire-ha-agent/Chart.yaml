@@ -1,11 +1,11 @@
 apiVersion: v2
-name: spire-agent
-description: A Helm chart to install the SPIRE agent.
+name: spire-ha-agent
+description: A Helm chart to install the SPIRE HA agent.
 type: application
 version: 0.1.0
-appVersion: "1.14.5"
-keywords: ["spiffe", "spire-agent"]
-home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire
+appVersion: "0.0.17"
+keywords: ["spiffe", "spire-ha-agent"]
+home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire-ha-agent
 sources:
   - https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire
 icon: https://spiffe.io/img/logos/spire/icon/color/spire-icon-color.png
@@ -17,5 +17,7 @@ maintainers:
     email: Kevin.Fox@pnnl.gov
   - name: faisal-memon
     email: fymemon@yahoo.com
-  - name: edwbuck
-    email: edwbuck@gmail.com
+dependencies:
+  - name: spire-lib
+    repository: file://../spire-lib
+    version: 0.1.0

@@ -3,7 +3,7 @@
 {{- $v2Description := "This is the most restrictive SCC and it is used by default for authenticated users. On top of the legacy 'restricted' SCC, it also requires to drop ALL capabilities and does not allow privilege escalation binaries. It will also default the seccomp profile to runtime/default if unset, otherwise this seccomp profile is required." -}}
 apiVersion: security.openshift.io/v1
 kind: SecurityContextConstraints
-allowHostPorts: false
+allowHostPorts: {{ .Values.hostNetwork }}
 priority: null
 requiredDropCapabilities:
 {{- if eq (.Values.restrictedScc.version | toString) "2" }}
@@ -50,7 +50,7 @@ volumes:
   - projected
   - secret
 allowHostPID: false
-allowHostNetwork: false
+allowHostNetwork: {{ .Values.hostNetwork }}
 allowPrivilegeEscalation: {{ eq (.Values.restrictedScc.version | toString) "2" | ternary false true }}
 {{- if eq (.Values.restrictedScc.version | toString) "2" }}
 allowedCapabilities:
