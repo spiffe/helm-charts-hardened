@@ -120,15 +120,15 @@ plugins:
     {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
     {{- end }}
     {{- end }}
-  {{- with .Values.nodeAttestor.awsIID }}
-  {{- if eq (.enabled | toString) "true" }}
+    {{- with .Values.nodeAttestor.awsIID }}
+    {{- if eq (.enabled | toString) "true" }}
     aws_iid:
       plugin_data: {}
     {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
     {{- end }}
     {{- end }}
-  {{- with .Values.nodeAttestor.gcpIIT }}
-  {{- if eq (.enabled | toString) "true" }}
+    {{- with .Values.nodeAttestor.gcpIIT }}
+    {{- if eq (.enabled | toString) "true" }}
     gcp_iit:
       plugin_data: {}
     {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
