@@ -1081,8 +1081,6 @@ nodeAttestor:
     projectIDAllowList: []
     ## @param nodeAttestor.gcpIIT.useInstanceMetadata If true, instance metadata is fetched from the Google Compute Engine API and used to augment the node selectors produced by the plugin
     useInstanceMetadata: false
-    ## @param nodeAttestor.gcpIIT.serviceAccountFile Path to the service account file used to authenticate with the Google Compute Engine API
-    serviceAccountFile: ""
     ## @param nodeAttestor.gcpIIT.allowedLabelKeys Instance label keys considered for selectors
     allowedLabelKeys: []
     ## @param nodeAttestor.gcpIIT.allowedMetadataKeys Instance metadata keys considered for selectors
