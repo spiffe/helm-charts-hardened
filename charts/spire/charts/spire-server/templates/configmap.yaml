@@ -159,7 +159,7 @@ plugins:
         {{- end }}
         disable_migration: {{ .Values.dataStore.sql.disableMigration }}
 
-  {{- if or .Values.nodeAttestor.k8sPSAT.enabled .Values.nodeAttestor.externalK8sPSAT.enabled .Values.nodeAttestor.joinToken.enabled .Values.nodeAttestor.httpChallenge.enabled .Values.nodeAttestor.tpmDirect.enabled .Values.nodeAttestor.awsIID.enabled }}
+  {{- if or .Values.nodeAttestor.k8sPSAT.enabled .Values.nodeAttestor.externalK8sPSAT.enabled .Values.nodeAttestor.joinToken.enabled .Values.nodeAttestor.httpChallenge.enabled .Values.nodeAttestor.tpmDirect.enabled .Values.nodeAttestor.awsIID.enabled .Values.nodeAttestor.gcpIIT.enabled }}
   NodeAttestor:
   {{- $clusters := default .Values.kubeConfigs .Values.nodeAttestor.externalK8sPSAT.clusters }}
   {{- if or (eq (.Values.nodeAttestor.k8sPSAT.enabled | toString) "true") (and (eq (.Values.nodeAttestor.externalK8sPSAT.enabled | toString) "true") (gt (len $clusters) 0)) }}
@@ -245,6 +245,29 @@ plugins:
       plugin_data:
         {{- if ne .assumeRole "" }}
         assume_role: {{ .assumeRole | quote }}
+        {{- end }}
+  {{- end }}
+  {{- end }}
+  {{- with .Values.nodeAttestor.gcpIIT }}
+  {{- if eq (.enabled | toString) "true" }}
+    gcp_iit:
+      plugin_data:
+        projectid_allow_list:
+          {{ toYaml .projectIDAllowList | nindent 10 }}
+        use_instance_metadata: {{ .useInstanceMetadata }}
+        {{- if not (empty .allowedLabelKeys) }}
+        allowed_label_keys:
+          {{ toYaml .allowedLabelKeys | nindent 10 }}
+        {{- end }}
+        {{- if not (empty .allowedMetadataKeys) }}
+        allowed_metadata_keys:
+          {{ toYaml .allowedMetadataKeys | nindent 10 }}
+        {{- end }}
+        {{- if ne (int .metadataValueMaxSize) 0 }}
+        max_metadata_value_size: {{ (int .metadataValueMaxSize) }}
+        {{- end }}
+        {{- if ne .agentPathTemplate "" }}
+        agent_path_template: {{ .agentPathTemplate | quote }}
         {{- end }}
   {{- end }}
   {{- end }}
