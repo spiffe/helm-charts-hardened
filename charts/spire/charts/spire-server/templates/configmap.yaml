@@ -322,7 +322,11 @@ plugins:
   {{- end }}
   {{- end }}
 
-{{- $keyManagerUsed = add $keyManagerUsed (len .Values.unsupportedBuiltInPlugins.keyManager) }}
+{{- if .Values.unsupportedBuiltInPlugins.keyManager }}
+{{- $keyManagerUsed = add $keyManagerUsed 1 }}
+  KeyManager:
+    {{- .Values.unsupportedBuiltInPlugins.keyManager | toYaml | nindent 4 }}
+{{- end }}
 
 {{- if ne $keyManagerUsed 1 }}
 {{- fail (printf "You have to enable exactly one Key Manager. There are %d enabled." $keyManagerUsed) }}
