@@ -27,45 +27,45 @@ dependencies:
     version: 0.1.0
   - name: spire-server
     condition: spire-server.enabled
-    repository: file://./charts/spire-server
+    repository: file://../spire-server
     version: 0.1.0
   - name: spire-agent
     condition: spire-agent.enabled
-    repository: file://./charts/spire-agent
+    repository: file://../spire-agent
     version: 0.1.0
   - name: spire-agent
     alias: upstream-spire-agent
     condition: upstream.enabled
-    repository: file://./charts/spire-agent
+    repository: file://../spire-agent
     version: 0.1.0
   - name: spiffe-csi-driver
     condition: spiffe-csi-driver.enabled
-    repository: file://./charts/spiffe-csi-driver
+    repository: file://../spiffe-csi-driver
     version: 0.1.0
   - name: spiffe-csi-driver
     alias: upstream-spiffe-csi-driver
     condition: upstream.enabled
-    repository: file://./charts/spiffe-csi-driver
+    repository: file://../spiffe-csi-driver
     version: 0.1.0
   - name: spiffe-oidc-discovery-provider
     condition: spiffe-oidc-discovery-provider.enabled
-    repository: file://./charts/spiffe-oidc-discovery-provider
+    repository: file://../spiffe-oidc-discovery-provider
     version: 0.1.0
   - name: tornjak-frontend
     condition: tornjak-frontend.enabled
-    repository: file://./charts/tornjak-frontend
+    repository: file://../tornjak-frontend
     version: 0.1.0
   - name: spike-keeper
     condition: spike-keeper.enabled
-    repository: file://./charts/spike-keeper
+    repository: file://../spike-keeper
     version: 0.1.0
   - name: spike-nexus
     condition: spike-nexus.enabled
-    repository: file://./charts/spike-nexus
+    repository: file://../spike-nexus
     version: 0.1.0
   - name: spike-pilot
     condition: spike-pilot.enabled
-    repository: file://./charts/spike-pilot
+    repository: file://../spike-pilot
     version: 0.1.0
 annotations:
   org.opencontainers.image.source: https://github.com/spiffe/helm-charts-hardened
