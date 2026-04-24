@@ -4,7 +4,7 @@
 
 A Helm chart to install the SPIRE agent.
 
-**Homepage:** <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire>
+**Homepage:** <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire-agent>
 
 ## Maintainers
 
@@ -17,7 +17,7 @@ A Helm chart to install the SPIRE agent.
 
 ## Source Code
 
-* <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire>
+* <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire-agent>
 
 <!-- The parameters section is generated using helm-docs.sh and should not be edited by hand. -->
 

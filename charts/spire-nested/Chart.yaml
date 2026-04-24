@@ -6,9 +6,9 @@ type: application
 version: 0.28.4
 appVersion: "1.14.5"
 keywords: ["spiffe", "spire", "spire-server", "spire-agent", "oidc", "spire-controller-manager"]
-home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire
+home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire-nested
 sources:
-  - https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire
+  - https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire-nested
 icon: https://spiffe.io/img/logos/spire/icon/color/spire-icon-color.png
 maintainers:
   - name: marcofranssen
@@ -28,21 +28,21 @@ dependencies:
     condition: root-spire-server.enabled
     tags:
     - nestedRoot
-    repository: file://../spire/charts/spire-server
+    repository: file://../spire-server
     version: 0.1.0
   - name: spire-server
     alias: external-root-spire-server-full
     condition: external-root-spire-server-full.enabled
     tags:
     - nestedChildFull
-    repository: file://../spire/charts/spire-server
+    repository: file://../spire-server
     version: 0.1.0
   - name: spire-server
     alias: external-root-spire-server-security
     condition: external-root-spire-server-security.enabled
     tags:
     - nestedChildSecurity
-    repository: file://../spire/charts/spire-server
+    repository: file://../spire-server
     version: 0.1.0
   - name: spire-server
     alias: internal-spire-server
@@ -50,14 +50,14 @@ dependencies:
     tags:
     - nestedRoot
     - nestedChildFull
-    repository: file://../spire/charts/spire-server
+    repository: file://../spire-server
     version: 0.1.0
   - name: spire-server
     alias: external-spire-server
     condition: external-spire-server.enabled
     tags:
     - nestedRoot
-    repository: file://../spire/charts/spire-server
+    repository: file://../spire-server
     version: 0.1.0
   - name: spire-agent
     alias: downstream-spire-agent-full
@@ -65,14 +65,14 @@ dependencies:
     tags:
     - nestedRoot
     - nestedChildFull
-    repository: file://../spire/charts/spire-agent
+    repository: file://../spire-agent
     version: 0.1.0
   - name: spire-agent
     alias: downstream-spire-agent-security
     condition: downstream-spire-agent-security.enabled
     tags:
     - nestedChildSecurity
-    repository: file://../spire/charts/spire-agent
+    repository: file://../spire-agent
     version: 0.1.0
   - name: spire-agent
     alias: upstream-spire-agent
@@ -80,7 +80,7 @@ dependencies:
     tags:
     - nestedRoot
     - nestedChildFull
-    repository: file://../spire/charts/spire-agent
+    repository: file://../spire-agent
     version: 0.1.0
   - name: spiffe-csi-driver
     alias: downstream-spiffe-csi-driver
@@ -89,7 +89,7 @@ dependencies:
     - nestedRoot
     - nestedChildFull
     - nestedChildSecurity
-    repository: file://../spire/charts/spiffe-csi-driver
+    repository: file://../spiffe-csi-driver
     version: 0.1.0
   - name: spiffe-csi-driver
     alias: upstream-spiffe-csi-driver
@@ -97,7 +97,7 @@ dependencies:
     tags:
     - nestedRoot
     - nestedChildFull
-    repository: file://../spire/charts/spiffe-csi-driver
+    repository: file://../spiffe-csi-driver
     version: 0.1.0
   - name: spiffe-oidc-discovery-provider
     condition: spiffe-oidc-discovery-provider.enabled
@@ -106,14 +106,14 @@ dependencies:
     - nestedChildFull
     - nestedChildSecurity
     - haAgentCommon
-    repository: file://../spire/charts/spiffe-oidc-discovery-provider
+    repository: file://../spiffe-oidc-discovery-provider
     version: 0.1.0
   - name: tornjak-frontend
     condition: tornjak-frontend.enabled
-    repository: file://../spire/charts/tornjak-frontend
+    repository: file://../tornjak-frontend
     version: 0.1.0
   - name: spiffe-csi-driver
-    repository: file://../spire/charts/spiffe-csi-driver
+    repository: file://../spiffe-csi-driver
     version: 0.1.0
     condition: spiffe-csi-driver.enabled
     tags:

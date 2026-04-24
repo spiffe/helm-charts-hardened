@@ -4,7 +4,7 @@
 
 A Helm chart to install the SPIFFE CSI driver.
 
-**Homepage:** <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire>
+**Homepage:** <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spiffe-csi-driver>
 
 ## Maintainers
 
@@ -17,7 +17,7 @@ A Helm chart to install the SPIFFE CSI driver.
 
 ## Source Code
 
-* <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire>
+* <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spiffe-csi-driver>
 
 <!-- The parameters section is generated using helm-docs.sh and should not be edited by hand. -->
 
@@ -75,4 +75,3 @@ A Helm chart to install the SPIFFE CSI driver.
 | `selinux.image.repository`                    | The repository within the registry                                                                                                                                       | `ubi9`                                      |
 | `selinux.image.pullPolicy`                    | The image pull policy                                                                                                                                                    | `IfNotPresent`                              |
 | `selinux.image.tag`                           | Overrides the image tag whose default is the chart appVersion                                                                                                            | `9.7-1776645994`                            |
-
