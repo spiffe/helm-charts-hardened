@@ -45,7 +45,7 @@ jobs:
       - name: Verify Spire appVersion
         run: |
           set +e
-          BASEVER=$(yq e .appVersion Chart.yaml)
+          BASEVER=$(yq e .appVersion charts/spire/Chart.yaml)
           for FILE in spiffe-oidc-discovery-provider spire-agent spire-server; do
             VER=$(yq .appVersion charts/$FILE/Chart.yaml)
             if [ "$VER" != "$BASEVER" ]; then
