@@ -41,7 +41,7 @@ jobs:
           go-version: '1.21'
           cache: false
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.9'
 
