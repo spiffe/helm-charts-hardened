@@ -134,7 +134,7 @@ nodeDriverRegistrar:
     registry: registry.k8s.io
     repository: sig-storage/csi-node-driver-registrar
     pullPolicy: IfNotPresent
-    tag: v2.9.4
+    tag: v2.15.0
   ## @param nodeDriverRegistrar.extraEnvVars [array] Extra environment variables to be added to the nodeDriverRegistrar container
   extraEnvVars: []
 
@@ -167,6 +167,6 @@ selinux:
   ## @param selinux.image.tag Overrides the image tag whose default is the chart appVersion
   image:
     registry: registry.access.redhat.com
-    repository: ubi9
+    repository: ubi10/ubi-minimal
     pullPolicy: IfNotPresent
-    tag: 9.7-1776645994
+    tag: 10.1-1776834797
