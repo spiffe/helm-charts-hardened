@@ -106,4 +106,14 @@ spiffe-socat-unix@k8s-spire-agent-b.service
 
 ## Install the charts:
 
+We need to install 4 charts.
+
+* spire crds
+* side A
+* side B
+* the common infrasctructure
+
+This allows upgrading Side A or Side B completely independencly from each other, ensuring if there is a problem it will not affect production.
+
 FIXME
+
