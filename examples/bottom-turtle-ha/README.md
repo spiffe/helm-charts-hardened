@@ -31,6 +31,8 @@ There are two different kinds of services that need permission bridging.
 
 ### SPIRE Servers
 
+![Diagram](diagram-cp.png)
+
 We need to be able to use the hosts workload attestors to attest the SPIRE Servers running inside Kubernetes.
 
 To do so, we will define a workload on the root spire servers, and inject it into the spire servers inside Kubernetes.
