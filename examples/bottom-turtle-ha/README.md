@@ -1,6 +1,6 @@
 ## Bottom Turtle HA setup
 
-In this setup, an bottom turtle HA setup based on spire-ha-agent and then Kubernetes based access is built up.
+In this setup, a bottom turtle HA setup based on spire-ha-agent and then Kubernetes based access is built up.
 
 What does this mean?
 
@@ -28,6 +28,11 @@ There are two different kinds of services that need permission bridging.
 
 * SPIRE Servers
 * Downstream agents
+
+### Root Servers
+
+Setup a pair of HA root servers as described here:
+https://github.com/spiffe/bootc/tree/main/demo
 
 ### SPIRE Servers
 
