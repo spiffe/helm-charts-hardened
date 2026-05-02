@@ -1,4 +1,4 @@
-## Bottom Turtle HA setup
+## Kubernetes Bottom Turtle HA Setup
 
 In this setup, a bottom turtle HA setup based on spire-ha-agent and then Kubernetes based access is built up.
 
