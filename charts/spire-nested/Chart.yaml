@@ -124,6 +124,62 @@ dependencies:
     condition: spire-ha-agent.enabled
     tags:
     - haAgentCommon
+  - name: spire-server
+    alias: internal-spire-server-bottom-turtle-ha-a
+    condition: internal-spire-server-bottom-turtle-ha-a.enabled
+    tags:
+    - bottomTurtleHAA
+    repository: file://../spire/charts/spire-server
+    version: 0.1.0
+  - name: spire-agent
+    alias: downstream-spire-agent-bottom-turtle-ha-a
+    condition: downstream-spire-agent-bottom-turtle-ha-a.enabled
+    tags:
+    - bottomTurtleHAA
+    repository: file://../spire/charts/spire-agent
+    version: 0.1.0
+  - name: spiffe-csi-driver
+    alias: downstream-spiffe-csi-driver-bottom-turtle-ha-a
+    condition: downstream-spiffe-csi-driver-bottom-turtle-ha-a.enabled
+    tags:
+    - bottomTurtleHAA
+    repository: file://../spire/charts/spiffe-csi-driver
+    version: 0.1.0
+  - name: spiffe-csi-driver
+    alias: upstream-spiffe-csi-driver-bottom-turtle-ha-a
+    condition: upstream-spiffe-csi-driver-bottom-turtle-ha-a.enabled
+    tags:
+    - bottomTurtleHAA
+    repository: file://../spire/charts/spiffe-csi-driver
+    version: 0.1.0
+  - name: spire-server
+    alias: internal-spire-server-bottom-turtle-ha-b
+    condition: internal-spire-server-bottom-turtle-ha-b.enabled
+    tags:
+    - bottomTurtleHAB
+    repository: file://../spire/charts/spire-server
+    version: 0.1.0
+  - name: spire-agent
+    alias: downstream-spire-agent-bottom-turtle-ha-b
+    condition: downstream-spire-agent-bottom-turtle-ha-b.enabled
+    tags:
+    - bottomTurtleHAB
+    repository: file://../spire/charts/spire-agent
+    version: 0.1.0
+  - name: spiffe-csi-driver
+    alias: downstream-spiffe-csi-driver-bottom-turtle-ha-b
+    condition: downstream-spiffe-csi-driver-bottom-turtle-ha-b.enabled
+    tags:
+    - bottomTurtleHAB
+    repository: file://../spire/charts/spiffe-csi-driver
+    version: 0.1.0
+  - name: spiffe-csi-driver
+    alias: upstream-spiffe-csi-driver-bottom-turtle-ha-b
+    condition: upstream-spiffe-csi-driver-bottom-turtle-ha-b.enabled
+    tags:
+    - bottomTurtleHAB
+    repository: file://../spire/charts/spiffe-csi-driver
+    version: 0.1.0
 annotations:
   artifacthub.io/category: security
   artifacthub.io/license: Apache-2.0

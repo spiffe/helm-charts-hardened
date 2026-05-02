@@ -42,6 +42,9 @@ matchLabels:
   release: {{ .Release.Name }}
   release-namespace: {{ .Release.Namespace }}
   component: test-keys
+{{-   else if eq .type "spire-ha-agent" }}
+matchLabels:
+  "app.kubernetes.io/name": spire-ha-agent
 {{-   else }}
 {}
 {{-   end }}
@@ -58,8 +61,8 @@ matchLabels:
 {{-   if eq ($root.Values.controllerManager.enabled | toString) "true" }}
 {{-     if or (not (hasKey $value "enabled")) (eq ($value.enabled | toString) "true") }}
 {{-       $type := dig "type" "base" $value }}
-{{-       if not (has $type (list "base" "raw" "child-servers" "oidc-discovery-provider" "spike-keeper" "spike-nexus" "spike-bootstrap" "spike-pilot" "test-keys")) }}
-{{-         fail (printf "Type given: %s, must be one of [base, raw, child-servers, oidc-discovery-provider, spike-keeper, spike-nexus, spike-bootstrap, spike-pilot, test-keys]" $type) }}
+{{-       if not (has $type (list "base" "raw" "spire-ha-agent" "child-servers" "oidc-discovery-provider" "spike-keeper" "spike-nexus" "spike-bootstrap" "spike-pilot" "test-keys")) }}
+{{-         fail (printf "Type given: %s, must be one of [base, raw, spire-ha-agent, child-servers, oidc-discovery-provider, spike-keeper, spike-nexus, spike-bootstrap, spike-pilot, test-keys]" $type) }}
 {{-       end }}
 {{-       $namespaceSelector := deepCopy (dig "namespaceSelector" (dict) $value) }}
 {{-       if ne $type "raw" }}

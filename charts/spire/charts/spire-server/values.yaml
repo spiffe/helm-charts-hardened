@@ -788,6 +788,17 @@ controllerManager:
         ## @param controllerManager.identities.clusterSPIFFEIDs.spike-pilot.spiffeIDTemplate The template to use for this rule.
         spiffeIDTemplate: spiffe://{{ .TrustDomain }}/spike/pilot/role/superuser
 
+      spire-ha-agent:
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent.enabled Enable this identity for controller manager
+        enabled: false
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent.type The type of rule this is.
+        type: spire-ha-agent
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent.spiffeIDTemplate The template to use for this rule.
+        spiffeIDTemplate: spiffe://{{ .TrustDomain }}/spire-ha-agent
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent.federatesWith Federated trust domains to pass to the workload
+        federatesWith:
+        - spire-ha
+
       # You can specify additional ClusterSPIFFEIDs following this example:
       # foo:
       #   labels:
@@ -1270,6 +1281,38 @@ secrets:
   gcp:
     ## @param secrets.gcp.applicationCredentials Google Application Credentials
     applicationCredentials: ""
+
+trustSync:
+  ## @param trustSync.enabled Allow configuration of trust syncing
+  enabled: false
+  ## @param trustSync.domains List of trust domains to sync from parent to child servers
+  domains: []
+  #- spire-ha
+  #- foo.org
+
+  ## @param trustSync.image.registry The OCI registry to pull the image from
+  ## @param trustSync.image.repository The repository within the registry
+  ## @param trustSync.image.pullPolicy The image pull policy
+  ## @param trustSync.image.tag Overrides the image tag to be whatever you need it to be. It will always be the flag you set without modifications
+  ##
+  image:
+    registry: ghcr.io
+    repository: spiffe/spire-ha-agent/spire-trust-sync
+    pullPolicy: IfNotPresent
+    tag: "0.0.21"
+
+  ## @param trustSync.resources [object] Resource requests and limits
+  resources: {}
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
 
 # NOTE: This is unsupported and only to configure currently supported spire built in plugins but plugins unsupported by the chart.
 # Upgrades wont be tested for anything under this config. If you need this, please let the chart developers know your needs so we
