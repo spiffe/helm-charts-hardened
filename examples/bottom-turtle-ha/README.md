@@ -34,6 +34,10 @@ There are two different kinds of services that need permission bridging.
 Setup a pair of HA root servers as described here:
 https://github.com/spiffe/bootc/tree/main/demo
 
+Root Servers, A and B:
+![Diagram](final-pi5.jpg)
+![Diagram](final-pi5.jpg)
+
 ### SPIRE Servers
 
 In the following diagram, we see all the parts involved from getting the SPIRE Servers running on the control plane nodes. Note, for diagram simplicity, we wput both spire
