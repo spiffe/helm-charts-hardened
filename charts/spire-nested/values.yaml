@@ -103,6 +103,10 @@ tags:
   nestedChildSecurity: false
   ## @param tags.haAgentCommon Set the chart mode to deploy the common portion of a spire-ha-agent setup
   haAgentCommon: false
+  ## @param tags.bottomTurtleHAA Setup HA side A for use with a Bottom Turtle architecture
+  bottomTurtleHAA: false
+  ## @param tags.bottomTurtleHAB Setup HA side B for use with a Bottom Turtle architecture
+  bottomTurtleHAB: false
 
 ## subcharts
 
@@ -427,6 +431,9 @@ upstream-spiffe-csi-driver-bottom-turtle-ha-a:
   healthChecks:
     ## @param upstream-spiffe-csi-driver-bottom-turtle-ha-a.healthChecks.port The port where Spiffe CSI driver health checks are exposed
     port: 9810
+  validatingAdmissionPolicy:
+    ## @param upstream-spiffe-csi-driver-bottom-turtle-ha-a.validatingAdmissionPolicy.enabled Flag to enable validating policy
+    enabled: true
 
 ## @section Upstream SPIFFE CSI Driver for Bottom Turtle HA B parameters
 ## Parameter values for upstream spiffe-csi-driver-bottom-turtle-ha-b
@@ -443,6 +450,9 @@ upstream-spiffe-csi-driver-bottom-turtle-ha-b:
   healthChecks:
     ## @param upstream-spiffe-csi-driver-bottom-turtle-ha-b.healthChecks.port The port where Spiffe CSI driver health checks are exposed
     port: 9812
+  validatingAdmissionPolicy:
+    ## @param upstream-spiffe-csi-driver-bottom-turtle-ha-b.validatingAdmissionPolicy.enabled Flag to enable validating policy
+    enabled: true
 
 ## @section Spire server parameters
 ## Parameter values for Spire server

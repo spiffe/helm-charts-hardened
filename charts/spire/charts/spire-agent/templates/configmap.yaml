@@ -38,6 +38,7 @@
 {{- end }}
 {{- end }}
 {{- define "spire-agent.yaml-config" -}}
+{{- $trustDomain := include "spire-lib.trust-domain" . }}
 agent:
   {{- if .Values.sockets.admin.enabled }}
   admin_socket_path: /tmp/spire-agent/private/admin.sock
