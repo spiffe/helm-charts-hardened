@@ -31,6 +31,7 @@ There are two different kinds of services that need permission bridging.
 
 ### SPIRE Servers
 
+In the following diagram, we see all the parts involved from getting the SPIRE Servers running on the control plane nodes
 ![Diagram](diagram-cp.png)
 
 We need to be able to use the hosts workload attestors to attest the SPIRE Servers running inside Kubernetes.
