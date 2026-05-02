@@ -1,6 +1,6 @@
 ## Kubernetes Bottom Turtle HA Setup
 
-In this setup, a bottom turtle HA setup based on spire-ha-agent and then Kubernetes based access is built up.
+In this setup, a bottom turtle HA setup based on spire-ha-agent and then Kubernetes based access is built from the ground up.
 
 What does this mean?
 
@@ -38,9 +38,9 @@ Root Servers, A and B:
 ![Diagram](final-pi5.jpg)
 ![Diagram](final-pi5.jpg)
 
-### SPIRE Servers
+### K8s SPIRE Servers
 
-In the following diagram, we see all the parts involved from getting the SPIRE Servers running on the control plane nodes. Note, for diagram simplicity, we wput both spire
+In the following diagram, we see all the parts involved from getting the K8s SPIRE Servers running on the control plane nodes. Note, for diagram simplicity, we wput both spire
 servers on the same control plane node. In production, we recommend using antiaffinity to ensure they are always on different nodes.
 ![Diagram](diagram-cp.png)
 
