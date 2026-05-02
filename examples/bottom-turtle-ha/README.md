@@ -31,7 +31,8 @@ There are two different kinds of services that need permission bridging.
 
 ### SPIRE Servers
 
-In the following diagram, we see all the parts involved from getting the SPIRE Servers running on the control plane nodes
+In the following diagram, we see all the parts involved from getting the SPIRE Servers running on the control plane nodes. Note, for diagram simplicity, we wput both spire
+servers on the same control plane node. In production, we recommend using antiaffinity to ensure they are always on different nodes.
 ![Diagram](diagram-cp.png)
 
 We need to be able to use the hosts workload attestors to attest the SPIRE Servers running inside Kubernetes.
@@ -65,6 +66,9 @@ Any process that can access the unix socket will be able to become a spire downs
 Consider only doing this on your control plane nodes, and restricting the spire-server to only run on the control plane nodes for extra isolation.
 
 ### Downstream agents
+
+In the following diagram we show how a worker node is aranged.
+![Diagram](diagram-worker.png)
 
 We need to be able to use the hosts workload attestors to attest the SPIRE Agents running inside Kubernetes.
 
