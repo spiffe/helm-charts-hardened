@@ -4,7 +4,7 @@
 
 A Helm chart to install the SPIRE server.
 
-**Homepage:** <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire>
+**Homepage:** <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire-server>
 
 ## Maintainers
 
@@ -17,7 +17,7 @@ A Helm chart to install the SPIRE server.
 
 ## Source Code
 
-* <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire>
+* <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire-server>
 
 ## Tornjak
 

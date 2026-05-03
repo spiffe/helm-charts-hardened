@@ -47,7 +47,7 @@ jq -r '. | keys[]' "$IMAGEJSON" | while read -r CHART; do
     done < <(jq -r ".\"${CHART}\"[${IDX}].\"sort-flags\" | .[]" "$IMAGEJSON")
     IFS=${OLD_IFS}
 
-    VALUES="${SCRIPTPATH}/../../charts/spire/charts/${CHART}"
+    VALUES="${SCRIPTPATH}/../../charts/${CHART}"
     REGISTRY=$(yq e ".${QUERY}.registry" "$VALUES")
     REPOSITORY=$(yq e ".${QUERY}.repository" "$VALUES")
     VERSION=$(yq e ".${QUERY}.tag" "$VALUES")

@@ -4,7 +4,7 @@
 
 A Helm chart to install the SPIFFE OIDC discovery provider.
 
-**Homepage:** <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire>
+**Homepage:** <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spiffe-oidc-discovery-provider>
 
 ## Maintainers
 
@@ -17,7 +17,7 @@ A Helm chart to install the SPIFFE OIDC discovery provider.
 
 ## Source Code
 
-* <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire>
+* <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spiffe-oidc-discovery-provider>
 
 <!-- The parameters section is generated using helm-docs.sh and should not be edited by hand. -->
 

@@ -4,10 +4,14 @@ description: A Helm chart to deploy SPIKE Keeper
 type: application
 version: 0.1.0
 appVersion: "0.5.0"
-home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire
+home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spike-keeper
 sources:
   - https://github.com/spiffe/spike
 icon: https://spike.ist/assets/spike-banner.png
 maintainers:
   - name: kfox1111
     email: Kevin.Fox@pnnl.gov
+dependencies:
+  - name: spire-lib
+    repository: file://../spire-lib
+    version: 0.1.0
