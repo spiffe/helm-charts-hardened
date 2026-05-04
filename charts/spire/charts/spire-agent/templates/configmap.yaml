@@ -1,6 +1,7 @@
 {{- define "spire-agent.check-config-values" -}}
 {{- include "spire-lib.check-strict-mode" (list . "clusterName must be set" (eq (include "spire-lib.cluster-name" .) "example-cluster"))}}
-{{- include "spire-lib.check-strict-mode" (list . "trustDomain must be set" (eq (include "spire-lib.trust-domain" .) "example.org"))}}
+{{- $trustDomain := include "spire-lib.trust-domain" . }}
+{{- include "spire-lib.check-strict-mode" (list . "trustDomain must be set" (eq $trustDomain "example.org"))}}
 {{- range $type, $tvals := .Values.customPlugins }}
 {{-   if not (has $type (list "keyManager" "nodeAttestor" "svidStore" "workloadAttestor")) }}
 {{-     fail (printf "Unknown plugin type specified: %s" $type) }}
@@ -37,13 +38,20 @@
 {{- end }}
 {{- end }}
 {{- define "spire-agent.yaml-config" -}}
+{{- $trustDomain := include "spire-lib.trust-domain" . }}
 agent:
   {{- if .Values.sockets.admin.enabled }}
   admin_socket_path: /tmp/spire-agent/private/admin.sock
   {{- end }}
   {{- with .Values.authorizedDelegates }}
   authorized_delegates:
-    {{- toYaml . | nindent 4 }}
+  {{- range . }}
+    {{- if hasPrefix "/" . }}
+    - spiffe://{{ $trustDomain }}{{ . }}
+    {{- else }}
+    - {{ . }}
+    {{- end }}
+  {{- end }}
   {{- end }}
   data_dir: "/var/lib/spire"
   log_level: {{ .Values.logLevel | quote }}

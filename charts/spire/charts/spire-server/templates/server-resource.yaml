@@ -445,6 +445,29 @@ spec:
               mountPath: /opt/spire/user
             {{- end }}
         {{- end }}
+        {{- if eq (.Values.trustSync.enabled | toString) "true" }}
+        - name: spire-trust-sync
+          image: {{ template "spire-lib.image" (dict "appVersion" .Values.trustSync.image.defaultTag "image" .Values.trustSync.image "global" .Values.global "ubi" false) }}
+          imagePullPolicy: {{ .Values.trustSync.image.pullPolicy }}
+          args:
+          - -trust-domains={{ join "," .Values.trustSync.domains }}
+          env:
+          - name: SPIFFE_TRUST_DOMAIN
+            value: {{ include "spire-lib.trust-domain" . | quote }}
+          - name: SPIRE_SERVER_SOCKET
+            value: unix:///tmp/spire-server/private/api.sock
+          - name: SPIFFE_ENDPOINT_SOCKET
+            value: unix:///run/spire/upstream_agent/spire-agent.sock
+          volumeMounts:
+          - mountPath: /run/spire/upstream_agent
+            name: upstream-agent
+            readOnly: true
+          - mountPath: /tmp/spire-server/private
+            name: spire-server-socket
+            readOnly: true
+          securityContext:
+            {{- include "spire-lib.securitycontext" . | nindent 12 }}
+        {{- end }}
 
         {{- if gt (len .Values.extraContainers) 0 }}
         {{- toYaml .Values.extraContainers | nindent 8 }}

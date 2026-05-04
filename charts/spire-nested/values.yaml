@@ -103,6 +103,10 @@ tags:
   nestedChildSecurity: false
   ## @param tags.haAgentCommon Set the chart mode to deploy the common portion of a spire-ha-agent setup
   haAgentCommon: false
+  ## @param tags.bottomTurtleHAA Setup HA side A for use with a Bottom Turtle architecture
+  bottomTurtleHAA: false
+  ## @param tags.bottomTurtleHAB Setup HA side B for use with a Bottom Turtle architecture
+  bottomTurtleHAB: false
 
 ## subcharts
 
@@ -411,3 +415,213 @@ spiffe-csi-driver:
 # Used with tags [haAgentCommon]
 spire-ha-agent: {}
   # enabled: true
+
+## @section Upstream SPIFFE CSI Driver for Bottom Turtle HA A parameters
+## Parameter values for upstream spiffe-csi-driver-bottom-turtle-ha-a
+##
+# Used with tags [bottomTurtleHAA]
+upstream-spiffe-csi-driver-bottom-turtle-ha-a:
+  # enabled: true
+  ## @param upstream-spiffe-csi-driver-bottom-turtle-ha-a.fullnameOverride Fullname override
+  fullnameOverride: spiffe-csi-driver-upstream-a
+  ## @param upstream-spiffe-csi-driver-bottom-turtle-ha-a.pluginName The plugin name for configuring upstream Spiffe CSI driver
+  pluginName: upstream-a.csi.spiffe.io
+  ## @param upstream-spiffe-csi-driver-bottom-turtle-ha-a.agentSocketPath The socket path where Spiffe CSI driver mounts agent socket
+  agentSocketPath: /var/run/spiffe/socat/unix/k8s-spire-server-a/public/agent.sock
+  healthChecks:
+    ## @param upstream-spiffe-csi-driver-bottom-turtle-ha-a.healthChecks.port The port where Spiffe CSI driver health checks are exposed
+    port: 9810
+  validatingAdmissionPolicy:
+    ## @param upstream-spiffe-csi-driver-bottom-turtle-ha-a.validatingAdmissionPolicy.enabled Flag to enable validating policy
+    enabled: true
+
+## @section Upstream SPIFFE CSI Driver for Bottom Turtle HA B parameters
+## Parameter values for upstream spiffe-csi-driver-bottom-turtle-ha-b
+##
+# Used with tags [bottomTurtleHAB]
+upstream-spiffe-csi-driver-bottom-turtle-ha-b:
+  # enabled: true
+  ## @param upstream-spiffe-csi-driver-bottom-turtle-ha-b.fullnameOverride Fullname override
+  fullnameOverride: spiffe-csi-driver-upstream-b
+  ## @param upstream-spiffe-csi-driver-bottom-turtle-ha-b.pluginName The plugin name for configuring upstream Spiffe CSI driver
+  pluginName: upstream-b.csi.spiffe.io
+  ## @param upstream-spiffe-csi-driver-bottom-turtle-ha-b.agentSocketPath The socket path where Spiffe CSI driver mounts agent socket
+  agentSocketPath: /var/run/spiffe/socat/unix/k8s-spire-server-b/public/agent.sock
+  healthChecks:
+    ## @param upstream-spiffe-csi-driver-bottom-turtle-ha-b.healthChecks.port The port where Spiffe CSI driver health checks are exposed
+    port: 9812
+  validatingAdmissionPolicy:
+    ## @param upstream-spiffe-csi-driver-bottom-turtle-ha-b.validatingAdmissionPolicy.enabled Flag to enable validating policy
+    enabled: true
+
+## @section Spire server parameters
+## Parameter values for Spire server
+##
+# Used with tags [bottomTurtleHAA]
+internal-spire-server-bottom-turtle-ha-a:
+  # enabled: true
+  ## @param internal-spire-server-bottom-turtle-ha-a.nameOverride Overrides the name of Spire server pods
+  nameOverride: internal-server
+  controllerManager:
+    ## @param internal-spire-server-bottom-turtle-ha-a.controllerManager.enabled Enable controller manager and provision CRD's
+    enabled: true
+    identities:
+      clusterSPIFFEIDs:
+        oidc-discovery-provider:
+          ## @param internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.autoPopulateDNSNames Auto populate dns entries
+          autoPopulateDNSNames: false
+        spire-ha-agent:
+          ## @param internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent Enables the spire-ha-agent identity
+          enabled: true
+  externalControllerManagers:
+    ## @param internal-spire-server-bottom-turtle-ha-a.externalControllerManagers.enabled Flag to enable external controller managers
+    enabled: true
+  upstreamAuthority:
+    spire:
+      ## @param internal-spire-server-bottom-turtle-ha-a.upstreamAuthority.spire.enabled Enable upstream SPIRE server
+      enabled: true
+      ## @param internal-spire-server-bottom-turtle-ha-a.upstreamAuthority.spire.upstreamDriver Use an upstream driver for authentication
+      upstreamDriver: upstream-a.csi.spiffe.io
+      server:
+        ## @param internal-spire-server-bottom-turtle-ha-a.upstreamAuthority.spire.server.nameOverride The name override setting of the root SPIRE server
+        nameOverride: root-server
+        ## @param internal-spire-server-bottom-turtle-ha-a.upstreamAuthority.spire.server.port The port setting of the root SPIRE server
+        port: 8081
+  ## @param internal-spire-server-bottom-turtle-ha-a.bundleConfigMap The name of the configmap to store the downstream bundle
+  bundleConfigMap: spire-server-a-bundle
+  trustSync:
+    enabled: true
+    domains:
+    - spire-ha
+
+## @section Spire server parameters
+## Parameter values for Spire server
+##
+# Used with tags [bottomTurtleHAB]
+internal-spire-server-bottom-turtle-ha-b:
+  # enabled: true
+  ## @param internal-spire-server-bottom-turtle-ha-b.nameOverride Overrides the name of Spire server pods
+  nameOverride: internal-server
+  controllerManager:
+    ## @param internal-spire-server-bottom-turtle-ha-b.controllerManager.enabled Enable controller manager and provision CRD's
+    enabled: true
+    identities:
+      clusterSPIFFEIDs:
+        oidc-discovery-provider:
+          ## @param internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.autoPopulateDNSNames Auto populate dns entries
+          autoPopulateDNSNames: false
+        spire-ha-agent:
+          ## @param internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent Enables the spire-ha-agent identity
+          enabled: true
+  externalControllerManagers:
+    ## @param internal-spire-server-bottom-turtle-ha-b.externalControllerManagers.enabled Flag to enable external controller managers
+    enabled: true
+  upstreamAuthority:
+    spire:
+      ## @param internal-spire-server-bottom-turtle-ha-b.upstreamAuthority.spire.enabled Enable upstream SPIRE server
+      enabled: true
+      ## @param internal-spire-server-bottom-turtle-ha-b.upstreamAuthority.spire.upstreamDriver Use an upstream driver for authentication
+      upstreamDriver: upstream-b.csi.spiffe.io
+      server:
+        ## @param internal-spire-server-bottom-turtle-ha-b.upstreamAuthority.spire.server.nameOverride The name override setting of the root SPIRE server
+        nameOverride: root-server
+        ## @param internal-spire-server-bottom-turtle-ha-b.upstreamAuthority.spire.server.port The port setting of the root SPIRE server
+        port: 8081
+  ## @param internal-spire-server-bottom-turtle-ha-b.bundleConfigMap The name of the configmap to store the downstream bundle
+  bundleConfigMap: spire-server-b-bundle
+  trustSync:
+    enabled: true
+    domains:
+    - spire-ha
+
+# Used with tags [bottomTurtleHAA]
+downstream-spire-agent-bottom-turtle-a:
+  # enabled: true
+  ## @param downstream-spire-agent-bottom-turtle-a.nameOverride Overrides the name of Spire agent pods
+  nameOverride: agent-downstream
+  server:
+    ## @param downstream-spire-agent-bottom-turtle-a.server.nameOverride The name override setting of the internal SPIRE server
+    nameOverride: internal-server
+  ## @param downstream-spire-agent-bottom-turtle-a.bundleConfigMap The name of the configmap that contains the downstream bundle
+  bundleConfigMap: spire-server-a-bundle
+  ## @param downstream-spire-agent-bottom-turtle-a.persistence.hostPath Which path to use on the host when persistence.type = hostPath
+  persistence:
+    hostPath: /var/lib/spire/k8s/downstream-agent-a
+  healthChecks:
+    ## @param downstream-spire-agent-bottom-turtle-a.healthCheck.port Health check port
+    port: 9981
+  telemetry:
+    prometheus:
+      ## @param downstream-spire-agent-bottom-turtle-a.telemetry.prometheus.port Prometheus port to use
+      port: 9989
+  ## @param downstream-spire-agent-bottom-turtle-a.socketPath Socket path to use
+  socketPath: /var/run/spire/agent/sockets/a/csi.spiffe.io/public/spire-agent.sock
+  sockets:
+    ## @param downstream-spire-agent-bottom-turtle-a.sockets.hostBasePath Path on the host to place sockets
+    hostBasePath: /var/run/spire/agent/sockets/a
+    admin:
+      ## @param downstream-spire-agent-bottom-turtle-a.sockets.admin.enabled Enable admin socket
+      enabled: true
+      ## @param downstream-spire-agent-bottom-turtle-a.sockets.admin.mountOnHost Mount admin socket on host
+      mountOnHost: true
+  authorizedDelegates:
+  - /spire-ha-agent
+
+# Used with tags [bottomTurtleHAB]
+downstream-spire-agent-bottom-turtle-b:
+  # enabled: true
+  ## @param downstream-spire-agent-bottom-turtle-b.nameOverride Overrides the name of Spire agent pods
+  nameOverride: agent-downstream
+  server:
+    ## @param downstream-spire-agent-bottom-turtle-b.server.nameOverride The name override setting of the internal SPIRE server
+    nameOverride: internal-server
+  ## @param downstream-spire-agent-bottom-turtle-b.bundleConfigMap The name of the configmap that contains the downstream bundle
+  bundleConfigMap: spire-server-b-bundle
+  ## @param downstream-spire-agent-bottom-turtle-b.persistence.hostPath Which path to use on the host when persistence.type = hostPath
+  persistence:
+    hostPath: /var/lib/spire/k8s/downstream-agent-b
+  healthChecks:
+    ## @param downstream-spire-agent-bottom-turtle-b.healthCheck.port Health check port
+    port: 9981
+  telemetry:
+    prometheus:
+      ## @param downstream-spire-agent-bottom-turtle-b.telemetry.prometheus.port Prometheus port to use
+      port: 9989
+  ## @param downstream-spire-agent-bottom-turtle-b.socketPath Socket path to use
+  socketPath: /var/run/spire/agent/sockets/a/csi.spiffe.io/public/spire-agent.sock
+  sockets:
+    ## @param downstream-spire-agent-bottom-turtle-b.sockets.hostBasePath Path on the host to place sockets
+    hostBasePath: /var/run/spire/agent/sockets/b
+    admin:
+      ## @param downstream-spire-agent-bottom-turtle-b.sockets.admin.enabled Enable admin socket
+      enabled: true
+      ## @param downstream-spire-agent-bottom-turtle-b.sockets.admin.mountOnHost Mount admin socket on host
+      mountOnHost: true
+  authorizedDelegates:
+  - /spire-ha-agent
+
+# Used with tags [bottomTurtleHAA]
+downstream-spiffe-csi-driver-bottom-turtle-ha-a:
+  # enabled: true
+  ## @param downstream-spiffe-csi-driver-bottom-turtle-ha-a.fullnameOverride Fullname override
+  fullnameOverride: spiffe-csi-driver-downstream-a
+  ## @param downstream-spiffe-csi-driver-bottom-turtle-ha-a.agentSocketPath path to agent socket
+  agentSocketPath: /var/run/spire/agent/sockets/a/csi.spiffe.io/public/spire-agent.sock
+  ## @param downstream-spiffe-csi-driver-bottom-turtle-ha-a.pluginName The name of the plugin instance
+  pluginName: a.csi.spiffe.io
+  healthChecks:
+    ## @param downstream-spiffe-csi-driver-bottom-turtle-ha-a.healthCheck.port The health check port
+    port: 9810
+
+# Used with tags [bottomTurtleHAB]
+downstream-spiffe-csi-driver-bottom-turtle-ha-b:
+  # enabled: true
+  ## @param downstream-spiffe-csi-driver-bottom-turtle-ha-b.fullnameOverride Fullname override
+  fullnameOverride: spiffe-csi-driver-downstream-b
+  ## @param downstream-spiffe-csi-driver-bottom-turtle-ha-b.agentSocketPath path to agent socket
+  agentSocketPath: /var/run/spire/agent/sockets/b/csi.spiffe.io/public/spire-agent.sock
+  ## @param downstream-spiffe-csi-driver-bottom-turtle-ha-b.pluginName The name of the plugin instance
+  pluginName: b.csi.spiffe.io
+  healthChecks:
+    ## @param downstream-spiffe-csi-driver-bottom-turtle-ha-b.healthCheck.port The health check port
+    port: 9812

@@ -1,0 +1,107 @@
+digraph G {
+    compound=true;
+  subgraph cluster_server1 {
+      label = "node name: n1"
+      #style = dashed
+        style="filled,solid,bold";
+        color="#b3b3b3";
+        fillcolor="#f5f5f5";
+        labeljust="l"; 
+
+    spire_server_1[label=<<table border="0"><tr><td><b>SPIRE Server A</b></td></tr><tr><td align="left"><font point-size="9">NodeAttestors: tpm,x509pop</font></td></tr></table>>,shape="record",style="rounded,solid,filled,bold",color="#6c8ebf",fillcolor="#dae8fc"]
+  }
+
+  subgraph cluster_server2 {
+
+      label = "node name: n2"
+      #style = dashed
+        style="filled,solid,bold";
+        color="#b3b3b3";
+        fillcolor="#f5f5f5";
+        labeljust="l"; 
+    spire_server_2[label=<<table border="0"><tr><td><b>SPIRE Server B</b></td></tr><tr><td align="left"><font point-size="9">NodeAttestors: tpm,x509pop</font></td></tr></table>>,shape="record",style="rounded,solid,filled,bold",color="#6c8ebf",fillcolor="#dae8fc"]
+  }
+
+  
+  subgraph cluster_node3 {
+      label = "node name: n3"
+      #style = dashed
+        style="filled,solid,bold";
+        color="#b3b3b3";
+        fillcolor="#f5f5f5";
+        labeljust="l"; 
+
+      subgraph cluster_node1_systemd {
+          #label = "Systemd"
+          label = "systemd managed"
+          style = "dashed,filled"
+          color="#939393";
+          fillcolor="#d5d5d5";
+
+       labeljust="l"; 
+
+          spire_agent1[label=<<table border="0"><tr><td><b>SPIRE Agent A</b></td></tr><tr><td align="left"><font point-size="9">NodeAttestor: tpm</font></td></tr><tr><td align="left"><font point-size="9">WorkloadAttestor: systemd</font></td></tr><tr><td align="left"><font point-size="9">systemd: spire-agent@.service</font></td></tr></table>>,shape="record",style="rounded,solid,filled,bold",color="#82b366",fillcolor="#d5e8d4"]
+          spire_agent2[label=<<table border="0"><tr><td><b>SPIRE Agent B</b></td></tr><tr><td align="left"><font point-size="9">NodeAttestor: tpm</font></td></tr><tr><td align="left"><font point-size="9">WorkloadAttestor: systemd</font></td></tr><tr><td align="left"><font point-size="9">systemd: spire-agent@.service</font></td></tr></table>>,shape="record",style="rounded,solid,filled,bold",color="#82b366",fillcolor="#d5e8d4"]
+    subgraph cluster_tb {
+        label=""
+        style="invis"
+          spire_ha_agent[label=<<table border="0"><tr><td><b>SPIRE HA Agent</b></td></tr><tr><td align="left"><font point-size="9">systemd: spire-ha-agent@.service</font></td></tr></table>>,shape="record",style="rounded,solid,filled,bold",color="#82b366",fillcolor="#d5e8d4"]
+subgraph cluster_storage {
+          #spire_ha_agent_state_a[label="Trust Bundle A", shape=note,style="rounded,solid,filled,bold",fillcolor="#ffffff"]
+          #spire_ha_agent_state_b[label="Trust Bundle B", shape=note,style="rounded,solid,filled,bold",fillcolor="#ffffff"]
+}
+    }
+          sshd1[label="sshd",shape="box",style="rounded,solid,filled,bold",color="#d6b656",fillcolor="#fff2cc"]
+          kubelet1[label="kubelet",shape="box",style="rounded,solid,filled,bold",color="#d6b656",fillcolor="#fff2cc"]
+          k8s_spire_server_a[label=<<table border="0"><tr><td><b>K8s SPIRE Server A Identity</b></td></tr><tr><td align="left"><font point-size="9">systemd: spiffe-socat-unix@k8s-spire-server-a</font></td></tr><tr><td align="left"><font point-size="9">tool: socat</font></td></tr></table>>,shape="box",style="rounded,solid,filled,bold",color="#d79b00",fillcolor="#ffe6cc"]
+          k8s_spire_server_b[label=<<table border="0"><tr><td><b>K8s SPIRE Server B Identity</b></td></tr><tr><td align="left"><font point-size="9">systemd: spiffe-socat-unix@k8s-spire-server-b</font></td></tr><tr><td align="left"><font point-size="9">tool: socat</font></td></tr></table>>,shape="box",style="rounded,solid,filled,bold",color="#d79b00",fillcolor="#ffe6cc"]
+      }
+
+      subgraph cluster_node1_k8s {
+          #label = "Systemd"
+          label = "k8s managed"
+          style = "dashed,filled"
+          color="#939393";
+          fillcolor="#d5d5d5";
+
+       labeljust="l"; 
+
+    k8s_upstream_csi_a[label=<<table border="0"><tr><td><b>Upstream CSI A</b></td></tr><tr><td align="left"><font point-size="9">path: /var/run/spiffe/socat/unix/k8s-spire-server-a/public/agent.sock</font></td></tr></table>>,shape="box",style="rounded,solid,filled,bold",color="#d79b00",fillcolor="#ffe6cc"]
+    k8s_upstream_csi_b[label=<<table border="0"><tr><td><b>Upstream CSI B</b></td></tr><tr><td align="left"><font point-size="9">path: /var/run/spiffe/socat/unix/k8s-spire-server-b/public/agent.sock</font></td></tr></table>>,shape="box",style="rounded,solid,filled,bold",color="#d79b00",fillcolor="#ffe6cc"]
+    spire_server_n1[label=<<table border="0"><tr><td><b>K8s SPIRE Server A</b></td></tr><tr><td align="left"><font point-size="9">NodeAttestors: x509pop</font></td></tr></table>>,shape="record",style="rounded,solid,filled,bold",color="#6c8ebf",fillcolor="#dae8fc"]
+    spire_server_n2[label=<<table border="0"><tr><td><b>K8s SPIRE Server B</b></td></tr><tr><td align="left"><font point-size="9">NodeAttestors: x509pop</font></td></tr></table>>,shape="record",style="rounded,solid,filled,bold",color="#6c8ebf",fillcolor="#dae8fc"]
+      }
+  }
+  
+  spire_server_1 -> spire_agent1[dir=back]
+  spire_server_2 -> spire_agent2[dir=back]
+  spire_agent1 -> spire_ha_agent[dir=back]
+  spire_agent2 -> spire_ha_agent[dir=back]
+  spire_ha_agent -> sshd1[dir=back]
+  spire_ha_agent -> kubelet1[dir=back]
+  spire_agent1 -> k8s_spire_server_a[dir=back]
+  spire_agent2 -> k8s_spire_server_b[dir=back]
+
+  k8s_spire_server_a -> k8s_upstream_csi_a[dir=back]
+  k8s_spire_server_b -> k8s_upstream_csi_b[dir=back]
+ // k8s_upstream_csi_b -> k8s_spire_server_b
+
+  k8s_upstream_csi_a -> spire_server_n1[dir=back]
+  k8s_upstream_csi_b -> spire_server_n2[dir=back]
+//  k8s_spire_server_b -> spire_server_n2[dir=back]
+
+  //kubelet1 -> cluster_node1_k8s
+  kubelet1 -> k8s_upstream_csi_a [lhead=cluster_node1_k8s, style=dotted]
+  spire_server_1 -> spire_server_n1 [dir=back]
+  spire_server_2 -> spire_server_n2 [dir=back]
+  //kubelet1 -> spire_server_n1
+  //kubelet1 -> spire_server_n2
+
+//  spire_ha_agent -> spire_ha_agent_state[dir=both, constraint=false]
+ // spire_ha_agent_state_a -> spire_ha_agent_state_b 
+  //spire_agent1 -> spire_ha_agent_state_a
+  //spire_agent2 -> spire_ha_agent_state_b
+  //spire_ha_agent_state_a -> spire_ha_agent
+  //spire_ha_agent_state_b -> spire_ha_agent
+}
+
