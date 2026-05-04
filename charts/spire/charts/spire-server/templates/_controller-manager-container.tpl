@@ -109,6 +109,9 @@ Auto-generation preserves trailing numbers from cluster names or uses hash for u
     {{- if $expandEnv }}
     - --expand-env
     {{- end }}
+    # Workaround until https://github.com/spiffe/spire-controller-manager/pull/667 is fixed.
+    - --zap-encoder={{ .Values.controllerManager.logEncoding }}
+    - --zap-log-level={{ .Values.controllerManager.logLevel }}
   env:
     - name: ENABLE_WEBHOOKS
     {{- if eq .Values.controllerManager.staticManifestMode "off" }}
