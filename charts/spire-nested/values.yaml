@@ -427,7 +427,7 @@ upstream-spiffe-csi-driver-bottom-turtle-ha-a:
   ## @param upstream-spiffe-csi-driver-bottom-turtle-ha-a.pluginName The plugin name for configuring upstream Spiffe CSI driver
   pluginName: upstream-a.csi.spiffe.io
   ## @param upstream-spiffe-csi-driver-bottom-turtle-ha-a.agentSocketPath The socket path where Spiffe CSI driver mounts agent socket
-  agentSocketPath: /var/run/spiffe/socat/unix/k8s-spire-server-a/public/agent.sock
+  agentSocketPath: /var/run/spiffe/socat/unix/k8s-spire-server-a/public/spire-agent.sock
   healthChecks:
     ## @param upstream-spiffe-csi-driver-bottom-turtle-ha-a.healthChecks.port The port where Spiffe CSI driver health checks are exposed
     port: 9810
@@ -446,7 +446,7 @@ upstream-spiffe-csi-driver-bottom-turtle-ha-b:
   ## @param upstream-spiffe-csi-driver-bottom-turtle-ha-b.pluginName The plugin name for configuring upstream Spiffe CSI driver
   pluginName: upstream-b.csi.spiffe.io
   ## @param upstream-spiffe-csi-driver-bottom-turtle-ha-b.agentSocketPath The socket path where Spiffe CSI driver mounts agent socket
-  agentSocketPath: /var/run/spiffe/socat/unix/k8s-spire-server-b/public/agent.sock
+  agentSocketPath: /var/run/spiffe/socat/unix/k8s-spire-server-b/public/spire-agent.sock
   healthChecks:
     ## @param upstream-spiffe-csi-driver-bottom-turtle-ha-b.healthChecks.port The port where Spiffe CSI driver health checks are exposed
     port: 9812

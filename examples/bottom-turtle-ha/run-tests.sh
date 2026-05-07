@@ -48,21 +48,16 @@ teardown() {
   sudo spire-server bundle list -socketPath /var/run/spire/server/sockets/b/private/api.sock
 
   print_helm_releases
-  print_spire_workload_status spire-root-server
-  print_spire_workload_status spire-server spire-system
 
   if [[ "$1" -ne 0 ]]; then
-    get_namespace_details spire-root-server
     get_namespace_details spire-server spire-system
   fi
 
   if [ "${CLEANUP}" -eq 1 ]; then
-    helm uninstall --namespace spire-server spire 2>/dev/null || true
+    helm uninstall --namespace spire-mgmt spire 2>/dev/null || true
     kubectl delete ns spire-server 2>/dev/null || true
     kubectl delete ns spire-system 2>/dev/null || true
-
-    helm uninstall --namespace mysql spire-root-server 2>/dev/null || true
-    kubectl delete ns spire-root-server 2>/dev/null || true
+    kubectl delete ns spire-mgmt 2>/dev/null || true
   fi
 }
 
@@ -154,6 +149,7 @@ helm upgrade --install --create-namespace --namespace spire-mgmt --values "${COM
   --set "global.spire.namespaces.create=true" \
   --set "global.spire.ingressControllerType=ingress-nginx"
 
+#FIXME see if we can tweak upstreamSpireAddress's in the chart rather then use a global.
 helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/spire-values.yaml" \
   --wait spire-a charts/spire-nested \
   --set tags.bottomTurtleHAA=true \
