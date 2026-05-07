@@ -31,6 +31,10 @@ else
 fi
 
 teardown() {
+  sudo systemctl status spire-server@a
+  sudo systemctl status spire-server@b
+  sudo systemctl status spire-agent@a
+  sudo systemctl status spire-agent@b
   print_helm_releases
   print_spire_workload_status spire-root-server
   print_spire_workload_status spire-server spire-system
