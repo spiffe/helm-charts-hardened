@@ -33,6 +33,8 @@ fi
 teardown() {
   sudo systemctl status spire-server@a
   sudo systemctl status spire-server@b
+  sudo systemctl status spire-controller-manager@a
+  sudo systemctl status spire-controller-manager@b
   sudo systemctl status spire-agent@a
   sudo systemctl status spire-agent@b
   print_helm_releases
