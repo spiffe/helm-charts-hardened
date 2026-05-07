@@ -23,8 +23,8 @@ for i in "$@"; do
   esac
 done
 
-if [ "$GITLAB_CI" = "true" ]; then
-  echo "Running in GitLab CI"
+if [ "x${GITHUB_JOB}" != "x" ]; then
+  echo "Running in GitHub"
 else
   echo "Do not run this script on your own box. For testing, it deploys a testing local spire ha setup using sudo. This is likely not what you want. Only use this script as a reference."
   exit 1
