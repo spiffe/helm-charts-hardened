@@ -42,6 +42,8 @@ teardown() {
   sudo systemctl status spire-trust-sync@b
   sudo systemctl status spiffe-socat-unix@k8s-spire-server-a
   sudo systemctl status spiffe-socat-unix@k8s-spire-server-b
+  sudo spire-server bundle list -socketPath /var/run/spire/server/sockets/a/private/api.sock
+  sudo spire-server bundle list -socketPath /var/run/spire/server/sockets/b/private/api.sock
 
   print_helm_releases
   print_spire_workload_status spire-root-server
@@ -112,6 +114,9 @@ sudo sed -i "s/# join_token =.*/join_token = ${JOIN_TOKEN_B}/" /etc/spire/agent/
 sudo sed -i 's/server_port = 8081/server_port = 8082/' /etc/spire/agent/b.conf
 
 sudo more /etc/spire/agent/a.conf /etc/spire/agent/b.conf | cat
+
+sudo /bin/bash -c 'echo "SPIRE_SERVER_SOCKET=/var/run/spire/server/sockets/b/private/api.sock" > /etc/spire/trust-sync/a.conf'
+sudo /bin/bash -c 'echo "SPIRE_SERVER_SOCKET=/var/run/spire/server/sockets/a/private/api.sock" > /etc/spire/trust-sync/b.conf'
 
 sudo systemctl start spire-agent@a spire-agent@b
 sudo systemctl start spire-trust-sync@a spire-trust-sync@b
