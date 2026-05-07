@@ -16,25 +16,25 @@ kubeadmConfigPatches:
 nodes:
   - role: control-plane
     extraMounts:
-      - hostPath: /var/run/spire/agent/sockets/k8s-spire-server-a/public
-        containerPath: /var/run/spire/agent/sockets/k8s-spire-server-a/public
-      - hostPath: /var/run/spire/agent/sockets/k8s-spire-server-b/public
-        containerPath: /var/run/spire/agent/sockets/k8s-spire-server-b/public
+      - hostPath: /var/run/spiffe/socat/unix/k8s-spire-server-a/public
+        containerPath: /var/run/spiffe/socat/unix/k8s-spire-server-a/public
+      - hostPath: /var/run/spiffe/socat/unix/k8s-spire-server-b/public
+        containerPath: /var/run/spiffe/socat/unix/k8s-spire-server-b/public
   - role: worker
     extraMounts:
-      - hostPath: /var/run/spire/agent/sockets/k8s-spire-server-a/public
-        containerPath: /var/run/spire/agent/sockets/k8s-spire-server-a/public
-      - hostPath: /var/run/spire/agent/sockets/k8s-spire-server-b/public
-        containerPath: /var/run/spire/agent/sockets/k8s-spire-server-b/public
+      - hostPath: /var/run/spiffe/socat/unix/k8s-spire-server-a/public
+        containerPath: /var/run/spiffe/socat/unix/k8s-spire-server-a/public
+      - hostPath: /var/run/spiffe/socat/unix/k8s-spire-server-b/public
+        containerPath: /var/run/spiffe/socat/unix/k8s-spire-server-b/public
   - role: worker
     extraMounts:
-      - hostPath: /var/run/spire/agent/sockets/k8s-spire-server-a/public
-        containerPath: /var/run/spire/agent/sockets/k8s-spire-server-a/public
-      - hostPath: /var/run/spire/agent/sockets/k8s-spire-server-b/public
-        containerPath: /var/run/spire/agent/sockets/k8s-spire-server-b/public
+      - hostPath: /var/run/spiffe/socat/unix/k8s-spire-server-a/public
+        containerPath: /var/run/spiffe/socat/unix/k8s-spire-server-a/public
+      - hostPath: /var/run/spiffe/socat/unix/k8s-spire-server-b/public
+        containerPath: /var/run/spiffe/socat/unix/k8s-spire-server-b/public
   - role: worker
     extraMounts:
-      - hostPath: /var/run/spire/agent/sockets/k8s-spire-server-a/public
-        containerPath: /var/run/spire/agent/sockets/k8s-spire-server-a/public
-      - hostPath: /var/run/spire/agent/sockets/k8s-spire-server-b/public
-        containerPath: /var/run/spire/agent/sockets/k8s-spire-server-b/public
+      - hostPath: /var/run/spiffe/socat/unix/k8s-spire-server-a/public
+        containerPath: /var/run/spiffe/socat/unix/k8s-spire-server-a/public
+      - hostPath: /var/run/spiffe/socat/unix/k8s-spire-server-b/public
+        containerPath: /var/run/spiffe/socat/unix/k8s-spire-server-b/public
