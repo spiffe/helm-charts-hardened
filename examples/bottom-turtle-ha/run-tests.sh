@@ -38,6 +38,8 @@ teardown() {
   sudo systemctl status spire-controller-manager@b
   sudo systemctl status spire-agent@a
   sudo systemctl status spire-agent@b
+  sudo systemctl start spire-trust-sync@a
+  sudo systemctl start spire-trust-sync@b
   sudo systemctl status spiffe-socat-unix@k8s-spire-server-a
   sudo systemctl status spiffe-socat-unix@k8s-spire-server-b
 
@@ -114,9 +116,6 @@ sudo more /etc/spire/agent/a.conf /etc/spire/agent/b.conf | cat
 sudo systemctl start spire-agent@a spire-agent@b
 sudo systemctl start spire-trust-sync@a spire-trust-sync@b
 sudo systemctl start spiffe-socat-unix@k8s-spire-server-a spiffe-socat-unix@k8s-spire-server-b
-
-sudo systemctl status spire-agent@a
-sudo systemctl status spire-agent@b
 
 #FIXME need to wait for spire agent to health check ok, with a timeout
 sleep 15
