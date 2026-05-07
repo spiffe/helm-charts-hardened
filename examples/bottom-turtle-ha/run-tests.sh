@@ -96,6 +96,11 @@ sudo systemctl start spiffe-socat-unix@k8s-spire-server-a spiffe-socat-unix@k8s-
 sudo systemctl status spire-agent@a
 sudo systemctl status spire-agent@b
 
+#FIXME need to wait for spire agent to health check ok, with a timeout
+sleep 5
+sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spire/agent/sockets/a/public/api.sock
+sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spire/agent/sockets/b/public/api.sock
+
 # Deploy an ingress controller
 IP=$(kubectl get nodes chart-testing-control-plane -o go-template='{{ range .status.addresses }}{{ if eq .type "InternalIP" }}{{ .address }}{{ end }}{{ end }}')
 helm upgrade --install ingress-nginx ingress-nginx --version "$VERSION_INGRESS_NGINX" --repo "$HELM_REPO_INGRESS_NGINX" \
