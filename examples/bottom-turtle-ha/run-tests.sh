@@ -69,11 +69,11 @@ kubectl get nodes
 
 sudo curl -s -o /etc/apt/sources.list.d/spire-examples.list https://raw.githubusercontent.com/spiffe/spire-examples/refs/heads/main/examples/debs/amd64/spire-examples.list
 sudo apt-get update
-sudo apt-get install -y spire-common spire-agent spire-server spire-controller-manager spiffe-socat-unix
+sudo apt-get install -y spire-common spire-agent spire-server spire-controller-manager spiffe-socat-unix socat spire-trust-sync
 
 sudo mkdir -p /etc/spire/server/a/manifests/ /etc/spire/server/b/manifests/
-sudo cp "${SCRIPTPATH}/example-manifests/node1-k8s-spire-server.yaml" /etc/spire/server/a/manifests/
-sudo cp "${SCRIPTPATH}/example-manifests/node1-k8s-spire-server.yaml" /etc/spire/server/b/manifests/
+sudo cp "${SCRIPTPATH}/example-manifests"/* /etc/spire/server/a/manifests/
+sudo cp "${SCRIPTPATH}/example-manifests"/* /etc/spire/server/b/manifests/
 
 #FIXME consider adding to upstream package
 sudo /bin/bash -c 'echo SPIRE_BIND_PORT=8082 > /etc/spire/server/b.env'
@@ -110,6 +110,7 @@ sudo sed -i 's/server_port = 8081/server_port = 8082/' /etc/spire/agent/b.conf
 sudo more /etc/spire/agent/a.conf /etc/spire/agent/b.conf | cat
 
 sudo systemctl start spire-agent@a spire-agent@b
+sudo systemctl start spire-trust-sync@a spire-trust-sync@b
 sudo systemctl start spiffe-socat-unix@k8s-spire-server-a spiffe-socat-unix@k8s-spire-server-b
 
 sudo systemctl status spire-agent@a
