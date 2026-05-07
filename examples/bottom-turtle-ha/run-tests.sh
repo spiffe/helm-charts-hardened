@@ -38,8 +38,8 @@ teardown() {
   sudo systemctl status spire-controller-manager@b
   sudo systemctl status spire-agent@a
   sudo systemctl status spire-agent@b
-  sudo systemctl start spire-trust-sync@a
-  sudo systemctl start spire-trust-sync@b
+  sudo systemctl status spire-trust-sync@a
+  sudo systemctl status spire-trust-sync@b
   sudo systemctl status spiffe-socat-unix@k8s-spire-server-a
   sudo systemctl status spiffe-socat-unix@k8s-spire-server-b
 
@@ -157,6 +157,7 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --wait spire-b charts/spire-nested \
   --set tags.bottomTurtleHAB=true \
   --set global.spire.upstreamSpireAddress=spire-server-b.production.other \
+  --set internal-spire-server-bottom-turtle-ha-b.upstreamAuthority.spire.server.port=8082 \
   --set "global.spire.ingressControllerType=ingress-nginx"
 
 ENTRIES="$(kubectl exec -i -n spire-server spire-b-internal-server-0 -- spire-server entry show)"
