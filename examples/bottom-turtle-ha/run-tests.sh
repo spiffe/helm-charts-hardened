@@ -69,6 +69,8 @@ sudo systemctl start spire-server@a spire-server@b spire-controller-manager@a sp
 sudo systemctl status spire-server@a
 sudo systemctl status spire-server@b
 
+ls /run/spire/server/sockets/a/private /run/spire/server/sockets/a /run/spire/server
+
 export JOIN_TOKEN_A=$(sudo spire-server token generate -spiffeID spiffe://example.org/agentA -socketPath /run/spire/server/sockets/a/private/api.sock | awk '{print "\""$2"\""}')
 export JOIN_TOKEN_B=$(sudo spire-server token generate -spiffeID spiffe://example.org/agentB -socketPath /run/spire/server/sockets/b/private/api.sock | awk '{print "\""$2"\""}')
 
