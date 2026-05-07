@@ -57,6 +57,39 @@ trap 'EC=$? && trap - SIGTERM && teardown $EC' SIGINT SIGTERM EXIT
 # List nodes
 kubectl get nodes
 
+sudo curl -s -o /etc/apt/sources.list.d/spire-examples.list https://raw.githubusercontent.com/spiffe/spire-examples/refs/heads/main/examples/debs/amd64/spire-examples.list
+sudo apt-get update
+sudo apt-get install -y spire-common spire-agent spire-server spire-controller-manager spiffe-socat-unix
+
+#FIXME consider adding to upstream package
+sudo /bin/bash -c 'echo SPIRE_BIND_PORT=8082 > /etc/spire/server/b.env'
+
+#FIXME copy in controller manager config.
+sudo systemctl start spire-server@a spire-server@b spire-controller-manager@a spire-controller-manager@b
+sudo systemctl status spire-server@a
+sudo systemctl status spire-server@b
+
+export JOIN_TOKEN_A=$(sudo bin/spire-server token generate -spiffeID spiffe://example.org/agentA -socketPath /var/run/spire/agent/sockets/a/public/spiffe.sock | awk '{print "\""$2"\""}')
+export JOIN_TOKEN_B=$(sudo bin/spire-server token generate -spiffeID spiffe://example.org/agentB -socketPath /var/run/spire/agent/sockets/b/public/spiffe.sock | awk '{print "\""$2"\""}')
+
+sudo cp -a /etc/spire/agent/default.conf /etc/spire/agent/a.conf
+sudo cp -a /etc/spire/agent/default.conf /etc/spire/agent/b.conf
+
+#FIXME consider making this an env var somehow
+sudo sed -i "s/# join_token =.*/join_token = ${JOIN_TOKEN_A}" /etc/spire/agent/a.conf
+sudo sed -i "s/# join_token =.*/join_token = ${JOIN_TOKEN_B}" /etc/spire/agent/b.conf
+
+#FIXME consider adding to upstream package
+sudo sed -i 's/server_port = 8081/server_port = 8082/' /etc/spire/agent/b.conf
+
+sudo more /etc/spire/agent/a.conf /etc/spire/agent/b.conf | cat
+
+sudo systemctl start spire-agent@a spire-agent@b
+sudo systemctl start spiffe-socat-unix@k8s-spire-server-a spiffe-socat-unix@k8s-spire-server-b
+
+sudo systemctl status spire-agent@a
+sudo systemctl status spire-agent@b
+
 # Deploy an ingress controller
 IP=$(kubectl get nodes chart-testing-control-plane -o go-template='{{ range .status.addresses }}{{ if eq .type "InternalIP" }}{{ .address }}{{ end }}{{ end }}')
 helm upgrade --install ingress-nginx ingress-nginx --version "$VERSION_INGRESS_NGINX" --repo "$HELM_REPO_INGRESS_NGINX" \
