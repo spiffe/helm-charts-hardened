@@ -15,6 +15,11 @@ kubeadmConfigPatches:
         # admission-control-config-file: /etc/kubernetes/pki/admctrl/admission-control.yaml
 nodes:
   - role: control-plane
+    extraMounts:
+      - hostPath: /var/run/spire/agent/sockets/k8s-spire-server-a/public
+        containerPath: /var/run/spire/agent/sockets/k8s-spire-server-a/public
+      - hostPath: /var/run/spire/agent/sockets/k8s-spire-server-b/public
+        containerPath: /var/run/spire/agent/sockets/k8s-spire-server-b/public
   - role: worker
   - role: worker
   - role: worker
