@@ -61,6 +61,10 @@ sudo curl -s -o /etc/apt/sources.list.d/spire-examples.list https://raw.githubus
 sudo apt-get update
 sudo apt-get install -y spire-common spire-agent spire-server spire-controller-manager spiffe-socat-unix
 
+sudo mkdir -p /etc/spire/server/a/manifests/ /etc/spire/server/b/manifests/
+sudo cp "${SCRIPTPATH}/example-manifests/node1-k8s-spire-server.yaml" /etc/spire/server/a/manifests/
+sudo cp "${SCRIPTPATH}/example-manifests/node1-k8s-spire-server.yaml" /etc/spire/server/b/manifests/
+
 #FIXME consider adding to upstream package
 sudo /bin/bash -c 'echo SPIRE_BIND_PORT=8082 > /etc/spire/server/b.env'
 
