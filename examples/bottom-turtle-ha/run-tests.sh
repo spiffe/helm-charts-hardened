@@ -73,6 +73,8 @@ sudo cp "${SCRIPTPATH}/example-manifests/node1-k8s-spire-server.yaml" /etc/spire
 
 #FIXME consider adding to upstream package
 sudo /bin/bash -c 'echo SPIRE_BIND_PORT=8082 > /etc/spire/server/b.env'
+sudo cp /etc/spire/controller-manager/default.conf /etc/spire/controller-manager/b.conf
+sudo sed -i 's/bindAddress: .*/bindAddress: 0.0.0.0:9125/; s/healthProbeBindAddress: .*/healthProbeBindAddress: 0.0.0.0:9126/;' /etc/spire/controller-manager/.conf
 
 #FIXME copy in controller manager config.
 sudo systemctl start spire-server@a spire-server@b spire-controller-manager@a spire-controller-manager@b

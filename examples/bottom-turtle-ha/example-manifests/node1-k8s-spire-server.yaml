@@ -1,12 +1,12 @@
 apiVersion: spire.spiffe.io/v1alpha1
 kind: ClusterStaticEntry
 metadata:
-  name: ndoe1-k8s-spire-server
+  name: node1-k8s-spire-server
 spec:
-  parentID: spiffe://${SPIFFE_TRUST_DOMAIN}/agent/anode/node1.${SPIFFE_TRUST_DOMAIN}
+  parentID: spiffe://${SPIFFE_TRUST_DOMAIN}/agent/node1.${SPIFFE_TRUST_DOMAIN}
   spiffeID: spiffe://${SPIFFE_TRUST_DOMAIN}/k8s-spire-server/node1.${SPIFFE_TRUST_DOMAIN}
   selectors:
-  - systemd:id:spiffe-socat-unix@k8s-spire-server-@${SUBINSTANCE}.service
+  - systemd:id:spiffe-socat-unix@k8s-spire-server-${SUBINSTANCE}.service
   downstream: true
 #FIXME
   #federatesWith:
