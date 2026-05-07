@@ -69,11 +69,13 @@ sudo systemctl start spire-server@a spire-server@b spire-controller-manager@a sp
 sudo systemctl status spire-server@a
 sudo systemctl status spire-server@b
 
-#FIXME need to wait for spire server to health check ok, with a timeout
+#FIXME need to wait for spire server to health check ok, with a timeout and controller manager to sync
 sleep 10
 
-JOIN_TOKEN_A=$(sudo spire-server token generate -spiffeID spiffe://example.org/agentA -socketPath /run/spire/server/sockets/a/private/api.sock | awk '{print "\""$2"\""}')
-JOIN_TOKEN_B=$(sudo spire-server token generate -spiffeID spiffe://example.org/agentB -socketPath /run/spire/server/sockets/b/private/api.sock | awk '{print "\""$2"\""}')
+#FIXME add trust syncing spire-ha domain too.
+
+JOIN_TOKEN_A=$(sudo spire-server token generate -spiffeID spiffe://example.org/agent/a -socketPath /run/spire/server/sockets/a/private/api.sock | awk '{print "\""$2"\""}')
+JOIN_TOKEN_B=$(sudo spire-server token generate -spiffeID spiffe://example.org/agent/b -socketPath /run/spire/server/sockets/b/private/api.sock | awk '{print "\""$2"\""}')
 
 export JOIN_TOKEN_A
 export JOIN_TOKEN_B
