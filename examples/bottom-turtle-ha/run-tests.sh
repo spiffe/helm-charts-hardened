@@ -34,6 +34,8 @@ teardown() {
   echo ---------------------------
   sudo systemctl status spire-server@a
   sudo systemctl status spire-server@b
+  sudo spire-server entry show -socketPath /var/run/spire/server/sockets/a/private/api.sock
+  sudo spire-server entry show -socketPath /var/run/spire/server/sockets/b/private/api.sock
   sudo systemctl status spire-controller-manager@a
   sudo systemctl status spire-controller-manager@b
   sudo systemctl status spire-agent@a
