@@ -69,8 +69,8 @@ sudo systemctl start spire-server@a spire-server@b spire-controller-manager@a sp
 sudo systemctl status spire-server@a
 sudo systemctl status spire-server@b
 
-export JOIN_TOKEN_A=$(sudo bin/spire-server token generate -spiffeID spiffe://example.org/agentA -socketPath /var/run/spire/agent/sockets/a/public/spiffe.sock | awk '{print "\""$2"\""}')
-export JOIN_TOKEN_B=$(sudo bin/spire-server token generate -spiffeID spiffe://example.org/agentB -socketPath /var/run/spire/agent/sockets/b/public/spiffe.sock | awk '{print "\""$2"\""}')
+export JOIN_TOKEN_A=$(sudo spire-server token generate -spiffeID spiffe://example.org/agentA -socketPath /var/run/spire/agent/sockets/a/public/spiffe.sock | awk '{print "\""$2"\""}')
+export JOIN_TOKEN_B=$(sudo spire-server token generate -spiffeID spiffe://example.org/agentB -socketPath /var/run/spire/agent/sockets/b/public/spiffe.sock | awk '{print "\""$2"\""}')
 
 sudo cp -a /etc/spire/agent/default.conf /etc/spire/agent/a.conf
 sudo cp -a /etc/spire/agent/default.conf /etc/spire/agent/b.conf
