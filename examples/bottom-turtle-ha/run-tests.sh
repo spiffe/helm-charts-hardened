@@ -143,7 +143,7 @@ kubectl rollout status -n kube-system -w --timeout=1m deploy/coredns
 helm upgrade --install --create-namespace --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/spire-values.yaml" \
   --wait spire charts/spire-nested \
   --set tags.haAgentCommont=true \
-  --set "global.spire.namespaces.create=true" \
+  --set "global.spire.namespaces.create=false" \
   --set "global.spire.ingressControllerType=ingress-nginx"
 
 helm upgrade --install --create-namespace --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/spire-values.yaml" \
