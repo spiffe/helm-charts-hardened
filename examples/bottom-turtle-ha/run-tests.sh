@@ -86,8 +86,8 @@ sleep 10
 
 #FIXME add trust syncing spire-ha domain too.
 
-JOIN_TOKEN_A=$(sudo spire-server token generate -spiffeID spiffe://example.org/agent/a -socketPath /run/spire/server/sockets/a/private/api.sock | awk '{print "\""$2"\""}')
-JOIN_TOKEN_B=$(sudo spire-server token generate -spiffeID spiffe://example.org/agent/b -socketPath /run/spire/server/sockets/b/private/api.sock | awk '{print "\""$2"\""}')
+JOIN_TOKEN_A=$(sudo spire-server token generate -spiffeID spiffe://example.org/agent/node1 -socketPath /run/spire/server/sockets/a/private/api.sock | awk '{print "\""$2"\""}')
+JOIN_TOKEN_B=$(sudo spire-server token generate -spiffeID spiffe://example.org/agent/node1 -socketPath /run/spire/server/sockets/b/private/api.sock | awk '{print "\""$2"\""}')
 
 export JOIN_TOKEN_A
 export JOIN_TOKEN_B
