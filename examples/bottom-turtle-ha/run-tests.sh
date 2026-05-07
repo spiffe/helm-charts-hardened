@@ -69,19 +69,21 @@ sudo systemctl start spire-server@a spire-server@b spire-controller-manager@a sp
 sudo systemctl status spire-server@a
 sudo systemctl status spire-server@b
 
+#FIXME need to wait for spire server to health check ok, with a timeout
 sleep 10
 
-sudo ls /run/spire/server/sockets/a/private /run/spire/server/sockets/a /run/spire/server
+JOIN_TOKEN_A=$(sudo spire-server token generate -spiffeID spiffe://example.org/agentA -socketPath /run/spire/server/sockets/a/private/api.sock | awk '{print "\""$2"\""}')
+JOIN_TOKEN_B=$(sudo spire-server token generate -spiffeID spiffe://example.org/agentB -socketPath /run/spire/server/sockets/b/private/api.sock | awk '{print "\""$2"\""}')
 
-export JOIN_TOKEN_A=$(sudo spire-server token generate -spiffeID spiffe://example.org/agentA -socketPath /run/spire/server/sockets/a/private/api.sock | awk '{print "\""$2"\""}')
-export JOIN_TOKEN_B=$(sudo spire-server token generate -spiffeID spiffe://example.org/agentB -socketPath /run/spire/server/sockets/b/private/api.sock | awk '{print "\""$2"\""}')
+export JOIN_TOKEN_A
+export JOIN_TOKEN_B
 
 sudo cp -a /etc/spire/agent/default.conf /etc/spire/agent/a.conf
 sudo cp -a /etc/spire/agent/default.conf /etc/spire/agent/b.conf
 
 #FIXME consider making this an env var somehow
-sudo sed -i "s/# join_token =.*/join_token = ${JOIN_TOKEN_A}" /etc/spire/agent/a.conf
-sudo sed -i "s/# join_token =.*/join_token = ${JOIN_TOKEN_B}" /etc/spire/agent/b.conf
+sudo sed -i "s/# join_token =.*/join_token = ${JOIN_TOKEN_A}/" /etc/spire/agent/a.conf
+sudo sed -i "s/# join_token =.*/join_token = ${JOIN_TOKEN_B}/" /etc/spire/agent/b.conf
 
 #FIXME consider adding to upstream package
 sudo sed -i 's/server_port = 8081/server_port = 8082/' /etc/spire/agent/b.conf
