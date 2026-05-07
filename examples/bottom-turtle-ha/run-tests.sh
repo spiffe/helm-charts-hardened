@@ -71,6 +71,8 @@ sudo curl -s -o /etc/apt/sources.list.d/spire-examples.list https://raw.githubus
 sudo apt-get update
 sudo apt-get install -y spire-common spire-agent spire-server spire-controller-manager spiffe-socat-unix socat spire-trust-sync
 
+sudo sed -i 's/example.org/production.other/' /etc/spiffe/default-trust-domain.env
+
 sudo mkdir -p /etc/spire/server/a/manifests/ /etc/spire/server/b/manifests/
 sudo cp "${SCRIPTPATH}/example-manifests"/* /etc/spire/server/a/manifests/
 sudo cp "${SCRIPTPATH}/example-manifests"/* /etc/spire/server/b/manifests/
