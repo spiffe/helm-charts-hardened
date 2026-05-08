@@ -163,6 +163,8 @@ internal-spire-server-bottom-turtle-ha-a:
           - spiffe://production.other/spire-exchange/node1.production.other"
 EOF
 
+ls -l /var/run/spiffe/socat/unix/k8s-spire-agent*/public/*
+
 sed 's/internal-spire-server-bottom-turtle-ha-a/internal-spire-server-bottom-turtle-ha-b/' test-a-values.yaml > test-b-values.yaml
 
 more test-b-values.yaml | cat
