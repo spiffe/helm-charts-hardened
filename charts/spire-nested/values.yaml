@@ -566,8 +566,10 @@ downstream-spire-agent-bottom-turtle-ha-a:
     hostPath: /var/lib/spire/k8s/downstream-agent-a
   nodeAttestor:
     k8sPSAT:
+      ## @param downstream-spire-agent-bottom-turtle-ha-a.nodeAttestor.k8sPSAT.enabled Enable the k8s projected access token node attestor
       enabled: false
     x509POP:
+      ## @param downstream-spire-agent-bottom-turtle-ha-a.nodeAttestor.x509POP.enabled Enable the x509 pop node attestor
       enabled: true
   healthChecks:
     ## @param downstream-spire-agent-bottom-turtle-ha-a.healthCheck.port Health check port
@@ -586,7 +588,7 @@ downstream-spire-agent-bottom-turtle-ha-a:
       enabled: true
       ## @param downstream-spire-agent-bottom-turtle-ha-a.sockets.admin.mountOnHost Mount admin socket on host
       mountOnHost: true
-  ## @param downstream-spire-agent-bottom-turtle-ha-b.authorizedDelegates List of workloads able to use the delegation api
+  ## @param downstream-spire-agent-bottom-turtle-ha-a.authorizedDelegates List of workloads able to use the delegation api
   authorizedDelegates:
   - /spire-ha-agent
 
@@ -605,8 +607,10 @@ downstream-spire-agent-bottom-turtle-ha-b:
     hostPath: /var/lib/spire/k8s/downstream-agent-b
   nodeAttestor:
     k8sPSAT:
+      ## @param downstream-spire-agent-bottom-turtle-ha-b.nodeAttestor.k8sPSAT.enabled Enable the k8s projected access token node attestor
       enabled: false
     x509POP:
+      ## @param downstream-spire-agent-bottom-turtle-ha-a.nodeAttestor.x509POP.enabled Enable the x509 pop node attestor
       enabled: true
   healthChecks:
     ## @param downstream-spire-agent-bottom-turtle-ha-b.healthCheck.port Health check port

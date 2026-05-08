@@ -52,6 +52,8 @@ teardown() {
   sudo systemctl status spiffe-socat-unix@k8s-spire-agent-4-b
   sudo spire-server bundle list -socketPath /var/run/spire/server/sockets/a/private/api.sock
   sudo spire-server bundle list -socketPath /var/run/spire/server/sockets/b/private/api.sock
+  kubectl exec -i -n spire-server spire-a-internal-server-0 -- spire-server entry show
+  kubectl exec -i -n spire-server spire-b-internal-server-0 -- spire-server entry show
 
   print_helm_releases
 
