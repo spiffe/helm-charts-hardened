@@ -474,12 +474,15 @@ internal-spire-server-bottom-turtle-ha-a:
           ## @param internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent Enables the spire-ha-agent identity
           enabled: true
   persistence:
+    ## @param internal-spire-server-bottom-turtle-ha-a.persistence.type What type to use for peristence
     type: emptyDir
   nodeAttestor:
     k8sPSAT:
       # FIXME disable
+      ## @param internal-spire-server-bottom-turtle-ha-a.nodeAttestor.k8sPSAT.enabled Enable the k8s projected access token node attestor
       enabled: true
     x509POP:
+      ## @param internal-spire-server-bottom-turtle-ha-a.nodeAttestor.x509POP.enabled Enable the x509 pop node attestor
       enabled: true
     # FIXME is this needed?
   externalControllerManagers:
@@ -499,7 +502,9 @@ internal-spire-server-bottom-turtle-ha-a:
   ## @param internal-spire-server-bottom-turtle-ha-a.bundleConfigMap The name of the configmap to store the downstream bundle
   bundleConfigMap: spire-server-a-bundle
   trustSync:
+    ## @param internal-spire-server-bottom-turtle-ha-a.trustSync.enabled Enable trust syncing
     enabled: true
+    ## @param internal-spire-server-bottom-turtle-ha-a.trustSync.domains the trust domains to sync
     domains:
     - spire-ha
 
@@ -523,12 +528,15 @@ internal-spire-server-bottom-turtle-ha-b:
           ## @param internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent Enables the spire-ha-agent identity
           enabled: true
   persistence:
+    ## @param internal-spire-server-bottom-turtle-ha-b.persistence.type What type to use for peristence
     type: emptyDir
   nodeAttestor:
     k8sPSAT:
+      ## @param internal-spire-server-bottom-turtle-ha-b.nodeAttestor.k8sPSAT.enabled Enable the k8s projected access token node attestor
       # FIXME disable
       enabled: true
     x509POP:
+      ## @param internal-spire-server-bottom-turtle-ha-b.nodeAttestor.x509POP.enabled Enable the x509 pop node attestor
       enabled: true
   externalControllerManagers:
     ## @param internal-spire-server-bottom-turtle-ha-b.externalControllerManagers.enabled Flag to enable external controller managers
@@ -547,7 +555,9 @@ internal-spire-server-bottom-turtle-ha-b:
   ## @param internal-spire-server-bottom-turtle-ha-b.bundleConfigMap The name of the configmap to store the downstream bundle
   bundleConfigMap: spire-server-b-bundle
   trustSync:
+    ## @param internal-spire-server-bottom-turtle-ha-b.trustSync.enabled Enable trust syncing
     enabled: true
+    ## @param internal-spire-server-bottom-turtle-ha-b.trustSync.domains the trust domains to sync
     domains:
     - spire-ha
 
