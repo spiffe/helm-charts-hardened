@@ -167,16 +167,6 @@ sed 's/internal-spire-server-bottom-turtle-ha-a/internal-spire-server-bottom-tur
 
 more test-b-values.yaml | cat
 
-i=1
-for node in chart-testing-worker chart-testing-worker2 chart-testing-worker3; do
-	uid=$(kubectl get node "$node" -o go-template="{{ .metadata.uid }}")
-	x509pop:san:spire-exchange:node{$ID}.production.other"
-	cat <<EOF
-spiffe://production.other/spire-exchange/node{$ID}2.production.other"
-EOF
-	i=$((i + 1))
-done
-
 #FIXME add some bits to check on spire-ha trust domain
 
 # Deploy an ingress controller
