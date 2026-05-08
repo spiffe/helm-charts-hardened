@@ -158,7 +158,7 @@ kubectl get nodes -o go-template='{{range .items}}{{printf "%s %s\n" .metadata.u
 #FIXME temporary until spire-controller-manager gains dynamic node registration support
 cat > test-a-values.yaml <<EOF
 internal-spire-server-bottom-turtle-ha-a:
-  controllerManager
+  controllerManager:
     identities:
       clusterStaticEntries:
         node1:

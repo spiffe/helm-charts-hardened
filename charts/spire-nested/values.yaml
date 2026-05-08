@@ -605,7 +605,7 @@ downstream-spire-agent-bottom-turtle-ha-a:
 # Used with tags [bottomTurtleHAB]
 downstream-spire-agent-bottom-turtle-ha-b:
   # enabled: true
-  ## @param downstream-spire-agent-bottom-turtle--ha-b.nameOverride Overrides the name of Spire agent pods
+  ## @param downstream-spire-agent-bottom-turtle-ha-b.nameOverride Overrides the name of Spire agent pods
   nameOverride: agent-downstream
   server:
     ## @param downstream-spire-agent-bottom-turtle-ha-b.server.nameOverride The name override setting of the internal SPIRE server
@@ -620,7 +620,7 @@ downstream-spire-agent-bottom-turtle-ha-b:
       ## @param downstream-spire-agent-bottom-turtle-ha-b.nodeAttestor.k8sPSAT.enabled Enable the k8s projected access token node attestor
       enabled: false
     x509POP:
-      ## @param downstream-spire-agent-bottom-turtle-ha-a.nodeAttestor.x509POP.enabled Enable the x509 pop node attestor
+      ## @param downstream-spire-agent-bottom-turtle-ha-b.nodeAttestor.x509POP.enabled Enable the x509 pop node attestor
       enabled: true
   healthChecks:
     ## @param downstream-spire-agent-bottom-turtle-ha-b.healthCheck.port Health check port
@@ -635,7 +635,7 @@ downstream-spire-agent-bottom-turtle-ha-b:
     ## @param downstream-spire-agent-bottom-turtle-ha-b.sockets.hostBasePath Path on the host to place sockets
     hostBasePath: /var/run/spire/agent/sockets/b
     admin:
-      ## @param downstream-spire-agent-bottom-turtle--ha-b.sockets.admin.enabled Enable admin socket
+      ## @param downstream-spire-agent-bottom-turtle-ha-b.sockets.admin.enabled Enable admin socket
       enabled: true
       ## @param downstream-spire-agent-bottom-turtle-ha-b.sockets.admin.mountOnHost Mount admin socket on host
       mountOnHost: true
