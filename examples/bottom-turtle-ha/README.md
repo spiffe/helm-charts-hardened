@@ -94,8 +94,6 @@ spec:
   spiffeID: spiffe://${SPIFFE_TRUST_DOMAIN}/spire-exchange/node1.${SPIFFE_TRUST_DOMAIN}
   selectors:
   - systemd:id:spiffe-socat-unix@k8s-spire-agent-${SUBINSTANCE}.service
-  federatesWith:
-  - spire-ha
 ```
 
 And on the host, we install spiffe-socat-unix via packages, and then enable the bridges:

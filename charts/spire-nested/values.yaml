@@ -477,11 +477,11 @@ internal-spire-server-bottom-turtle-ha-a:
     type: emptyDir
   nodeAttestor:
     k8sPSAT:
-      #FIXME disable
+      # FIXME disable
       enabled: true
     x509POP:
       enabled: true
-    #FIXME is this needed?
+    # FIXME is this needed?
   externalControllerManagers:
     ## @param internal-spire-server-bottom-turtle-ha-a.externalControllerManagers.enabled Flag to enable external controller managers
     enabled: true
@@ -526,7 +526,7 @@ internal-spire-server-bottom-turtle-ha-b:
     type: emptyDir
   nodeAttestor:
     k8sPSAT:
-      #FIXME disable
+      # FIXME disable
       enabled: true
     x509POP:
       enabled: true
