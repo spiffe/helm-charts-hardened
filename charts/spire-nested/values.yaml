@@ -583,6 +583,8 @@ downstream-spire-agent-bottom-turtle-ha-a:
     x509POP:
       ## @param downstream-spire-agent-bottom-turtle-ha-a.nodeAttestor.x509POP.enabled Enable the x509 pop node attestor
       enabled: true
+      ## @param downstream-spire-agent-bottom-turtle-ha-a.nodeAttestor.x509POP.spiffeEndpointSocket Where the socket is to use for mode spiffe 
+      spiffeEndpointSocket: /var/run/spiffe/socat/unix/k8s-spire-agent-a/public/api.sock
   healthChecks:
     ## @param downstream-spire-agent-bottom-turtle-ha-a.healthChecks.port Health check port
     port: 9981
@@ -624,6 +626,8 @@ downstream-spire-agent-bottom-turtle-ha-b:
     x509POP:
       ## @param downstream-spire-agent-bottom-turtle-ha-b.nodeAttestor.x509POP.enabled Enable the x509 pop node attestor
       enabled: true
+      ## @param downstream-spire-agent-bottom-turtle-ha-b.nodeAttestor.x509POP.spiffeEndpointSocket Where the socket is to use for mode spiffe 
+      spiffeEndpointSocket: /var/run/spiffe/socat/unix/k8s-spire-agent-b/public/api.sock
   healthChecks:
     ## @param downstream-spire-agent-bottom-turtle-ha-b.healthChecks.port Health check port
     port: 9982
