@@ -123,10 +123,15 @@ sudo systemctl start spire-trust-sync@a spire-trust-sync@b
 sudo systemctl start spiffe-socat-unix@k8s-spire-server-a spiffe-socat-unix@k8s-spire-server-b
 
 #Start up node agents. We only have one vm mapped to multiple k8s virtual nodes in kind, so we run a pair per k8s virtual node. Normally you would only run one pair per host/vm.
+sudo /bin/bash -c "echo SPIFFE_INSTANCE=a > /etc/spiffe//socat/unix/k8s-spire-agent-2-a.conf"
+sudo /bin/bash -c "echo SPIFFE_INSTANCE=a > /etc/spiffe//socat/unix/k8s-spire-agent-3-a.conf"
+sudo /bin/bash -c "echo SPIFFE_INSTANCE=a > /etc/spiffe//socat/unix/k8s-spire-agent-4-a.conf"
+sudo /bin/bash -c "echo SPIFFE_INSTANCE=b > /etc/spiffe//socat/unix/k8s-spire-agent-2-b.conf"
+sudo /bin/bash -c "echo SPIFFE_INSTANCE=b > /etc/spiffe//socat/unix/k8s-spire-agent-3-b.conf"
+sudo /bin/bash -c "echo SPIFFE_INSTANCE=b > /etc/spiffe//socat/unix/k8s-spire-agent-4-b.conf"
 sudo systemctl start spiffe-socat-unix@k8s-spire-agent-2-a spiffe-socat-unix@k8s-spire-agent-2-b
 sudo systemctl start spiffe-socat-unix@k8s-spire-agent-3-a spiffe-socat-unix@k8s-spire-agent-3-b
 sudo systemctl start spiffe-socat-unix@k8s-spire-agent-4-a spiffe-socat-unix@k8s-spire-agent-4-b
-sudo systemctl start spiffe-socat-unix@k8s-spire-agent-5-a spiffe-socat-unix@k8s-spire-agent-5-b
 
 #FIXME need to wait for spire agent to health check ok, with a timeout
 sleep 25

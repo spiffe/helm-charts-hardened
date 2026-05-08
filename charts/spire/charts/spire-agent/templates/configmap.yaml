@@ -128,6 +128,14 @@ plugins:
     {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
     {{- end }}
     {{- end }}
+    {{- with .Values.nodeAttestor.x509POP }}
+    {{- if eq (.enabled | toString) "true" }}
+    x509pop:
+      plugin_data:
+        spiffe_endpoint_socket: unix://{{ .spiffeEndpointSocket }}
+    {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
+    {{- end }}
+    {{- end }}
     {{- with .Values.nodeAttestor.awsIID }}
     {{- if eq (.enabled | toString) "true" }}
     aws_iid:

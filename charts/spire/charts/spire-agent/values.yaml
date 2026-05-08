@@ -219,6 +219,13 @@ nodeAttestor:
   gcpIIT:
     ## @param nodeAttestor.gcpIIT.enabled Enable the gcp_iit Node Attestor
     enabled: false
+  x509POP:
+    ## @param nodeAttestor.x509POP.enabled Enable the x509_pop Node Attestor
+    enabled: false
+    ## @param nodeAttestor.x509POP.mode Which mode to use. Currently only spiffe is supported
+    mode: spiffe
+    ## @param nodeAttestor.x509POP.spiffeEndpointSocket Where the socket is to use for mode spiffe
+    spiffeEndpointSocket: "/var/run/spiffe/socat/unix/k8s-spire-agent/public/api.sock"
 
 # workloadAttestors determine a workload's properties and then generate a set of selectors associated with it.
 workloadAttestors:

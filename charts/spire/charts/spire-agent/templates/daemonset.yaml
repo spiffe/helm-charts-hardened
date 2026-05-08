@@ -340,6 +340,10 @@ spec:
               mountPath: /hostCert
               readOnly: true
             {{- end }}
+            {{- if .Values.nodeAttestor.x509POP.enabled }}
+            - name: x509pop-upstream
+              mountPath: {{ .Values.nodeAttestor.x509POP.spiffeEndpointSocket | dir }}
+            {{- end }}
             {{- if gt (len .Values.extraVolumeMounts) 0 }}
             {{- toYaml .Values.extraVolumeMounts | nindent 12 }}
             {{- end }}
@@ -419,6 +423,12 @@ spec:
         {{- if .Values.nodeAttestor.tpmDirect.enabled }}
         - name: tpm-direct
           emptyDir: {}
+        {{- end }}
+        {{- if .Values.nodeAttestor.x509POP.enabled }}
+        - name: x509pop-upstream
+          hostPath:
+            path: {{ .Values.nodeAttestor.x509POP.spiffeEndpointSocket | dir }}
+            type: DirectoryOrCreate
         {{- end }}
         - name: spire-token
           projected:
