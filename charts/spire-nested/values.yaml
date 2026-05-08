@@ -471,7 +471,7 @@ internal-spire-server-bottom-turtle-ha-a:
           ## @param internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.autoPopulateDNSNames Auto populate dns entries
           autoPopulateDNSNames: false
         spire-ha-agent:
-          ## @param internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent Enables the spire-ha-agent identity
+          ## @param internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent.enabled Enables the spire-ha-agent identity
           enabled: true
   persistence:
     ## @param internal-spire-server-bottom-turtle-ha-a.persistence.type What type to use for peristence
@@ -525,7 +525,7 @@ internal-spire-server-bottom-turtle-ha-b:
           ## @param internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.autoPopulateDNSNames Auto populate dns entries
           autoPopulateDNSNames: false
         spire-ha-agent:
-          ## @param internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent Enables the spire-ha-agent identity
+          ## @param internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent.enabled Enables the spire-ha-agent identity
           enabled: true
   persistence:
     ## @param internal-spire-server-bottom-turtle-ha-b.persistence.type What type to use for peristence
@@ -582,7 +582,7 @@ downstream-spire-agent-bottom-turtle-ha-a:
       ## @param downstream-spire-agent-bottom-turtle-ha-a.nodeAttestor.x509POP.enabled Enable the x509 pop node attestor
       enabled: true
   healthChecks:
-    ## @param downstream-spire-agent-bottom-turtle-ha-a.healthCheck.port Health check port
+    ## @param downstream-spire-agent-bottom-turtle-ha-a.healthChecks.port Health check port
     port: 9981
   telemetry:
     prometheus:
@@ -623,7 +623,7 @@ downstream-spire-agent-bottom-turtle-ha-b:
       ## @param downstream-spire-agent-bottom-turtle-ha-b.nodeAttestor.x509POP.enabled Enable the x509 pop node attestor
       enabled: true
   healthChecks:
-    ## @param downstream-spire-agent-bottom-turtle-ha-b.healthCheck.port Health check port
+    ## @param downstream-spire-agent-bottom-turtle-ha-b.healthChecks.port Health check port
     port: 9982
   telemetry:
     prometheus:
@@ -653,7 +653,7 @@ downstream-spiffe-csi-driver-bottom-turtle-ha-a:
   ## @param downstream-spiffe-csi-driver-bottom-turtle-ha-a.pluginName The name of the plugin instance
   pluginName: a.csi.spiffe.io
   healthChecks:
-    ## @param downstream-spiffe-csi-driver-bottom-turtle-ha-a.healthCheck.port The health check port
+    ## @param downstream-spiffe-csi-driver-bottom-turtle-ha-a.healthChecks.port The health check port
     port: 9810
 
 # Used with tags [bottomTurtleHAB]
@@ -666,5 +666,5 @@ downstream-spiffe-csi-driver-bottom-turtle-ha-b:
   ## @param downstream-spiffe-csi-driver-bottom-turtle-ha-b.pluginName The name of the plugin instance
   pluginName: b.csi.spiffe.io
   healthChecks:
-    ## @param downstream-spiffe-csi-driver-bottom-turtle-ha-b.healthCheck.port The health check port
+    ## @param downstream-spiffe-csi-driver-bottom-turtle-ha-b.healthChecks.port The health check port
     port: 9812

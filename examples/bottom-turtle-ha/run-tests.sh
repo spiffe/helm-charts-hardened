@@ -52,8 +52,8 @@ teardown() {
   sudo systemctl status spiffe-socat-unix@k8s-spire-agent-4-b
   sudo spire-server bundle list -socketPath /var/run/spire/server/sockets/a/private/api.sock
   sudo spire-server bundle list -socketPath /var/run/spire/server/sockets/b/private/api.sock
-  kubectl exec -i -n spire-server spire-a-internal-server-0 -- spire-server entry show
-  kubectl exec -i -n spire-server spire-b-internal-server-0 -- spire-server entry show
+  kubectl exec -i -n spire-server spire-a-internal-server-0 -- spire-server entry show || true
+  kubectl exec -i -n spire-server spire-b-internal-server-0 -- spire-server entry show || true
 
   print_helm_releases
 
@@ -142,7 +142,7 @@ sudo systemctl start spiffe-socat-unix@k8s-spire-agent-3-a spiffe-socat-unix@k8s
 sudo systemctl start spiffe-socat-unix@k8s-spire-agent-4-a spiffe-socat-unix@k8s-spire-agent-4-b
 
 #FIXME need to wait for spire agent to health check ok, with a timeout
-sleep 25
+sleep 15
 sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/unix/k8s-spire-server-a/public/spire-agent.sock
 sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/unix/k8s-spire-server-b/public/spire-agent.sock
 
