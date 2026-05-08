@@ -163,17 +163,17 @@ internal-spire-server-bottom-turtle-ha-a:
       clusterStaticEntries:
         node1:
           parentID: spiffe://production.other/spire/server
-          spiffeID: spiffe://production.other/spire/agent/k8s_psat/production/$(kubectl get node chart-testing-worker -o go-template="{{ .metadata.uid }}")
+          spiffeID: spiffe://production.other/k8s_psat/production/$(kubectl get node chart-testing-worker -o go-template="{{ .metadata.uid }}")
           selectors:
           - spiffe://production.other/spire-exchange/node1.production.other
         node2:
           parentID: spiffe://production.other/spire/server
-          spiffeID: spiffe://production.other/spire/agent/k8s_psat/production/$(kubectl get node chart-testing-worker2 -o go-template="{{ .metadata.uid }}")
+          spiffeID: spiffe://production.other/k8s_psat/production/$(kubectl get node chart-testing-worker2 -o go-template="{{ .metadata.uid }}")
           selectors:
           - spiffe://production.other/spire-exchange/node2.production.other
         node3:
           parentID: spiffe://production.other/spire/server
-          spiffeID: spiffe://production.other/spire/agent/k8s_psat/production/$(kubectl get node chart-testing-worker3 -o go-template="{{ .metadata.uid }}")
+          spiffeID: spiffe://production.other/k8s_psat/production/$(kubectl get node chart-testing-worker3 -o go-template="{{ .metadata.uid }}")
           selectors:
           - spiffe://production.other/spire-exchange/node3.production.other
 EOF

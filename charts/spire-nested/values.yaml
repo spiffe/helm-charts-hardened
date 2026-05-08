@@ -519,6 +519,8 @@ internal-spire-server-bottom-turtle-ha-b:
   controllerManager:
     ## @param internal-spire-server-bottom-turtle-ha-b.controllerManager.enabled Enable controller manager and provision CRD's
     enabled: true
+    ## @param internal-spire-server-bottom-turtle-ha-b.controllerManager.parentIDTemplate parent id template
+    parentIDTemplate: "spiffe://{{ .TrustDomain }}/k8s_psat/{{ .ClusterName }}/{{ .NodeMeta.UID }}"
     identities:
       clusterSPIFFEIDs:
         oidc-discovery-provider:
