@@ -40,7 +40,7 @@ Root Servers, A and B:
 
 ### K8s SPIRE Servers
 
-In the following diagram, we see all the parts involved from getting the K8s SPIRE Servers running on the control plane nodes. Note, for diagram simplicity, we wput both spire
+In the following diagram, we see all the parts involved from getting the K8s SPIRE Servers running on the control plane nodes. Note, for diagram simplicity, we put both spire
 servers on the same control plane node. In production, we recommend using antiaffinity to ensure they are always on different nodes.
 ![Diagram](diagram-cp.png)
 

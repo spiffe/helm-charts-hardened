@@ -144,7 +144,7 @@ readinessProbe:
   initialDelaySeconds: 5
   periodSeconds: 5
 
-## @param persistence.type What type of volume to use for persistence. Valid options pvc (recommended), hostPath, emptyDir (testing only)
+## @param persistence.type What type of volume to use for persistence. Valid options pvc (recommended), hostPath, emptyDir (testing or nested child only)
 ## @param persistence.size What size volume to use for persistence
 ## @param persistence.accessMode What access mode to use for persistence. Valid options are ReadWriteOnce (recommended), ReadWriteOncePod, ReadWriteMany (not recommended)
 ## @param persistence.storageClass What storage class to use for persistence
@@ -1100,6 +1100,19 @@ nodeAttestor:
     metadataValueMaxSize: 0
     ## @param nodeAttestor.gcpIIT.agentPathTemplate A URL path portion format of Agent's SPIFFE ID. Describe in text/template format.
     agentPathTemplate: ""
+  x509POP:
+    ## @param nodeAttestor.x509POP.enabled Enable the x509_popg node attestor
+    enabled: false
+    ## @param nodeAttestor.x509POP.mode What mode to set the plugin to. Currently only spiffe mode is supported
+    mode: spiffe
+    ## @param nodeAttestor.x509POP.svidPrefix What prefix to use when mode is spiffe
+    svidPrefix: /spire-exchange
+    ## @param nodeAttestor.x509POP.agentPathTemplate Override the default agent path template
+    agentPathTemplate: ""
+    ## @param nodeAttestor.x509POP.maxIntermediates Maximum number of intermediate certificates allowed in the certificate chain
+    maxIntermediates: 4
+    ## @param nodeAttestor.x509POP.maxRSAKeySize Maximum RSA key size in bits allowed in certificates
+    maxRSAKeySize: 8192
 
 # The secrets needed for this plugin are configured in the secrets: section
 bundlePublisher:

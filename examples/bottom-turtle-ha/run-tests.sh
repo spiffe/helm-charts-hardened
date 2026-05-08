@@ -122,6 +122,12 @@ sudo systemctl start spire-agent@a spire-agent@b
 sudo systemctl start spire-trust-sync@a spire-trust-sync@b
 sudo systemctl start spiffe-socat-unix@k8s-spire-server-a spiffe-socat-unix@k8s-spire-server-b
 
+#Start up node agents. We only have one vm mapped to multiple k8s virtual nodes in kind, so we run a pair per k8s virtual node. Normally you would only run one pair per host/vm.
+sudo systemctl start spiffe-socat-unix@k8s-spire-agent-2-a spiffe-socat-unix@k8s-spire-agent-2-b
+sudo systemctl start spiffe-socat-unix@k8s-spire-agent-3-a spiffe-socat-unix@k8s-spire-agent-3-b
+sudo systemctl start spiffe-socat-unix@k8s-spire-agent-4-a spiffe-socat-unix@k8s-spire-agent-4-b
+sudo systemctl start spiffe-socat-unix@k8s-spire-agent-5-a spiffe-socat-unix@k8s-spire-agent-5-b
+
 #FIXME need to wait for spire agent to health check ok, with a timeout
 sleep 25
 sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/unix/k8s-spire-server-a/public/spire-agent.sock
@@ -148,10 +154,12 @@ kubectl get configmap -n kube-system coredns -o yaml | grep production.other || 
 kubectl rollout restart -n kube-system deployment/coredns
 kubectl rollout status -n kube-system -w --timeout=1m deploy/coredns
 
+#FIXME remove nightly once 1.15 is released
 helm upgrade --install --create-namespace --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/spire-values.yaml" \
   --wait spire charts/spire-nested \
   --set tags.haAgentCommont=true \
   --set "global.spire.namespaces.create=true" \
+  --set "downstream-spire-agent-bottom-turtle-ha-a.image.tag=nightly" \
   --set "global.spire.ingressControllerType=ingress-nginx"
 
 #FIXME see if we can tweak upstreamSpireAddress's in the chart rather then use a global.
@@ -159,6 +167,7 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --wait spire-a charts/spire-nested \
   --set tags.bottomTurtleHAA=true \
   --set global.spire.upstreamSpireAddress=spire-server-a.production.other \
+  --set "downstream-spire-agent-bottom-turtle-ha-a.image.tag=nightly" \
   --set "global.spire.ingressControllerType=ingress-nginx"
 
 helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/spire-values.yaml" \
@@ -166,6 +175,7 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --set tags.bottomTurtleHAB=true \
   --set global.spire.upstreamSpireAddress=spire-server-b.production.other \
   --set internal-spire-server-bottom-turtle-ha-b.upstreamAuthority.spire.server.port=8082 \
+  --set "downstream-spire-agent-bottom-turtle-ha-a.image.tag=nightly" \
   --set "global.spire.ingressControllerType=ingress-nginx"
 
 ENTRIES="$(kubectl exec -i -n spire-server spire-b-internal-server-0 -- spire-server entry show)"
@@ -179,6 +189,10 @@ if [[ "${ENTRIES}" == "Found 0 entries" ]]; then
   echo "${ENTRIES}"
   exit 1
 fi
+
+#FIXME automate the check.
+kubectl exec -i -n spire-server spire-a-internal-server-0 -- spire-server bundle list
+kubectl exec -i -n spire-server spire-b-internal-server-0 -- spire-server bundle list
 
 kubectl get pods -A
 

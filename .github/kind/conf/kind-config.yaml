@@ -26,15 +26,27 @@ nodes:
         containerPath: /var/run/spiffe/socat/unix/k8s-spire-server-a/public
       - hostPath: /var/run/spiffe/socat/unix/k8s-spire-server-b/public
         containerPath: /var/run/spiffe/socat/unix/k8s-spire-server-b/public
+      - hostPath: /var/run/spiffe/socat/unix/k8s-spire-agentr-2-a/public
+        containerPath: /var/run/spiffe/socat/unix/k8s-spire-agent-a/public
+      - hostPath: /var/run/spiffe/socat/unix/k8s-spire-agent-2-b/public
+        containerPath: /var/run/spiffe/socat/unix/k8s-spire-agent-b/public
   - role: worker
     extraMounts:
       - hostPath: /var/run/spiffe/socat/unix/k8s-spire-server-a/public
         containerPath: /var/run/spiffe/socat/unix/k8s-spire-server-a/public
       - hostPath: /var/run/spiffe/socat/unix/k8s-spire-server-b/public
         containerPath: /var/run/spiffe/socat/unix/k8s-spire-server-b/public
+      - hostPath: /var/run/spiffe/socat/unix/k8s-spire-agentr-3-a/public
+        containerPath: /var/run/spiffe/socat/unix/k8s-spire-agent-a/public
+      - hostPath: /var/run/spiffe/socat/unix/k8s-spire-agent-3-b/public
+        containerPath: /var/run/spiffe/socat/unix/k8s-spire-agent-b/public
   - role: worker
     extraMounts:
       - hostPath: /var/run/spiffe/socat/unix/k8s-spire-server-a/public
         containerPath: /var/run/spiffe/socat/unix/k8s-spire-server-a/public
       - hostPath: /var/run/spiffe/socat/unix/k8s-spire-server-b/public
         containerPath: /var/run/spiffe/socat/unix/k8s-spire-server-b/public
+      - hostPath: /var/run/spiffe/socat/unix/k8s-spire-agentr-4-a/public
+        containerPath: /var/run/spiffe/socat/unix/k8s-spire-agent-a/public
+      - hostPath: /var/run/spiffe/socat/unix/k8s-spire-agent-4-b/public
+        containerPath: /var/run/spiffe/socat/unix/k8s-spire-agent-b/public

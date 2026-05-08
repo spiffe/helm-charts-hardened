@@ -159,7 +159,7 @@ plugins:
         {{- end }}
         disable_migration: {{ .Values.dataStore.sql.disableMigration }}
 
-  {{- if or .Values.nodeAttestor.k8sPSAT.enabled .Values.nodeAttestor.externalK8sPSAT.enabled .Values.nodeAttestor.joinToken.enabled .Values.nodeAttestor.httpChallenge.enabled .Values.nodeAttestor.tpmDirect.enabled .Values.nodeAttestor.awsIID.enabled .Values.nodeAttestor.gcpIIT.enabled }}
+  {{- if or .Values.nodeAttestor.k8sPSAT.enabled .Values.nodeAttestor.externalK8sPSAT.enabled .Values.nodeAttestor.joinToken.enabled .Values.nodeAttestor.httpChallenge.enabled .Values.nodeAttestor.tpmDirect.enabled .Values.nodeAttestor.awsIID.enabled .Values.nodeAttestor.gcpIIT.enabled .Values.nodeAttestor.x509POP.enabled }}
   NodeAttestor:
   {{- $clusters := default .Values.kubeConfigs .Values.nodeAttestor.externalK8sPSAT.clusters }}
   {{- if or (eq (.Values.nodeAttestor.k8sPSAT.enabled | toString) "true") (and (eq (.Values.nodeAttestor.externalK8sPSAT.enabled | toString) "true") (gt (len $clusters) 0)) }}
@@ -236,6 +236,19 @@ plugins:
         hash_path: /tmp-direct-hashes
         {{- else }}
         hash_path: /run/spire/data/tpm-direct/hashes
+        {{- end }}
+  {{- end }}
+  {{- end }}
+  {{- with .Values.nodeAttestor.x509POP }}
+  {{- if eq (.enabled | toString) "true" }}
+    x509pop:
+      plugin_data:
+        mode: {{ .mode }}
+        svid_prefix: {{ .svidPrefix | quote }}
+        max_intermediates: {{ .maxIntermediates }}
+        max_rsa_key_size: {{ .maxRSAKeySize }}
+        {{- if ne .agentPathTemplate "" }}
+        agent_path_template: {{ .agentPathTemplate | quote }}
         {{- end }}
   {{- end }}
   {{- end }}
