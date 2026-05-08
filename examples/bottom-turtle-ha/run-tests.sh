@@ -140,6 +140,43 @@ sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/
 
 kubectl get nodes -o go-template='{{range .items}}{{printf "%s %s\n" .metadata.uid .metadata.name }}{{end}}'
 
+#FIXME temporary until spire-controller-manager gains dynamic node registration support
+cat > test-a-values.yaml <<EOF
+internal-spire-server-bottom-turtle-ha-a:
+  controllerManaager:
+    identities:
+      clusterStaticEntries:
+        node1:
+          parentID: spiffe://production.other/spire/server
+	  spiffeID: spiffe://production.other/spire/agent/k8s_psat/production/$(kubectl get node chart-testing-worker -o go-template="{{ .metadata.uid }}")
+          selectors:
+          - spiffe://production.other/spire-exchange/node1.production.other"
+        node2:
+          parentID: spiffe://production.other/spire/server
+	  spiffeID: spiffe://production.other/spire/agent/k8s_psat/production/$(kubectl get node chart-testing-worker2 -o go-template="{{ .metadata.uid }}")
+          selectors:
+          - spiffe://production.other/spire-exchange/node1.production.other"
+        node3:
+          parentID: spiffe://production.other/spire/server
+	  spiffeID: spiffe://production.other/spire/agent/k8s_psat/production/$(kubectl get node chart-testing-worker3 -o go-template="{{ .metadata.uid }}")
+          selectors:
+          - spiffe://production.other/spire-exchange/node1.production.other"
+EOF
+
+sed 's/internal-spire-server-bottom-turtle-ha-a/internal-spire-server-bottom-turtle-ha-b/' test-a-values.yaml > test-b-values.yaml
+
+more test-b-values.yaml | cat
+
+i=1
+for node in chart-testing-worker chart-testing-worker2 chart-testing-worker3; do
+	uid=$(kubectl get node "$node" -o go-template="{{ .metadata.uid }}")
+	x509pop:san:spire-exchange:node{$ID}.production.other"
+	cat <<EOF
+spiffe://production.other/spire-exchange/node{$ID}2.production.other"
+EOF
+	i=$((i + 1))
+done
+
 #FIXME add some bits to check on spire-ha trust domain
 
 # Deploy an ingress controller
@@ -175,7 +212,8 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --set tags.bottomTurtleHAA=true \
   --set global.spire.upstreamSpireAddress=spire-server-a.production.other \
   --set "downstream-spire-agent-bottom-turtle-ha-a.image.tag=nightly" \
-  --set "global.spire.ingressControllerType=ingress-nginx"
+  --set "global.spire.ingressControllerType=ingress-nginx" \
+  -f test-a-values.yaml
 
 helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/spire-values.yaml" \
   --wait spire-b charts/spire-nested \
@@ -183,7 +221,8 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --set global.spire.upstreamSpireAddress=spire-server-b.production.other \
   --set internal-spire-server-bottom-turtle-ha-b.upstreamAuthority.spire.server.port=8082 \
   --set "downstream-spire-agent-bottom-turtle-ha-a.image.tag=nightly" \
-  --set "global.spire.ingressControllerType=ingress-nginx"
+  --set "global.spire.ingressControllerType=ingress-nginx" \
+  -f test-b-values.yaml
 
 ENTRIES="$(kubectl exec -i -n spire-server spire-b-internal-server-0 -- spire-server entry show)"
 if [[ "${ENTRIES}" == "Found 0 entries" ]]; then
