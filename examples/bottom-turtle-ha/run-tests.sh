@@ -55,6 +55,8 @@ teardown() {
   fi
 
   if [ "${CLEANUP}" -eq 1 ]; then
+    helm uninstall --namespace spire-mgmt spire-b 2>/dev/null || true
+    helm uninstall --namespace spire-mgmt spire-a 2>/dev/null || true
     helm uninstall --namespace spire-mgmt spire 2>/dev/null || true
     kubectl delete ns spire-server 2>/dev/null || true
     kubectl delete ns spire-system 2>/dev/null || true
@@ -177,6 +179,8 @@ if [[ "${ENTRIES}" == "Found 0 entries" ]]; then
   echo "${ENTRIES}"
   exit 1
 fi
+
+kubectl get pods -A
 
 helm test --namespace spire-mgmt spire
 helm test --namespace spire-mgmt spire-a
