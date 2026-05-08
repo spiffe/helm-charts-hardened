@@ -535,67 +535,67 @@ internal-spire-server-bottom-turtle-ha-b:
     - spire-ha
 
 # Used with tags [bottomTurtleHAA]
-downstream-spire-agent-bottom-turtle-a:
+downstream-spire-agent-bottom-turtle-ha-a:
   # enabled: true
-  ## @param downstream-spire-agent-bottom-turtle-a.nameOverride Overrides the name of Spire agent pods
+  ## @param downstream-spire-agent-bottom-turtle-ha-a.nameOverride Overrides the name of Spire agent pods
   nameOverride: agent-downstream
   server:
-    ## @param downstream-spire-agent-bottom-turtle-a.server.nameOverride The name override setting of the internal SPIRE server
+    ## @param downstream-spire-agent-bottom-turtle-ha-a.server.nameOverride The name override setting of the internal SPIRE server
     nameOverride: internal-server
-  ## @param downstream-spire-agent-bottom-turtle-a.bundleConfigMap The name of the configmap that contains the downstream bundle
+  ## @param downstream-spire-agent-bottom-turtle-ha-a.bundleConfigMap The name of the configmap that contains the downstream bundle
   bundleConfigMap: spire-server-a-bundle
-  ## @param downstream-spire-agent-bottom-turtle-a.persistence.hostPath Which path to use on the host when persistence.type = hostPath
+  ## @param downstream-spire-agent-bottom-turtle-ha-a.persistence.hostPath Which path to use on the host when persistence.type = hostPath
   persistence:
     hostPath: /var/lib/spire/k8s/downstream-agent-a
   healthChecks:
-    ## @param downstream-spire-agent-bottom-turtle-a.healthCheck.port Health check port
+    ## @param downstream-spire-agent-bottom-turtle-ha-a.healthCheck.port Health check port
     port: 9981
   telemetry:
     prometheus:
-      ## @param downstream-spire-agent-bottom-turtle-a.telemetry.prometheus.port Prometheus port to use
+      ## @param downstream-spire-agent-bottom-turtle-ha-a.telemetry.prometheus.port Prometheus port to use
       port: 9989
-  ## @param downstream-spire-agent-bottom-turtle-a.socketPath Socket path to use
+  ## @param downstream-spire-agent-bottom-turtle-ha-a.socketPath Socket path to use
   socketPath: /var/run/spire/agent/sockets/a/csi.spiffe.io/public/spire-agent.sock
   sockets:
-    ## @param downstream-spire-agent-bottom-turtle-a.sockets.hostBasePath Path on the host to place sockets
+    ## @param downstream-spire-agent-bottom-turtle-ha-a.sockets.hostBasePath Path on the host to place sockets
     hostBasePath: /var/run/spire/agent/sockets/a
     admin:
-      ## @param downstream-spire-agent-bottom-turtle-a.sockets.admin.enabled Enable admin socket
+      ## @param downstream-spire-agent-bottom-turtle-ha-a.sockets.admin.enabled Enable admin socket
       enabled: true
-      ## @param downstream-spire-agent-bottom-turtle-a.sockets.admin.mountOnHost Mount admin socket on host
+      ## @param downstream-spire-agent-bottom-turtle-ha-a.sockets.admin.mountOnHost Mount admin socket on host
       mountOnHost: true
   authorizedDelegates:
   - /spire-ha-agent
 
 # Used with tags [bottomTurtleHAB]
-downstream-spire-agent-bottom-turtle-b:
+downstream-spire-agent-bottom-turtle-ha-b:
   # enabled: true
-  ## @param downstream-spire-agent-bottom-turtle-b.nameOverride Overrides the name of Spire agent pods
+  ## @param downstream-spire-agent-bottom-turtle--ha-b.nameOverride Overrides the name of Spire agent pods
   nameOverride: agent-downstream
   server:
-    ## @param downstream-spire-agent-bottom-turtle-b.server.nameOverride The name override setting of the internal SPIRE server
+    ## @param downstream-spire-agent-bottom-turtle-ha-b.server.nameOverride The name override setting of the internal SPIRE server
     nameOverride: internal-server
-  ## @param downstream-spire-agent-bottom-turtle-b.bundleConfigMap The name of the configmap that contains the downstream bundle
+  ## @param downstream-spire-agent-bottom-turtle-ha-b.bundleConfigMap The name of the configmap that contains the downstream bundle
   bundleConfigMap: spire-server-b-bundle
-  ## @param downstream-spire-agent-bottom-turtle-b.persistence.hostPath Which path to use on the host when persistence.type = hostPath
+  ## @param downstream-spire-agent-bottom-turtle-ha-b.persistence.hostPath Which path to use on the host when persistence.type = hostPath
   persistence:
     hostPath: /var/lib/spire/k8s/downstream-agent-b
   healthChecks:
-    ## @param downstream-spire-agent-bottom-turtle-b.healthCheck.port Health check port
+    ## @param downstream-spire-agent-bottom-turtle-ha-b.healthCheck.port Health check port
     port: 9982
   telemetry:
     prometheus:
-      ## @param downstream-spire-agent-bottom-turtle-b.telemetry.prometheus.port Prometheus port to use
+      ## @param downstream-spire-agent-bottom-turtle-ha-b.telemetry.prometheus.port Prometheus port to use
       port: 9990
-  ## @param downstream-spire-agent-bottom-turtle-b.socketPath Socket path to use
+  ## @param downstream-spire-agent-bottom-turtle-ha-b.socketPath Socket path to use
   socketPath: /var/run/spire/agent/sockets/a/csi.spiffe.io/public/spire-agent.sock
   sockets:
-    ## @param downstream-spire-agent-bottom-turtle-b.sockets.hostBasePath Path on the host to place sockets
+    ## @param downstream-spire-agent-bottom-turtle-ha-b.sockets.hostBasePath Path on the host to place sockets
     hostBasePath: /var/run/spire/agent/sockets/b
     admin:
-      ## @param downstream-spire-agent-bottom-turtle-b.sockets.admin.enabled Enable admin socket
+      ## @param downstream-spire-agent-bottom-turtle--ha-b.sockets.admin.enabled Enable admin socket
       enabled: true
-      ## @param downstream-spire-agent-bottom-turtle-b.sockets.admin.mountOnHost Mount admin socket on host
+      ## @param downstream-spire-agent-bottom-turtle-ha-b.sockets.admin.mountOnHost Mount admin socket on host
       mountOnHost: true
   authorizedDelegates:
   - /spire-ha-agent
