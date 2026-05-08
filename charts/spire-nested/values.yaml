@@ -586,6 +586,7 @@ downstream-spire-agent-bottom-turtle-ha-a:
       enabled: true
       ## @param downstream-spire-agent-bottom-turtle-ha-a.sockets.admin.mountOnHost Mount admin socket on host
       mountOnHost: true
+  ## @param downstream-spire-agent-bottom-turtle-ha-b.authorizedDelegates List of workloads able to use the delegation api
   authorizedDelegates:
   - /spire-ha-agent
 
@@ -624,6 +625,7 @@ downstream-spire-agent-bottom-turtle-ha-b:
       enabled: true
       ## @param downstream-spire-agent-bottom-turtle-ha-b.sockets.admin.mountOnHost Mount admin socket on host
       mountOnHost: true
+  ## @param downstream-spire-agent-bottom-turtle-ha-b.authorizedDelegates List of workloads able to use the delegation api
   authorizedDelegates:
   - /spire-ha-agent
 
