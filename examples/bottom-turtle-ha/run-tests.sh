@@ -138,6 +138,8 @@ sleep 25
 sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/unix/k8s-spire-server-a/public/spire-agent.sock
 sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/unix/k8s-spire-server-b/public/spire-agent.sock
 
+kubectl get nodes -o go-template='{{range .items}}{{printf "%s %s\n" .metadata.uid .metadata.name }}{{end}}'
+
 #FIXME add some bits to check on spire-ha trust domain
 
 # Deploy an ingress controller
