@@ -180,6 +180,7 @@ EOF
 
 sed 's/internal-spire-server-bottom-turtle-ha-a/internal-spire-server-bottom-turtle-ha-b/' test-a-values.yaml > test-b-values.yaml
 
+more test-a-values.yaml | cat
 more test-b-values.yaml | cat
 
 #FIXME add some bits to check on spire-ha trust domain
