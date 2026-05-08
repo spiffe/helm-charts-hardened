@@ -44,6 +44,12 @@ teardown() {
   sudo systemctl status spire-trust-sync@b
   sudo systemctl status spiffe-socat-unix@k8s-spire-server-a
   sudo systemctl status spiffe-socat-unix@k8s-spire-server-b
+  sudo systemctl status spiffe-socat-unix@k8s-spire-agent-2-a
+  sudo systemctl status spiffe-socat-unix@k8s-spire-agent-2-b
+  sudo systemctl status spiffe-socat-unix@k8s-spire-agent-3-a
+  sudo systemctl status spiffe-socat-unix@k8s-spire-agent-3-b
+  sudo systemctl status spiffe-socat-unix@k8s-spire-agent-4-a
+  sudo systemctl status spiffe-socat-unix@k8s-spire-agent-4-b
   sudo spire-server bundle list -socketPath /var/run/spire/server/sockets/a/private/api.sock
   sudo spire-server bundle list -socketPath /var/run/spire/server/sockets/b/private/api.sock
 
@@ -138,6 +144,13 @@ sleep 25
 sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/unix/k8s-spire-server-a/public/spire-agent.sock
 sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/unix/k8s-spire-server-b/public/spire-agent.sock
 
+sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/unix/k8s-spire-agentr-2-a/public/api.sock
+sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/unix/k8s-spire-agentr-2-b/public/api.sock
+sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/unix/k8s-spire-agentr-3-a/public/api.sock
+sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/unix/k8s-spire-agentr-3-b/public/api.sock
+sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/unix/k8s-spire-agentr-4-a/public/api.sock
+sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/unix/k8s-spire-agentr-4-b/public/api.sock
+
 kubectl get nodes -o go-template='{{range .items}}{{printf "%s %s\n" .metadata.uid .metadata.name }}{{end}}'
 
 #FIXME temporary until spire-controller-manager gains dynamic node registration support
@@ -162,8 +175,6 @@ internal-spire-server-bottom-turtle-ha-a:
           selectors:
           - spiffe://production.other/spire-exchange/node1.production.other"
 EOF
-
-ls -l /var/run/spiffe/socat/unix/k8s-spire-agent*/public/*
 
 sed 's/internal-spire-server-bottom-turtle-ha-a/internal-spire-server-bottom-turtle-ha-b/' test-a-values.yaml > test-b-values.yaml
 
