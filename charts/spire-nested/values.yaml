@@ -582,11 +582,11 @@ downstream-spire-agent-bottom-turtle-b:
     hostPath: /var/lib/spire/k8s/downstream-agent-b
   healthChecks:
     ## @param downstream-spire-agent-bottom-turtle-b.healthCheck.port Health check port
-    port: 9981
+    port: 9982
   telemetry:
     prometheus:
       ## @param downstream-spire-agent-bottom-turtle-b.telemetry.prometheus.port Prometheus port to use
-      port: 9989
+      port: 9990
   ## @param downstream-spire-agent-bottom-turtle-b.socketPath Socket path to use
   socketPath: /var/run/spire/agent/sockets/a/csi.spiffe.io/public/spire-agent.sock
   sockets:

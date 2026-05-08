@@ -51,6 +51,7 @@ teardown() {
 
   if [[ "$1" -ne 0 ]]; then
     get_namespace_details spire-server spire-system
+    kubectl describe pod -n spire-system
   fi
 
   if [ "${CLEANUP}" -eq 1 ]; then
