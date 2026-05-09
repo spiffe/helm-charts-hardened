@@ -81,7 +81,7 @@ wait_for_healthcheck() {
   local count=0
   while [ "$count" -lt "$timeout" ]; do
       rc=0
-      "$app" healthcheck -socketPath "$socket" >/dev/null 2>&1 || rc=$?
+      "$app" healthcheck -socketPath "$socket" || rc=$?
       if [ "$rc" -eq 0 ]; then
         return 0
       fi
