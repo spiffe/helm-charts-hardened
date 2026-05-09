@@ -74,10 +74,22 @@ teardown() {
 
 trap 'EC=$? && trap - SIGTERM && teardown $EC' SIGINT SIGTERM EXIT
 
-"${SCRIPTPATH}/../../.github/scripts/prepare-local-chart-deps.sh"
+wait_for_healthcheck() {
+  local app="$1"
+  local socket="$2"
+  local timeout=30
+  local count=0
+  while [ $count -lt $timeout ]; do
+    if "$app" healthcheck -socketPath "$socket" >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 1
+    ((count++))
+  done
+  return 1
+}
 
-# List nodes
-kubectl get nodes
+"${SCRIPTPATH}/../../.github/scripts/prepare-local-chart-deps.sh"
 
 sudo curl -s -o /etc/apt/sources.list.d/spire-examples.list https://raw.githubusercontent.com/spiffe/spire-examples/refs/heads/main/examples/debs/amd64/spire-examples.list
 sudo apt-get update
@@ -89,19 +101,18 @@ sudo mkdir -p /etc/spire/server/a/manifests/ /etc/spire/server/b/manifests/
 sudo cp "${SCRIPTPATH}/example-manifests"/* /etc/spire/server/a/manifests/
 sudo cp "${SCRIPTPATH}/example-manifests"/* /etc/spire/server/b/manifests/
 
-#FIXME consider adding to upstream package
 sudo /bin/bash -c 'echo SPIRE_BIND_PORT=8082 > /etc/spire/server/b.env'
+#FIXME consider adding to upstream package
 sudo /bin/bash -c 'echo "expandEnvStaticManifests: true" >> /etc/spire/controller-manager/default.conf'
 sudo cp /etc/spire/controller-manager/default.conf /etc/spire/controller-manager/b.conf
 sudo sed -i 's/bindAddress: .*/bindAddress: 0.0.0.0:9125/; s/healthProbeBindAddress: .*/healthProbeBindAddress: 0.0.0.0:9126/;' /etc/spire/controller-manager/b.conf
 
-#FIXME copy in controller manager config.
 sudo systemctl start spire-server@a spire-server@b spire-controller-manager@a spire-controller-manager@b
 sudo systemctl status spire-server@a
 sudo systemctl status spire-server@b
 
-#FIXME need to wait for spire server to health check ok, with a timeout and controller manager to sync
-sleep 10
+wait_for_healthcheck spire-server /run/spire/server/sockets/a/private/api.sock
+wait_for_healthcheck spire-server /run/spire/server/sockets/b/private/api.sock
 
 #FIXME add trust syncing spire-ha domain too.
 
@@ -121,8 +132,6 @@ sudo sed -i "s/# join_token =.*/join_token = ${JOIN_TOKEN_B}/" /etc/spire/agent/
 #FIXME consider adding to upstream package
 sudo sed -i 's/server_port = 8081/server_port = 8082/' /etc/spire/agent/b.conf
 
-sudo more /etc/spire/agent/a.conf /etc/spire/agent/b.conf | cat
-
 sudo /bin/bash -c 'echo "SPIRE_SERVER_SOCKET=/var/run/spire/server/sockets/b/private/api.sock" > /etc/spire/trust-sync/a.conf'
 sudo /bin/bash -c 'echo "SPIRE_SERVER_SOCKET=/var/run/spire/server/sockets/a/private/api.sock" > /etc/spire/trust-sync/b.conf'
 
@@ -141,21 +150,17 @@ sudo systemctl start spiffe-socat-unix@k8s-spire-agent-2-a spiffe-socat-unix@k8s
 sudo systemctl start spiffe-socat-unix@k8s-spire-agent-3-a spiffe-socat-unix@k8s-spire-agent-3-b
 sudo systemctl start spiffe-socat-unix@k8s-spire-agent-4-a spiffe-socat-unix@k8s-spire-agent-4-b
 
-#FIXME need to wait for spire agent to health check ok, with a timeout
-sleep 15
+wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-spire-server-a/public/spire-agent.sock
+wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-spire-server-b/public/spire-agent.sock
+
 sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/unix/k8s-spire-server-a/public/spire-agent.sock
 sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/unix/k8s-spire-server-b/public/spire-agent.sock
-
 sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/unix/k8s-spire-agent-2-a/public/api.sock
 sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/unix/k8s-spire-agent-2-b/public/api.sock
 sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/unix/k8s-spire-agent-3-a/public/api.sock
 sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/unix/k8s-spire-agent-3-b/public/api.sock
 sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/unix/k8s-spire-agent-4-a/public/api.sock
 sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/unix/k8s-spire-agent-4-b/public/api.sock
-
-docker ps
-docker exec -i chart-testing-worker ls /var/run/spiffe/socat/unix/k8s-spire-agent-a/public
-docker exec -i chart-testing-worker ls /var/run/spiffe/socat/unix/k8s-spire-agent-b/public
 
 kubectl get nodes -o go-template='{{range .items}}{{printf "%s %s\n" .metadata.uid .metadata.name }}{{end}}'
 
@@ -183,11 +188,6 @@ internal-spire-server-bottom-turtle-ha-a:
 EOF
 
 sed 's/internal-spire-server-bottom-turtle-ha-a/internal-spire-server-bottom-turtle-ha-b/' test-a-values.yaml > test-b-values.yaml
-
-more test-a-values.yaml | cat
-more test-b-values.yaml | cat
-
-#FIXME add some bits to check on spire-ha trust domain
 
 # Deploy an ingress controller
 IP=$(kubectl get nodes chart-testing-control-plane -o go-template='{{ range .status.addresses }}{{ if eq .type "InternalIP" }}{{ .address }}{{ end }}{{ end }}')
