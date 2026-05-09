@@ -283,8 +283,8 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   -f test-a-values.yaml
 
 kubectl get ingress -A
-helm test --namespace spire-mgmt spire
 curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discovery-provider.other/.well-known/openid-configuration" -s --fail
+helm test --namespace spire-mgmt spire
 exit 1
 exit 0
 
