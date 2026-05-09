@@ -283,6 +283,7 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   -f test-a-values.yaml
 
 helm test --namespace spire-mgmt spire
+exit 1
 exit 0
 
 # Install server side b
