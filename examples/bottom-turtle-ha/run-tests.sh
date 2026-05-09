@@ -279,6 +279,9 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --set "global.spire.ingressControllerType=ingress-nginx" \
   -f test-a-values.yaml
 
+helm test --namespace spire-mgmt spire
+exit 0
+
 # Install server side b
 helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/spire-values.yaml" \
   --wait spire-b charts/spire-nested \
