@@ -79,10 +79,8 @@ wait_for_healthcheck() {
   local socket="$2"
   local timeout=30
   local count=0
-  while [ $count -lt $timeout ]; do
-    if "$app" healthcheck -socketPath "$socket" >/dev/null 2>&1; then
-      return 0
-    fi
+  while [ "$count" -lt "$timeout" ]; do
+    "$app" healthcheck -socketPath "$socket" >/dev/null 2>&1 && return 0 || true
     sleep 1
     ((count++))
   done
