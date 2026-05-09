@@ -137,6 +137,10 @@ sudo mkdir -p /etc/spire/server/a/manifests/ /etc/spire/server/b/manifests/
 sudo cp "${SCRIPTPATH}/example-manifests"/* /etc/spire/server/a/manifests/
 sudo cp "${SCRIPTPATH}/example-manifests"/* /etc/spire/server/b/manifests/
 
+# For testing, help speed up the sync
+sudo rm -f /etc/spire/server/a/manifests/node1-k8s-spire-server.yaml
+sudo rm -f /etc/spire/server/b/manifests/node1-k8s-spire-server.yaml
+
 # Since we are running the two root spire servers on the same machine, we need to ensure ports do not conflict for server b
 sudo /bin/bash -c 'echo SPIRE_BIND_PORT=8082 > /etc/spire/server/b.env'
 sudo cp /etc/spire/controller-manager/default.conf /etc/spire/controller-manager/b.conf
@@ -176,12 +180,13 @@ wait_for_healthcheck spire-agent /var/run/spire/agent/sockets/b/public/api.sock
 wait_for_trust_sync /var/run/spire/server/sockets/a/private/api.sock
 wait_for_trust_sync /var/run/spire/server/sockets/b/private/api.sock
 
+sudo cp "${SCRIPTPATH}/example-manifests"/node1-k8s-spire-server.yaml /etc/spire/server/a/manifests/
+sudo cp "${SCRIPTPATH}/example-manifests"/node1-k8s-spire-server.yaml /etc/spire/server/b/manifests/
+
 # Startup the socat bridge to allow the k8s spire servers to get an identity/trust bundles from the host
 sudo systemctl start spiffe-socat-unix@k8s-spire-server-a spiffe-socat-unix@k8s-spire-server-b
 wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-spire-server-a/public/spire-agent.sock
 wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-spire-server-b/public/spire-agent.sock
-#FIXME
-sleep 15
 wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-server-a/public/spire-agent.sock
 wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-server-b/public/spire-agent.sock
 
