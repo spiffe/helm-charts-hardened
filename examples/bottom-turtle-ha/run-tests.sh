@@ -157,8 +157,12 @@ sudo /bin/bash -c 'echo "SPIRE_SERVER_SOCKET=/var/run/spire/server/sockets/a/pri
 sudo systemctl start spire-agent@a spire-agent@b
 sudo systemctl start spire-trust-sync@a spire-trust-sync@b
 
-# Startup the socat bridge to allow the k8s spire servers to get an identity/trust bundles from the host 
+# Startup the socat bridge to allow the k8s spire servers to get an identity/trust bundles from the host
 sudo systemctl start spiffe-socat-unix@k8s-spire-server-a spiffe-socat-unix@k8s-spire-server-b
+wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-spire-server-a/public/spire-agent.sock
+wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-spire-server-b/public/spire-agent.sock
+wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-server-a/public/spire-agent.sock
+wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-server-b/public/spire-agent.sock
 
 # Configure and start up the socat bridges to allow the k8s spire-agents to get an identity/trust bundles from the host.
 # We only have one vm mapped to multiple k8s virtual nodes in kind, so we run a pair per k8s virtual node. Normally you would only run one pair per host/vm.
@@ -171,10 +175,12 @@ sudo /bin/bash -c "echo SPIFFE_INSTANCE=b > /etc/spiffe/socat/unix/k8s-spire-age
 sudo systemctl start spiffe-socat-unix@k8s-spire-agent-2-a spiffe-socat-unix@k8s-spire-agent-2-b
 sudo systemctl start spiffe-socat-unix@k8s-spire-agent-3-a spiffe-socat-unix@k8s-spire-agent-3-b
 sudo systemctl start spiffe-socat-unix@k8s-spire-agent-4-a spiffe-socat-unix@k8s-spire-agent-4-b
-wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-spire-server-a/public/spire-agent.sock
-wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-spire-server-b/public/spire-agent.sock
-wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-server-a/public/spire-agent.sock
-wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-server-b/public/spire-agent.sock
+wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-spire-agent-2-a/public/spire-agent.sock
+wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-spire-agent-2-b/public/spire-agent.sock
+wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-spire-agent-3-a/public/spire-agent.sock
+wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-spire-agent-3-b/public/spire-agent.sock
+wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-spire-agent-4-a/public/spire-agent.sock
+wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-spire-agent-4-b/public/spire-agent.sock
 wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-agent-2-a/public/api.sock
 wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-agent-2-b/public/api.sock
 wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-agent-3-a/public/api.sock
