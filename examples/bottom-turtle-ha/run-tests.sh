@@ -80,13 +80,28 @@ wait_for_healthcheck() {
   local timeout=30
   local count=0
   while [ "$count" -lt "$timeout" ]; do
-      rc=0
-      sudo "$app" healthcheck -socketPath "$socket" || rc=$?
-      if [ "$rc" -eq 0 ]; then
-        return 0
-      fi
-      sleep 1
-      ((count++)) || true
+    rc=0
+    sudo "$app" healthcheck -socketPath "$socket" || rc=$?
+    if [ "$rc" -eq 0 ]; then
+      return 0
+    fi
+    sleep 1
+    ((count++)) || true
+  done
+  return 1
+}
+
+wait_for_trust_sync() {
+  local socket="$1"
+  local timeout=30
+  local count=0
+  while [ "$count" -lt "$timeout" ]; do
+    entries=$(sudo spire-server bundle list -socketPath "$socket" | wc -l)
+    if [ "$entries" -ne 0 ]; then
+      return 0
+    fi
+    sleep 1
+    ((count++)) || true
   done
   return 1
 }
@@ -156,6 +171,10 @@ sudo /bin/bash -c 'echo "SPIRE_SERVER_SOCKET=/var/run/spire/server/sockets/a/pri
 # Startup the agent
 sudo systemctl start spire-agent@a spire-agent@b
 sudo systemctl start spire-trust-sync@a spire-trust-sync@b
+wait_for_healthcheck spire-agent /var/run/spire/agent/sockets/a/public/api.sock
+wait_for_healthcheck spire-agent /var/run/spire/agent/sockets/b/public/api.sock
+wait_for_trust_sync /var/run/spire/server/sockets/a/private/api.sock
+wait_for_trust_sync /var/run/spire/server/sockets/b/private/api.sock
 
 # Startup the socat bridge to allow the k8s spire servers to get an identity/trust bundles from the host
 sudo systemctl start spiffe-socat-unix@k8s-spire-server-a spiffe-socat-unix@k8s-spire-server-b
