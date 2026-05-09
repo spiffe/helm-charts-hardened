@@ -286,7 +286,7 @@ helm upgrade --install --create-namespace --namespace spire-mgmt --values "${COM
 
 helm test --namespace spire-mgmt spire
 kubectl get ingress -A
-curl -k --resolve oidc-discovery.production.other:443:$IP https://oidc-discovery-provider.other/.well-known/openid-configuration -s --fail
+curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discovery-provider.other/.well-known/openid-configuration" -s --fail
 exit 1
 exit 0
 
