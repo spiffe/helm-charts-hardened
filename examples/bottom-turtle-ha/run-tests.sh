@@ -155,7 +155,7 @@ sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/
 
 docker ps
 docker exec -i chart-testing-worker ls /var/run/spiffe/socat/unix/k8s-spire-agent-a/public
-docker exec -i chart-testing-worker ls /var/run/spiffe/socat/unix/k8s-spire-agent-a/public
+docker exec -i chart-testing-worker ls /var/run/spiffe/socat/unix/k8s-spire-agent-a/publib
 
 kubectl get nodes -o go-template='{{range .items}}{{printf "%s %s\n" .metadata.uid .metadata.name }}{{end}}'
 
