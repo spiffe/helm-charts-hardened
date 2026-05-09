@@ -86,7 +86,7 @@ wait_for_healthcheck() {
         return 0
       fi
       sleep 1
-      ((count++))
+      ((count++)) || true
   done
   return 1
 }
