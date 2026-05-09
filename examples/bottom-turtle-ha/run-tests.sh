@@ -109,70 +109,70 @@ wait_for_jwt() {
 
 "${SCRIPTPATH}/../../.github/scripts/prepare-local-chart-deps.sh"
 
+# Get the package repo and install the packages
 sudo curl -s -o /etc/apt/sources.list.d/spire-examples.list https://raw.githubusercontent.com/spiffe/spire-examples/refs/heads/main/examples/debs/amd64/spire-examples.list
 sudo apt-get update
 sudo apt-get install -y spire-common spire-agent spire-server spire-controller-manager spiffe-socat-unix socat spire-trust-sync spiffe-helper
 
+# Set our testing trust domain
 sudo sed -i 's/example.org/production.other/' /etc/spiffe/default-trust-domain.env
 
+# register some workloads with the spire server using manifests
 sudo mkdir -p /etc/spire/server/a/manifests/ /etc/spire/server/b/manifests/
 sudo cp "${SCRIPTPATH}/example-manifests"/* /etc/spire/server/a/manifests/
 sudo cp "${SCRIPTPATH}/example-manifests"/* /etc/spire/server/b/manifests/
 
+# Since we are running the two root spire servers on the same machine, we need to ensure ports do not conflict for server b
 sudo /bin/bash -c 'echo SPIRE_BIND_PORT=8082 > /etc/spire/server/b.env'
-#FIXME consider adding to upstream package
-sudo /bin/bash -c 'echo "expandEnvStaticManifests: true" >> /etc/spire/controller-manager/default.conf'
 sudo cp /etc/spire/controller-manager/default.conf /etc/spire/controller-manager/b.conf
+#FIXME consider making bind address overridable via port like above
 sudo sed -i 's/bindAddress: .*/bindAddress: 0.0.0.0:9125/; s/healthProbeBindAddress: .*/healthProbeBindAddress: 0.0.0.0:9126/;' /etc/spire/controller-manager/b.conf
 
-sudo systemctl start spire-server@a spire-server@b spire-controller-manager@a spire-controller-manager@b
-sudo systemctl status spire-server@a
-sudo systemctl status spire-server@b
+#FIXME consider adding to upstream package
+sudo /bin/bash -c 'echo "expandEnvStaticManifests: true" >> /etc/spire/controller-manager/default.conf'
 
+# Startup servers and make sure they are ready
+sudo systemctl start spire-server@a spire-server@b spire-controller-manager@a spire-controller-manager@b
 wait_for_healthcheck spire-server /run/spire/server/sockets/a/private/api.sock
 wait_for_healthcheck spire-server /run/spire/server/sockets/b/private/api.sock
 
-#FIXME add trust syncing spire-ha domain too.
-
+# Configure our agents. For the test, create join tokens for both agents. You should really use a node attestor other then join tokens such as tpm-direct, http_challenge, or a cloud provider one
 JOIN_TOKEN_A=$(sudo spire-server token generate -spiffeID spiffe://production.other/agent/node1 -socketPath /run/spire/server/sockets/a/private/api.sock | awk '{print "\""$2"\""}')
 JOIN_TOKEN_B=$(sudo spire-server token generate -spiffeID spiffe://production.other/agent/node1 -socketPath /run/spire/server/sockets/b/private/api.sock | awk '{print "\""$2"\""}')
-
 export JOIN_TOKEN_A
 export JOIN_TOKEN_B
-
 sudo cp -a /etc/spire/agent/default.conf /etc/spire/agent/a.conf
 sudo cp -a /etc/spire/agent/default.conf /etc/spire/agent/b.conf
-
 #FIXME consider making this an env var somehow
 sudo sed -i "s/# join_token =.*/join_token = ${JOIN_TOKEN_A}/" /etc/spire/agent/a.conf
 sudo sed -i "s/# join_token =.*/join_token = ${JOIN_TOKEN_B}/" /etc/spire/agent/b.conf
-
-#FIXME consider adding to upstream package
+#FIXME consider making this an env var somehow
 sudo sed -i 's/server_port = 8081/server_port = 8082/' /etc/spire/agent/b.conf
 
+# Since we are running the two root spire servers on the same machine, we need to configure the trust sync instances to point to the opposite server
 sudo /bin/bash -c 'echo "SPIRE_SERVER_SOCKET=/var/run/spire/server/sockets/b/private/api.sock" > /etc/spire/trust-sync/a.conf'
 sudo /bin/bash -c 'echo "SPIRE_SERVER_SOCKET=/var/run/spire/server/sockets/a/private/api.sock" > /etc/spire/trust-sync/b.conf'
 
+# Startup the agent
 sudo systemctl start spire-agent@a spire-agent@b
 sudo systemctl start spire-trust-sync@a spire-trust-sync@b
+
+# Startup the socat bridge to allow the k8s spire servers to get an identity/trust bundles from the host 
 sudo systemctl start spiffe-socat-unix@k8s-spire-server-a spiffe-socat-unix@k8s-spire-server-b
 
-#Start up node agents. We only have one vm mapped to multiple k8s virtual nodes in kind, so we run a pair per k8s virtual node. Normally you would only run one pair per host/vm.
-sudo /bin/bash -c "echo SPIFFE_INSTANCE=a > /etc/spiffe//socat/unix/k8s-spire-agent-2-a.conf"
-sudo /bin/bash -c "echo SPIFFE_INSTANCE=a > /etc/spiffe//socat/unix/k8s-spire-agent-3-a.conf"
-sudo /bin/bash -c "echo SPIFFE_INSTANCE=a > /etc/spiffe//socat/unix/k8s-spire-agent-4-a.conf"
-sudo /bin/bash -c "echo SPIFFE_INSTANCE=b > /etc/spiffe//socat/unix/k8s-spire-agent-2-b.conf"
-sudo /bin/bash -c "echo SPIFFE_INSTANCE=b > /etc/spiffe//socat/unix/k8s-spire-agent-3-b.conf"
-sudo /bin/bash -c "echo SPIFFE_INSTANCE=b > /etc/spiffe//socat/unix/k8s-spire-agent-4-b.conf"
+# Configure and start up the socat bridges to allow the k8s spire-agents to get an identity/trust bundles from the host.
+# We only have one vm mapped to multiple k8s virtual nodes in kind, so we run a pair per k8s virtual node. Normally you would only run one pair per host/vm.
+sudo /bin/bash -c "echo SPIFFE_INSTANCE=a > /etc/spiffe/socat/unix/k8s-spire-agent-2-a.conf"
+sudo /bin/bash -c "echo SPIFFE_INSTANCE=a > /etc/spiffe/socat/unix/k8s-spire-agent-3-a.conf"
+sudo /bin/bash -c "echo SPIFFE_INSTANCE=a > /etc/spiffe/socat/unix/k8s-spire-agent-4-a.conf"
+sudo /bin/bash -c "echo SPIFFE_INSTANCE=b > /etc/spiffe/socat/unix/k8s-spire-agent-2-b.conf"
+sudo /bin/bash -c "echo SPIFFE_INSTANCE=b > /etc/spiffe/socat/unix/k8s-spire-agent-3-b.conf"
+sudo /bin/bash -c "echo SPIFFE_INSTANCE=b > /etc/spiffe/socat/unix/k8s-spire-agent-4-b.conf"
 sudo systemctl start spiffe-socat-unix@k8s-spire-agent-2-a spiffe-socat-unix@k8s-spire-agent-2-b
 sudo systemctl start spiffe-socat-unix@k8s-spire-agent-3-a spiffe-socat-unix@k8s-spire-agent-3-b
 sudo systemctl start spiffe-socat-unix@k8s-spire-agent-4-a spiffe-socat-unix@k8s-spire-agent-4-b
-
 wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-spire-server-a/public/spire-agent.sock
 wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-spire-server-b/public/spire-agent.sock
-
-#FIXME disk writer in agent with emptydir
-
 wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-server-a/public/spire-agent.sock
 wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-server-b/public/spire-agent.sock
 wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-agent-2-a/public/api.sock
@@ -182,7 +182,7 @@ wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-agent-3-b/public/api.sock
 wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-agent-4-a/public/api.sock
 wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-agent-4-b/public/api.sock
 
-kubectl get nodes -o go-template='{{range .items}}{{printf "%s %s\n" .metadata.uid .metadata.name }}{{end}}'
+#FIXME disk writer in agent with emptydir
 
 #FIXME temporary until spire-controller-manager gains dynamic node registration support
 cat > test-a-values.yaml <<EOF
@@ -206,7 +206,6 @@ internal-spire-server-bottom-turtle-ha-a:
           selectors:
           - x509pop:san:spire-exchange:node3.production.other
 EOF
-
 sed 's/internal-spire-server-bottom-turtle-ha-a/internal-spire-server-bottom-turtle-ha-b/' test-a-values.yaml > test-b-values.yaml
 
 # Deploy an ingress controller
@@ -221,14 +220,16 @@ helm upgrade --install ingress-nginx ingress-nginx --version "$VERSION_INGRESS_N
 # Test the ingress controller. Should 404 as there is no services yet.
 common_test_url "$IP"
 
+# Get the host IP And add spire-server-[ab].${trust_domain} records to it so the spire-servers can talk back to root servers running on the host
 HOSTIP=$(ip addr show docker0 | grep 'inet ' | awk '{print $2}' | cut -d/ -f1)
-
 kubectl get configmap -n kube-system coredns -o yaml | grep hosts || kubectl get configmap -n kube-system coredns -o yaml | sed "/ready/a\        hosts {\n           fallthrough\n        }" | kubectl apply -f -
 kubectl get configmap -n kube-system coredns -o yaml | grep production.other || kubectl get configmap -n kube-system coredns -o yaml | sed "/hosts/a\           $HOSTIP spire-server-a.production.other\n           $HOSTIP spire-server-b.production.other\n" | kubectl apply -f -
 kubectl rollout restart -n kube-system deployment/coredns
 kubectl rollout status -n kube-system -w --timeout=1m deploy/coredns
 
 #FIXME remove nightly once 1.15 is released
+#FIXME update server to nightly too and use spiffe_id selector
+# Install the common components
 helm upgrade --install --create-namespace --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/spire-values.yaml" \
   --wait spire charts/spire-nested \
   --set tags.haAgentCommont=true \
@@ -236,6 +237,7 @@ helm upgrade --install --create-namespace --namespace spire-mgmt --values "${COM
   --set "global.spire.ingressControllerType=ingress-nginx"
 
 #FIXME see if we can tweak upstreamSpireAddress's in the chart rather then use a global.
+# Install server side a
 helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/spire-values.yaml" \
   --wait spire-a charts/spire-nested \
   --set tags.bottomTurtleHAA=true \
@@ -244,6 +246,7 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --set "global.spire.ingressControllerType=ingress-nginx" \
   -f test-a-values.yaml
 
+# Install server side b
 helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/spire-values.yaml" \
   --wait spire-b charts/spire-nested \
   --set tags.bottomTurtleHAB=true \
@@ -252,6 +255,8 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --set "downstream-spire-agent-bottom-turtle-ha-b.image.tag=nightly" \
   --set "global.spire.ingressControllerType=ingress-nginx" \
   -f test-b-values.yaml
+
+# From here on out, we sanity check that everything is working properly
 
 ENTRIES="$(kubectl exec -i -n spire-server spire-b-internal-server-0 -- spire-server entry show)"
 if [[ "${ENTRIES}" == "Found 0 entries" ]]; then
