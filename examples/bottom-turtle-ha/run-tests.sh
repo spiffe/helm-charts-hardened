@@ -32,26 +32,26 @@ fi
 
 teardown() {
   echo ---------------------------
-  sudo systemctl status spire-server@a
-  sudo systemctl status spire-server@b
-  sudo spire-server entry show -socketPath /var/run/spire/server/sockets/a/private/api.sock
-  sudo spire-server entry show -socketPath /var/run/spire/server/sockets/b/private/api.sock
-  sudo systemctl status spire-controller-manager@a
-  sudo systemctl status spire-controller-manager@b
-  sudo systemctl status spire-agent@a
-  sudo systemctl status spire-agent@b
-  sudo systemctl status spire-trust-sync@a
-  sudo systemctl status spire-trust-sync@b
-  sudo systemctl status spiffe-socat-unix@k8s-spire-server-a
-  sudo systemctl status spiffe-socat-unix@k8s-spire-server-b
-  sudo systemctl status spiffe-socat-unix@k8s-spire-agent-2-a
-  sudo systemctl status spiffe-socat-unix@k8s-spire-agent-2-b
-  sudo systemctl status spiffe-socat-unix@k8s-spire-agent-3-a
-  sudo systemctl status spiffe-socat-unix@k8s-spire-agent-3-b
-  sudo systemctl status spiffe-socat-unix@k8s-spire-agent-4-a
-  sudo systemctl status spiffe-socat-unix@k8s-spire-agent-4-b
-  sudo spire-server bundle list -socketPath /var/run/spire/server/sockets/a/private/api.sock
-  sudo spire-server bundle list -socketPath /var/run/spire/server/sockets/b/private/api.sock
+  sudo systemctl status spire-server@a || true
+  sudo systemctl status spire-server@b || true
+  sudo spire-server entry show -socketPath /var/run/spire/server/sockets/a/private/api.sock || true
+  sudo spire-server entry show -socketPath /var/run/spire/server/sockets/b/private/api.sock || true
+  sudo systemctl status spire-controller-manager@a || true
+  sudo systemctl status spire-controller-manager@b || true
+  sudo systemctl status spire-agent@a || true
+  sudo systemctl status spire-agent@b || true
+  sudo systemctl status spire-trust-sync@a || true
+  sudo systemctl status spire-trust-sync@b || true
+  sudo systemctl status spiffe-socat-unix@k8s-spire-server-a || true
+  sudo systemctl status spiffe-socat-unix@k8s-spire-server-b || true
+  sudo systemctl status spiffe-socat-unix@k8s-spire-agent-2-a || true
+  sudo systemctl status spiffe-socat-unix@k8s-spire-agent-2-b || true
+  sudo systemctl status spiffe-socat-unix@k8s-spire-agent-3-a || true
+  sudo systemctl status spiffe-socat-unix@k8s-spire-agent-3-b || true
+  sudo systemctl status spiffe-socat-unix@k8s-spire-agent-4-a || true
+  sudo systemctl status spiffe-socat-unix@k8s-spire-agent-4-b || true
+  sudo spire-server bundle list -socketPath /var/run/spire/server/sockets/a/private/api.sock || true
+  sudo spire-server bundle list -socketPath /var/run/spire/server/sockets/b/private/api.sock || true
   kubectl exec -i -n spire-server spire-a-internal-server-0 -- spire-server entry show || true
   kubectl exec -i -n spire-server spire-b-internal-server-0 -- spire-server entry show || true
 
