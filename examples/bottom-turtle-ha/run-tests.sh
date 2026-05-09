@@ -295,6 +295,7 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --set internal-spire-server-bottom-turtle-ha-b.upstreamAuthority.spire.server.port=8082 \
   --set "downstream-spire-agent-bottom-turtle-ha-b.image.tag=nightly" \
   --set "global.spire.ingressControllerType=ingress-nginx" \
+  --set "spiffe-oidc-discovery-provider.ingress.enabled=true" && \
   -f test-b-values.yaml
 
 # From here on out, we sanity check that everything is working properly
