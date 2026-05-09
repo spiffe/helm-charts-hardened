@@ -264,14 +264,6 @@ kubectl rollout restart -n kube-system deployment/coredns
 kubectl rollout status -n kube-system -w --timeout=1m deploy/coredns
 
 #FIXME remove nightly once 1.15 is released
-#FIXME update server to nightly too and use spiffe_id selector
-# Install the common components
-helm upgrade --install --create-namespace --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/spire-values.yaml" \
-  --wait spire charts/spire-nested \
-  --set tags.haAgentCommon=true \
-  --set "global.spire.namespaces.create=true" \
-  --set "global.spire.ingressControllerType=ingress-nginx" \
-  --set "spiffe-oidc-discovery-provider.ingress.enabled=true"
 
 #FIXME see if we can tweak upstreamSpireAddress's in the chart rather then use a global.
 # Install server side a
@@ -283,8 +275,18 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --set "global.spire.ingressControllerType=ingress-nginx" \
   -f test-a-values.yaml
 
+#FIXME update server to nightly too and use spiffe_id selector
+# Install the common components
+helm upgrade --install --create-namespace --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/spire-values.yaml" \
+  --wait spire charts/spire-nested \
+  --set tags.haAgentCommon=true \
+  --set "global.spire.namespaces.create=true" \
+  --set "global.spire.ingressControllerType=ingress-nginx" \
+  --set "spiffe-oidc-discovery-provider.ingress.enabled=true"
+
 helm test --namespace spire-mgmt spire
 kubectl get ingress -A
+curl -k --resolve oidc-discovery.production.other:443:$IP https://oidc-discovery-provider.other/.well-known/openid-configuration -s --fail
 exit 1
 exit 0
 
