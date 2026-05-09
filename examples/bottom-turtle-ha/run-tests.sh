@@ -91,6 +91,22 @@ wait_for_healthcheck() {
   return 1
 }
 
+wait_for_jwt() {
+  local socket="$1"
+  local timeout=30
+  local count=0
+  while [ "$count" -lt "$timeout" ]; do
+      rc=0
+      sudo spire-agent api fetch jwt -audience test -socketPath "$socket" || rc=$?
+      if [ "$rc" -eq 0 ]; then
+        return 0
+      fi
+      sleep 1
+      ((count++)) || true
+  done
+  return 1
+}
+
 "${SCRIPTPATH}/../../.github/scripts/prepare-local-chart-deps.sh"
 
 sudo curl -s -o /etc/apt/sources.list.d/spire-examples.list https://raw.githubusercontent.com/spiffe/spire-examples/refs/heads/main/examples/debs/amd64/spire-examples.list
@@ -155,17 +171,16 @@ sudo systemctl start spiffe-socat-unix@k8s-spire-agent-4-a spiffe-socat-unix@k8s
 wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-spire-server-a/public/spire-agent.sock
 wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-spire-server-b/public/spire-agent.sock
 
-#FIXME need to wait till controller manager syncs
-sleep 15
+#FIXME disk writer in agent with emptydir
 
-sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/unix/k8s-spire-server-a/public/spire-agent.sock
-sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/unix/k8s-spire-server-b/public/spire-agent.sock
-sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/unix/k8s-spire-agent-2-a/public/api.sock
-sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/unix/k8s-spire-agent-2-b/public/api.sock
-sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/unix/k8s-spire-agent-3-a/public/api.sock
-sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/unix/k8s-spire-agent-3-b/public/api.sock
-sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/unix/k8s-spire-agent-4-a/public/api.sock
-sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/unix/k8s-spire-agent-4-b/public/api.sock
+wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-server-a/public/spire-agent.sock
+wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-server-b/public/spire-agent.sock
+wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-agent-2-a/public/api.sock
+wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-agent-2-b/public/api.sock
+wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-agent-3-a/public/api.sock
+wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-agent-3-b/public/api.sock
+wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-agent-4-a/public/api.sock
+wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-agent-4-b/public/api.sock
 
 kubectl get nodes -o go-template='{{range .items}}{{printf "%s %s\n" .metadata.uid .metadata.name }}{{end}}'
 
