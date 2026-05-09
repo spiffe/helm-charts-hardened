@@ -154,6 +154,9 @@ sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/
 sudo spire-agent api fetch jwt -audience test -socketPath /var/run/spiffe/socat/unix/k8s-spire-agent-4-b/public/api.sock
 
 docker ps
+docker exec -it chart-testing-worker ls /var/run/spiffe/socat/unix/k8s-spire-agent-a/public
+docker exec -it chart-testing-worker ls /var/run/spiffe/socat/unix/k8s-spire-agent-a/public
+
 kubectl get nodes -o go-template='{{range .items}}{{printf "%s %s\n" .metadata.uid .metadata.name }}{{end}}'
 
 #FIXME temporary until spire-controller-manager gains dynamic node registration support
