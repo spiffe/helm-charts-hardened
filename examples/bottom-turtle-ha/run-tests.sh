@@ -202,12 +202,12 @@ sudo /bin/bash -c "echo SPIFFE_INSTANCE=b > /etc/spiffe/socat/unix/k8s-spire-age
 sudo systemctl start spiffe-socat-unix@k8s-spire-agent-2-a spiffe-socat-unix@k8s-spire-agent-2-b
 sudo systemctl start spiffe-socat-unix@k8s-spire-agent-3-a spiffe-socat-unix@k8s-spire-agent-3-b
 sudo systemctl start spiffe-socat-unix@k8s-spire-agent-4-a spiffe-socat-unix@k8s-spire-agent-4-b
-wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-spire-agent-2-a/public/spire-agent.sock
-wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-spire-agent-2-b/public/spire-agent.sock
-wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-spire-agent-3-a/public/spire-agent.sock
-wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-spire-agent-3-b/public/spire-agent.sock
-wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-spire-agent-4-a/public/spire-agent.sock
-wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-spire-agent-4-b/public/spire-agent.sock
+wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-spire-agent-2-a/public/api.sock
+wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-spire-agent-2-b/public/api.sock
+wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-spire-agent-3-a/public/api.sock
+wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-spire-agent-3-b/public/api.sock
+wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-spire-agent-4-a/public/api.sock
+wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-spire-agent-4-b/public/api.sock
 wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-agent-2-a/public/api.sock
 wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-agent-2-b/public/api.sock
 wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-agent-3-a/public/api.sock
