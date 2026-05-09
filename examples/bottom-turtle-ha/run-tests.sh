@@ -149,6 +149,7 @@ sudo sed -i 's/bindAddress: .*/bindAddress: 0.0.0.0:9125/; s/healthProbeBindAddr
 
 #FIXME consider adding to upstream package
 sudo /bin/bash -c 'echo "expandEnvStaticManifests: true" >> /etc/spire/controller-manager/default.conf'
+sudo /bin/bash -c 'echo "expandEnvStaticManifests: true" >> /etc/spire/controller-manager/b.conf'
 
 # Startup servers and make sure they are ready
 sudo systemctl start spire-server@a spire-server@b spire-controller-manager@a spire-controller-manager@b
