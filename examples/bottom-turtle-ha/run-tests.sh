@@ -269,7 +269,7 @@ kubectl rollout status -n kube-system -w --timeout=1m deploy/coredns
 #FIXME update server to nightly too and use spiffe_id selector
 # Install the common components
 helm upgrade --install --create-namespace --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/spire-values.yaml" \
-  --wait spire charts/spire-nested \
+  spire charts/spire-nested \
   --set tags.haAgentCommon=true \
   --set "global.spire.namespaces.create=true" \
   --set "global.spire.ingressControllerType=ingress-nginx" \
