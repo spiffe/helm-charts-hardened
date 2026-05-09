@@ -8,5 +8,6 @@ spec:
   selectors:
   - systemd:id:spiffe-socat-unix@k8s-spire-server-${SUBINSTANCE}.service
   downstream: true
-  federatesWith:
-  - spire-ha
+# FIXME
+#  federatesWith:
+#  - spire-ha
