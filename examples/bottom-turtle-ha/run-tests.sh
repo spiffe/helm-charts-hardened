@@ -176,13 +176,11 @@ sudo /bin/bash -c 'echo "SPIRE_SERVER_SOCKET=/var/run/spire/server/sockets/a/pri
 
 # Startup the agent
 sudo systemctl start spire-agent@a spire-agent@b
-#FIXME
-#sudo systemctl start spire-trust-sync@a spire-trust-sync@b
+sudo systemctl start spire-trust-sync@a spire-trust-sync@b
 wait_for_healthcheck spire-agent /var/run/spire/agent/sockets/a/public/api.sock
 wait_for_healthcheck spire-agent /var/run/spire/agent/sockets/b/public/api.sock
-#FIXME
-#wait_for_trust_sync /var/run/spire/server/sockets/a/private/api.sock
-#wait_for_trust_sync /var/run/spire/server/sockets/b/private/api.sock
+wait_for_trust_sync /var/run/spire/server/sockets/a/private/api.sock
+wait_for_trust_sync /var/run/spire/server/sockets/b/private/api.sock
 
 sudo cp "${SCRIPTPATH}/example-manifests"/node1-k8s-spire-server.yaml /etc/spire/server/a/manifests/
 sudo cp "${SCRIPTPATH}/example-manifests"/node1-k8s-spire-server.yaml /etc/spire/server/b/manifests/
