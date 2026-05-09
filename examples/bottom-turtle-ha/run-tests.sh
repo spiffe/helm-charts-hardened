@@ -213,7 +213,6 @@ helm upgrade --install --create-namespace --namespace spire-mgmt --values "${COM
   --wait spire charts/spire-nested \
   --set tags.haAgentCommont=true \
   --set "global.spire.namespaces.create=true" \
-  --set "downstream-spire-agent-bottom-turtle-ha-a.image.tag=nightly" \
   --set "global.spire.ingressControllerType=ingress-nginx"
 
 #FIXME see if we can tweak upstreamSpireAddress's in the chart rather then use a global.
@@ -230,7 +229,7 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --set tags.bottomTurtleHAB=true \
   --set global.spire.upstreamSpireAddress=spire-server-b.production.other \
   --set internal-spire-server-bottom-turtle-ha-b.upstreamAuthority.spire.server.port=8082 \
-  --set "downstream-spire-agent-bottom-turtle-ha-a.image.tag=nightly" \
+  --set "downstream-spire-agent-bottom-turtle-ha-b.image.tag=nightly" \
   --set "global.spire.ingressControllerType=ingress-nginx" \
   -f test-b-values.yaml
 
