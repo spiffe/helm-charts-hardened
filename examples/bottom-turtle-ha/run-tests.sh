@@ -290,7 +290,8 @@ kubectl rollout restart daemonset -n spire-system spire-spire-ha-agent
 kubectl rollout status daemonset -n spire-system spire-spire-ha-agent
 kubectl rollout restart deployment -n spire-server spiffe-oidc-discovery-provider
 kubectl get pods -A
-kubectl rollout status deployment -n spire-server spiffe-oidc-discovery-provider --timeout=30s
+kubectl get pods -n spire-server -l "app.kubernetes.io/name=spire-ha-agent" -o go-template='{{ range .items }}{{ printf "%s %s\n" .metadata.uid .metadata.name }}{{ end }}'
+kubectl rollout status deployment -n spire-server spiffe-oidc-discovery-provider --timeout=1m
 curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discovery.production.other/.well-known/openid-configuration" -s --fail
 helm test --namespace spire-mgmt spire
 exit 1
