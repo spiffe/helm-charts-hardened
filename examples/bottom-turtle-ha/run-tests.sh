@@ -282,6 +282,7 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --set "global.spire.ingressControllerType=ingress-nginx" \
   -f test-a-values.yaml
 
+kubectl get pods -A
 kubectl get ingress -A
 curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discovery.production.other/.well-known/openid-configuration" -s --fail
 helm test --namespace spire-mgmt spire
