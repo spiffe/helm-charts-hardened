@@ -463,8 +463,10 @@ internal-spire-server-bottom-turtle-ha-a:
   ## @param internal-spire-server-bottom-turtle-ha-a.nameOverride Overrides the name of Spire server pods
   nameOverride: internal-server
   experimental:
+    ## @param internal-spire-server-bottom-turtle-ha-a.experimental.enabled enable experimental features
+    enabled: true
     ## @param internal-spire-server-bottom-turtle-ha-a.experimental.agentSPIFFEIDAsSelector enable adding spiffe_id selectors to all agents
-    agentSPIFFEIDAsSelector: false
+    agentSPIFFEIDAsSelector: true
   controllerManager:
     ## @param internal-spire-server-bottom-turtle-ha-a.controllerManager.enabled Enable controller manager and provision CRD's
     enabled: true
@@ -524,8 +526,10 @@ internal-spire-server-bottom-turtle-ha-b:
   ## @param internal-spire-server-bottom-turtle-ha-b.nameOverride Overrides the name of Spire server pods
   nameOverride: internal-server
   experimental:
+    ## @param internal-spire-server-bottom-turtle-ha-b.experimental.enabled enable experimental features
+    enabled: true
     ## @param internal-spire-server-bottom-turtle-ha-b.experimental.agentSPIFFEIDAsSelector enable adding spiffe_id selectors to all agents
-    agentSPIFFEIDAsSelector: false
+    agentSPIFFEIDAsSelector: true
   controllerManager:
     ## @param internal-spire-server-bottom-turtle-ha-b.controllerManager.enabled Enable controller manager and provision CRD's
     enabled: true
