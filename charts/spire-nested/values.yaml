@@ -472,6 +472,8 @@ internal-spire-server-bottom-turtle-ha-a:
         oidc-discovery-provider:
           ## @param internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.autoPopulateDNSNames Auto populate dns entries
           autoPopulateDNSNames: false
+          ## @param internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.type The type of the entry
+          type: oidc-discovery-provider-common
         spire-ha-agent:
           ## @param internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent.enabled Enables the spire-ha-agent identity
           enabled: true
@@ -528,6 +530,8 @@ internal-spire-server-bottom-turtle-ha-b:
         oidc-discovery-provider:
           ## @param internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.autoPopulateDNSNames Auto populate dns entries
           autoPopulateDNSNames: false
+          ## @param internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.clusterSPIFFEIDs.oidc-discovery-provider.type The type of the entry
+          type: oidc-discovery-provider-common
         spire-ha-agent:
           ## @param internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent.enabled Enables the spire-ha-agent identity
           enabled: true
