@@ -284,6 +284,8 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
 
 kubectl get pods -A
 kubectl get ingress -A
+kubectl rollout restart deployment -n spire-server spiffe-oidc-discovery-provider
+kubectl rollout status deployment -n spire-server spiffe-oidc-discovery-provider
 curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discovery.production.other/.well-known/openid-configuration" -s --fail
 helm test --namespace spire-mgmt spire
 exit 1
