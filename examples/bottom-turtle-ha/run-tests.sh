@@ -283,13 +283,13 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --set "global.spire.ingressControllerType=ingress-nginx" \
   -f test-a-values.yaml
 
-kubectl get pods -A
+kubectl get pods -A -o wide
 kubectl get ingress -A
 #FIXME Name
 kubectl rollout restart daemonset -n spire-system spire-spire-ha-agent
 kubectl rollout status daemonset -n spire-system spire-spire-ha-agent
 kubectl rollout restart deployment -n spire-server spiffe-oidc-discovery-provider
-kubectl get pods -A
+kubectl get pods -A -o wide
 kubectl get pods -n spire-system -l "app.kubernetes.io/name=spire-ha-agent" -o go-template='{{ range .items }}{{ printf "%s %s\n" .metadata.uid .metadata.name }}{{ end }}'
 kubectl rollout status deployment -n spire-server spiffe-oidc-discovery-provider --timeout=1m
 curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discovery.production.other/.well-known/openid-configuration" -s --fail
