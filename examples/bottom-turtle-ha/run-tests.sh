@@ -288,6 +288,7 @@ kubectl get ingress -A
 kubectl rollout restart daemonset -n spire-system spire-spire-ha-agent
 kubectl rollout status daemonset -n spire-system spire-spire-ha-agent
 kubectl rollout restart deployment -n spire-server spiffe-oidc-discovery-provider
+kubectl get pods -A
 kubectl rollout status deployment -n spire-server spiffe-oidc-discovery-provider --timeout=30s
 curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discovery.production.other/.well-known/openid-configuration" -s --fail
 helm test --namespace spire-mgmt spire
