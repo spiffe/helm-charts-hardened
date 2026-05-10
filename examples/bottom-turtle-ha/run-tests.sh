@@ -55,6 +55,8 @@ teardown() {
   sudo spire-server bundle list -socketPath /var/run/spire/server/sockets/b/private/api.sock || true
   kubectl exec -i -n spire-server spire-a-internal-server-0 -- spire-server entry show || true
   kubectl exec -i -n spire-server spire-b-internal-server-0 -- spire-server entry show || true
+  kubectl exec -i -n spire-server spire-a-internal-server-0 -- spire-server agent list || true
+  kubectl exec -i -n spire-server spire-b-internal-server-0 -- spire-server agent list || true
 
   print_helm_releases
 
