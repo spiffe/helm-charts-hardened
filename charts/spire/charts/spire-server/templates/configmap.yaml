@@ -102,6 +102,7 @@ server:
   {{- with .Values.experimental }}
   {{- if eq (.enabled | toString) "true" }}
   experimental:
+    agent_spiffe_id_as_selector: {{ .agentSPIFFEIDAsSelector }}
     cache_reload_interval: {{ .cacheReloadInterval | quote }}
     events_based_cache: {{ .eventsBasedCache }}
     prune_events_older_than: {{ .pruneEventsOlderThan | quote }}

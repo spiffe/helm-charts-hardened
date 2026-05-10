@@ -228,17 +228,17 @@ internal-spire-server-bottom-turtle-ha-a:
           parentID: spiffe://production.other/spire/server
           spiffeID: spiffe://production.other/k8s_psat/production/$(kubectl get node chart-testing-worker -o go-template="{{ .metadata.uid }}")
           selectors:
-          - x509pop:san:spire-exchange:node1.production.other
+          - spiffe_id:spiffe://production.other/spire-exchange/node1.production.other
         node2:
           parentID: spiffe://production.other/spire/server
           spiffeID: spiffe://production.other/k8s_psat/production/$(kubectl get node chart-testing-worker2 -o go-template="{{ .metadata.uid }}")
           selectors:
-          - x509pop:san:spire-exchange:node2.production.other
+          - spiffe_id:spiffe://production.other/spire-exchange/node2.production.other
         node3:
           parentID: spiffe://production.other/spire/server
           spiffeID: spiffe://production.other/k8s_psat/production/$(kubectl get node chart-testing-worker3 -o go-template="{{ .metadata.uid }}")
           selectors:
-          - x509pop:san:spire-exchange:node3.production.other
+          - spiffe_id:spiffe://production.other/spire-exchange/node3.production.other
 EOF
 sed 's/internal-spire-server-bottom-turtle-ha-a/internal-spire-server-bottom-turtle-ha-b/' test-a-values.yaml > test-b-values.yaml
 
@@ -278,6 +278,7 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --wait spire-a charts/spire-nested \
   --set tags.bottomTurtleHAA=true \
   --set global.spire.upstreamSpireAddress=spire-server-a.production.other \
+  --set "internal-spire-server-bottom-turtle-ha-a.image.tag=nightly" \
   --set "downstream-spire-agent-bottom-turtle-ha-a.image.tag=nightly" \
   --set "global.spire.ingressControllerType=ingress-nginx" \
   -f test-a-values.yaml
@@ -301,6 +302,7 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --set tags.bottomTurtleHAB=true \
   --set global.spire.upstreamSpireAddress=spire-server-b.production.other \
   --set internal-spire-server-bottom-turtle-ha-b.upstreamAuthority.spire.server.port=8082 \
+  --set "internal-spire-server-bottom-turtle-ha-b.image.tag=nightly" \
   --set "downstream-spire-agent-bottom-turtle-ha-b.image.tag=nightly" \
   --set "global.spire.ingressControllerType=ingress-nginx" \
   -f test-b-values.yaml

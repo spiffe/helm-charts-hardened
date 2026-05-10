@@ -1372,6 +1372,8 @@ chown:
 experimental:
   ## @param experimental.enabled Allow configuration of experimental features
   enabled: false
+  ## @param experimental.agentSPIFFEIDAsSelector enable adding spiffe_id selectors to all agents
+  agentSPIFFEIDAsSelector: false
   ## @param experimental.cacheReloadInterval The amount of time between two reloads of the in-memory entry cache.
   cacheReloadInterval: 5s
   ## @param experimental.eventsBasedCache Use events to update the cache with what's changed since the last update.
