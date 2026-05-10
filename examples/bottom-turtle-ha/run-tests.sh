@@ -284,8 +284,9 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
 
 kubectl get pods -A
 kubectl get ingress -A
-kubectl rollout restart daemonset -n spire-server spire-spire-ha-agent
-kubectl rollout status daemonset -n spire-server spire-spire-ha-agent
+#FIXME Name
+kubectl rollout restart daemonset -n spire-system spire-spire-ha-agent
+kubectl rollout status daemonset -n spire-system spire-spire-ha-agent
 kubectl rollout restart deployment -n spire-server spiffe-oidc-discovery-provider
 kubectl rollout status deployment -n spire-server spiffe-oidc-discovery-provider --timeout=30s
 curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discovery.production.other/.well-known/openid-configuration" -s --fail
