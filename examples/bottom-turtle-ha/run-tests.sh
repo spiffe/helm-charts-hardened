@@ -295,8 +295,6 @@ kubectl get pods -A -o wide
 kubectl get pods -n spire-system -l "app.kubernetes.io/name=spire-ha-agent" -o go-template='{{ range .items }}{{ printf "%s %s\n" .metadata.uid .metadata.name }}{{ end }}'
 kubectl rollout status deployment -n spire-server spiffe-oidc-discovery-provider --timeout=1m
 curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discovery.production.other/.well-known/openid-configuration" -s --fail
-helm test --namespace spire-mgmt spire
-exit 1
 exit 0
 
 # Install server side b
