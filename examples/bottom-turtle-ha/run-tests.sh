@@ -286,7 +286,7 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   -f test-a-values.yaml
 
 # Rollout just to sped up the tests
-kubectl patch deployment spiffe-oidc-discovery-provider -n spire-server -p '{"spec": {"strategy": {"type": "Recreate"}, "rollingUpdate": null}}'
+kubectl patch deployment spiffe-oidc-discovery-provider -n spire-server --type='strategic' -p '{"spec": {"strategy": {"type": "Recreate", "rollingUpdate": null}}}'
 kubectl rollout restart daemonset -n spire-system spire-spire-ha-agent
 kubectl rollout status daemonset -n spire-system spire-spire-ha-agent
 kubectl rollout restart deployment -n spire-server spiffe-oidc-discovery-provider
