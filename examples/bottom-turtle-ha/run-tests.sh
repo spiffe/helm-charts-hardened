@@ -290,7 +290,7 @@ kubectl rollout restart daemonset -n spire-system spire-spire-ha-agent
 kubectl rollout status daemonset -n spire-system spire-spire-ha-agent
 kubectl rollout restart deployment -n spire-server spiffe-oidc-discovery-provider
 kubectl rollout status deployment -n spire-server spiffe-oidc-discovery-provider --timeout=1m
-kubectl wait -n spire-server --for=condition=ready pod -l "app.kubernetes.io/name=spiffe-oidc-discovery-provider" --timeout=60s
+kubectl wait -n spire-server --for=condition=ready pod -l "app.kubernetes.io/name=spiffe-oidc-discovery-provider" --field-selector=status.phase=Running --timeout=60s
 curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discovery.production.other/.well-known/openid-configuration" -s --fail
 
 # Install server side b
