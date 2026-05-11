@@ -405,6 +405,8 @@ external-spire-server:
 # Used with tags [haAgentCommon]
 spiffe-csi-driver:
   # enabled: true
+  ## @param spiffe-csi-driver.fullnameOverride Fullname override
+  fullnameOverride: spiffe-csi-driver
   ## @param spiffe-csi-driver.agentSocketPath The socket path where Spiffe CSI driver mounts agent socket
   agentSocketPath: /var/run/spire/agent-sockets/spire-agent.sock
   healthChecks:
