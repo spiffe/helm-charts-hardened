@@ -20,7 +20,7 @@
 {{-     end }}
 {{-   end }}
 {{- end }}
-{{- if and .Values.keyManager.disk.enabled (ne .Values.persistence.type "hostPath") }}
+{{- if and .Values.keyManager.disk.enabled (ne .Values.persistence.type "hostPath") (eq .Values.keyManager.disk.mode "hostPath") }}
 {{-   fail "keyManager.disk.enabled is true but persistence.type is not hostPath. Ensure persistence.type is hostPath when keyManager.disk.enabled is true." }}
 {{- end }}
 {{- if hasPrefix (.Values.socketPath | dir | clean) (.Values.sockets.hostBasePath | clean) }}
