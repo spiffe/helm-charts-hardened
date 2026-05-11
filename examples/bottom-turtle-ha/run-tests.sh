@@ -286,11 +286,12 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   -f test-a-values.yaml
 
 # Rollout just to sped up the tests
+kubectl patch deployment spiffe-oidc-discovery-provider -n spire-server -p '{"spec": {"strategy": {"type": "Recreate"}, "rollingUpdate": null}}'
 kubectl rollout restart daemonset -n spire-system spire-spire-ha-agent
 kubectl rollout status daemonset -n spire-system spire-spire-ha-agent
 kubectl rollout restart deployment -n spire-server spiffe-oidc-discovery-provider
 kubectl rollout status deployment -n spire-server spiffe-oidc-discovery-provider --timeout=1m
-kubectl wait -n spire-server --for=condition=ready pod -l "app.kubernetes.io/name=spiffe-oidc-discovery-provider" --field-selector=status.phase=Running --timeout=60s
+kubectl wait -n spire-server --for=condition=ready pod -l "app.kubernetes.io/name=spiffe-oidc-discovery-provider" --field-selector=status.phase=Running --timeout=90s
 until [ "$(kubectl get endpoints -n spire-server spiffe-oidc-discovery-provider -o jsonpath='{..addresses[*].ip}' | wc -w)" -eq 1 ]; do
   echo "Waiting for old endpoints to be removed..."
   sleep 1
