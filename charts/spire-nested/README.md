@@ -358,7 +358,7 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `external-spire-server.nodeAttestor.joinToken.enabled`                                                             | Enable the join_token nodeattestor                                                    | `true`                                          |
 | `spiffe-csi-driver.agentSocketPath`                                                                                | The socket path where Spiffe CSI driver mounts agent socket                           | `/var/run/spire/agent-sockets/spire-agent.sock` |
 | `spiffe-csi-driver.healthChecks.port`                                                                              | Health check port number for upstream Spire agent                                     | `9814`                                          |
-| `spire-ha-agent`                                                                                                   | The configuration overrides for a spire-ha-agent                                      | `{}`                                            |
+| `spire-ha-agent.fullnameOverride`                                                                                  | Fullname override                                                                     | `spire-ha-agent`                                |
 
 ### Upstream SPIFFE CSI Driver for Bottom Turtle HA A parameters
 

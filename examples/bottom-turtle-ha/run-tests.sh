@@ -266,7 +266,6 @@ kubectl rollout status -n kube-system -w --timeout=1m deploy/coredns
 #FIXME remove nightly once 1.15 is released
 
 #FIXME see if we can tweak upstreamSpireAddress's in the chart rather then use a global.
-#FIXME update server to nightly too and use spiffe_id selector
 # Install the common components
 helm upgrade --install --create-namespace --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/spire-values.yaml" \
   spire charts/spire-nested \
@@ -292,10 +291,6 @@ kubectl rollout status daemonset -n spire-system spire-spire-ha-agent
 kubectl rollout restart deployment -n spire-server spiffe-oidc-discovery-provider
 kubectl rollout status deployment -n spire-server spiffe-oidc-discovery-provider --timeout=1m
 kubectl wait -n spire-server --for=condition=ready pod -l "app.kubernetes.io/name=spiffe-oidc-discovery-provider" --field-selector=status.phase=Running --timeout=90s
-until [ "$(kubectl get endpoints -n spire-server spiffe-oidc-discovery-provider -o jsonpath='{..addresses[*].ip}' | wc -w)" -eq 1 ]; do
-  echo "Waiting for old endpoints to be removed..."
-  sleep 1
-done
 curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discovery.production.other/.well-known/openid-configuration" -s --fail
 
 # Install server side b
@@ -323,11 +318,7 @@ if [[ "${ENTRIES}" == "Found 0 entries" ]]; then
   exit 1
 fi
 
-#FIXME automate the check.
-kubectl exec -i -n spire-server spire-a-internal-server-0 -- spire-server bundle list
-kubectl exec -i -n spire-server spire-b-internal-server-0 -- spire-server bundle list
-
-kubectl get pods -A
+kubectl get pods -A -o wide
 
 helm test --namespace spire-mgmt spire-a
 helm test --namespace spire-mgmt spire-b

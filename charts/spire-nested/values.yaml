@@ -411,10 +411,11 @@ spiffe-csi-driver:
     ## @param spiffe-csi-driver.healthChecks.port Health check port number for upstream Spire agent
     port: 9814
 
-## @param spire-ha-agent The configuration overrides for a spire-ha-agent
 # Used with tags [haAgentCommon]
-spire-ha-agent: {}
+spire-ha-agent:
   # enabled: true
+  ## @param spire-ha-agent.fullnameOverride Fullname override
+  fullnameOverride: spire-ha-agent
 
 ## @section Upstream SPIFFE CSI Driver for Bottom Turtle HA A parameters
 ## Parameter values for upstream spiffe-csi-driver-bottom-turtle-ha-a
