@@ -259,7 +259,7 @@ common_test_url "$IP"
 # Get the host IP And add spire-server-[ab].${trust_domain} records to it so the spire-servers can talk back to root servers running on the host
 HOSTIP=$(ip addr show docker0 | grep 'inet ' | awk '{print $2}' | cut -d/ -f1)
 kubectl get configmap -n kube-system coredns -o yaml | grep hosts || kubectl get configmap -n kube-system coredns -o yaml | sed "/ready/a\        hosts {\n           fallthrough\n        }" | kubectl apply -f -
-kubectl get configmap -n kube-system coredns -o yaml | grep production.other || kubectl get configmap -n kube-system coredns -o yaml | sed "/hosts/a\           $HOSTIP spire-server-a.production.other\n           $HOSTIP spire-server-b.production.other\n" | kubectl apply -f -
+kubectl get configmap -n kube-system coredns -o yaml | grep production.other || kubectl get configmap -n kube-system coredns -o yaml | sed "/hosts/a\           $HOSTIP spire-server-a.production.other\n           $HOSTIP oidc-discovery.production.other\n           $HOSTIP spire-server-b.production.other\n" | kubectl apply -f -
 kubectl rollout restart -n kube-system deployment/coredns
 kubectl rollout status -n kube-system -w --timeout=1m deploy/coredns
 
