@@ -286,8 +286,8 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
 
 # Rollout just to sped up the tests
 kubectl patch deployment spiffe-oidc-discovery-provider -n spire-server --type='strategic' -p '{"spec": {"strategy": {"type": "Recreate", "rollingUpdate": null}}}'
-kubectl rollout restart daemonset -n spire-system spire-spire-ha-agent
-kubectl rollout status daemonset -n spire-system spire-spire-ha-agent
+kubectl rollout restart daemonset -n spire-system spire-ha-agent
+kubectl rollout status daemonset -n spire-system spire-ha-agent
 kubectl rollout restart deployment -n spire-server spiffe-oidc-discovery-provider
 kubectl rollout status deployment -n spire-server spiffe-oidc-discovery-provider --timeout=1m
 kubectl wait -n spire-server --for=condition=ready pod -l "app.kubernetes.io/name=spiffe-oidc-discovery-provider" --field-selector=status.phase=Running --timeout=90s
@@ -326,8 +326,8 @@ curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discov
 
 #Test out running only on side b since we know already only both servers work together, and that only side a works if we made it this far.
 helm delete -n spire-mgmt spire-a
-kubectl rollout restart daemonset -n spire-system spire-spire-ha-agent
-kubectl rollout status daemonset -n spire-system spire-spire-ha-agent
+kubectl rollout restart daemonset -n spire-system spire-ha-agent
+kubectl rollout status daemonset -n spire-system spire-ha-agent
 kubectl rollout restart deployment -n spire-server spiffe-oidc-discovery-provider
 kubectl rollout status deployment -n spire-server spiffe-oidc-discovery-provider --timeout=1m
 curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discovery.production.other/.well-known/openid-configuration" -s --fail
