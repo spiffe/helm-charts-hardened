@@ -285,17 +285,12 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --set "global.spire.ingressControllerType=ingress-nginx" \
   -f test-a-values.yaml
 
-kubectl get pods -A -o wide
-kubectl get ingress -A
-#FIXME Name
+# Rollout just to sped up the tests
 kubectl rollout restart daemonset -n spire-system spire-spire-ha-agent
 kubectl rollout status daemonset -n spire-system spire-spire-ha-agent
 kubectl rollout restart deployment -n spire-server spiffe-oidc-discovery-provider
-kubectl get pods -A -o wide
-kubectl get pods -n spire-system -l "app.kubernetes.io/name=spire-ha-agent" -o go-template='{{ range .items }}{{ printf "%s %s\n" .metadata.uid .metadata.name }}{{ end }}'
 kubectl rollout status deployment -n spire-server spiffe-oidc-discovery-provider --timeout=1m
 curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discovery.production.other/.well-known/openid-configuration" -s --fail
-exit 0
 
 # Install server side b
 helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/spire-values.yaml" \
@@ -308,7 +303,7 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --set "global.spire.ingressControllerType=ingress-nginx" \
   -f test-b-values.yaml
 
-# From here on out, we sanity check that everything is working properly
+# From here on out, we sanity check that everything is working properly with both servers running.
 
 ENTRIES="$(kubectl exec -i -n spire-server spire-b-internal-server-0 -- spire-server entry show)"
 if [[ "${ENTRIES}" == "Found 0 entries" ]]; then
@@ -328,6 +323,15 @@ kubectl exec -i -n spire-server spire-b-internal-server-0 -- spire-server bundle
 
 kubectl get pods -A
 
-helm test --namespace spire-mgmt spire
 helm test --namespace spire-mgmt spire-a
 helm test --namespace spire-mgmt spire-b
+curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discovery.production.other/.well-known/openid-configuration" -s --fail
+
+#Test out running only on side b since we know already only both servers work together, and that only side a works if we made it this far.
+helm delete -n spire-mgmt spire-a
+kubectl rollout restart daemonset -n spire-system spire-spire-ha-agent
+kubectl rollout status daemonset -n spire-system spire-spire-ha-agent
+kubectl rollout restart deployment -n spire-server spiffe-oidc-discovery-provider
+kubectl rollout status deployment -n spire-server spiffe-oidc-discovery-provider --timeout=1m
+curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discovery.production.other/.well-known/openid-configuration" -s --fail
+
