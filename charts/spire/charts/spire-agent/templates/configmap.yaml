@@ -163,7 +163,11 @@ plugins:
     {{- if .Values.keyManager.disk.enabled }}
     disk:
       plugin_data:
+        {{- if eq .Values.keyManager.disk.mode "hostPath" }}
         directory: {{ .Values.persistence.hostPath }}
+        {{- else if eq .Values.keyManager.disk.mode "emptyDir" }}
+        directory: /key-manager
+        {{- end }}
     {{- $keyManagerUsed = add1 $keyManagerUsed }}
     {{- end }}
 {{- if ne $keyManagerUsed 1 }}

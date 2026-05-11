@@ -168,6 +168,8 @@ keyManager:
   disk:
     ## @param keyManager.disk.enabled Enable the disk based Key Manager (must have persistence.type set to hostPath when enabled)
     enabled: false
+    ## @param keyManager.disk.mode Where to store the data. Supported options are hostPath and emptyDir
+    mode: hostPath
 
 nodeAttestor:
   k8sPSAT:

@@ -330,6 +330,10 @@ spec:
               mountPath: /dev/tpmrm0
               readOnly: true
             {{- end }}
+            {{- if eq .Values.keyManager.disk.mode "emptyDir" }}
+            - name: disk-keymanager
+              mountPath: /key-manager
+            {{- end }}
             - name: spire-agent-socket-dir
               mountPath: /tmp/spire-agent/public
               readOnly: false
@@ -422,6 +426,10 @@ spec:
         {{- end }}
         {{- if .Values.nodeAttestor.tpmDirect.enabled }}
         - name: tpm-direct
+          emptyDir: {}
+        {{- end }}
+        {{- if eq .Values.keyManager.disk.mode "emptyDir" }}
+        - name: disk-keymanager
           emptyDir: {}
         {{- end }}
         {{- if .Values.nodeAttestor.x509POP.enabled }}

@@ -304,6 +304,8 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --set "global.spire.ingressControllerType=ingress-nginx" \
   -f test-b-values.yaml
 
+docker ps
+
 # From here on out, we sanity check that everything is working properly with both servers running.
 
 ENTRIES="$(kubectl exec -i -n spire-server spire-b-internal-server-0 -- spire-server entry show)"
