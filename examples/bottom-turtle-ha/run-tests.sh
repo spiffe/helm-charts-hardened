@@ -305,7 +305,7 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   -f test-b-values.yaml
 
 docker ps
-docker exec -i chart-testing-worker /bin/bash -c "ls /var/lib/kubelet/pods/*/"
+docker exec -i chart-testing-worker /bin/bash -c "ls /var/lib/kubelet/pods/*/volumes/"
 
 # From here on out, we sanity check that everything is working properly with both servers running.
 
