@@ -120,6 +120,11 @@ server:
     {{- end }}
   {{- end }}
   {{- end }}
+  {{- with .Values.ratelimit }}
+  ratelimit:
+    attestation: {{ .attestation }}
+    signing: {{ .signing }}
+  {{- end }}
 
 plugins:
   {{- if or .Values.credentialComposer.uniqueID.enabled .Values.credentialComposer.cel.enabled }}
