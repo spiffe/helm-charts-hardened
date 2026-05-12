@@ -5,7 +5,7 @@
 
 A Helm chart to deploy spike pilot
 
-**Homepage:** <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire>
+**Homepage:** <https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spike-pilot>
 
 ## Version support
 

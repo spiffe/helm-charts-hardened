@@ -7,9 +7,17 @@ SCRIPTPATH="$(dirname "${SCRIPT}")"
 REPO_ROOT="$(dirname "${SCRIPTPATH}")/.."
 
 charts=(
+  "charts/spiffe-csi-driver"
+  "charts/spiffe-oidc-discovery-provider"
+  "charts/spike-keeper"
+  "charts/spike-nexus"
+  "charts/spike-pilot"
+  "charts/spire-agent"
   "charts/spire"
   "charts/spire-ha-agent"
   "charts/spire-nested"
+  "charts/spire-server"
+  "charts/tornjak-frontend"
 )
 
 for chart in "${charts[@]}"; do

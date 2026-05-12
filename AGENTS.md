@@ -6,7 +6,7 @@ This file is a lightweight working guide for Codex and human contributors in thi
 
 - Main charts live in `charts/`
 - The integrated SPIRE chart is `charts/spire`
-- Supporting charts include `charts/spire-crds`, `charts/spire-ha-agent`, `charts/spiffe-step-ssh`, and subcharts under `charts/spire/charts/`
+- Supporting charts include `charts/spire-crds`, `charts/spire-ha-agent`, `charts/spiffe-step-ssh`, and component charts under `charts/`
 - Example installs and scenario configs live in `examples/`
 - Go-based unit tests live in `tests/unit`
 - Cluster-backed integration tests live in `tests/integration`

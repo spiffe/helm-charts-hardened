@@ -45,7 +45,7 @@ jobs:
       - name: Verify Spire appVersion
         run: |
           set +e
-          BASEVER=$(yq e .appVersion Chart.yaml)
+          BASEVER=$(yq e .appVersion charts/spire/Chart.yaml)
           for FILE in spiffe-oidc-discovery-provider spire-agent spire-server; do
             VER=$(yq .appVersion charts/$FILE/Chart.yaml)
             if [ "$VER" != "$BASEVER" ]; then
@@ -187,7 +187,7 @@ jobs:
       - name: Run chart-testing (install)
         run: |
           helm install -n spire-server spire-crds charts/spire-crds
-          ct install --config ct.yaml --excluded-charts spire-crds,spiffe-step-ssh,spire-ha-agent,spire-lib \
+          ct install --config ct.yaml --excluded-charts spire-crds,spiffe-step-ssh,spire-ha-agent,spire-lib,spiffe-oidc-discovery-provider,spike-keeper,spike-nexus,spike-pilot,spire-agent,tornjak-frontend \
             --target-branch ${{ github.base_ref || inputs.target_branch }}
 
       - name: Test summary

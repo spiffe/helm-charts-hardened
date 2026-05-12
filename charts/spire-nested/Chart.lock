@@ -5,6 +5,21 @@ dependencies:
 - name: spire-server
   repository: file://../spire-server
   version: 0.1.0
+- name: spire-server
+  repository: file://../spire-server
+  version: 0.1.0
+- name: spire-server
+  repository: file://../spire-server
+  version: 0.1.0
+- name: spire-server
+  repository: file://../spire-server
+  version: 0.1.0
+- name: spire-server
+  repository: file://../spire-server
+  version: 0.1.0
+- name: spire-agent
+  repository: file://../spire-agent
+  version: 0.1.0
 - name: spire-agent
   repository: file://../spire-agent
   version: 0.1.0
@@ -23,14 +38,11 @@ dependencies:
 - name: tornjak-frontend
   repository: file://../tornjak-frontend
   version: 0.1.0
-- name: spike-keeper
-  repository: file://../spike-keeper
+- name: spiffe-csi-driver
+  repository: file://../spiffe-csi-driver
   version: 0.1.0
-- name: spike-nexus
-  repository: file://../spike-nexus
+- name: spire-ha-agent
+  repository: file://../spire-ha-agent
   version: 0.1.0
-- name: spike-pilot
-  repository: file://../spike-pilot
-  version: 0.1.0
-digest: sha256:9fb1a96061c601703a8accff30a13d824d0d8587d363e10489ad0e7870a559f6
-generated: "2026-04-23T00:29:13.059491-07:00"
+digest: sha256:6e8fe8219b1c02e8a2a113e80e08118396c97d2c88efac49d42aa028ef0e1b14
+generated: "2026-04-23T00:29:14.28936-07:00"
