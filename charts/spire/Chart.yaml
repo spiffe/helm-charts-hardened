@@ -3,7 +3,7 @@ name: spire
 description: >
   A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
 type: application
-version: 0.28.6
+version: 0.28.5
 appVersion: "1.14.5"
 keywords: ["spiffe", "spire", "spire-server", "spire-agent", "oidc", "spire-controller-manager"]
 home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire
@@ -28,7 +28,7 @@ dependencies:
   - name: spire-server
     condition: spire-server.enabled
     repository: file://./charts/spire-server
-    version: 0.1.1
+    version: 0.1.0
   - name: spire-agent
     condition: spire-agent.enabled
     repository: file://./charts/spire-agent
@@ -71,6 +71,3 @@ annotations:
   org.opencontainers.image.source: https://github.com/spiffe/helm-charts-hardened
   artifacthub.io/category: security
   artifacthub.io/license: Apache-2.0
-  artifacthub.io/changes: |
-    - kind: added
-      description: "spire-server: add ratelimit.attestation and ratelimit.signing Helm values"

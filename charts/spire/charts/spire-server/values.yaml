@@ -999,9 +999,9 @@ defaultX509SvidTTL: 4h
 ## @param defaultJwtSvidTTL TTL for JWT Svids
 defaultJwtSvidTTL: 1h
 
-## @param ratelimit.attestation Enable rate limiting for node attestation. When true, rate limits node attestation to 1 per second globally. Set to false to disable.
-## @param ratelimit.signing Enable rate limiting for SVID signing (BatchNewX509SVID, BatchNewJWTSVID). When true, rate limits signing to 500 requests per second per server pod. Set to false to disable. Disabling is appropriate when running many replicas or during thundering-herd recovery.
-ratelimit:
+## @param rateLimit.attestation Enable rate limiting for node attestation. When true, rate limits node attestation to 1 per second globally. Set to false to disable.
+## @param rateLimit.signing Enable rate limiting for SVID signing (BatchNewX509SVID, BatchNewJWTSVID). When true, rate limits signing to 500 requests per second per server pod. Set to false to disable. Disabling is appropriate when running many replicas or during thundering-herd recovery.
+rateLimit:
   attestation: true
   signing: true
 

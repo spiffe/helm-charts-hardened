@@ -120,7 +120,7 @@ server:
     {{- end }}
   {{- end }}
   {{- end }}
-  {{- with .Values.ratelimit }}
+  {{- with .Values.rateLimit }}
   ratelimit:
     attestation: {{ .attestation }}
     signing: {{ .signing }}
