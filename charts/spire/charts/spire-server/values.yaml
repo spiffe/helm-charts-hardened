@@ -999,6 +999,12 @@ defaultX509SvidTTL: 4h
 ## @param defaultJwtSvidTTL TTL for JWT Svids
 defaultJwtSvidTTL: 1h
 
+## @param ratelimit.attestation Enable rate limiting for node attestation. When true, rate limits node attestation to 1 per second globally. Set to false to disable.
+## @param ratelimit.signing Enable rate limiting for SVID signing (BatchNewX509SVID, BatchNewJWTSVID). When true, rate limits signing to 500 requests per second per server pod. Set to false to disable. Disabling is appropriate when running many replicas or during thundering-herd recovery.
+ratelimit:
+  attestation: true
+  signing: true
+
 ## @param pruneAttestedNodesExpiredFor Enables periodic pruning of attested node entries with expired SVIDs. Set to a duration (e.g. "168h" for 7 days) to prune nodes that expired longer ago than the specified duration. Set to "" (empty) to disable pruning. When enabled, expired nodes are pruned at a regular interval.
 pruneAttestedNodesExpiredFor: ""
 ## @param pruneTOFUNodes If true, includes non-reattestable (TOFU) nodes in the pruning process when pruneAttestedNodesExpiredFor is set. Banned nodes are never pruned.
