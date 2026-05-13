@@ -1085,6 +1085,18 @@ nodeAttestor:
     enabled: false
     ## @param nodeAttestor.awsIID.assumeRole AWS IAM Role NAME to use for the attestation
     assumeRole: ""
+    ## @extra nodeAttestor.awsIID.verifyOrganization When enabled, SPIRE verifies the attesting node's AWS account is a member of your AWS Organization ([SPIRE aws_iid server plugin](https://github.com/spiffe/spire/blob/main/doc/plugin_server_nodeattestor_aws_iid.md)).
+    verifyOrganization:
+      ## @param nodeAttestor.awsIID.verifyOrganization.enabled Enable AWS Organizations membership validation (`verify_organization` in plugin config)
+      enabled: false
+      ## @param nodeAttestor.awsIID.verifyOrganization.managementAccountId AWS Organizations management/root account ID (12 digits); SPIRE assumes `arn:aws:iam::<managementAccountId>:role/<assumeOrgRole>` for listing org accounts.
+      managementAccountId: ""
+      ## @param nodeAttestor.awsIID.verifyOrganization.assumeOrgRole IAM role **name** in the management account; must allow `organizations:ListAccounts` and trust the IAM identity used by the SPIRE server.
+      assumeOrgRole: ""
+      ## @param nodeAttestor.awsIID.verifyOrganization.managementAccountRegion Optional region SPIRE uses for org validation/cache keying (defaults in SPIRE if unset).
+      managementAccountRegion: ""
+      ## @param nodeAttestor.awsIID.verifyOrganization.orgAccountMapTTL Optional cache TTL for the org account map (SPIRE expects a duration ≥ 1m when set; e.g. `3m`, `5m`). Defaults to 3 minutes.
+      orgAccountMapTTL: "3m"
   gcpIIT:
     ## @param nodeAttestor.gcpIIT.enabled Enable the gcp_iit node attestor
     enabled: false
