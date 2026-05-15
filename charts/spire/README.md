@@ -79,6 +79,10 @@ kubectl delete crds clusterfederatedtrustdomains.spire.spiffe.io clusterspiffeid
 
 We only support upgrading one major/minor version at a time. Version skipping isn't supported. Please see <https://spiffe.io/docs/latest/spire-helm-charts-hardened-about/upgrading/> for details.
 
+### 0.30.X
+
+- The OIDC discovery issuer is now set automatically. We do not anticipate any negative impact; however, please verify your OIDC provider's integration with other services during your upgrade testing.
+
 ### 0.26.X
 
 - The notifier.k8sBundle plugin has been deprecated in favor of bundlePublisher.k8sConfigMap. The only features it does not provide are the settings `apiServiceLabel` and `webhookLabel`. If you are using either of these two features, set the chart to use the notifier.k8sBundle plugin again, and let us know. We don't think anyone is using these features.
@@ -277,7 +281,7 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `global.k8s.clusterDomain`                       | Cluster domain name configured for Spire install                                                                                                                                                                                       | `cluster.local`   |
 | `global.spire.bundleConfigMap`                   | A configmap containing the Spire bundle                                                                                                                                                                                                | `""`              |
 | `global.spire.clusterName`                       | The name of the k8s cluster for Spire install                                                                                                                                                                                          | `example-cluster` |
-| `global.spire.jwtIssuer`                         | The issuer for Spire JWT tokens. Defaults to oidc-discovery.$trustDomain if unset                                                                                                                                                      | `""`              |
+| `global.spire.jwtIssuer`                         | Issuer URL used for both the JWT-SVID `iss` claim minted by spire-server and the `issuer` field advertised by the OIDC discovery document. Defaults to oidc-discovery.$trustDomain if unset                                            | `""`              |
 | `global.spire.trustDomain`                       | The trust domain for Spire install                                                                                                                                                                                                     | `example.org`     |
 | `global.spire.upstreamServerAddress`             | Set what address to use for the upstream server when using nested spire                                                                                                                                                                | `""`              |
 | `global.spire.caSubject.country`                 | Country for Spire server CA                                                                                                                                                                                                            | `""`              |
