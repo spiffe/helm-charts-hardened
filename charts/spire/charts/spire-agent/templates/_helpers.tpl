@@ -110,6 +110,18 @@ Create the name of the service account to use
 {{- end }}
 {{- end }}
 
+{{- define "spire-agent.dynamic-registration-address" }}
+{{- if and (ne (len (dig "spire" "upstreamDynamicRegistrationAddress" "" .Values.global)) 0) .Values.upstream }}
+{{- print .Values.global.spire.upstreamDynamicRegistrationAddress }}
+{{- else if .Values.dynamicRegistration.address }}
+{{- .Values.dynamicRegistration.address }}
+{{- else if .Values.dynamicRegistration.nameOverride }}
+{{ .Release.Name }}-{{ .Values.dynamicRegistration.nameOverride }}.{{ include "spire-agent.server.namespace" . }}
+{{- else }}
+{{ .Release.Name }}-dynamic-registration.{{ include "spire-agent.server.namespace" . }}
+{{- end }}
+{{- end }}
+
 {{- define "spire-agent.socket-path" -}}
 {{- print .Values.socketPath }}
 {{- end }}

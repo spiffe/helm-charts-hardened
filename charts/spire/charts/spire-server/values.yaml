@@ -1170,6 +1170,30 @@ bundlePublisher:
     ## @param bundlePublisher.gcpCloudStorage.format Format in which the trust bundle is stored. Valid options [spiffe, jwks, pem]
     format: ""
 
+dynamicRegistration:
+  ## @param dynamicRegistration.enabled Deploys the sidecar helper for dynamic registration
+  enabled: false
+  ## @param dynamicRegistration.image.registry The OCI registry to pull the image from
+  ## @param dynamicRegistration.image.repository The repository within the registry
+  ## @param dynamicRegistration.image.pullPolicy The image pull policy
+  ## @param dynamicRegistration.image.tag Overrides the image tag to be whatever you need it to be. It will always be the flag you set without modifications
+  ##
+  image:
+    registry: docker.io
+    repository: kfox1111/misc2
+    pullPolicy: IfNotPresent
+    tag: "s"
+
+  ## @param dynamicRegistration.serviceAccount Which service account to allow to register
+  serviceAccount: "spire-system:spire-agent"
+
+  ## @param dynamicRegistration.entryPrefix Unique prefix to bind nodes aliases to the server
+  entryPrefix: "scmnr"
+  ## @param dynamicRegistration.allowedIDPrefix Prefix of agents that are allowed to register
+  allowedIDPrefix: "spire/agent/x509pop"
+  ## @param dynamicRegistration.registrationPrefix prefix to use on all new registration entries
+  registrationPrefix: "k8s_psat/production"
+
 ## @section Tornjak
 tornjak:
   ## @param tornjak.enabled Deploys Tornjak API (backend) (Not for production)

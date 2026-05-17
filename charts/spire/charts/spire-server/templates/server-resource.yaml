@@ -396,6 +396,32 @@ spec:
               mountPath: /tmp
               readOnly: false
         {{- include "spire-controller-manager.containers" . | nindent 8 }}
+        {{- if eq (.Values.dynamicRegistration.enabled | toString) "true" }}
+        - name: dynamic-registration
+          securityContext:
+            {{- include "spire-lib.securitycontext-extended" (dict "root" . "securityContext" .Values.tornjak.securityContext) | nindent 12 }}
+          image: {{ template "spire-lib.image" (dict "appVersion" .Values.dynamicRegistration.image.tag "image" .Values.dynamicRegistration.image "global" .Values.global "ubi" false) }}
+          imagePullPolicy: {{ .Values.dynamicRegistration.image.pullPolicy }}
+          env:
+            - name: SPIFFE_TRUST_DOMAIN
+              value: {{ include "spire-lib.trust-domain" . | quote }}
+            - name: EXPECTED_SERVICE_ACCOUNT
+              value: {{ .Values.dynamicRegistration.serviceAccount | quote }}
+            - name: ALLOWEDID_PREFIX
+              value: {{ .Values.dynamicRegistration.allowedIDPrefix | quote }}
+            - name: ENTRY_PREFIX
+              value: {{ .Values.dynamicRegistration.entryPrefix | quote }}
+            - name: REGISTRATION_PREFIX
+              value: {{ .Values.dynamicRegistration.registrationPrefix | quote }}
+          volumeMounts:
+            - name: spire-server-socket
+              mountPath: /tmp/spire-server/private
+              readOnly: true
+          ports:
+            - name: dynamic-https
+              containerPort: 8931
+              protocol: TCP
+        {{- end }}
         {{- if eq (.Values.tornjak.enabled | toString) "true" }}
         - name: tornjak
           securityContext:

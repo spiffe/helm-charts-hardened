@@ -363,6 +363,31 @@ spec:
             {{- toYaml .Values.readinessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+        {{- if eq (.Values.dynamicRegistration.enabled | toString) "true" }}
+        - name: dynamic-registration
+          securityContext:
+            {{- include "spire-lib.securitycontext-extended" (dict "root" . "securityContext" .Values.tornjak.securityContext) | nindent 12 }}
+          image: {{ template "spire-lib.image" (dict "appVersion" .Values.dynamicRegistration.image.tag "image" .Values.dynamicRegistration.image "global" .Values.global "ubi" false) }}
+          imagePullPolicy: {{ .Values.dynamicRegistration.image.pullPolicy }}
+          env:
+            - name: TOKENFILE
+              value: /var/run/secrets/tokens/dynamic-registration-agent
+            - name: SPIFFE_TRUST_DOMAIN
+              value: {{ include "spire-lib.trust-domain" . | quote }}
+            - name: SERVERSPIFFEID
+              value: {{ .Values.dynamicRegistration.serverSPIFFEID | quote }}
+            - name: APIURL
+              value: {{ include "spire-agent.dynamic-registration-address" . | quote }}
+          volumeMounts:
+            - name: spire-agent-persistence
+              mountPath: /var/lib/spire
+            - name: dynamic-registration-psat
+              mountPath: /var/run/secrets/tokens
+          ports:
+            - name: dynamic-https
+              containerPort: 8931
+              protocol: TCP
+        {{- end }}
         {{- if gt (len .Values.extraContainers) 0 }}
         {{- toYaml .Values.extraContainers | nindent 8 }}
         {{- end }}
@@ -437,6 +462,15 @@ spec:
           hostPath:
             path: {{ .Values.nodeAttestor.x509POP.spiffeEndpointSocket | dir }}
             type: DirectoryOrCreate
+        {{- end }}
+        {{- if eq (.Values.dynamicRegistration.enabled | toString) "true" }}
+        - name: dynamic-registration-psat
+          projected:
+            sources:
+            - serviceAccountToken:
+                path: dynamic-registration-agent
+                expirationSeconds: 7200
+                audience: {{ .Values.dynamicRegistration.audience | quote }}
         {{- end }}
         - name: spire-token
           projected:
