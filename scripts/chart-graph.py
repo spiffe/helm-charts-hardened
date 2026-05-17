@@ -17,7 +17,6 @@ yaml = YAML(typ="safe")
 class Dependency:
     name: str
     repository: str
-    alias: str | None = None
 
 
 @dataclass(frozen=True)
@@ -29,7 +28,7 @@ class Chart:
 
 def parse_chart_yaml(chart_yaml: Path) -> Chart:
     with chart_yaml.open() as fp:
-      data = yaml.load(fp)
+        data = yaml.load(fp)
 
     if not isinstance(data, dict) or "name" not in data:
         raise ValueError(f"Could not find chart name in {chart_yaml}")
@@ -42,168 +41,89 @@ def parse_chart_yaml(chart_yaml: Path) -> Chart:
             Dependency(
                 name=str(dependency["name"]),
                 repository=str(dependency.get("repository", "")),
-                alias=str(dependency["alias"]) if "alias" in dependency else None,
             )
         )
 
     return Chart(
         name=str(data["name"]),
-        path=chart_yaml.parent,
+        path=chart_yaml.parent.resolve(),
         dependencies=tuple(dependencies),
     )
 
 
-def discover_charts(charts_root: Path) -> dict[Path, Chart]:
-    charts: dict[Path, Chart] = {}
+def discover_charts(charts_root: Path) -> dict[str, Chart]:
+    charts: dict[str, Chart] = {}
     for chart_yaml in sorted(charts_root.rglob("Chart.yaml")):
         chart = parse_chart_yaml(chart_yaml)
-        charts[chart.path.resolve()] = chart
+        if chart.name in charts:
+            raise ValueError(f"Duplicate chart name detected: {chart.name}")
+        charts[chart.name] = chart
     return charts
 
 
-def resolve_local_dependency(source_chart: Chart, dependency: Dependency) -> Path | None:
+def resolve_local_dependency(source_chart: Chart, dependency: Dependency, charts: dict[str, Chart]) -> str | None:
     if not dependency.repository.startswith("file://"):
         return None
+
     dependency_path = (source_chart.path / dependency.repository.removeprefix("file://")).resolve()
     chart_yaml = dependency_path / "Chart.yaml"
-    if chart_yaml.exists():
-        return dependency_path
+    if not chart_yaml.exists():
+        return None
+
+    for chart_name, chart in charts.items():
+        if chart.path == dependency_path:
+            return chart_name
     return None
 
 
-def build_graph(charts: dict[Path, Chart]) -> dict[Path, set[Path]]:
-    graph: dict[Path, set[Path]] = {path: set() for path in charts}
-    for chart_path, chart in charts.items():
+def build_reverse_dependencies(charts: dict[str, Chart]) -> dict[str, set[str]]:
+    reverse_dependencies: dict[str, set[str]] = {chart_name: set() for chart_name in charts}
+
+    for chart_name, chart in charts.items():
         for dependency in chart.dependencies:
-            dependency_path = resolve_local_dependency(chart, dependency)
-            if dependency_path is not None and dependency_path in charts:
-                graph[chart_path].add(dependency_path)
-    return graph
+            dependency_name = resolve_local_dependency(chart, dependency, charts)
+            if dependency_name is not None:
+                reverse_dependencies[dependency_name].add(chart_name)
+
+    return reverse_dependencies
 
 
-def build_reverse_graph(graph: dict[Path, set[Path]]) -> dict[Path, set[Path]]:
-    reverse_graph: dict[Path, set[Path]] = {path: set() for path in graph}
-    for chart_path, dependency_paths in graph.items():
-        for dependency_path in dependency_paths:
-            reverse_graph[dependency_path].add(chart_path)
-    return reverse_graph
-
-
-def format_chart(chart: Chart, root: Path) -> str:
-    relpath = chart.path.relative_to(root)
-    return f"{chart.name} [{relpath}]"
-
-
-def print_edges(charts: dict[Path, Chart], graph: dict[Path, set[Path]], root: Path) -> None:
-    for chart_path in sorted(graph, key=lambda path: str(path.relative_to(root))):
-        chart = charts[chart_path]
-        print(format_chart(chart, root))
-        for dependency_path in sorted(graph[chart_path], key=lambda path: str(path.relative_to(root))):
-            dependency_chart = charts[dependency_path]
-            print(f"  -> {format_chart(dependency_chart, root)}")
-
-
-def find_cycles(graph: dict[Path, set[Path]]) -> list[list[Path]]:
-    cycles: list[list[Path]] = []
-    visited: set[Path] = set()
-    stack: list[Path] = []
-    on_stack: set[Path] = set()
-    seen_cycles: set[tuple[Path, ...]] = set()
-
-    def canonicalize_cycle(cycle: list[Path]) -> tuple[Path, ...]:
-        body = cycle[:-1]
-        rotations = [tuple(body[i:] + body[:i]) for i in range(len(body))]
-        canonical = min(rotations, key=lambda items: [str(item) for item in items])
-        return canonical
-
-    def dfs(node: Path) -> None:
-        visited.add(node)
-        stack.append(node)
-        on_stack.add(node)
-
-        for neighbor in sorted(graph[node], key=str):
-            if neighbor not in visited:
-                dfs(neighbor)
-                continue
-            if neighbor not in on_stack:
-                continue
-
-            cycle_start = stack.index(neighbor)
-            cycle = stack[cycle_start:] + [neighbor]
-            cycle_key = canonicalize_cycle(cycle)
-            if cycle_key not in seen_cycles:
-                seen_cycles.add(cycle_key)
-                cycles.append(cycle)
-
-        stack.pop()
-        on_stack.remove(node)
-
-    for node in sorted(graph, key=str):
-        if node not in visited:
-            dfs(node)
-
-    return cycles
-
-
-def print_cycles(charts: dict[Path, Chart], cycles: list[list[Path]], root: Path) -> None:
-    if not cycles:
-        print("No dependency cycles detected.")
-        return
-
-    print("Dependency cycles detected:", file=sys.stderr)
-    for cycle in cycles:
-        labels = " -> ".join(format_chart(charts[path], root) for path in cycle)
-        print(f"  {labels}", file=sys.stderr)
-
-
-def find_chart_path_by_name(charts: dict[Path, Chart], chart_name: str) -> Path:
-    matching_paths = [path for path, chart in charts.items() if chart.name == chart_name]
-    if not matching_paths:
-        raise ValueError(f"Unknown chart: {chart_name}")
-    if len(matching_paths) > 1:
-        raise ValueError(
-            f"Chart name {chart_name!r} is ambiguous; matching paths: "
-            + ", ".join(str(path) for path in sorted(matching_paths))
-        )
-    return matching_paths[0]
-
-
-def find_dependents(root_chart_path: Path, reverse_graph: dict[Path, set[Path]]) -> list[Path]:
-    dependents: list[Path] = []
-    visited: set[Path] = set()
-    stack: list[Path] = [root_chart_path]
+def find_dependents(root_chart: str, reverse_dependencies: dict[str, set[str]]) -> list[str]:
+    dependents: list[str] = []
+    visited: set[str] = set()
+    on_stack: set[str] = {root_chart}
+    stack: list[tuple[str, list[str]]] = [(root_chart, sorted(reverse_dependencies[root_chart]))]
 
     while stack:
-        current = stack.pop()
-        for dependent in sorted(reverse_graph[current], key=str):
-            if dependent in visited:
-                continue
-            visited.add(dependent)
-            dependents.append(dependent)
-            stack.append(dependent)
+        current, children = stack[-1]
+        if not children:
+            on_stack.remove(current)
+            stack.pop()
+            continue
 
-    return sorted(dependents, key=str)
+        child = children.pop(0)
+        if child in on_stack:
+            cycle = " -> ".join([item[0] for item in stack] + [child])
+            raise ValueError(f"Dependency cycle detected: {cycle}")
+        if child in visited:
+            continue
 
+        visited.add(child)
+        dependents.append(child)
+        on_stack.add(child)
+        stack.append((child, sorted(reverse_dependencies[child])))
 
-def print_dependents(
-    charts: dict[Path, Chart], dependents: list[Path], root_chart_path: Path, root: Path
-) -> None:
-    print(f"Dependents of {format_chart(charts[root_chart_path], root)}:")
-    if not dependents:
-        print("  (none)")
-        return
-    for dependent in dependents:
-        print(f"  {format_chart(charts[dependent], root)}")
-
-
-def print_dependents_names(charts: dict[Path, Chart], dependents: list[Path]) -> None:
-    for dependent in dependents:
-        print(charts[dependent].name)
+    return dependents
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Print the local Helm chart dependency graph and detect cycles."
+        description="Print charts that depend on a given root chart."
+    )
+    parser.add_argument(
+        "--chart",
+        required=True,
+        help="Chart name whose dependent chart closure should be printed.",
     )
     parser.add_argument(
         "--charts-root",
@@ -211,14 +131,10 @@ def parse_args() -> argparse.Namespace:
         help="Path to the charts root directory (default: charts)",
     )
     parser.add_argument(
-        "--root-chart",
-        help="Print the reverse dependency closure for the given chart name.",
-    )
-    parser.add_argument(
         "--output",
-        choices=("human", "names"),
-        default="human",
-        help="Output format for --root-chart results (default: human).",
+        choices=("names", "print-graph"),
+        default="names",
+        help="Output format (default: names).",
     )
     return parser.parse_args()
 
@@ -227,28 +143,27 @@ def main() -> int:
     args = parse_args()
     charts_root = Path(args.charts_root).resolve()
     charts = discover_charts(charts_root)
-    graph = build_graph(charts)
-    reverse_graph = build_reverse_graph(graph)
-    cycles = find_cycles(graph)
 
-    if args.root_chart:
-        root_chart_path = find_chart_path_by_name(charts, args.root_chart)
-        dependents = find_dependents(root_chart_path, reverse_graph)
-        if args.output == "names":
-            print_dependents_names(charts, dependents)
+    if args.chart not in charts:
+        print(f"Unknown chart: {args.chart}", file=sys.stderr)
+        return 1
+
+    reverse_dependencies = build_reverse_dependencies(charts)
+    dependents = find_dependents(args.chart, reverse_dependencies)
+
+    if args.output == "print-graph":
+        print(f"Dependents of {args.chart}:")
+        if not dependents:
+            print("  (none)")
         else:
-            print_dependents(charts, dependents, root_chart_path, charts_root.parent)
+            for dependent in dependents:
+                relpath = charts[dependent].path.relative_to(charts_root.parent)
+                print(f"  {dependent} [{relpath}]")
     else:
-        print_edges(charts, graph, charts_root.parent)
+        for dependent in dependents:
+            print(dependent)
 
-    if args.output == "human":
-        print_cycles(charts, cycles, charts_root.parent)
-    elif cycles:
-        for cycle in cycles:
-            labels = " -> ".join(charts[path].name for path in cycle)
-            print(f"Dependency cycle detected: {labels}", file=sys.stderr)
-
-    return 1 if cycles else 0
+    return 0
 
 
 if __name__ == "__main__":
