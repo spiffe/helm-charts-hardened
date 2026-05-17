@@ -7,6 +7,11 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+from ruamel.yaml import YAML
+
+
+yaml = YAML(typ="safe")
+
 
 @dataclass(frozen=True)
 class Dependency:
@@ -23,72 +28,29 @@ class Chart:
 
 
 def parse_chart_yaml(chart_yaml: Path) -> Chart:
-    lines = chart_yaml.read_text().splitlines()
-    chart_name: str | None = None
+    with chart_yaml.open() as fp:
+      data = yaml.load(fp)
+
+    if not isinstance(data, dict) or "name" not in data:
+        raise ValueError(f"Could not find chart name in {chart_yaml}")
+
     dependencies: list[Dependency] = []
-    in_dependencies = False
-    current_dependency: dict[str, str] | None = None
-
-    for line in lines:
-        stripped = line.strip()
-        if not stripped or stripped.startswith("#"):
+    for dependency in data.get("dependencies", []) or []:
+        if not isinstance(dependency, dict) or "name" not in dependency:
             continue
-
-        if not line.startswith(" "):
-            if current_dependency is not None:
-                dependencies.append(
-                    Dependency(
-                        name=current_dependency["name"],
-                        repository=current_dependency.get("repository", ""),
-                        alias=current_dependency.get("alias"),
-                    )
-                )
-                current_dependency = None
-
-            in_dependencies = stripped == "dependencies:"
-            if chart_name is None and stripped.startswith("name:"):
-                chart_name = stripped.split(":", 1)[1].strip().strip('"')
-            continue
-
-        if not in_dependencies:
-            continue
-
-        if line.startswith("  - "):
-            if current_dependency is not None:
-                dependencies.append(
-                    Dependency(
-                        name=current_dependency["name"],
-                        repository=current_dependency.get("repository", ""),
-                        alias=current_dependency.get("alias"),
-                    )
-                )
-            current_dependency = {}
-            item = stripped[2:].strip()
-            if ":" in item:
-                key, value = item.split(":", 1)
-                current_dependency[key.strip()] = value.strip().strip('"')
-            continue
-
-        if current_dependency is None:
-            continue
-
-        if line.startswith("    ") and ":" in stripped:
-            key, value = stripped.split(":", 1)
-            current_dependency[key.strip()] = value.strip().strip('"')
-
-    if current_dependency is not None:
         dependencies.append(
             Dependency(
-                name=current_dependency["name"],
-                repository=current_dependency.get("repository", ""),
-                alias=current_dependency.get("alias"),
+                name=str(dependency["name"]),
+                repository=str(dependency.get("repository", "")),
+                alias=str(dependency["alias"]) if "alias" in dependency else None,
             )
         )
 
-    if chart_name is None:
-        raise ValueError(f"Could not find chart name in {chart_yaml}")
-
-    return Chart(name=chart_name, path=chart_yaml.parent, dependencies=tuple(dependencies))
+    return Chart(
+        name=str(data["name"]),
+        path=chart_yaml.parent,
+        dependencies=tuple(dependencies),
+    )
 
 
 def discover_charts(charts_root: Path) -> dict[Path, Chart]:
