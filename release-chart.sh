@@ -13,6 +13,7 @@
 ##    --help                  Show this help message
 ##    --chart                 The chart to release
 ##    --bump                  The semantic version bump type: major, minor, or patch
+##    --from-current-branch   Apply the release bump on the current branch instead of recreating a bump branch from main
 ##    --dry-run               Will not actually submit the PR
 ##
 ## Prerequisites:
@@ -25,7 +26,7 @@
 ##
 ## Commands
 ##
-##   ./__PROG__ --chart «chart» --bump «major|minor|patch» [--dry-run]
+##   ./__PROG__ --chart «chart» --bump «major|minor|patch» [--from-current-branch] [--dry-run]
 me=$(basename "$0")
 
 function usage {
@@ -49,9 +50,15 @@ function require_command {
 }
 
 function unreleased_changes_other_charts {
+  local chart latest_tag changes
+
   for chart in "$@" ; do
-    latest_tag="$(git --no-pager tag --list "${chart}-[0-9]*.[0-9]*.[0-9]*" | sort -V | tail -n 1)"
-    changes="$(git --no-pager log "${latest_tag}..HEAD" --pretty=format:'* %h %s' "charts/${chart}")"
+    latest_tag="$(latest_chart_tag "${chart}")"
+    if [ -n "${latest_tag}" ] ; then
+      changes="$(git --no-pager log "${latest_tag}..HEAD" --pretty=format:'* %h %s' -- "charts/${chart}")"
+    else
+      changes="$(git --no-pager log --pretty=format:'* %h %s' -- "charts/${chart}")"
+    fi
     if [ -n "${changes}" ] ; then
       echo "### Unreleased changes ${chart}"
       echo
@@ -64,6 +71,12 @@ function unreleased_changes_other_charts {
       echo '```'
     fi
   done
+}
+
+function latest_chart_tag {
+  local chart_name=$1
+
+  git --no-pager tag --list "${chart_name}-[0-9]*.[0-9]*.[0-9]*" | sort -V | tail -n 1
 }
 
 function bump_version {
@@ -140,10 +153,31 @@ function refresh_chart_docs {
   done
 }
 
+function chart_has_remote_dependencies {
+  local chart_yaml=$1
+  local remote_count
+
+  remote_count="$(yq e '[.dependencies[]? | select(((.repository // "") | test("^file://")) | not)] | length' "${chart_yaml}")"
+  [ "${remote_count}" -gt 0 ]
+}
+
+function refresh_chart_dependencies {
+  local chart_dir
+  local refreshed_repos=''
+
+  for chart_dir in "$@" ; do
+    if chart_has_remote_dependencies "${chart_dir}/Chart.yaml" && [ -z "${refreshed_repos}" ] ; then
+      helm repo update
+      refreshed_repos='true'
+    fi
+    helm dependency update --skip-refresh "${chart_dir}"
+  done
+}
+
 function collect_dependent_charts {
   local root_chart=$1
 
-  python3 scripts/chart-graph.py --root-chart "${root_chart}" --output names
+  python3 scripts/chart-graph.py --chart "${root_chart}" --output names
 }
 
 function get_chart_version {
@@ -165,6 +199,10 @@ while (("$#")); do
   --bump)
     bump_type=$2
     shift 2
+    ;;
+  --from-current-branch)
+    from_current_branch='true'
+    shift 1
     ;;
   --dry-run)
     dry_run='-w'
@@ -203,16 +241,28 @@ if [ ! -f "charts/${chart}/Chart.yaml" ] ; then
   print_error_and_exit "no chart named '${chart}' in charts folder"
 fi
 
-branch_name="bump-${chart}-version"
+if [ -n "${from_current_branch}" ] ; then
+  branch_name="$(git branch --show-current)"
+  if [ -z "${branch_name}" ] ; then
+    print_error_and_exit 'unable to determine current branch; please checkout a branch before using --from-current-branch'
+  fi
+else
+  branch_name="bump-${chart}-version"
 
-git fetch --tags
-git checkout main
-git pull
-git checkout --track -B "${branch_name}" main
+  git fetch --tags
+  git checkout main
+  git pull
+  git checkout --track -B "${branch_name}" main
+fi
 
 current_version="$(grep '^version:' "charts/${chart}/Chart.yaml" | awk '{print $2}')"
 new_version="$(bump_version "${current_version}" "${bump_type}")"
-commits_since_previous_release="$(git log "${chart}-${current_version}..HEAD" --pretty=format:'* %h %s' "charts/${chart}")"
+release_base_tag="$(latest_chart_tag "${chart}")"
+if [ -n "${release_base_tag}" ] ; then
+  commits_since_previous_release="$(git log "${release_base_tag}..HEAD" --pretty=format:'* %h %s' -- "charts/${chart}")"
+else
+  commits_since_previous_release="$(git log --pretty=format:'* %h %s' -- "charts/${chart}")"
+fi
 update_chart_version "${chart}" "${new_version}"
 "${SED}" -i "s/${current_version}/${new_version}/g" "charts/${chart}/README.md"
 
@@ -259,11 +309,16 @@ for chart_name in "${unique_release_charts[@]}" ; do
   done
 done
 
-for chart_dir in "${unique_dependency_charts[@]}" ; do
-  helm dependency update "${chart_dir}"
-done
+refresh_chart_dependencies "${unique_dependency_charts[@]}"
 
 refresh_chart_docs "charts/${chart}" "${unique_dependency_charts[@]}"
+
+if [ -n "${dry_run}" ] && [ -n "${from_current_branch}" ] ; then
+  echo >&2
+  echo >&2 "Dry run completed on the current branch (${branch_name})."
+  echo >&2 "Inspect the working tree diff before deciding what to keep."
+  exit 0
+fi
 
 git add release-chart.sh "charts/${chart}/"{Chart.yaml,README.md}
 for chart_dir in "${unique_dependency_charts[@]}" ; do
@@ -323,11 +378,15 @@ EOF
 
 if [ -n "${dry_run}" ] ; then
   echo >&2
-  echo >&2 "If you choose not to submit the PR please run following commands to cleanup the branch:"
-  echo >&2
-  echo >&2 "  git checkout main"
-  echo >&2 "  git push origin :${branch_name}"
-  echo >&2 "  git branch -D ${branch_name}"
+  if [ -n "${from_current_branch}" ] ; then
+    echo >&2 "Dry run completed on the current branch (${branch_name}). Inspect the branch diff before deciding what to keep."
+  else
+    echo >&2 "If you choose not to submit the PR please run following commands to cleanup the branch:"
+    echo >&2
+    echo >&2 "  git checkout main"
+    echo >&2 "  git push origin :${branch_name}"
+    echo >&2 "  git branch -D ${branch_name}"
+  fi
   echo >&2
   echo >&2 'If you choose to submit the PR, please run following:'
   echo >&2
@@ -336,4 +395,6 @@ if [ -n "${dry_run}" ] ; then
 fi
 
 gh pr merge --auto -r -d
-git checkout main
+if [ -z "${from_current_branch}" ] ; then
+  git checkout main
+fi
