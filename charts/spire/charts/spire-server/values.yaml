@@ -1213,6 +1213,9 @@ dynamicRegistration:
     ## @param dynamicRegistration.addClusterName.allowedIDPrefix suffix the cluster name onto the allowedIDPrefix
     allowedIDPrefix: true
 
+  ## @param dynamicRegistration.securityContext [object] Security Context to use
+  securityContext: {}
+
 ## @section Tornjak
 tornjak:
   ## @param tornjak.enabled Deploys Tornjak API (backend) (Not for production)

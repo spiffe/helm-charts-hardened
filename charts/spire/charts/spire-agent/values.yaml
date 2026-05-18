@@ -278,6 +278,9 @@ dynamicRegistration:
   ## @param dynamicRegistration.nameOverride Override the name for Spire server. Should only be changed when building your own nested chart to ensure names align.
   nameOverride: ""
 
+  ## @param dynamicRegistration.securityContext [object] Security context
+  securityContext: {}
+
 sds:
   ## @param sds.enabled Enables Envoy SDS configuration
   enabled: false
