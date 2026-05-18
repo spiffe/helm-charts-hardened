@@ -474,7 +474,9 @@ internal-spire-server-bottom-turtle-ha-a:
     ## @param internal-spire-server-bottom-turtle-ha-a.dynamicRegistration.enabled Enable dynamic registration
     enabled: true
     ## @param internal-spire-server-bottom-turtle-ha-a.dynamicRegistration.allowedIDPrefix The allowed ID prefix
-    allowedIDPrefix: "spire/agent/x509pop/k8s/node"
+    allowedIDPrefix: "spire/agent/x509pop/k8s"
+    ## @param internal-spire-server-bottom-turtle-ha-a.dynamicRegistration.nameOverride The name override to use to contact the server
+    nameOverride: internal-server
   controllerManager:
     ## @param internal-spire-server-bottom-turtle-ha-a.controllerManager.enabled Enable controller manager and provision CRD's
     enabled: true
@@ -542,8 +544,9 @@ internal-spire-server-bottom-turtle-ha-b:
     ## @param internal-spire-server-bottom-turtle-ha-b.dynamicRegistration.enabled Enable dynamic registration
     enabled: true
     ## @param internal-spire-server-bottom-turtle-ha-b.dynamicRegistration.allowedIDPrefix The allowed ID prefix
-    allowedIDPrefix: "spire/agent/x509pop/k8s/node"
-
+    allowedIDPrefix: "spire/agent/x509pop/k8s"
+    ## @param internal-spire-server-bottom-turtle-ha-b.dynamicRegistration.nameOverride The name override to use to contact the server
+    nameOverride: internal-server
   controllerManager:
     ## @param internal-spire-server-bottom-turtle-ha-b.controllerManager.enabled Enable controller manager and provision CRD's
     enabled: true
