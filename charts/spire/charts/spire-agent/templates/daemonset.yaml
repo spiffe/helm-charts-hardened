@@ -366,7 +366,7 @@ spec:
         {{- if eq (.Values.dynamicRegistration.enabled | toString) "true" }}
         - name: dynamic-registration
           securityContext:
-            {{- include "spire-lib.securitycontext-extended" (dict "root" . "securityContext" .Values.tornjak.securityContext) | nindent 12 }}
+            {{- include "spire-lib.securitycontext-extended" (dict "root" . "securityContext" .Values.dynamicRegistration.securityContext) | nindent 12 }}
           image: {{ template "spire-lib.image" (dict "appVersion" .Values.dynamicRegistration.image.tag "image" .Values.dynamicRegistration.image "global" .Values.global "ubi" false) }}
           imagePullPolicy: {{ .Values.dynamicRegistration.image.pullPolicy }}
           env:
@@ -378,11 +378,17 @@ spec:
               value: {{ .Values.dynamicRegistration.serverSPIFFEID | quote }}
             - name: APIURL
               value: {{ include "spire-agent.dynamic-registration-address" . | quote }}
+            - name: KEYFILE
+              value: /key-manager/keys.json
+            - name: APIPORT
+              value: "8931"
           volumeMounts:
             - name: spire-agent-persistence
               mountPath: /var/lib/spire
             - name: dynamic-registration-psat
               mountPath: /var/run/secrets/tokens
+            - name: disk-keymanager
+              mountPath: /key-manager
           ports:
             - name: dynamic-https
               containerPort: 8931
@@ -409,9 +415,13 @@ spec:
             name: {{ include "spire-agent.fullname" . }}
         {{- if .Values.keyManager.disk.enabled }}
         - name: spire-key-manager
+          {{- if eq .Values.keyManager.disk.mode "hostPath" }}
           hostPath:
             path: {{ .Values.persistence.hostPath }}
             type: DirectoryOrCreate
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
         {{- end }}
         {{- if .Values.sockets.admin.mountOnHost }}
         - name: spire-agent-admin-socket-dir

@@ -116,9 +116,9 @@ Create the name of the service account to use
 {{- else if .Values.dynamicRegistration.address }}
 {{- .Values.dynamicRegistration.address }}
 {{- else if .Values.dynamicRegistration.nameOverride }}
-{{ .Release.Name }}-{{ .Values.dynamicRegistration.nameOverride }}.{{ include "spire-agent.server.namespace" . }}
+{{- .Release.Name }}-{{ .Values.dynamicRegistration.nameOverride }}.{{ include "spire-agent.server.namespace" . }}
 {{- else }}
-{{ .Release.Name }}-dynamic-registration.{{ include "spire-agent.server.namespace" . }}
+{{- .Release.Name }}-server.{{ include "spire-agent.server.namespace" . }}
 {{- end }}
 {{- end }}
 

@@ -405,14 +405,28 @@ spec:
           env:
             - name: SPIFFE_TRUST_DOMAIN
               value: {{ include "spire-lib.trust-domain" . | quote }}
+            - name: EXPECTED_AUDIENCE
+              value: {{ .Values.dynamicRegistration.audience | quote }}
             - name: EXPECTED_SERVICE_ACCOUNT
+              {{- if contains ":" .Values.dynamicRegistration.serviceAccount }}
               value: {{ .Values.dynamicRegistration.serviceAccount | quote }}
+              {{- else }}
+              value: {{ printf "%s:%s" (include "spire-server.agent-namespace" .) .Values.dynamicRegistration.serviceAccount | quote }}
+              {{- end }}
             - name: ALLOWEDID_PREFIX
+              {{- if .Values.dynamicRegistration.addClusterName.allowedIDPrefix }}
+              value: {{ printf "%s/%s" .Values.dynamicRegistration.allowedIDPrefix (include "spire-lib.cluster-name" .) | quote }}
+              {{- else }}
               value: {{ .Values.dynamicRegistration.allowedIDPrefix | quote }}
+              {{- end }}
             - name: ENTRY_PREFIX
               value: {{ .Values.dynamicRegistration.entryPrefix | quote }}
             - name: REGISTRATION_PREFIX
+              {{- if .Values.dynamicRegistration.addClusterName.registrationPrefix }}
+              value: {{ printf "%s/%s" .Values.dynamicRegistration.registrationPrefix (include "spire-lib.cluster-name" .) | quote }}
+              {{- else }}
               value: {{ .Values.dynamicRegistration.registrationPrefix | quote }}
+              {{- end }}
           volumeMounts:
             - name: spire-server-socket
               mountPath: /tmp/spire-server/private

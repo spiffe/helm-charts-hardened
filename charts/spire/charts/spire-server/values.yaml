@@ -1185,14 +1185,21 @@ dynamicRegistration:
     tag: "s"
 
   ## @param dynamicRegistration.serviceAccount Which service account to allow to register
-  serviceAccount: "spire-system:spire-agent"
+  serviceAccount: "spire-agent"
 
+  ## @param dynamicRegistration.audience The expected audience
+  audience: spire-controller-manager-dynamic-registration
   ## @param dynamicRegistration.entryPrefix Unique prefix to bind nodes aliases to the server
   entryPrefix: "scmnr"
   ## @param dynamicRegistration.allowedIDPrefix Prefix of agents that are allowed to register
-  allowedIDPrefix: "spire/agent/x509pop"
+  allowedIDPrefix: "spire/agent/k8s_psat"
   ## @param dynamicRegistration.registrationPrefix prefix to use on all new registration entries
-  registrationPrefix: "k8s_psat/production"
+  registrationPrefix: "k8s_psat"
+  addClusterName:
+    ## @param dynamicRegistration.addClusterName.registrationPrefix suffix the cluster name onto the registrationPrefix
+    registrationPrefix: true
+    ## @param dynamicRegistration.addClusterName.allowedIDPrefix suffix the cluster name onto the allowedIDPrefix
+    allowedIDPrefix: true
 
 ## @section Tornjak
 tornjak:
