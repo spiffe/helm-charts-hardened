@@ -160,6 +160,14 @@ plugins:
         {{- end }}
         disable_migration: {{ .Values.dataStore.sql.disableMigration }}
 
+{{- with .Values.nodeAttestor.awsIID.verifyOrganization }}
+{{- if and (eq ($.Values.nodeAttestor.awsIID.enabled | toString) "true") (eq (.enabled | toString) "true") }}
+{{- if or (eq .managementAccountId "") (eq .assumeOrgRole "") }}
+{{- fail "nodeAttestor.awsIID.verifyOrganization requires managementAccountId and assumeOrgRole when enabled=true" }}
+{{- end }}
+{{- end }}
+{{- end }}
+
   {{- if or .Values.nodeAttestor.k8sPSAT.enabled .Values.nodeAttestor.externalK8sPSAT.enabled .Values.nodeAttestor.joinToken.enabled .Values.nodeAttestor.httpChallenge.enabled .Values.nodeAttestor.tpmDirect.enabled .Values.nodeAttestor.awsIID.enabled .Values.nodeAttestor.gcpIIT.enabled .Values.nodeAttestor.x509POP.enabled }}
   NodeAttestor:
   {{- $clusters := default .Values.kubeConfigs .Values.nodeAttestor.externalK8sPSAT.clusters }}
@@ -259,6 +267,19 @@ plugins:
       plugin_data:
         {{- if ne .assumeRole "" }}
         assume_role: {{ .assumeRole | quote }}
+        {{- end }}
+        {{- with .verifyOrganization }}
+        {{- if eq (.enabled | toString) "true" }}
+        verify_organization:
+          management_account_id: {{ .managementAccountId | quote }}
+          assume_org_role: {{ .assumeOrgRole | quote }}
+          {{- if ne .managementAccountRegion "" }}
+          management_account_region: {{ .managementAccountRegion | quote }}
+          {{- end }}
+          {{- if ne .orgAccountMapTTL "" }}
+          org_account_map_ttl: {{ .orgAccountMapTTL | quote }}
+          {{- end }}
+        {{- end }}
         {{- end }}
   {{- end }}
   {{- end }}
