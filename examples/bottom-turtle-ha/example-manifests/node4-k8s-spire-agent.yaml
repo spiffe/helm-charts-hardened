@@ -4,6 +4,6 @@ metadata:
   name: node4-k8s-spire-server
 spec:
   parentID: spiffe://${SPIFFE_TRUST_DOMAIN}/agent/node1
-  spiffeID: spiffe://${SPIFFE_TRUST_DOMAIN}/spire-exchange/node4.${SPIFFE_TRUST_DOMAIN}
+  spiffeID: spiffe://${SPIFFE_TRUST_DOMAIN}/spire-exchange/production/node4.${SPIFFE_TRUST_DOMAIN}
   selectors:
   - systemd:id:spiffe-socat-unix@k8s-spire-agent-4-${SUBINSTANCE}.service

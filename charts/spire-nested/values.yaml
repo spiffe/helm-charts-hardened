@@ -470,6 +470,9 @@ internal-spire-server-bottom-turtle-ha-a:
     enabled: true
     ## @param internal-spire-server-bottom-turtle-ha-a.experimental.agentSPIFFEIDAsSelector enable adding spiffe_id selectors to all agents
     agentSPIFFEIDAsSelector: true
+  dynamicRegistration:
+    ## @param internal-spire-server-bottom-turtle-ha-a.dynamicRegistration.enabled Enable dynamic registration
+    enabled: true
   controllerManager:
     ## @param internal-spire-server-bottom-turtle-ha-a.controllerManager.enabled Enable controller manager and provision CRD's
     enabled: true
@@ -533,6 +536,9 @@ internal-spire-server-bottom-turtle-ha-b:
     enabled: true
     ## @param internal-spire-server-bottom-turtle-ha-b.experimental.agentSPIFFEIDAsSelector enable adding spiffe_id selectors to all agents
     agentSPIFFEIDAsSelector: true
+  dynamicRegistration:
+    ## @param internal-spire-server-bottom-turtle-ha-b.dynamicRegistration.enabled Enable dynamic registration
+    enabled: true
   controllerManager:
     ## @param internal-spire-server-bottom-turtle-ha-b.controllerManager.enabled Enable controller manager and provision CRD's
     enabled: true
@@ -595,6 +601,9 @@ downstream-spire-agent-bottom-turtle-ha-a:
   ## @param downstream-spire-agent-bottom-turtle-ha-a.persistence.hostPath Which path to use on the host when persistence.type = hostPath
   persistence:
     hostPath: /var/lib/spire/k8s/downstream-agent-a
+  dynamicRegistration:
+    ## @param downstream-spire-agent-bottom-turtle-ha-a.dynamicRegistration.enabled Enable dynamic registration
+    enabled: true
   nodeAttestor:
     k8sPSAT:
       ## @param downstream-spire-agent-bottom-turtle-ha-a.nodeAttestor.k8sPSAT.enabled Enable the k8s projected access token node attestor
@@ -647,6 +656,9 @@ downstream-spire-agent-bottom-turtle-ha-b:
   ## @param downstream-spire-agent-bottom-turtle-ha-b.persistence.hostPath Which path to use on the host when persistence.type = hostPath
   persistence:
     hostPath: /var/lib/spire/k8s/downstream-agent-b
+  dynamicRegistration:
+    ## @param downstream-spire-agent-bottom-turtle-ha-b.dynamicRegistration.enabled Enable dynamic registration
+    enabled: true
   nodeAttestor:
     k8sPSAT:
       ## @param downstream-spire-agent-bottom-turtle-ha-b.nodeAttestor.k8sPSAT.enabled Enable the k8s projected access token node attestor
