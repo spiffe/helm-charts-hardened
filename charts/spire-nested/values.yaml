@@ -475,8 +475,6 @@ internal-spire-server-bottom-turtle-ha-a:
     enabled: true
     ## @param internal-spire-server-bottom-turtle-ha-a.dynamicRegistration.allowedIDPrefix The allowed ID prefix
     allowedIDPrefix: "spire/agent/x509pop/k8s"
-    ## @param internal-spire-server-bottom-turtle-ha-a.dynamicRegistration.nameOverride The name override to use to contact the server
-    nameOverride: internal-server
   controllerManager:
     ## @param internal-spire-server-bottom-turtle-ha-a.controllerManager.enabled Enable controller manager and provision CRD's
     enabled: true
@@ -545,8 +543,6 @@ internal-spire-server-bottom-turtle-ha-b:
     enabled: true
     ## @param internal-spire-server-bottom-turtle-ha-b.dynamicRegistration.allowedIDPrefix The allowed ID prefix
     allowedIDPrefix: "spire/agent/x509pop/k8s"
-    ## @param internal-spire-server-bottom-turtle-ha-b.dynamicRegistration.nameOverride The name override to use to contact the server
-    nameOverride: internal-server
   controllerManager:
     ## @param internal-spire-server-bottom-turtle-ha-b.controllerManager.enabled Enable controller manager and provision CRD's
     enabled: true
@@ -612,6 +608,8 @@ downstream-spire-agent-bottom-turtle-ha-a:
   dynamicRegistration:
     ## @param downstream-spire-agent-bottom-turtle-ha-a.dynamicRegistration.enabled Enable dynamic registration
     enabled: true
+    ## @param downstream-spire-agent-bottom-turtle-ha-a.dynamicRegistration.nameOverride The name override to use to contact the server
+    nameOverride: internal-server
   nodeAttestor:
     k8sPSAT:
       ## @param downstream-spire-agent-bottom-turtle-ha-a.nodeAttestor.k8sPSAT.enabled Enable the k8s projected access token node attestor
@@ -667,6 +665,8 @@ downstream-spire-agent-bottom-turtle-ha-b:
   dynamicRegistration:
     ## @param downstream-spire-agent-bottom-turtle-ha-b.dynamicRegistration.enabled Enable dynamic registration
     enabled: true
+    ## @param downstream-spire-agent-bottom-turtle-ha-b.dynamicRegistration.nameOverride The name override to use to contact the server
+    nameOverride: internal-server
   nodeAttestor:
     k8sPSAT:
       ## @param downstream-spire-agent-bottom-turtle-ha-b.nodeAttestor.k8sPSAT.enabled Enable the k8s projected access token node attestor
