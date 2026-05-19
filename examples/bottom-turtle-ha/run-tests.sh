@@ -33,6 +33,7 @@ fi
 
 teardown() {
   echo ---------------------------
+  docker exec -i chart-testing-worker /bin/bash -c "more /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/disk-keymanager/keys.json /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/pire-agent-persistence/agent-data.json | cat"
   sudo systemctl status spire-server@a || true
   sudo systemctl status spire-server@b || true
   sudo spire-server entry show -socketPath /var/run/spire/server/sockets/a/private/api.sock || true
