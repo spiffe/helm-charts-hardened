@@ -138,7 +138,7 @@ cd /tmp
 unzip packages.zip
 sudo dpkg -i DEBS/amd64/spire-server_1.15.0-1_amd64.deb
 sudo dpkg -i DEBS/amd64/spire-agent_1.15.0-1_amd64.deb
-sudo dpkg -i DEBS/amd64/pire-controller-manager_0.6.4-2_amd64.deb
+sudo dpkg -i DEBS/amd64/spire-controller-manager_0.6.4-2_amd64.deb
 cd -
 
 # Set our testing trust domain
