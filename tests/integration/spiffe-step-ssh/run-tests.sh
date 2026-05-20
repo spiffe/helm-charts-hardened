@@ -124,6 +124,8 @@ echo Hosts:
 cat /etc/hosts
 
 # Get the package repo and install the packages
+curl -o /tmp/stepcli.deb https://dl.smallstep.com/gh-release/cli/gh-release-header/v0.30.2/step-cli_0.30.2-1_amd64.deb -L
+sudo dpkg -i /tmp/stepcli.deb
 sudo curl -s -o /etc/apt/sources.list.d/spire-examples.list https://raw.githubusercontent.com/spiffe/spire-examples/refs/heads/main/examples/debs/amd64/spire-examples.list
 sudo apt-get update
 sudo apt-get install -y spire-common spire-agent spiffe-step-ssh spiffe-helper
