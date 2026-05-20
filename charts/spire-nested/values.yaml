@@ -499,17 +499,12 @@ internal-spire-server-bottom-turtle-ha-a:
     type: emptyDir
   nodeAttestor:
     k8sPSAT:
-      # FIXME disable
       ## @param internal-spire-server-bottom-turtle-ha-a.nodeAttestor.k8sPSAT.enabled Enable the k8s projected access token node attestor
-      enabled: true
+      enabled: false
     # FIXME only allow a particular k8s/cluster prefix here
     x509POP:
       ## @param internal-spire-server-bottom-turtle-ha-a.nodeAttestor.x509POP.enabled Enable the x509 pop node attestor
       enabled: true
-    # FIXME is this needed?
-  externalControllerManagers:
-    ## @param internal-spire-server-bottom-turtle-ha-a.externalControllerManagers.enabled Flag to enable external controller managers
-    enabled: true
   upstreamAuthority:
     spire:
       ## @param internal-spire-server-bottom-turtle-ha-a.upstreamAuthority.spire.enabled Enable upstream SPIRE server
@@ -573,14 +568,10 @@ internal-spire-server-bottom-turtle-ha-b:
   nodeAttestor:
     k8sPSAT:
       ## @param internal-spire-server-bottom-turtle-ha-b.nodeAttestor.k8sPSAT.enabled Enable the k8s projected access token node attestor
-      # FIXME disable
-      enabled: true
+      enabled: false
     x509POP:
       ## @param internal-spire-server-bottom-turtle-ha-b.nodeAttestor.x509POP.enabled Enable the x509 pop node attestor
       enabled: true
-  externalControllerManagers:
-    ## @param internal-spire-server-bottom-turtle-ha-b.externalControllerManagers.enabled Flag to enable external controller managers
-    enabled: true
   upstreamAuthority:
     spire:
       ## @param internal-spire-server-bottom-turtle-ha-b.upstreamAuthority.spire.enabled Enable upstream SPIRE server

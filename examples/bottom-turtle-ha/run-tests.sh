@@ -209,30 +209,6 @@ wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-agent-3-b/public/api.sock
 wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-agent-4-a/public/api.sock
 wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-agent-4-b/public/api.sock
 
-#FIXME temporary until spire-controller-manager gains dynamic node registration support
-cat > test-a-values.yaml <<EOF
-internal-spire-server-bottom-turtle-ha-a:
-  controllerManager:
-    identities:
-      clusterStaticEntries:
-        node2:
-          parentID: spiffe://production.other/spire/server
-          spiffeID: spiffe://production.other/k8s_psat/production/$(kubectl get node chart-testing-worker -o go-template="{{ .metadata.uid }}")
-          selectors:
-          - spiffe_id:spiffe://production.other/spire/agent/x509pop/k8s/production/node2.production.other
-        node3:
-          parentID: spiffe://production.other/spire/server
-          spiffeID: spiffe://production.other/k8s_psat/production/$(kubectl get node chart-testing-worker2 -o go-template="{{ .metadata.uid }}")
-          selectors:
-          - spiffe_id:spiffe://production.other/spire/agent/x509pop/k8s/production/node3.production.other
-        node4:
-          parentID: spiffe://production.other/spire/server
-          spiffeID: spiffe://production.other/k8s_psat/production/$(kubectl get node chart-testing-worker3 -o go-template="{{ .metadata.uid }}")
-          selectors:
-          - spiffe_id:spiffe://production.other/spire/agent/x509pop/k8s/production/node4.production.other
-EOF
-sed 's/internal-spire-server-bottom-turtle-ha-a/internal-spire-server-bottom-turtle-ha-b/' test-a-values.yaml > test-b-values.yaml
-
 # Deploy an ingress controller
 IP=$(kubectl get nodes chart-testing-control-plane -o go-template='{{ range .status.addresses }}{{ if eq .type "InternalIP" }}{{ .address }}{{ end }}{{ end }}')
 helm upgrade --install ingress-nginx ingress-nginx --version "$VERSION_INGRESS_NGINX" --repo "$HELM_REPO_INGRESS_NGINX" \
@@ -266,9 +242,7 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --wait spire-a charts/spire-nested \
   --set tags.bottomTurtleHAA=true \
   --set global.spire.upstreamSpireAddress=spire-server-a.production.other \
-  --set "global.spire.ingressControllerType=ingress-nginx" #\
-#FIXME
-#  -f test-a-values.yaml
+  --set "global.spire.ingressControllerType=ingress-nginx"
 
 docker exec -i chart-testing-worker /bin/bash -c "more /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/disk-keymanager/keys.json /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/spire-agent-persistence/agent-data.json | cat"
 
@@ -287,9 +261,7 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --set tags.bottomTurtleHAB=true \
   --set global.spire.upstreamSpireAddress=spire-server-b.production.other \
   --set internal-spire-server-bottom-turtle-ha-b.upstreamAuthority.spire.server.port=8082 \
-  --set "global.spire.ingressControllerType=ingress-nginx" #\
-#FIXME
-#  -f test-b-values.yaml
+  --set "global.spire.ingressControllerType=ingress-nginx"
 
 docker ps
 docker exec -i chart-testing-worker /bin/bash -c "more /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/disk-keymanager/keys.json /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/spire-agent-persistence/agent-data.json | cat"
