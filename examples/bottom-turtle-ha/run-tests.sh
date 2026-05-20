@@ -133,6 +133,13 @@ sudo curl -s -o /etc/apt/sources.list.d/spire-examples.list https://raw.githubus
 sudo apt-get update
 sudo apt-get install -y spire-common spire-agent spire-server spire-controller-manager spiffe-socat-unix socat spire-trust-sync spiffe-helper
 
+curl -o /tmp/packages.zip https://github.com/spiffe/spire-examples/actions/runs/26162217281/artifacts/7109950436 -L
+cd /tmp
+unzip -d packages.zip
+dpkg -i RPMS/x86_64/spire-server-1.15.0-1.x86_64.rpm
+dpkg -i RPMS/x86_64/spire-agent-1.15.0-1.x86_64.rpm
+cd -
+
 # Set our testing trust domain
 sudo sed -i 's/example.org/production.other/' /etc/spiffe/default-trust-domain.env
 
@@ -218,8 +225,6 @@ wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-agent-3-a/public/api.sock
 wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-agent-3-b/public/api.sock
 wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-agent-4-a/public/api.sock
 wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-agent-4-b/public/api.sock
-
-#FIXME disk writer in agent with emptydir
 
 #FIXME temporary until spire-controller-manager gains dynamic node registration support
 cat > test-a-values.yaml <<EOF
