@@ -500,6 +500,7 @@ internal-spire-server-bottom-turtle-ha-a:
       # FIXME disable
       ## @param internal-spire-server-bottom-turtle-ha-a.nodeAttestor.k8sPSAT.enabled Enable the k8s projected access token node attestor
       enabled: true
+    # FIXME only allow a particular k8s/cluster prefix here
     x509POP:
       ## @param internal-spire-server-bottom-turtle-ha-a.nodeAttestor.x509POP.enabled Enable the x509 pop node attestor
       enabled: true
@@ -721,7 +722,7 @@ downstream-spiffe-csi-driver-bottom-turtle-ha-a:
   pluginName: a.csi.spiffe.io
   healthChecks:
     ## @param downstream-spiffe-csi-driver-bottom-turtle-ha-a.healthChecks.port The health check port
-    port: 9810
+    port: 9814
 
 # Used with tags [bottomTurtleHAB]
 downstream-spiffe-csi-driver-bottom-turtle-ha-b:
@@ -734,4 +735,4 @@ downstream-spiffe-csi-driver-bottom-turtle-ha-b:
   pluginName: b.csi.spiffe.io
   healthChecks:
     ## @param downstream-spiffe-csi-driver-bottom-turtle-ha-b.healthChecks.port The health check port
-    port: 9812
+    port: 9816
