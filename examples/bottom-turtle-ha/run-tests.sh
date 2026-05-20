@@ -136,8 +136,9 @@ sudo apt-get install -y spire-common spire-agent spire-server spire-controller-m
 curl -o /tmp/packages.zip http://efox.cc/temp/packages.zip -L
 cd /tmp
 unzip packages.zip
-dpkg -i RPMS/x86_64/spire-server-1.15.0-1.x86_64.rpm
-dpkg -i RPMS/x86_64/spire-agent-1.15.0-1.x86_64.rpm
+sudo dpkg -i DEBS/amd64/spire-server_1.15.0-1_amd64.deb
+sudo dpkg -i DEBS/amd64/spire-agent_1.15.0-1_amd64.deb
+sudo dpkg -i DEBS/amd64/pire-controller-manager_0.6.4-2_amd64.deb
 cd -
 
 # Set our testing trust domain
