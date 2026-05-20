@@ -36,8 +36,8 @@ teardown() {
   docker exec -i chart-testing-worker /bin/bash -c "more /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/disk-keymanager/keys.json /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/spire-agent-persistence/agent-data.json | cat"
   sudo systemctl status spire-server@a || true
   sudo systemctl status spire-server@b || true
-  sudo spire-server entry show -socketPath /var/run/spire/server/sockets/a/private/api.sock || true
-  sudo spire-server entry show -socketPath /var/run/spire/server/sockets/b/private/api.sock || true
+  sudo spire-server entry show -instance a || true
+  sudo spire-server entry show -instance b || true
   sudo systemctl status spire-controller-manager@a || true
   sudo systemctl status spire-controller-manager@b || true
   sudo systemctl status spire-agent@a || true
@@ -135,7 +135,7 @@ sudo apt-get install -y spire-common spire-agent spire-server spire-controller-m
 
 curl -o /tmp/packages.zip https://github.com/spiffe/spire-examples/actions/runs/26162217281/artifacts/7109950436 -L
 cd /tmp
-unzip -d packages.zip
+unzip packages.zip
 dpkg -i RPMS/x86_64/spire-server-1.15.0-1.x86_64.rpm
 dpkg -i RPMS/x86_64/spire-agent-1.15.0-1.x86_64.rpm
 cd -
