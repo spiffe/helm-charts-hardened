@@ -227,17 +227,17 @@ internal-spire-server-bottom-turtle-ha-a:
           parentID: spiffe://production.other/spire/server
           spiffeID: spiffe://production.other/k8s_psat/production/$(kubectl get node chart-testing-worker -o go-template="{{ .metadata.uid }}")
           selectors:
-          - spiffe_id:spiffe://production.other/spire/agent/x509pop/node2.production.other
+          - spiffe_id:spiffe://production.other/spire/agent/x509pop/k8s/production/node2.production.other
         node3:
           parentID: spiffe://production.other/spire/server
           spiffeID: spiffe://production.other/k8s_psat/production/$(kubectl get node chart-testing-worker2 -o go-template="{{ .metadata.uid }}")
           selectors:
-          - spiffe_id:spiffe://production.other/spire/agent/x509pop/node3.production.other
+          - spiffe_id:spiffe://production.other/spire/agent/x509pop/k8s/production/node3.production.other
         node4:
           parentID: spiffe://production.other/spire/server
           spiffeID: spiffe://production.other/k8s_psat/production/$(kubectl get node chart-testing-worker3 -o go-template="{{ .metadata.uid }}")
           selectors:
-          - spiffe_id:spiffe://production.other/spire/agent/x509pop/node4.production.other
+          - spiffe_id:spiffe://production.other/spire/agent/x509pop/k8s/production/node4.production.other
 EOF
 sed 's/internal-spire-server-bottom-turtle-ha-a/internal-spire-server-bottom-turtle-ha-b/' test-a-values.yaml > test-b-values.yaml
 
