@@ -155,13 +155,7 @@ sudo rm -f /etc/spire/server/b/manifests/node1-k8s-spire-server.yaml
 
 # Since we are running the two root spire servers on the same machine, we need to ensure ports do not conflict for server b
 sudo /bin/bash -c 'echo SPIRE_BIND_PORT=8082 > /etc/spire/server/b.env'
-sudo cp /etc/spire/controller-manager/default.conf /etc/spire/controller-manager/b.conf
-#FIXME consider making bind address overridable via port like above
-sudo sed -i 's/bindAddress: .*/bindAddress: 0.0.0.0:9125/; s/healthProbeBindAddress: .*/healthProbeBindAddress: 0.0.0.0:9126/;' /etc/spire/controller-manager/b.conf
-
-#FIXME consider adding to upstream package
-sudo /bin/bash -c 'echo "expandEnvStaticManifests: true" >> /etc/spire/controller-manager/default.conf'
-sudo /bin/bash -c 'echo "expandEnvStaticManifests: true" >> /etc/spire/controller-manager/b.conf'
+sudo /bin/bash -c 'echo METRICS_BIND_ADDRESS="0.0.0.0:9125"; echo HEALTH_PROBE_BIND_ADDRESS="0.0.0.0:9126") > /etc/spire/controller-manager/b.env'
 
 # Startup servers and make sure they are ready
 sudo systemctl start spire-server@a spire-server@b spire-controller-manager@a spire-controller-manager@b
@@ -173,13 +167,9 @@ JOIN_TOKEN_A=$(sudo spire-server token generate -spiffeID spiffe://production.ot
 JOIN_TOKEN_B=$(sudo spire-server token generate -spiffeID spiffe://production.other/agent/node1 -socketPath /run/spire/server/sockets/b/private/api.sock | awk '{print "\""$2"\""}')
 export JOIN_TOKEN_A
 export JOIN_TOKEN_B
-sudo cp -a /etc/spire/agent/default.conf /etc/spire/agent/a.conf
-sudo cp -a /etc/spire/agent/default.conf /etc/spire/agent/b.conf
-#FIXME consider making this an env var somehow
-sudo sed -i "s/# join_token =.*/join_token = ${JOIN_TOKEN_A}/" /etc/spire/agent/a.conf
-sudo sed -i "s/# join_token =.*/join_token = ${JOIN_TOKEN_B}/" /etc/spire/agent/b.conf
-#FIXME consider making this an env var somehow
-sudo sed -i 's/server_port = 8081/server_port = 8082/' /etc/spire/agent/b.conf
+sudo /bin/bash -c "echo JOIN_TOKEN=${JOIN_TOKEN_A} > /etc/spire/agent/a.conf"
+sudo /bin/bash -c "echo JOIN_TOKEN=${JOIN_TOKEN_B} > /etc/spire/agent/b.conf"
+sudo /bin/bash -c "echo SPIRE_SERVER_PORT=8082 >> /etc/spire/agent/b.conf"
 
 # Since we are running the two root spire servers on the same machine, we need to configure the trust sync instances to point to the opposite server
 sudo /bin/bash -c 'echo "SPIRE_SERVER_SOCKET=/var/run/spire/server/sockets/b/private/api.sock" > /etc/spire/trust-sync/a.conf'
