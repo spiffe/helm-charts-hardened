@@ -167,9 +167,9 @@ JOIN_TOKEN_A=$(sudo spire-server token generate -spiffeID spiffe://production.ot
 JOIN_TOKEN_B=$(sudo spire-server token generate -spiffeID spiffe://production.other/agent/node1 -socketPath /run/spire/server/sockets/b/private/api.sock | awk '{print "\""$2"\""}')
 export JOIN_TOKEN_A
 export JOIN_TOKEN_B
-sudo /bin/bash -c "echo JOIN_TOKEN=${JOIN_TOKEN_A} > /etc/spire/agent/a.conf"
-sudo /bin/bash -c "echo JOIN_TOKEN=${JOIN_TOKEN_B} > /etc/spire/agent/b.conf"
-sudo /bin/bash -c "echo SPIRE_SERVER_PORT=8082 >> /etc/spire/agent/b.conf"
+sudo /bin/bash -c "echo JOIN_TOKEN=${JOIN_TOKEN_A} > /etc/spire/agent/a.env"
+sudo /bin/bash -c "echo JOIN_TOKEN=${JOIN_TOKEN_B} > /etc/spire/agent/b.env"
+sudo /bin/bash -c "echo SPIRE_SERVER_PORT=8082 >> /etc/spire/agent/b.env"
 
 # Since we are running the two root spire servers on the same machine, we need to configure the trust sync instances to point to the opposite server
 sudo /bin/bash -c 'echo "SPIRE_SERVER_SOCKET=/var/run/spire/server/sockets/b/private/api.sock" > /etc/spire/trust-sync/a.conf'
@@ -260,8 +260,6 @@ kubectl get configmap -n kube-system coredns -o yaml | grep production.other || 
 kubectl rollout restart -n kube-system deployment/coredns
 kubectl rollout status -n kube-system -w --timeout=1m deploy/coredns
 
-#FIXME remove nightly once 1.15 is released
-
 #FIXME see if we can tweak upstreamSpireAddress's in the chart rather then use a global.
 # Install the common components
 helm upgrade --install --create-namespace --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/spire-values.yaml" \
@@ -276,8 +274,6 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --wait spire-a charts/spire-nested \
   --set tags.bottomTurtleHAA=true \
   --set global.spire.upstreamSpireAddress=spire-server-a.production.other \
-  --set "internal-spire-server-bottom-turtle-ha-a.image.tag=nightly" \
-  --set "downstream-spire-agent-bottom-turtle-ha-a.image.tag=nightly" \
   --set "global.spire.ingressControllerType=ingress-nginx" #\
   #FIXME
   #-f test-a-values.yaml
@@ -299,8 +295,6 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --set tags.bottomTurtleHAB=true \
   --set global.spire.upstreamSpireAddress=spire-server-b.production.other \
   --set internal-spire-server-bottom-turtle-ha-b.upstreamAuthority.spire.server.port=8082 \
-  --set "internal-spire-server-bottom-turtle-ha-b.image.tag=nightly" \
-  --set "downstream-spire-agent-bottom-turtle-ha-b.image.tag=nightly" \
   --set "global.spire.ingressControllerType=ingress-nginx" #\
   #FIXME
   #-f test-b-values.yaml
