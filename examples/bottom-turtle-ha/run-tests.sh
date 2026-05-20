@@ -155,7 +155,7 @@ sudo rm -f /etc/spire/server/b/manifests/node1-k8s-spire-server.yaml
 
 # Since we are running the two root spire servers on the same machine, we need to ensure ports do not conflict for server b
 sudo /bin/bash -c 'echo SPIRE_BIND_PORT=8082 > /etc/spire/server/b.env'
-sudo /bin/bash -c 'echo METRICS_BIND_ADDRESS="0.0.0.0:9125"; echo HEALTH_PROBE_BIND_ADDRESS="0.0.0.0:9126") > /etc/spire/controller-manager/b.env'
+sudo /bin/bash -c '(echo METRICS_BIND_ADDRESS="0.0.0.0:9125"; echo HEALTH_PROBE_BIND_ADDRESS="0.0.0.0:9126") > /etc/spire/controller-manager/b.env'
 
 # Startup servers and make sure they are ready
 sudo systemctl start spire-server@a spire-server@b spire-controller-manager@a spire-controller-manager@b
