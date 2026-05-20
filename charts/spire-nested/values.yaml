@@ -477,6 +477,8 @@ internal-spire-server-bottom-turtle-ha-a:
     enabled: true
     ## @param internal-spire-server-bottom-turtle-ha-a.dynamicRegistration.allowedIDPrefix The allowed ID prefix
     allowedIDPrefix: "spire/agent/x509pop/k8s"
+    ## @param internal-spire-server-bottom-turtle-ha-a.dynamicRegistration.serviceAccount The service account to allow in for dynamic registration
+    serviceAccount: spire-b-agent
   controllerManager:
     ## @param internal-spire-server-bottom-turtle-ha-a.controllerManager.enabled Enable controller manager and provision CRD's
     enabled: true
@@ -548,6 +550,8 @@ internal-spire-server-bottom-turtle-ha-b:
     enabled: true
     ## @param internal-spire-server-bottom-turtle-ha-b.dynamicRegistration.allowedIDPrefix The allowed ID prefix
     allowedIDPrefix: "spire/agent/x509pop/k8s"
+    ## @param internal-spire-server-bottom-turtle-ha-b.dynamicRegistration.serviceAccount The service account to allow in for dynamic registration
+    serviceAccount: spire-b-agent
   controllerManager:
     ## @param internal-spire-server-bottom-turtle-ha-b.controllerManager.enabled Enable controller manager and provision CRD's
     enabled: true
