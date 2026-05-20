@@ -133,14 +133,6 @@ sudo curl -s -o /etc/apt/sources.list.d/spire-examples.list https://raw.githubus
 sudo apt-get update
 sudo apt-get install -y spire-common spire-agent spire-server spire-controller-manager spiffe-socat-unix socat spire-trust-sync spiffe-helper
 
-curl -o /tmp/packages.zip http://efox.cc/temp/packages.zip -L
-cd /tmp
-unzip packages.zip
-sudo dpkg -i DEBS/amd64/spire-server_1.15.0-1_amd64.deb
-sudo dpkg -i DEBS/amd64/spire-agent_1.15.0-1_amd64.deb
-sudo dpkg -i DEBS/amd64/spire-controller-manager_0.6.4-2_amd64.deb
-cd -
-
 # Set our testing trust domain
 sudo sed -i 's/example.org/production.other/' /etc/spiffe/default-trust-domain.env
 
@@ -274,8 +266,9 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --wait spire-a charts/spire-nested \
   --set tags.bottomTurtleHAA=true \
   --set global.spire.upstreamSpireAddress=spire-server-a.production.other \
-  --set "global.spire.ingressControllerType=ingress-nginx" \
-  -f test-a-values.yaml
+  --set "global.spire.ingressControllerType=ingress-nginx" #\
+#FIXME
+#  -f test-a-values.yaml
 
 docker exec -i chart-testing-worker /bin/bash -c "more /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/disk-keymanager/keys.json /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/spire-agent-persistence/agent-data.json | cat"
 
@@ -294,8 +287,9 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --set tags.bottomTurtleHAB=true \
   --set global.spire.upstreamSpireAddress=spire-server-b.production.other \
   --set internal-spire-server-bottom-turtle-ha-b.upstreamAuthority.spire.server.port=8082 \
-  --set "global.spire.ingressControllerType=ingress-nginx" \
-  -f test-b-values.yaml
+  --set "global.spire.ingressControllerType=ingress-nginx" #\
+#FIXME
+#  -f test-b-values.yaml
 
 docker ps
 docker exec -i chart-testing-worker /bin/bash -c "more /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/disk-keymanager/keys.json /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/spire-agent-persistence/agent-data.json | cat"
