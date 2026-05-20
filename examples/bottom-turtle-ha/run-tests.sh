@@ -274,9 +274,8 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --wait spire-a charts/spire-nested \
   --set tags.bottomTurtleHAA=true \
   --set global.spire.upstreamSpireAddress=spire-server-a.production.other \
-  --set "global.spire.ingressControllerType=ingress-nginx" #\
-  #FIXME
-  #-f test-a-values.yaml
+  --set "global.spire.ingressControllerType=ingress-nginx" \
+  -f test-a-values.yaml
 
 docker exec -i chart-testing-worker /bin/bash -c "more /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/disk-keymanager/keys.json /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/spire-agent-persistence/agent-data.json | cat"
 
@@ -295,9 +294,8 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --set tags.bottomTurtleHAB=true \
   --set global.spire.upstreamSpireAddress=spire-server-b.production.other \
   --set internal-spire-server-bottom-turtle-ha-b.upstreamAuthority.spire.server.port=8082 \
-  --set "global.spire.ingressControllerType=ingress-nginx" #\
-  #FIXME
-  #-f test-b-values.yaml
+  --set "global.spire.ingressControllerType=ingress-nginx" \
+  -f test-b-values.yaml
 
 docker ps
 docker exec -i chart-testing-worker /bin/bash -c "more /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/disk-keymanager/keys.json /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/spire-agent-persistence/agent-data.json | cat"
