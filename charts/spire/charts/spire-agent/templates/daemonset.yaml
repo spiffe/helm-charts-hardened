@@ -389,10 +389,6 @@ spec:
               mountPath: /var/run/secrets/tokens
             - name: disk-keymanager
               mountPath: /key-manager
-          ports:
-            - name: dynamic-https
-              containerPort: 8931
-              protocol: TCP
         {{- end }}
         {{- if gt (len .Values.extraContainers) 0 }}
         {{- toYaml .Values.extraContainers | nindent 8 }}
