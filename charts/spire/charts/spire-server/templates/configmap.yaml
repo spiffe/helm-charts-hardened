@@ -73,6 +73,9 @@ server:
   {{- if .Values.pruneTOFUNodes }}
   prune_tofu_nodes: {{ .Values.pruneTOFUNodes }}
   {{- end }}
+  {{- if .Values.maxAttestedNodeInfoStaleness }}
+  max_attested_node_info_staleness: {{ .Values.maxAttestedNodeInfoStaleness | quote }}
+  {{- end }}
 
   ca_subject:
     - country: [{{ include "spire-server.ca-subject-country" . | quote }}]
@@ -120,6 +123,11 @@ server:
         rego_path: /run/spire/config/policy.rego
     {{- end }}
   {{- end }}
+  {{- end }}
+  {{- with .Values.rateLimit }}
+  ratelimit:
+    attestation: {{ .attestation }}
+    signing: {{ .signing }}
   {{- end }}
 
 plugins:
