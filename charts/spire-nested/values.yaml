@@ -501,10 +501,18 @@ internal-spire-server-bottom-turtle-ha-a:
     k8sPSAT:
       ## @param internal-spire-server-bottom-turtle-ha-a.nodeAttestor.k8sPSAT.enabled Enable the k8s projected access token node attestor
       enabled: false
-    # FIXME only allow a particular k8s/cluster prefix here
     x509POP:
       ## @param internal-spire-server-bottom-turtle-ha-a.nodeAttestor.x509POP.enabled Enable the x509 pop node attestor
       enabled: true
+      ## @param internal-spire-server-bottom-turtle-ha-a.nodeAttestor.x509POP.svidPrefix What prefix to use when mode is spiffe
+      svidPrefix: /spire-exchange/k8s
+      ## @param internal-spire-server-bottom-turtle-ha-a.nodeAttestor.x509POP.agentPathTemplate Override the default agent path template
+      agentPathTemplate: "{{ .PluginName }}/{{ .SVIDPathTrimmed }}/k8s"
+      addClusterName:
+        ## @param internal-spire-server-bottom-turtle-ha-a.nodeAttestor.x509POP.addClusterName.svidPrefix Suffix the cluster name onto the svidPrefix
+        svidPrefix: true
+        ## @param internal-spire-server-bottom-turtle-ha-a.nodeAttestor.x509POP.addClusterName.agentPathTemplate Suffix the cluster name onto the agentPathTemplate
+        agentPathTemplate: true
   upstreamAuthority:
     spire:
       ## @param internal-spire-server-bottom-turtle-ha-a.upstreamAuthority.spire.enabled Enable upstream SPIRE server
@@ -572,6 +580,15 @@ internal-spire-server-bottom-turtle-ha-b:
     x509POP:
       ## @param internal-spire-server-bottom-turtle-ha-b.nodeAttestor.x509POP.enabled Enable the x509 pop node attestor
       enabled: true
+      ## @param internal-spire-server-bottom-turtle-ha-b.nodeAttestor.x509POP.svidPrefix What prefix to use when mode is spiffe
+      svidPrefix: /spire-exchange/k8s
+      ## @param internal-spire-server-bottom-turtle-ha-b.nodeAttestor.x509POP.agentPathTemplate Override the default agent path template
+      agentPathTemplate: "{{ .PluginName }}/{{ .SVIDPathTrimmed }}/k8s"
+      addClusterName:
+        ## @param internal-spire-server-bottom-turtle-ha-b.nodeAttestor.x509POP.addClusterName.svidPrefix Suffix the cluster name onto the svidPrefix
+        svidPrefix: true
+        ## @param internal-spire-server-bottom-turtle-ha-b.nodeAttestor.x509POP.addClusterName.agentPathTemplate Suffix the cluster name onto the agentPathTemplate
+        agentPathTemplate: true
   upstreamAuthority:
     spire:
       ## @param internal-spire-server-bottom-turtle-ha-b.upstreamAuthority.spire.enabled Enable upstream SPIRE server
