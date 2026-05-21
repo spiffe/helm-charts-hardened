@@ -262,10 +262,10 @@ dynamicRegistration:
   ## @param dynamicRegistration.image.tag Overrides the image tag to be whatever you need it to be. It will always be the flag you set without modifications
   ##
   image:
-    registry: docker.io
-    repository: kfox1111/misc2
+    registry: ghcr.io
+    repository: spiffe/spire-controller-manager-dynamic-registration/spire-controller-manager-dynamic-registration-agent
     pullPolicy: IfNotPresent
-    tag: "a"
+    tag: "0.1.0"
 
   ## @param dynamicRegistration.audience The audience to get the k8s psat for
   audience: spire-controller-manager-dynamic-registration

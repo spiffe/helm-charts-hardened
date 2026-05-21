@@ -1199,10 +1199,10 @@ dynamicRegistration:
   ## @param dynamicRegistration.image.tag Overrides the image tag to be whatever you need it to be. It will always be the flag you set without modifications
   ##
   image:
-    registry: docker.io
-    repository: kfox1111/misc2
+    registry: ghcr.io
+    repository: spiffe/spire-controller-manager-dynamic-registration/spire-controller-manager-dynamic-registration-server
     pullPolicy: IfNotPresent
-    tag: "s"
+    tag: "0.1.0"
 
   ## @param dynamicRegistration.serviceAccount Which service account to allow to register
   serviceAccount: "spire-agent"
