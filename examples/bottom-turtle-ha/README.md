@@ -113,5 +113,27 @@ We need to install 4 charts.
 
 This allows upgrading Side A or Side B completely independencly from each other, ensuring if there is a problem it will not affect production.
 
-FIXME
+Setup the spire-values.yaml as needed.
 
+```
+# Install the common components
+helm upgrade --install --create-namespace --namespace spire-mgmt --values "spire-values.yaml" \
+  spire oci://ghcr.io/spiffe/helm-charts/spire-nested \
+  --set tags.haAgentCommon=true \
+  --set "global.spire.namespaces.create=true" \
+  --set "global.spire.ingressControllerType=ingress-nginx" \
+  --set "spiffe-oidc-discovery-provider.ingress.enabled=true"
+
+# Install server side a
+helm upgrade --install --namespace spire-mgmt --values "spire-values.yaml" \
+  --wait spire-a oci://ghcr.io/spiffe/helm-charts/spire-nested \
+  --set tags.bottomTurtleHAA=true \
+  --set "global.spire.ingressControllerType=ingress-nginx"
+
+
+# Install server side b
+helm upgrade --install --namespace spire-mgmt --values "spire-values.yaml" \
+  --wait spire-b oci://ghcr.io/spiffe/helm-charts/spire-nested \
+  --set tags.bottomTurtleHAB=true \
+  --set "global.spire.ingressControllerType=ingress-nginx"
+```
