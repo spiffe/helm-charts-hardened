@@ -1133,6 +1133,11 @@ nodeAttestor:
     maxIntermediates: 4
     ## @param nodeAttestor.x509POP.maxRSAKeySize Maximum RSA key size in bits allowed in certificates
     maxRSAKeySize: 8192
+    addClusterName:
+      ## @param nodeAttestor.x509POP.addClusterName.svidPrefix Suffix the cluster name onto the svidPrefix
+      svidPrefix: false
+      ## @param nodeAttestor.x509POP.addClusterName.agentPathTemplate Suffix the cluster name onto the agentPathTemplate
+      agentPathTemplate: false
 
 # The secrets needed for this plugin are configured in the secrets: section
 bundlePublisher:
