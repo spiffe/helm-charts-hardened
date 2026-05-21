@@ -522,6 +522,8 @@ internal-spire-server-bottom-turtle-ha-a:
       server:
         ## @param internal-spire-server-bottom-turtle-ha-a.upstreamAuthority.spire.server.nameOverride The name override setting of the root SPIRE server
         nameOverride: root-server
+        ## @param internal-spire-server-bottom-turtle-ha-a.upstreamAuthority.spire.server.address Address for upstream Spire server
+        address: "spire-server-a"
         ## @param internal-spire-server-bottom-turtle-ha-a.upstreamAuthority.spire.server.port The port setting of the root SPIRE server
         port: 8081
   ## @param internal-spire-server-bottom-turtle-ha-a.bundleConfigMap The name of the configmap to store the downstream bundle
@@ -598,6 +600,8 @@ internal-spire-server-bottom-turtle-ha-b:
       server:
         ## @param internal-spire-server-bottom-turtle-ha-b.upstreamAuthority.spire.server.nameOverride The name override setting of the root SPIRE server
         nameOverride: root-server
+        ## @param internal-spire-server-bottom-turtle-ha-b.upstreamAuthority.spire.server.address Address for upstream Spire server
+        address: "spire-server-a"
         ## @param internal-spire-server-bottom-turtle-ha-b.upstreamAuthority.spire.server.port The port setting of the root SPIRE server
         port: 8081
   ## @param internal-spire-server-bottom-turtle-ha-b.bundleConfigMap The name of the configmap to store the downstream bundle
