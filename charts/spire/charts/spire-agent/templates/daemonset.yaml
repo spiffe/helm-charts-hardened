@@ -303,7 +303,11 @@ spec:
               readOnly: true
             {{- if .Values.keyManager.disk.enabled }}
             - name: spire-key-manager
+              {{- if eq .Values.keyManager.disk.mode "emptyDir" }}
+              mountPath: /key-manager
+              {{- else }}
               mountPath: {{ .Values.persistence.hostPath }}
+              {{- end }}
               readOnly: false
             {{- end }}
             - name: spire-agent-persistence
@@ -329,10 +333,6 @@ spec:
             - name: tpm
               mountPath: /dev/tpmrm0
               readOnly: true
-            {{- end }}
-            {{- if eq .Values.keyManager.disk.mode "emptyDir" }}
-            - name: disk-keymanager
-              mountPath: /key-manager
             {{- end }}
             - name: spire-agent-socket-dir
               mountPath: /tmp/spire-agent/public
@@ -387,7 +387,7 @@ spec:
               mountPath: /var/lib/spire
             - name: dynamic-registration-psat
               mountPath: /var/run/secrets/tokens
-            - name: disk-keymanager
+            - name: spire-key-manager
               mountPath: /key-manager
         {{- end }}
         {{- if gt (len .Values.extraContainers) 0 }}
@@ -457,10 +457,6 @@ spec:
         {{- end }}
         {{- if .Values.nodeAttestor.tpmDirect.enabled }}
         - name: tpm-direct
-          emptyDir: {}
-        {{- end }}
-        {{- if eq .Values.keyManager.disk.mode "emptyDir" }}
-        - name: disk-keymanager
           emptyDir: {}
         {{- end }}
         {{- if .Values.nodeAttestor.x509POP.enabled }}
