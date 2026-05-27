@@ -65,6 +65,12 @@ agent:
   {{- with .Values.availabilityTarget }}
   availability_target: {{ . | quote }}
   {{- end }}
+  {{- if gt (int .Values.x509SvidCacheMaxSize) 0 }}
+  x509_svid_cache_max_size: {{ .Values.x509SvidCacheMaxSize }}
+  {{- end }}
+  {{- if gt (int .Values.jwtSvidCacheMaxSize) 0 }}
+  jwt_svid_cache_max_size: {{ .Values.jwtSvidCacheMaxSize }}
+  {{- end }}
   {{- if .Values.sds.enabled }}
   sds:
     default_svid_name: {{ .Values.sds.defaultSVIDName | quote }}

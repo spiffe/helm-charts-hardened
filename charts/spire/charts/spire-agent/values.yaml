@@ -103,6 +103,10 @@ trustBundleHostPath: ""
 bundleConfigMap: spire-bundle
 ## @param availabilityTarget The minimum amount of time desired to gracefully handle SPIRE Server or Agent downtime. This configurable influences how aggressively X509 SVIDs should be rotated. If set, must be at least 24h.
 availabilityTarget: ""
+## @param x509SvidCacheMaxSize The maximum number of X.509 SVIDs to cache. Set to 0 to use the SPIRE default.
+x509SvidCacheMaxSize: 1000
+## @param jwtSvidCacheMaxSize The maximum number of JWT SVIDs to cache. Set to 0 to use the SPIRE default.
+jwtSvidCacheMaxSize: 1000
 ## @param rebootstrapMode How the agent will behave when seeing an unknown x509 cert from the server. It can be set to never, auto, or always
 rebootstrapMode: always
 ## @param rebootstrapDelay The agent will rebootstrap after configured amount of time on unknown x509 cert from the server
