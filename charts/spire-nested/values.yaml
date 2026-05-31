@@ -601,7 +601,7 @@ internal-spire-server-bottom-turtle-ha-b:
         ## @param internal-spire-server-bottom-turtle-ha-b.upstreamAuthority.spire.server.nameOverride The name override setting of the root SPIRE server
         nameOverride: root-server
         ## @param internal-spire-server-bottom-turtle-ha-b.upstreamAuthority.spire.server.address Address for upstream Spire server
-        address: "spire-server-a"
+        address: "spire-server-b"
         ## @param internal-spire-server-bottom-turtle-ha-b.upstreamAuthority.spire.server.port The port setting of the root SPIRE server
         port: 8081
   ## @param internal-spire-server-bottom-turtle-ha-b.bundleConfigMap The name of the configmap to store the downstream bundle
@@ -714,7 +714,7 @@ downstream-spire-agent-bottom-turtle-ha-b:
       ## @param downstream-spire-agent-bottom-turtle-ha-b.telemetry.prometheus.port Prometheus port to use
       port: 9990
   ## @param downstream-spire-agent-bottom-turtle-ha-b.socketPath Socket path to use
-  socketPath: /var/run/spire/agent/sockets/a/csi.spiffe.io/public/spire-agent.sock
+  socketPath: /var/run/spire/agent/sockets/b/csi.spiffe.io/public/spire-agent.sock
   sockets:
     ## @param downstream-spire-agent-bottom-turtle-ha-b.sockets.hostBasePath Path on the host to place sockets
     hostBasePath: /var/run/spire/agent/sockets/b
