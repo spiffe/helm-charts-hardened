@@ -9,7 +9,7 @@
 {{- if hasKey .Values.sds "disableSpiffeCertValidation" }}
 {{-   fail "disableSpiffeCertValidation was renamed to disableSPIFFECertValidation. Please update your config." }}
 {{- end }}
-{{- if and .Values.keyManager.disk.enabled (ne .Values.persistence.type "hostPath") }}
+{{- if and .Values.keyManager.disk.enabled (ne .Values.persistence.type "hostPath") (eq .Values.keyManager.disk.mode "hostPath") }}
 {{-   fail "keyManager.disk.enabled is true but persistence.type is not hostPath. Ensure persistence.type is hostPath when keyManager.disk.enabled is true." }}
 {{- end }}
 {{- range $name := (concat (list "default") (keys .Values.agents)) | uniq }}
@@ -303,7 +303,11 @@ spec:
               readOnly: true
             {{- if .Values.keyManager.disk.enabled }}
             - name: spire-key-manager
+              {{- if eq .Values.keyManager.disk.mode "emptyDir" }}
+              mountPath: /key-manager
+              {{- else }}
               mountPath: {{ .Values.persistence.hostPath }}
+              {{- end }}
               readOnly: false
             {{- end }}
             - name: spire-agent-persistence
@@ -340,6 +344,10 @@ spec:
               mountPath: /hostCert
               readOnly: true
             {{- end }}
+            {{- if .Values.nodeAttestor.x509POP.enabled }}
+            - name: x509pop-upstream
+              mountPath: {{ .Values.nodeAttestor.x509POP.spiffeEndpointSocket | dir }}
+            {{- end }}
             {{- if gt (len .Values.extraVolumeMounts) 0 }}
             {{- toYaml .Values.extraVolumeMounts | nindent 12 }}
             {{- end }}
@@ -355,6 +363,33 @@ spec:
             {{- toYaml .Values.readinessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+        {{- if eq (.Values.dynamicRegistration.enabled | toString) "true" }}
+        - name: dynamic-registration
+          securityContext:
+            {{- include "spire-lib.securitycontext-extended" (dict "root" . "securityContext" .Values.dynamicRegistration.securityContext) | nindent 12 }}
+          image: {{ template "spire-lib.image" (dict "appVersion" .Values.dynamicRegistration.image.tag "image" .Values.dynamicRegistration.image "global" .Values.global "ubi" false) }}
+          imagePullPolicy: {{ .Values.dynamicRegistration.image.pullPolicy }}
+          env:
+            - name: TOKENFILE
+              value: /var/run/secrets/tokens/dynamic-registration-agent
+            - name: SPIFFE_TRUST_DOMAIN
+              value: {{ include "spire-lib.trust-domain" . | quote }}
+            - name: SERVERSPIFFEID
+              value: {{ .Values.dynamicRegistration.serverSPIFFEID | quote }}
+            - name: APIURL
+              value: {{ include "spire-agent.dynamic-registration-address" . | quote }}
+            - name: KEYFILE
+              value: /key-manager/keys.json
+            - name: APIPORT
+              value: "8931"
+          volumeMounts:
+            - name: spire-agent-persistence
+              mountPath: /var/lib/spire
+            - name: dynamic-registration-psat
+              mountPath: /var/run/secrets/tokens
+            - name: spire-key-manager
+              mountPath: /key-manager
+        {{- end }}
         {{- if gt (len .Values.extraContainers) 0 }}
         {{- toYaml .Values.extraContainers | nindent 8 }}
         {{- end }}
@@ -376,9 +411,13 @@ spec:
             name: {{ include "spire-agent.fullname" . }}
         {{- if .Values.keyManager.disk.enabled }}
         - name: spire-key-manager
+          {{- if eq .Values.keyManager.disk.mode "hostPath" }}
           hostPath:
             path: {{ .Values.persistence.hostPath }}
             type: DirectoryOrCreate
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
         {{- end }}
         {{- if .Values.sockets.admin.mountOnHost }}
         - name: spire-agent-admin-socket-dir
@@ -419,6 +458,21 @@ spec:
         {{- if .Values.nodeAttestor.tpmDirect.enabled }}
         - name: tpm-direct
           emptyDir: {}
+        {{- end }}
+        {{- if .Values.nodeAttestor.x509POP.enabled }}
+        - name: x509pop-upstream
+          hostPath:
+            path: {{ .Values.nodeAttestor.x509POP.spiffeEndpointSocket | dir }}
+            type: DirectoryOrCreate
+        {{- end }}
+        {{- if eq (.Values.dynamicRegistration.enabled | toString) "true" }}
+        - name: dynamic-registration-psat
+          projected:
+            sources:
+            - serviceAccountToken:
+                path: dynamic-registration-agent
+                expirationSeconds: 7200
+                audience: {{ .Values.dynamicRegistration.audience | quote }}
         {{- end }}
         - name: spire-token
           projected:

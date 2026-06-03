@@ -1,6 +1,7 @@
 {{- define "spire-agent.check-config-values" -}}
 {{- include "spire-lib.check-strict-mode" (list . "clusterName must be set" (eq (include "spire-lib.cluster-name" .) "example-cluster"))}}
-{{- include "spire-lib.check-strict-mode" (list . "trustDomain must be set" (eq (include "spire-lib.trust-domain" .) "example.org"))}}
+{{- $trustDomain := include "spire-lib.trust-domain" . }}
+{{- include "spire-lib.check-strict-mode" (list . "trustDomain must be set" (eq $trustDomain "example.org"))}}
 {{- range $type, $tvals := .Values.customPlugins }}
 {{-   if not (has $type (list "keyManager" "nodeAttestor" "svidStore" "workloadAttestor")) }}
 {{-     fail (printf "Unknown plugin type specified: %s" $type) }}
@@ -19,7 +20,7 @@
 {{-     end }}
 {{-   end }}
 {{- end }}
-{{- if and .Values.keyManager.disk.enabled (ne .Values.persistence.type "hostPath") }}
+{{- if and .Values.keyManager.disk.enabled (ne .Values.persistence.type "hostPath") (eq .Values.keyManager.disk.mode "hostPath") }}
 {{-   fail "keyManager.disk.enabled is true but persistence.type is not hostPath. Ensure persistence.type is hostPath when keyManager.disk.enabled is true." }}
 {{- end }}
 {{- if hasPrefix (.Values.socketPath | dir | clean) (.Values.sockets.hostBasePath | clean) }}
@@ -37,13 +38,20 @@
 {{- end }}
 {{- end }}
 {{- define "spire-agent.yaml-config" -}}
+{{- $trustDomain := include "spire-lib.trust-domain" . }}
 agent:
   {{- if .Values.sockets.admin.enabled }}
   admin_socket_path: /tmp/spire-agent/private/admin.sock
   {{- end }}
   {{- with .Values.authorizedDelegates }}
   authorized_delegates:
-    {{- toYaml . | nindent 4 }}
+  {{- range . }}
+    {{- if hasPrefix "/" . }}
+    - spiffe://{{ $trustDomain }}{{ . }}
+    {{- else }}
+    - {{ . }}
+    {{- end }}
+  {{- end }}
   {{- end }}
   data_dir: "/var/lib/spire"
   log_level: {{ .Values.logLevel | quote }}
@@ -120,6 +128,14 @@ plugins:
     {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
     {{- end }}
     {{- end }}
+    {{- with .Values.nodeAttestor.x509POP }}
+    {{- if eq (.enabled | toString) "true" }}
+    x509pop:
+      plugin_data:
+        spiffe_endpoint_socket: unix://{{ .spiffeEndpointSocket }}
+    {{- $nodeAttestorUsed = add1 $nodeAttestorUsed }}
+    {{- end }}
+    {{- end }}
     {{- with .Values.nodeAttestor.awsIID }}
     {{- if eq (.enabled | toString) "true" }}
     aws_iid:
@@ -147,7 +163,11 @@ plugins:
     {{- if .Values.keyManager.disk.enabled }}
     disk:
       plugin_data:
+        {{- if eq .Values.keyManager.disk.mode "hostPath" }}
         directory: {{ .Values.persistence.hostPath }}
+        {{- else if eq .Values.keyManager.disk.mode "emptyDir" }}
+        directory: /key-manager
+        {{- end }}
     {{- $keyManagerUsed = add1 $keyManagerUsed }}
     {{- end }}
 {{- if ne $keyManagerUsed 1 }}

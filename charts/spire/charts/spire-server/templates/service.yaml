@@ -28,6 +28,14 @@ spec:
       protocol: TCP
     {{- end }}
     {{- end }}
+    {{- with .Values.dynamicRegistration }}
+    {{- if eq (.enabled | toString) "true" }}
+    - name: dynamic-registration
+      port: 8931
+      targetPort: dynamic-https
+      protocol: TCP
+    {{- end }}
+    {{- end }}
   selector:
     {{- include "spire-server.selectorLabels" . | nindent 4 }}
 {{- end }}

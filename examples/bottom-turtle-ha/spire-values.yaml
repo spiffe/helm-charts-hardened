@@ -1,0 +1,13 @@
+global:
+  spire:
+    recommendations:
+      enabled: true
+    namespaces:
+      create: false
+    #ingressControllerType: ""
+    #clusterName: example-cluster
+    #trustDomain: example.org
+    #caSubject:
+    #  country: ""
+    #  organization: ""
+    #  commonName: ""

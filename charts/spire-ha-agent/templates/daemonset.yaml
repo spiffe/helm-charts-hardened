@@ -210,7 +210,7 @@ spec:
           hostPath:
             path: /dev
         - name: cid2pid
-          emtpyDir: {}
+          emptyDir: {}
         {{- if gt (len .Values.extraVolumes) 0 }}
         {{- toYaml .Values.extraVolumes | nindent 8 }}
         {{- end }}
