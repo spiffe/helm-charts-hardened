@@ -5,7 +5,7 @@ on:
     branches:
       - release
     paths:
-      - '.github/workflows/helm-release.yml'
+      - '.github/workflows/helm-release.yaml'
       - 'charts/**'
 
 jobs:
