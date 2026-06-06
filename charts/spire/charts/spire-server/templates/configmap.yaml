@@ -73,6 +73,9 @@ server:
   {{- if .Values.pruneTOFUNodes }}
   prune_tofu_nodes: {{ .Values.pruneTOFUNodes }}
   {{- end }}
+  {{- if .Values.maxAttestedNodeInfoStaleness }}
+  max_attested_node_info_staleness: {{ .Values.maxAttestedNodeInfoStaleness | quote }}
+  {{- end }}
 
   ca_subject:
     - country: [{{ include "spire-server.ca-subject-country" . | quote }}]
@@ -102,6 +105,7 @@ server:
   {{- with .Values.experimental }}
   {{- if eq (.enabled | toString) "true" }}
   experimental:
+    agent_spiffe_id_as_selector: {{ .agentSPIFFEIDAsSelector }}
     cache_reload_interval: {{ .cacheReloadInterval | quote }}
     events_based_cache: {{ .eventsBasedCache }}
     prune_events_older_than: {{ .pruneEventsOlderThan | quote }}
@@ -119,6 +123,11 @@ server:
         rego_path: /run/spire/config/policy.rego
     {{- end }}
   {{- end }}
+  {{- end }}
+  {{- with .Values.rateLimit }}
+  ratelimit:
+    attestation: {{ .attestation }}
+    signing: {{ .signing }}
   {{- end }}
 
 plugins:
@@ -159,7 +168,15 @@ plugins:
         {{- end }}
         disable_migration: {{ .Values.dataStore.sql.disableMigration }}
 
-  {{- if or .Values.nodeAttestor.k8sPSAT.enabled .Values.nodeAttestor.externalK8sPSAT.enabled .Values.nodeAttestor.joinToken.enabled .Values.nodeAttestor.httpChallenge.enabled .Values.nodeAttestor.tpmDirect.enabled .Values.nodeAttestor.awsIID.enabled .Values.nodeAttestor.gcpIIT.enabled }}
+{{- with .Values.nodeAttestor.awsIID.verifyOrganization }}
+{{- if and (eq ($.Values.nodeAttestor.awsIID.enabled | toString) "true") (eq (.enabled | toString) "true") }}
+{{- if or (eq .managementAccountId "") (eq .assumeOrgRole "") }}
+{{- fail "nodeAttestor.awsIID.verifyOrganization requires managementAccountId and assumeOrgRole when enabled=true" }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+  {{- if or .Values.nodeAttestor.k8sPSAT.enabled .Values.nodeAttestor.externalK8sPSAT.enabled .Values.nodeAttestor.joinToken.enabled .Values.nodeAttestor.httpChallenge.enabled .Values.nodeAttestor.tpmDirect.enabled .Values.nodeAttestor.awsIID.enabled .Values.nodeAttestor.gcpIIT.enabled .Values.nodeAttestor.x509POP.enabled }}
   NodeAttestor:
   {{- $clusters := default .Values.kubeConfigs .Values.nodeAttestor.externalK8sPSAT.clusters }}
   {{- if or (eq (.Values.nodeAttestor.k8sPSAT.enabled | toString) "true") (and (eq (.Values.nodeAttestor.externalK8sPSAT.enabled | toString) "true") (gt (len $clusters) 0)) }}
@@ -239,12 +256,46 @@ plugins:
         {{- end }}
   {{- end }}
   {{- end }}
+  {{- with .Values.nodeAttestor.x509POP }}
+  {{- if eq (.enabled | toString) "true" }}
+    x509pop:
+      plugin_data:
+        mode: {{ .mode }}
+        {{- if .addClusterName.svidPrefix }}
+        svid_prefix: {{ printf "%s/%s" .svidPrefix (include "spire-lib.cluster-name" $root) | quote }}
+        {{- else }}
+        svid_prefix: {{ .svidPrefix | quote }}
+        {{- end }}
+        max_intermediates: {{ .maxIntermediates }}
+        max_rsa_key_size: {{ .maxRSAKeySize }}
+        {{- if ne .agentPathTemplate "" }}
+        {{-   if .addClusterName.agentPathTemplate }}
+        agent_path_template: {{ printf "%s/%s" .agentPathTemplate (include "spire-lib.cluster-name" $root) | quote }}
+        {{-   else }}
+        agent_path_template: {{ .agentPathTemplate | quote }}
+        {{-   end }}
+        {{- end }}
+  {{- end }}
+  {{- end }}
   {{- with .Values.nodeAttestor.awsIID }}
   {{- if eq (.enabled | toString) "true" }}
     aws_iid:
       plugin_data:
         {{- if ne .assumeRole "" }}
         assume_role: {{ .assumeRole | quote }}
+        {{- end }}
+        {{- with .verifyOrganization }}
+        {{- if eq (.enabled | toString) "true" }}
+        verify_organization:
+          management_account_id: {{ .managementAccountId | quote }}
+          assume_org_role: {{ .assumeOrgRole | quote }}
+          {{- if ne .managementAccountRegion "" }}
+          management_account_region: {{ .managementAccountRegion | quote }}
+          {{- end }}
+          {{- if ne .orgAccountMapTTL "" }}
+          org_account_map_ttl: {{ .orgAccountMapTTL | quote }}
+          {{- end }}
+        {{- end }}
         {{- end }}
   {{- end }}
   {{- end }}

@@ -396,6 +396,46 @@ spec:
               mountPath: /tmp
               readOnly: false
         {{- include "spire-controller-manager.containers" . | nindent 8 }}
+        {{- if eq (.Values.dynamicRegistration.enabled | toString) "true" }}
+        - name: dynamic-registration
+          securityContext:
+            {{- include "spire-lib.securitycontext-extended" (dict "root" . "securityContext" .Values.tornjak.securityContext) | nindent 12 }}
+          image: {{ template "spire-lib.image" (dict "appVersion" .Values.dynamicRegistration.image.tag "image" .Values.dynamicRegistration.image "global" .Values.global "ubi" false) }}
+          imagePullPolicy: {{ .Values.dynamicRegistration.image.pullPolicy }}
+          env:
+            - name: SPIFFE_TRUST_DOMAIN
+              value: {{ include "spire-lib.trust-domain" . | quote }}
+            - name: EXPECTED_AUDIENCE
+              value: {{ .Values.dynamicRegistration.audience | quote }}
+            - name: EXPECTED_SERVICE_ACCOUNT
+              {{- if contains ":" .Values.dynamicRegistration.serviceAccount }}
+              value: {{ .Values.dynamicRegistration.serviceAccount | quote }}
+              {{- else }}
+              value: {{ printf "%s:%s" (include "spire-server.agent-namespace" .) .Values.dynamicRegistration.serviceAccount | quote }}
+              {{- end }}
+            - name: ALLOWEDID_PREFIX
+              {{- if .Values.dynamicRegistration.addClusterName.allowedIDPrefix }}
+              value: {{ printf "%s/%s" .Values.dynamicRegistration.allowedIDPrefix (include "spire-lib.cluster-name" .) | quote }}
+              {{- else }}
+              value: {{ .Values.dynamicRegistration.allowedIDPrefix | quote }}
+              {{- end }}
+            - name: ENTRY_PREFIX
+              value: {{ .Values.dynamicRegistration.entryPrefix | quote }}
+            - name: REGISTRATION_PREFIX
+              {{- if .Values.dynamicRegistration.addClusterName.registrationPrefix }}
+              value: {{ printf "%s/%s" .Values.dynamicRegistration.registrationPrefix (include "spire-lib.cluster-name" .) | quote }}
+              {{- else }}
+              value: {{ .Values.dynamicRegistration.registrationPrefix | quote }}
+              {{- end }}
+          volumeMounts:
+            - name: spire-server-socket
+              mountPath: /tmp/spire-server/private
+              readOnly: true
+          ports:
+            - name: dynamic-https
+              containerPort: 8931
+              protocol: TCP
+        {{- end }}
         {{- if eq (.Values.tornjak.enabled | toString) "true" }}
         - name: tornjak
           securityContext:
@@ -444,6 +484,29 @@ spec:
             - name: user-cert
               mountPath: /opt/spire/user
             {{- end }}
+        {{- end }}
+        {{- if eq (.Values.trustSync.enabled | toString) "true" }}
+        - name: spire-trust-sync
+          image: {{ template "spire-lib.image" (dict "appVersion" .Values.trustSync.image.defaultTag "image" .Values.trustSync.image "global" .Values.global "ubi" false) }}
+          imagePullPolicy: {{ .Values.trustSync.image.pullPolicy }}
+          args:
+          - -trust-domains={{ join "," .Values.trustSync.domains }}
+          env:
+          - name: SPIFFE_TRUST_DOMAIN
+            value: {{ include "spire-lib.trust-domain" . | quote }}
+          - name: SPIRE_SERVER_SOCKET
+            value: unix:///tmp/spire-server/private/api.sock
+          - name: SPIFFE_ENDPOINT_SOCKET
+            value: unix:///run/spire/upstream_agent/spire-agent.sock
+          volumeMounts:
+          - mountPath: /run/spire/upstream_agent
+            name: upstream-agent
+            readOnly: true
+          - mountPath: /tmp/spire-server/private
+            name: spire-server-socket
+            readOnly: true
+          securityContext:
+            {{- include "spire-lib.securitycontext" . | nindent 12 }}
         {{- end }}
 
         {{- if gt (len .Values.extraContainers) 0 }}

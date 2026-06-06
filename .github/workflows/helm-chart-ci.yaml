@@ -37,7 +37,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v6.0.3
 
       - name: Verify Docs updated
         run: ./helm-docs.sh
@@ -107,7 +107,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v6.0.3
         with:
           fetch-depth: 0
 
@@ -149,7 +149,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v6.0.3
         with:
           fetch-depth: 0
 
@@ -201,7 +201,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v6.0.3
 
       - id: set-matrix-example
         name: Collect all examples
@@ -242,7 +242,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v6.0.3
 
       - name: Set up Helm
         uses: azure/setup-helm@v5
@@ -268,7 +268,7 @@ jobs:
 
       - name: Install and test example
         run: |
-          if [ "${{ matrix.example }}" = "examples/federation" -o "${{ matrix.example }}" = "examples/nested-full" -o "${{ matrix.example }}" = "examples/nested-security" ]; then
+          if [ "${{ matrix.example }}" = "examples/federation" -o "${{ matrix.example }}" = "examples/nested-full" -o "${{ matrix.example }}" = "examples/nested-security" -o "${{ matrix.example }}" = "examples/bottom-turtle-ha" ]; then
             kubectl create namespace spire-mgmt
             helm install -n spire-mgmt spire-crds charts/spire-crds
           else
@@ -297,7 +297,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v6.0.3
 
       - name: Set up Helm
         uses: azure/setup-helm@v5
@@ -343,7 +343,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v6.0.3
 
       - name: Set up Helm
         uses: azure/setup-helm@v5

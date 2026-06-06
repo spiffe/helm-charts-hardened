@@ -1,0 +1,9 @@
+apiVersion: spire.spiffe.io/v1alpha1
+kind: ClusterStaticEntry
+metadata:
+  name: node1-spire-trust-sync-a
+spec:
+  parentID: spiffe://${SPIFFE_TRUST_DOMAIN}/agent/node1
+  spiffeID: spiffe://${SPIFFE_TRUST_DOMAIN}/spire-trust-sync-a
+  selectors:
+  - systemd:id:spire-trust-sync@a.service

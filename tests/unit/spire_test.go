@@ -150,6 +150,32 @@ spire-server:
 			Expect(notes).Should(ContainSubstring("Installed"))
 		})
 	})
+	Describe("spire-server.nodeAttestor.awsIID.verifyOrganization", func() {
+		It("emits verify_organization in server config JSON", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  nodeAttestor:
+    k8sPSAT:
+      enabled: false
+    awsIID:
+      enabled: true
+      verifyOrganization:
+        enabled: true
+        managementAccountId: "111122223333"
+        assumeOrgRole: "spire-server-org-validator"
+        managementAccountRegion: "us-east-1"
+        orgAccountMapTTL: "5m"
+`)
+			Expect(err).Should(Succeed())
+			notes := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(notes).Should(ContainSubstring(`verify_organization`))
+			Expect(notes).Should(ContainSubstring(`management_account_id`))
+			Expect(notes).Should(ContainSubstring(`111122223333`))
+			Expect(notes).Should(ContainSubstring(`spire-server-org-validator`))
+			Expect(notes).Should(ContainSubstring(`us-east-1`))
+			Expect(notes).Should(ContainSubstring(`5m`))
+		})
+	})
 	Describe("spire-server.credentialComposer.uniqueID", func() {
 		It("spire server uniqueid credential composer", func() {
 			objs, err := ValueStringRender(chart, `
