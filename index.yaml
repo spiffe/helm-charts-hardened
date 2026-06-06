@@ -3,6 +3,36 @@ entries:
   spiffe-step-ssh:
   - apiVersion: v2
     appVersion: 1.16.0
+    created: "2026-06-06T19:13:56.362425341Z"
+    dependencies:
+    - name: spire-lib
+      repository: file://../spire-lib
+      version: 0.2.0
+    - alias: step
+      name: step-certificates
+      repository: https://smallstep.github.io/helm-charts/
+      version: 1.27.4
+    description: sshd signed host certificates using SPIFFE for trust and step CA
+    digest: 10103523b7fece2bec125c45ee144f4c9b507a3721993ba4c2ad6b5987314d6a
+    home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spiffe-step-ssh
+    icon: https://spiffe.io/img/logos/spire/icon/color/spire-icon-color.png
+    keywords:
+    - spiffe
+    - step
+    - step-ca
+    - ssh
+    maintainers:
+    - email: Kevin.Fox@pnnl.gov
+      name: kfox1111
+    name: spiffe-step-ssh
+    sources:
+    - https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spiffe-step-ssh
+    type: application
+    urls:
+    - https://github.com/spiffe/helm-charts-hardened/releases/download/spiffe-step-ssh-0.2.0/spiffe-step-ssh-0.2.0.tgz
+    version: 0.2.0
+  - apiVersion: v2
+    appVersion: 1.16.0
     created: "2026-04-13T19:48:54.945033765Z"
     dependencies:
     - name: spire-lib
@@ -92,6 +122,89 @@ entries:
     - https://github.com/spiffe/helm-charts-hardened/releases/download/spiffe-step-ssh-0.1.0/spiffe-step-ssh-0.1.0.tgz
     version: 0.1.0
   spire:
+  - annotations:
+      artifacthub.io/category: security
+      artifacthub.io/license: Apache-2.0
+      org.opencontainers.image.source: https://github.com/spiffe/helm-charts-hardened
+    apiVersion: v2
+    appVersion: 1.14.5
+    created: "2026-06-06T19:13:56.531263466Z"
+    dependencies:
+    - name: spire-lib
+      repository: file://../spire-lib
+      version: 0.2.0
+    - condition: spire-server.enabled
+      name: spire-server
+      repository: file://./charts/spire-server
+      version: 0.1.0
+    - condition: spire-agent.enabled
+      name: spire-agent
+      repository: file://./charts/spire-agent
+      version: 0.1.0
+    - alias: upstream-spire-agent
+      condition: upstream.enabled
+      name: spire-agent
+      repository: file://./charts/spire-agent
+      version: 0.1.0
+    - condition: spiffe-csi-driver.enabled
+      name: spiffe-csi-driver
+      repository: file://./charts/spiffe-csi-driver
+      version: 0.1.0
+    - alias: upstream-spiffe-csi-driver
+      condition: upstream.enabled
+      name: spiffe-csi-driver
+      repository: file://./charts/spiffe-csi-driver
+      version: 0.1.0
+    - condition: spiffe-oidc-discovery-provider.enabled
+      name: spiffe-oidc-discovery-provider
+      repository: file://./charts/spiffe-oidc-discovery-provider
+      version: 0.1.0
+    - condition: tornjak-frontend.enabled
+      name: tornjak-frontend
+      repository: file://./charts/tornjak-frontend
+      version: 0.1.0
+    - condition: spike-keeper.enabled
+      name: spike-keeper
+      repository: file://./charts/spike-keeper
+      version: 0.1.0
+    - condition: spike-nexus.enabled
+      name: spike-nexus
+      repository: file://./charts/spike-nexus
+      version: 0.1.0
+    - condition: spike-pilot.enabled
+      name: spike-pilot
+      repository: file://./charts/spike-pilot
+      version: 0.1.0
+    description: 'A Helm chart for deploying the complete Spire stack including: spire-server,
+      spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager. '
+    digest: b73205c87c5edfdaa5dcb6d6de16685950e02a5b8f843cdc6e101d127ef7a7be
+    home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire
+    icon: https://spiffe.io/img/logos/spire/icon/color/spire-icon-color.png
+    keywords:
+    - spiffe
+    - spire
+    - spire-server
+    - spire-agent
+    - oidc
+    - spire-controller-manager
+    kubeVersion: '>=1.21.0-0'
+    maintainers:
+    - email: marco.franssen@gmail.com
+      name: marcofranssen
+      url: https://marcofranssen.nl
+    - email: Kevin.Fox@pnnl.gov
+      name: kfox1111
+    - email: fymemon@yahoo.com
+      name: faisal-memon
+    - email: edwbuck@gmail.com
+      name: edwbuck
+    name: spire
+    sources:
+    - https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire
+    type: application
+    urls:
+    - https://github.com/spiffe/helm-charts-hardened/releases/download/spire-0.29.0/spire-0.29.0.tgz
+    version: 0.29.0
   - annotations:
       artifacthub.io/category: security
       artifacthub.io/license: Apache-2.0
@@ -3857,6 +3970,35 @@ entries:
   spire-ha-agent:
   - apiVersion: v2
     appVersion: 0.0.17
+    created: "2026-06-06T19:13:56.65142222Z"
+    dependencies:
+    - name: spire-lib
+      repository: file://../spire-lib
+      version: 0.2.0
+    description: A Helm chart to install the SPIRE HA agent.
+    digest: 3d83262cf1d49e29fc0049719a55e0c3bfdc454345ab17f1e216ccfdee94a74f
+    home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire-ha-agent
+    icon: https://spiffe.io/img/logos/spire/icon/color/spire-icon-color.png
+    keywords:
+    - spiffe
+    - spire-ha-agent
+    maintainers:
+    - email: marco.franssen@gmail.com
+      name: marcofranssen
+      url: https://marcofranssen.nl
+    - email: Kevin.Fox@pnnl.gov
+      name: kfox1111
+    - email: fymemon@yahoo.com
+      name: faisal-memon
+    name: spire-ha-agent
+    sources:
+    - https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire
+    type: application
+    urls:
+    - https://github.com/spiffe/helm-charts-hardened/releases/download/spire-ha-agent-0.2.0/spire-ha-agent-0.2.0.tgz
+    version: 0.2.0
+  - apiVersion: v2
+    appVersion: 0.0.17
     created: "2026-04-13T19:48:55.429509968Z"
     dependencies:
     - name: spire-lib
@@ -3891,6 +4033,38 @@ entries:
       org.opencontainers.image.source: https://github.com/spiffe/helm-charts-hardened
     apiVersion: v2
     appVersion: 0.1.0
+    created: "2026-06-06T19:13:56.798815831Z"
+    description: A library of helper templates for SPIRE charts.
+    digest: caba7a515ae0a16ab6a21c30c3c3d480bf86bb5817980d0b34659b02512b2875
+    home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire-lib
+    icon: https://spiffe.io/img/logos/spire/icon/color/spire-icon-color.png
+    keywords:
+    - spiffe
+    - spire
+    - library
+    maintainers:
+    - email: marco.franssen@gmail.com
+      name: marcofranssen
+      url: https://marcofranssen.nl
+    - email: Kevin.Fox@pnnl.gov
+      name: kfox1111
+    - email: fymemon@yahoo.com
+      name: faisal-memon
+    - email: edwbuck@gmail.com
+      name: edwbuck
+    name: spire-lib
+    sources:
+    - https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire-lib
+    type: library
+    urls:
+    - https://github.com/spiffe/helm-charts-hardened/releases/download/spire-lib-0.2.0/spire-lib-0.2.0.tgz
+    version: 0.2.0
+  - annotations:
+      artifacthub.io/category: security
+      artifacthub.io/license: Apache-2.0
+      org.opencontainers.image.source: https://github.com/spiffe/helm-charts-hardened
+    apiVersion: v2
+    appVersion: 0.1.0
     created: "2026-04-13T19:48:55.661098708Z"
     description: A library of helper templates for SPIRE charts.
     digest: a78948277623e1e3f00e93bc508a34a61f3121a0887c6ea4c9722da3f1a6c31d
@@ -3918,6 +4092,201 @@ entries:
     - https://github.com/spiffe/helm-charts-hardened/releases/download/spire-lib-0.1.0/spire-lib-0.1.0.tgz
     version: 0.1.0
   spire-nested:
+  - annotations:
+      artifacthub.io/category: security
+      artifacthub.io/license: Apache-2.0
+    apiVersion: v2
+    appVersion: 1.15.1
+    created: "2026-06-06T19:13:56.956324332Z"
+    dependencies:
+    - name: spire-lib
+      repository: file://../spire-lib
+      version: 0.2.0
+    - alias: root-spire-server
+      condition: root-spire-server.enabled
+      name: spire-server
+      repository: file://../spire/charts/spire-server
+      tags:
+      - nestedRoot
+      version: 0.1.0
+    - alias: external-root-spire-server-full
+      condition: external-root-spire-server-full.enabled
+      name: spire-server
+      repository: file://../spire/charts/spire-server
+      tags:
+      - nestedChildFull
+      version: 0.1.0
+    - alias: external-root-spire-server-security
+      condition: external-root-spire-server-security.enabled
+      name: spire-server
+      repository: file://../spire/charts/spire-server
+      tags:
+      - nestedChildSecurity
+      version: 0.1.0
+    - alias: internal-spire-server
+      condition: internal-spire-server.enabled
+      name: spire-server
+      repository: file://../spire/charts/spire-server
+      tags:
+      - nestedRoot
+      - nestedChildFull
+      version: 0.1.0
+    - alias: external-spire-server
+      condition: external-spire-server.enabled
+      name: spire-server
+      repository: file://../spire/charts/spire-server
+      tags:
+      - nestedRoot
+      version: 0.1.0
+    - alias: downstream-spire-agent-full
+      condition: downstream-spire-agent-full.enabled
+      name: spire-agent
+      repository: file://../spire/charts/spire-agent
+      tags:
+      - nestedRoot
+      - nestedChildFull
+      version: 0.1.0
+    - alias: downstream-spire-agent-security
+      condition: downstream-spire-agent-security.enabled
+      name: spire-agent
+      repository: file://../spire/charts/spire-agent
+      tags:
+      - nestedChildSecurity
+      version: 0.1.0
+    - alias: upstream-spire-agent
+      condition: upstream-spire-agent.enabled
+      name: spire-agent
+      repository: file://../spire/charts/spire-agent
+      tags:
+      - nestedRoot
+      - nestedChildFull
+      version: 0.1.0
+    - alias: downstream-spiffe-csi-driver
+      condition: downstream-spiffe-csi-driver.enabled
+      name: spiffe-csi-driver
+      repository: file://../spire/charts/spiffe-csi-driver
+      tags:
+      - nestedRoot
+      - nestedChildFull
+      - nestedChildSecurity
+      version: 0.1.0
+    - alias: upstream-spiffe-csi-driver
+      condition: upstream-spiffe-csi-driver.enabled
+      name: spiffe-csi-driver
+      repository: file://../spire/charts/spiffe-csi-driver
+      tags:
+      - nestedRoot
+      - nestedChildFull
+      version: 0.1.0
+    - condition: spiffe-oidc-discovery-provider.enabled
+      name: spiffe-oidc-discovery-provider
+      repository: file://../spire/charts/spiffe-oidc-discovery-provider
+      tags:
+      - nestedRoot
+      - nestedChildFull
+      - nestedChildSecurity
+      - haAgentCommon
+      version: 0.1.0
+    - condition: tornjak-frontend.enabled
+      name: tornjak-frontend
+      repository: file://../spire/charts/tornjak-frontend
+      version: 0.1.0
+    - condition: spiffe-csi-driver.enabled
+      name: spiffe-csi-driver
+      repository: file://../spire/charts/spiffe-csi-driver
+      tags:
+      - haAgentCommon
+      version: 0.1.0
+    - condition: spire-ha-agent.enabled
+      name: spire-ha-agent
+      repository: file://../spire-ha-agent
+      tags:
+      - haAgentCommon
+      version: 0.2.0
+    - alias: internal-spire-server-bottom-turtle-ha-a
+      condition: internal-spire-server-bottom-turtle-ha-a.enabled
+      name: spire-server
+      repository: file://../spire/charts/spire-server
+      tags:
+      - bottomTurtleHAA
+      version: 0.1.0
+    - alias: downstream-spire-agent-bottom-turtle-ha-a
+      condition: downstream-spire-agent-bottom-turtle-ha-a.enabled
+      name: spire-agent
+      repository: file://../spire/charts/spire-agent
+      tags:
+      - bottomTurtleHAA
+      version: 0.1.0
+    - alias: downstream-spiffe-csi-driver-bottom-turtle-ha-a
+      condition: downstream-spiffe-csi-driver-bottom-turtle-ha-a.enabled
+      name: spiffe-csi-driver
+      repository: file://../spire/charts/spiffe-csi-driver
+      tags:
+      - bottomTurtleHAA
+      version: 0.1.0
+    - alias: upstream-spiffe-csi-driver-bottom-turtle-ha-a
+      condition: upstream-spiffe-csi-driver-bottom-turtle-ha-a.enabled
+      name: spiffe-csi-driver
+      repository: file://../spire/charts/spiffe-csi-driver
+      tags:
+      - bottomTurtleHAA
+      version: 0.1.0
+    - alias: internal-spire-server-bottom-turtle-ha-b
+      condition: internal-spire-server-bottom-turtle-ha-b.enabled
+      name: spire-server
+      repository: file://../spire/charts/spire-server
+      tags:
+      - bottomTurtleHAB
+      version: 0.1.0
+    - alias: downstream-spire-agent-bottom-turtle-ha-b
+      condition: downstream-spire-agent-bottom-turtle-ha-b.enabled
+      name: spire-agent
+      repository: file://../spire/charts/spire-agent
+      tags:
+      - bottomTurtleHAB
+      version: 0.1.0
+    - alias: downstream-spiffe-csi-driver-bottom-turtle-ha-b
+      condition: downstream-spiffe-csi-driver-bottom-turtle-ha-b.enabled
+      name: spiffe-csi-driver
+      repository: file://../spire/charts/spiffe-csi-driver
+      tags:
+      - bottomTurtleHAB
+      version: 0.1.0
+    - alias: upstream-spiffe-csi-driver-bottom-turtle-ha-b
+      condition: upstream-spiffe-csi-driver-bottom-turtle-ha-b.enabled
+      name: spiffe-csi-driver
+      repository: file://../spire/charts/spiffe-csi-driver
+      tags:
+      - bottomTurtleHAB
+      version: 0.1.0
+    description: 'A Helm chart for deploying the complete Spire stack including: spire-server,
+      spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager. '
+    digest: e647877f125390da1b1de16290a9b7235c32fe69ca4b633679d133223dbb698f
+    home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire
+    icon: https://spiffe.io/img/logos/spire/icon/color/spire-icon-color.png
+    keywords:
+    - spiffe
+    - spire
+    - spire-server
+    - spire-agent
+    - oidc
+    - spire-controller-manager
+    kubeVersion: '>=1.21.0-0'
+    maintainers:
+    - email: marco.franssen@gmail.com
+      name: marcofranssen
+      url: https://marcofranssen.nl
+    - email: Kevin.Fox@pnnl.gov
+      name: kfox1111
+    - email: fymemon@yahoo.com
+      name: faisal-memon
+    name: spire-nested
+    sources:
+    - https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire
+    type: application
+    urls:
+    - https://github.com/spiffe/helm-charts-hardened/releases/download/spire-nested-0.29.0/spire-nested-0.29.0.tgz
+    version: 0.29.0
   - annotations:
       artifacthub.io/category: security
       artifacthub.io/license: Apache-2.0
@@ -6577,4 +6946,4 @@ entries:
     urls:
     - https://github.com/spiffe/helm-charts-hardened/releases/download/spire-nested-0.20.0/spire-nested-0.20.0.tgz
     version: 0.20.0
-generated: "2026-04-13T19:48:55.90515301Z"
+generated: "2026-06-06T19:13:56.956598395Z"
