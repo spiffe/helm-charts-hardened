@@ -2,7 +2,7 @@ apiVersion: v2
 name: spire-lib
 description: A library of helper templates for SPIRE charts.
 type: library
-version: 0.1.0
+version: 0.2.0
 appVersion: "0.1.0"
 keywords: ["spiffe", "spire", "library"]
 home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire-lib

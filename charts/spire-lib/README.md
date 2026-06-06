@@ -7,7 +7,7 @@ A [Helm Library Chart](https://helm.sh/docs/topics/library_charts/#helm) for gro
 ```yaml
 dependencies:
   - name: spire-lib
-    version: 0.1.0
+    version: 0.2.0
     repository: https://spiffe.github.io/helm-charts-hardened/
 ```
 
