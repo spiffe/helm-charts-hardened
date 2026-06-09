@@ -129,9 +129,6 @@ topologySpreadConstraints: []
 ## @param terminationGracePeriodSeconds [nullable] Override the termination grace period for the pod. Increase to allow time for load balancer target deregistration and in-flight gRPC drain before SIGKILL.
 terminationGracePeriodSeconds: ~
 
-## @param lifecycle [object] Lifecycle hooks for the spire-server container. Use preStop to hold the pod alive during load balancer deregistration (e.g. preStop.sleep.seconds: 60).
-lifecycle: {}
-
 ## @param livenessProbe.failureThreshold Failure threshold count for livenessProbe
 ## @param livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
 ## @param livenessProbe.periodSeconds Period seconds for livenessProbe
