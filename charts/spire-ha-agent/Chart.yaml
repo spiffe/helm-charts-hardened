@@ -2,7 +2,7 @@ apiVersion: v2
 name: spire-ha-agent
 description: A Helm chart to install the SPIRE HA agent.
 type: application
-version: 0.1.0
+version: 0.2.0
 appVersion: "0.0.17"
 keywords: ["spiffe", "spire-ha-agent"]
 home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire-ha-agent
@@ -20,4 +20,4 @@ maintainers:
 dependencies:
   - name: spire-lib
     repository: file://../spire-lib
-    version: 0.1.0
+    version: 0.2.0

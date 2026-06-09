@@ -123,16 +123,13 @@ echo "${IP} spire-server.production.other spiffe-step-ssh.production.other spiff
 echo Hosts:
 cat /etc/hosts
 
-curl -L https://raw.githubusercontent.com/kfox1111/spire-examples/refs/heads/spiffe-step-ssh/examples/spiffe-step-ssh/scripts/demo.sh | sudo bash
+# Get the package repo and install the packages
+curl -o /tmp/stepcli.deb https://dl.smallstep.com/gh-release/cli/gh-release-header/v0.30.2/step-cli_0.30.2-1_amd64.deb -L
+sudo dpkg -i /tmp/stepcli.deb
+sudo curl -s -o /etc/apt/sources.list.d/spire-examples.list https://raw.githubusercontent.com/spiffe/spire-examples/refs/heads/main/examples/debs/amd64/spire-examples.list
+sudo apt-get update
+sudo apt-get install -y spire-common spire-agent spiffe-step-ssh spiffe-helper
 
-sudo mkdir -p /usr/libexec/spiffe-step-ssh
-sudo mkdir -p /etc/systemd/system/sshd.service.d
-sudo curl -L -o /usr/libexec/spiffe-step-ssh/update.sh https://raw.githubusercontent.com/kfox1111/spire-examples/refs/heads/spiffe-step-ssh/examples/spiffe-step-ssh/scripts/update.sh
-sudo curl -L -o /etc/systemd/system/spiffe-step-ssh@.service https://raw.githubusercontent.com/kfox1111/spire-examples/refs/heads/spiffe-step-ssh/examples/spiffe-step-ssh/systemd/spiffe-step-ssh@.service
-sudo curl -L -o /etc/systemd/system/spiffe-step-ssh-cleanup.service https://raw.githubusercontent.com/kfox1111/spire-examples/refs/heads/spiffe-step-ssh/examples/spiffe-step-ssh/systemd/spiffe-step-ssh-cleanup.service
-sudo curl -L -o /etc/systemd/system/sshd.service.d/10-spiffe-step-ssh.conf https://raw.githubusercontent.com/kfox1111/spire-examples/refs/heads/spiffe-step-ssh/examples/spiffe-step-ssh/conf/10-spiffe-step-ssh.conf
-
-sudo mkdir -p /etc/spire/agent
 sudo cp "${SCRIPTPATH}/spire-agent.conf" /etc/spire/agent/main.conf
 
 PASSWORD=$(openssl rand -base64 48)

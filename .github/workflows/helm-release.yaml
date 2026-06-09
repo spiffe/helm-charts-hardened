@@ -5,7 +5,7 @@ on:
     branches:
       - release
     paths:
-      - '.github/workflows/helm-release.yml'
+      - '.github/workflows/helm-release.yaml'
       - 'charts/**'
 
 jobs:
@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v6.0.3
         with:
           fetch-depth: 0
 
@@ -37,6 +37,10 @@ jobs:
         uses: azure/setup-helm@v5
         with:
           version: v3.10.3
+
+      - name: Add required Helm repos for release packaging
+        run: |
+          helm repo add smallstep https://smallstep.github.io/helm-charts/
 
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.7.0

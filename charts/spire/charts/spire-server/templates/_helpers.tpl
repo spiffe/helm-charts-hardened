@@ -289,6 +289,12 @@ Create the name of the service account to use
 {{- define "spire-server.upstream-spire-address" }}
 {{- if ne (len (dig "spire" "upstreamSpireAddress" "" .Values.global)) 0 }}
 {{- print .Values.global.spire.upstreamSpireAddress }}
+{{- else if .Values.upstreamAuthority.spire.server.address }}
+{{-   if contains "." .Values.upstreamAuthority.spire.server.address }}
+{{-     print .Values.upstreamAuthority.spire.server.address }}
+{{-   else }}
+{{-     printf "%s.%s" .Values.upstreamAuthority.spire.server.address (include "spire-lib.trust-domain" .) }}
+{{-   end }}
 {{- else if .Values.upstreamAuthority.spire.server.nameOverride }}
 {{- printf "%s-%s" .Release.Name .Values.upstreamAuthority.spire.server.nameOverride }}
 {{- else }}

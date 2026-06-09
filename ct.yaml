@@ -6,6 +6,7 @@ chart-repos:
   - spiffe=https://spiffe.github.io/helm-charts-hardened/
   - bitnami=https://charts.bitnami.com/bitnami
   - ingress-nginx=https://kubernetes.github.io/ingress-nginx
+  - smallstep=https://smallstep.github.io/helm-charts/
 exclude-deprecated: true
 debug: true
 helm-extra-args: "--timeout 15m"
