@@ -56,6 +56,8 @@ server_path_prefix: {{ .Values.config.serverPathPrefix | quote }}
 set_key_use: true
 {{- end }}
 
+jwt_issuer: {{ include "spire-lib.jwt-issuer" . | quote }}
+
 {{- if eq .Values.bundleSource "ConfigMap" }}
 file:
   path: /bundle/bundle.spiffe

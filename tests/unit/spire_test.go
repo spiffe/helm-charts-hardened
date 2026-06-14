@@ -189,4 +189,35 @@ spire-server:
 			Expect(notes).Should(ContainSubstring("Installed"))
 		})
 	})
+	Describe("spiffe-oidc-discovery-provider.jwtIssuer", func() {
+		It("auto-derives jwt_issuer from global.spire.jwtIssuer and matches spire-server", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  spire:
+    jwtIssuer: https://canonical.example.com
+`)
+			Expect(err).Should(Succeed())
+			oidcCM := objs["spire/charts/spiffe-oidc-discovery-provider/templates/configmap.yaml"]
+			Expect(oidcCM).Should(ContainSubstring(`"jwt_issuer": "https://canonical.example.com"`))
+			serverCM := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(serverCM).Should(ContainSubstring(`"jwt_issuer": "https://canonical.example.com"`))
+		})
+		It("propagates the subchart-local jwtIssuer to jwt_issuer", func() {
+			objs, err := ValueStringRender(chart, `
+spiffe-oidc-discovery-provider:
+  jwtIssuer: https://legacy.example.com
+`)
+			Expect(err).Should(Succeed())
+			oidcCM := objs["spire/charts/spiffe-oidc-discovery-provider/templates/configmap.yaml"]
+			Expect(oidcCM).Should(ContainSubstring(`"jwt_issuer": "https://legacy.example.com"`))
+		})
+		It("defaults to oidc-discovery.<trustDomain> when nothing is set and strict mode is disabled", func() {
+			objs, err := ValueStringRender(chart, ``)
+			Expect(err).Should(Succeed())
+			oidcCM := objs["spire/charts/spiffe-oidc-discovery-provider/templates/configmap.yaml"]
+			Expect(oidcCM).Should(ContainSubstring(`"jwt_issuer": "https://oidc-discovery.example.org"`))
+			serverCM := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(serverCM).Should(ContainSubstring(`"jwt_issuer": "https://oidc-discovery.example.org"`))
+		})
+	})
 })
