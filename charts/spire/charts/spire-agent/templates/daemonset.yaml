@@ -377,6 +377,11 @@ spec:
               mountPath: /run/spire/bundle
             {{- end }}
             {{- end }}
+            {{- if $pluginLoaderNeeded }}
+            - name: plugins
+              mountPath: /plugins
+              readOnly: true
+            {{- end }}
             {{- if .Values.nodeAttestor.tpmDirect.enabled }}
             - name: tpm-direct
               mountPath: /tpm

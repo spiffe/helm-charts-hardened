@@ -581,8 +581,8 @@ spec:
           secret:
             secretName: {{ include "spire-server.fullname" . }}-kubeconfigs
         {{- end }}
-        {{- if .Values.credentialComposer.cel.enabled }}
-        - name: cel
+        {{- if $pluginLoaderNeeded }}
+        - name: plugins
           emptyDir: {}
         {{- end }}
         {{- if .Values.nodeAttestor.tpmDirect.enabled }}
