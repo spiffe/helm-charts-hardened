@@ -64,6 +64,8 @@
 {{-     fail "clientKeyPath can only be set with database type mysql or aws_mysql." }}
 {{-   end }}
 {{- end }}
+{{- $pluginsToLoad := include "spire-lib.extract_custom_plugin_images" . | fromYamlArray }}
+{{- $pluginLoaderNeeded := or .Values.credentialComposer.cel.enabled (gt (len $pluginsToLoad) 0) }}
 {{- if not .Values.externalServer }}
 apiVersion: apps/v1
 {{- if eq .Values.kind "statefulset" }}
@@ -121,10 +123,10 @@ spec:
       securityContext:
         {{- $podSecurityContext | toYaml | nindent 8 }}
       {{- include "spire-lib.default_cluster_priority_class_name" . | nindent 6 }}
-      {{- if or (gt (len .Values.initContainers) 0) (and .Values.upstreamAuthority.certManager.enabled .Values.upstreamAuthority.certManager.ca.create) .Values.nodeAttestor.tpmDirect.enabled .Values.credentialComposer.cel.enabled $needsChown }}
+      {{- if or (gt (len .Values.initContainers) 0) (and .Values.upstreamAuthority.certManager.enabled .Values.upstreamAuthority.certManager.ca.create) .Values.nodeAttestor.tpmDirect.enabled $pluginLoaderNeeded $needsChown }}
       initContainers:
-        {{- if .Values.credentialComposer.cel.enabled }}
-        - name: init-cel
+        {{- if $pluginLoaderNeeded }}
+        - name: init-plugins
           securityContext:
             {{- include "spire-lib.securitycontext" . | nindent 12 }}
           image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.tools.busybox.image "global" .Values.global) }}
@@ -134,27 +136,60 @@ spec:
             - sh
             - -ec
             - |
-              cp -a /bin/busybox /cel/busybox
+              cp -a /bin/busybox /plugins/busybox
           volumeMounts:
-            - name: cel
-              mountPath: /cel
-          imagePullPolicy: {{ .Values.credentialComposer.cel.image.pullPolicy }}
-        - name: init-cel2
+            - name: plugins
+              mountPath: /plugins
+          imagePullPolicy: {{ .Values.tools.busybox.image.pullPolicy }}
+        {{- end }}
+        {{- if .Values.credentialComposer.cel.enabled }}
+        - name: init-cel
           securityContext:
             {{- include "spire-lib.securitycontext" . | nindent 12 }}
           image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.credentialComposer.cel.image "global" .Values.global) }}
           # Second, use the previously copied busybox to copy the plugin into a volume that can be mounted where SPIRE can execute it.
           command:
-            - /cel/busybox
+            - /plugins/busybox
             - sh
             - -ec
             - |
-              /cel/busybox cp -a {{ .Values.credentialComposer.cel.pluginPath }} /cel/credentialcomposer-cel
-              /cel/busybox rm -f /cel/busybox
+              /plugins/busybox cp -a {{ .Values.credentialComposer.cel.pluginPath }} /plugins/credentialcomposer-cel
           volumeMounts:
-            - name: cel
-              mountPath: /cel
+            - name: plugins
+              mountPath: /plugins
           imagePullPolicy: {{ .Values.credentialComposer.cel.image.pullPolicy }}
+        {{- end }}
+        {{- range $idx, $plugin := $pluginsToLoad }}
+        - name: {{ printf "init-plugin-%d" $idx }}
+          securityContext:
+            {{- include "spire-lib.securitycontext" $ | nindent 12 }}
+          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" $plugin.image "global" $.Values.global) }}
+          command:
+            - /plugins/busybox
+            - sh
+            - -ec
+            - |
+              /plugins/busybox cp -a {{ $plugin.plugin_cmd }} /plugins/
+          volumeMounts:
+            - name: plugins
+              mountPath: /plugins
+          imagePullPolicy: {{ $plugin.image.pullPolicy }}
+        {{- end }}
+        {{- if $pluginLoaderNeeded }}
+        - name: finalize-plugins
+          securityContext:
+            {{- include "spire-lib.securitycontext" . | nindent 12 }}
+          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.tools.busybox.image "global" .Values.global) }}
+          command:
+            - busybox
+            - sh
+            - -ec
+            - |
+              rm -f /plugins/busybox
+          volumeMounts:
+            - name: plugins
+              mountPath: /plugins
+          imagePullPolicy: {{ .Values.tools.busybox.image.pullPolicy }}
         {{- end }}
         {{- if .Values.nodeAttestor.tpmDirect.enabled }}
         - name: init-tpm-direct
@@ -337,9 +372,9 @@ spec:
               mountPath: /kubeconfigs
               readOnly: true
             {{- end }}
-            {{- if .Values.credentialComposer.cel.enabled }}
-            - name: cel
-              mountPath: /cel
+            {{- if $pluginLoaderNeeded }}
+            - name: plugins
+              mountPath: /plugins
               readOnly: true
             {{- end }}
             {{- if .Values.nodeAttestor.tpmDirect.enabled }}

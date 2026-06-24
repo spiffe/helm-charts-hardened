@@ -16,7 +16,7 @@
 {{-       fail (printf "plugin_checksum is a required field.") }}
 {{-     end }}
 {{-     range $sname, $svals := $nval }}
-{{-       if not (has $sname (list "plugin_cmd" "plugin_checksum" "plugin_data")) }}
+{{-       if not (has $sname (list "plugin_cmd" "plugin_checksum" "plugin_data" "image")) }}
 {{-         fail (printf "Unknown plugin setting specified: %s" $sname) }}
 {{-       end }}
 {{-     end }}

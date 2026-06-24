@@ -200,14 +200,20 @@ Take a copy of the config and merge in .Values.customPlugins and .Values.unsuppo
 */}}
 {{- define "spire-lib.config_merge" }}
 {{- $pluginsToMerge := dict "plugins" dict }}
-{{- range $type, $val := .root.Values.customPlugins }}
-{{-   if . }}
-{{-     if eq $type "svidStore" }}
-{{-       $_ := set $pluginsToMerge.plugins "SVIDStore" (deepCopy $val) }}
-{{-     else }}
-{{-       $nt := printf "%s%s" (substr 0 1 $type | upper) (substr 1 -1 $type) }}
-{{-       $_ := set $pluginsToMerge.plugins $nt (deepCopy $val) }}
+{{- range $type, $instances := .root.Values.customPlugins }}
+{{-   if $instances }}
+{{-     $nt := (eq $type "svidStore") | ternary "SVIDStore" (printf "%s%s" (substr 0 1 $type | upper) (substr 1 -1 $type)) }}
+{{-     $processedInstances := dict }}
+{{-     range $instanceName, $config := $instances }}
+{{-       $pluginData := deepCopy $config }}
+{{-       $hasImage := hasKey $pluginData "image" }}
+{{-       $_ := unset $pluginData "image" }}
+{{-       if and $hasImage $pluginData.plugin_cmd }}
+{{-         $_ := set $pluginData "plugin_cmd" (printf "/plugins/%s" (base $pluginData.plugin_cmd)) }}
+{{-       end }}
+{{-       $_ := set $processedInstances $instanceName $pluginData }}
 {{-     end }}
+{{-     $_ := set $pluginsToMerge.plugins $nt $processedInstances }}
 {{-   end }}
 {{- end }}
 {{- range $type, $val := .root.Values.unsupportedBuiltInPlugins }}
@@ -222,6 +228,22 @@ Take a copy of the config and merge in .Values.customPlugins and .Values.unsuppo
 {{- end }}
 {{- $newConfig := .config | fromYaml | mustMerge $pluginsToMerge }}
 {{- $newConfig | toYaml }}
+{{- end }}
+
+{{/*
+Find all customPlugins that specify an image, and build a list of binaries to copy into the plugin volume in the plugin loader.
+*/}}
+{{- define "spire-lib.extract_custom_plugin_images" }}
+{{- $pluginList := list }}
+{{- range $type, $instances := .Values.customPlugins }}
+{{-   range $instanceName, $config := $instances }}
+{{-     if $config.image }}
+{{-       $entry := dict "plugin_cmd" $config.plugin_cmd "image" $config.image }}
+{{-       $pluginList = append $pluginList $entry }}
+{{-     end }}
+{{-   end }}
+{{- end }}
+{{- $pluginList | toYaml }}
 {{- end }}
 
 {{/*
