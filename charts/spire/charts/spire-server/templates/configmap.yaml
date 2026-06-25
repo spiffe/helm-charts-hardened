@@ -260,12 +260,17 @@ plugins:
   {{- if eq (.enabled | toString) "true" }}
     x509pop:
       plugin_data:
-        mode: {{ .mode }}
-        {{- if and (eq .mode "external_pki") .caBundlePath }}
+        {{- if eq .mode "externalPKI" }}
+        mode: external_pki
+        {{- if .caBundlePath }}
         ca_bundle_path: {{ .caBundlePath | quote }}
+        {{- else if or (ne .caBundle.bundle "") (ne .caBundle.existingConfigMap "") }}
+        ca_bundle_path: "/run/spire/data/x509pop-ca-bundle.pem"
+        {{- end }}
         max_intermediates: {{ .maxIntermediates }}
         max_rsa_key_size: {{ .maxRSAKeySize }}
         {{- else }}
+        mode: {{ .mode }}
         {{- if .addClusterName.svidPrefix }}
         svid_prefix: {{ printf "%s/%s" .svidPrefix (include "spire-lib.cluster-name" $root) | quote }}
         {{- else }}

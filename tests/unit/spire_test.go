@@ -189,6 +189,30 @@ spire-server:
 			Expect(notes).Should(ContainSubstring("Installed"))
 		})
 	})
+	Describe("spire-server.nodeAttestor.x509POP", func() {
+		It("renders externalPKI mode with chart-managed ca bundle", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  nodeAttestor:
+    x509POP:
+      enabled: true
+      mode: externalPKI
+      caBundle:
+        bundle: |
+          -----BEGIN CERTIFICATE-----
+          MIIB...
+          -----END CERTIFICATE-----
+`)
+			Expect(err).Should(Succeed())
+			serverCM := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(serverCM).Should(ContainSubstring("mode: external_pki"))
+			Expect(serverCM).Should(ContainSubstring(`ca_bundle_path: "/run/spire/data/x509pop-ca-bundle.pem"`))
+			Expect(objs).Should(HaveKey("spire/charts/spire-server/templates/x509pop-configmap.yaml"))
+			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
+			Expect(serverResource).Should(ContainSubstring("x509pop-ca-bundle"))
+			Expect(serverResource).Should(ContainSubstring("/run/spire/data/x509pop-ca-bundle.pem"))
+		})
+	})
 	Describe("spiffe-oidc-discovery-provider.jwtIssuer", func() {
 		It("auto-derives jwt_issuer from global.spire.jwtIssuer and matches spire-server", func() {
 			objs, err := ValueStringRender(chart, `
