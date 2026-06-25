@@ -129,7 +129,7 @@ spec:
             - sh
             - -ec
             - |
-              mkdir -p /plugins/{{ dir $plugin.name }}
+              /plugins/busybox mkdir -p /plugins/{{ dir $plugin.name }}
               /plugins/busybox cp -a {{ $plugin.plugin_cmd }} /plugins/{{ $plugin.name }}
           volumeMounts:
             - name: plugins
