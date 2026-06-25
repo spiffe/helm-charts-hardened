@@ -209,7 +209,7 @@ Take a copy of the config and merge in .Values.customPlugins and .Values.unsuppo
 {{-       $hasImage := hasKey $pluginData "image" }}
 {{-       $_ := unset $pluginData "image" }}
 {{-       if and $hasImage $pluginData.plugin_cmd }}
-{{-         $_ := set $pluginData "plugin_cmd" (printf "/plugins/%s" (base $pluginData.plugin_cmd)) }}
+{{-         $_ := set $pluginData "plugin_cmd" (printf "/plugins/%s/%s" $type $instanceName) }}
 {{-       end }}
 {{-       $_ := set $processedInstances $instanceName $pluginData }}
 {{-     end }}
@@ -238,7 +238,7 @@ Find all customPlugins that specify an image, and build a list of binaries to co
 {{- range $type, $instances := .Values.customPlugins }}
 {{-   range $instanceName, $config := $instances }}
 {{-     if $config.image }}
-{{-       $entry := dict "plugin_cmd" $config.plugin_cmd "image" $config.image }}
+{{-       $entry := dict "plugin_cmd" $config.plugin_cmd "image" $config.image "name" (printf "$s/$s" $type $instanceName) }}
 {{-       $pluginList = append $pluginList $entry }}
 {{-     end }}
 {{-   end }}
