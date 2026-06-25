@@ -238,7 +238,7 @@ Find all customPlugins that specify an image, and build a list of binaries to co
 {{- range $type, $instances := .Values.customPlugins }}
 {{-   range $instanceName, $config := $instances }}
 {{-     if $config.image }}
-{{-       $entry := dict "plugin_cmd" $config.plugin_cmd "image" $config.image "name" (printf "$s/$s" $type $instanceName) }}
+{{-       $entry := dict "plugin_cmd" $config.plugin_cmd "image" $config.image "name" (printf "%s/%s" $type $instanceName) }}
 {{-       $pluginList = append $pluginList $entry }}
 {{-     end }}
 {{-   end }}
