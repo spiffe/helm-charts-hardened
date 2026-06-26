@@ -86,6 +86,9 @@ spec:
           args:
             - -config
             - /etc/spire/agent/six-agent.conf
+          env:
+            - name: SPIRE_AGENT_PUBLIC_SOCKET
+              value: /tmp/api.sock
           ports:
             - containerPort: 8182
               name: healthz
