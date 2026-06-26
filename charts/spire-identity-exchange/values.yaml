@@ -33,7 +33,7 @@ image:
   ## @param image.tag Overrides the image tag whose default is the chart appVersion
   ##
   registry: ghcr.io
-  repository: spiffe/spire-identity-exchange
+  repository: spiffe/spire-identity-exchange-server
   pullPolicy: IfNotPresent
   tag: ""
 
