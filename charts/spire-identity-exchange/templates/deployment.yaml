@@ -76,6 +76,7 @@ spec:
             - name: trustbundle
               mountPath: /trustbundle
         - name: spire-agent
+          workingDir: /tmp
           securityContext:
             {{- include "spire-lib.securitycontext" . | nindent 12 }}
           resources:
