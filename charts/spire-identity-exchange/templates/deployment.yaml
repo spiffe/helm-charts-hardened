@@ -76,7 +76,6 @@ spec:
             - name: trustbundle
               mountPath: /trustbundle
         - name: spire-agent
-          workingDir: /tmp
           securityContext:
             {{- include "spire-lib.securitycontext" . | nindent 12 }}
           resources:
@@ -111,6 +110,10 @@ spec:
             - name: trustbundle
               mountPath: /trustbundle
               readOnly: true
+            - name: spire-agent-data
+              mountPath: /agent-data
+              readOnly: true
+          #readinessProbe:
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -174,6 +177,8 @@ spec:
             secretName: {{ include "spire-identity-exchange.fullname" . }}-cert
           {{- end }}
         - name: spire-agent-socket
+          emptyDir: {}
+        - name: spire-agent-data
           emptyDir: {}
         - name: trustbundle
           emptyDir: {}
