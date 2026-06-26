@@ -112,8 +112,6 @@ spec:
               readOnly: true
             - name: spire-agent-data
               mountPath: /agent-data
-              readOnly: true
-          #readinessProbe:
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
