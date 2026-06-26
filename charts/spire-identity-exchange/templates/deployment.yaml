@@ -140,7 +140,6 @@ spec:
             - name: certdir
               mountPath: /secret
               readOnly: true
-          volumeMounts:
             - name: spire-identity-exchange-config
               mountPath: /etc/spire/identity-exchange/six.conf
               subPath: six.conf
