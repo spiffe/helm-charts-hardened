@@ -119,7 +119,7 @@ spec:
           args:
             - -config
             - /etc/spire/identity-exchange/six.conf
-            - -expandEnv
+            - -expand-env
           {{- with .Values.extraEnv }}
           env:
           {{- . | toYaml | nindent 12 }}
