@@ -1,0 +1,197 @@
+{{- $configSum := (include (print $.Template.BasePath "/configmap.yaml") . | sha256sum) }}
+{{- $trustDomain := include "spire-lib.trust-domain" . }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "spire-identity-exchange.fullname" . }}
+  namespace: {{ include "spire-identity-exchange.namespace" . }}
+  labels:
+    {{- include "spire-identity-exchange.labels" . | nindent 4 }}
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "spire-identity-exchange.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ $configSum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "spire-identity-exchange.selectorLabels" . | nindent 8 }}
+        release: {{ .Release.Name }}
+        release-namespace: {{ .Release.Namespace }}
+        component: spire-identity-exchange
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      shareProcessNamespace: true
+      {{- with (coalesce .Values.imagePullSecrets .Values.global.imagePullSecrets) }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "spire-identity-exchange.serviceAccountName" . }}
+      securityContext:
+        {{- include "spire-identity-exchange.podSecurityContext" . | nindent 8 }}
+      initContainers:
+        - name: spire-server-attestor
+          securityContext:
+            {{- include "spire-lib.securitycontext" . | nindent 12 }}
+          resources:
+            {{- toYaml .Values.spireServerAttestorSPIFFEWorkloadAPI.resources | nindent 12 }}
+          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.spireServerAttestorSPIFFEWorkloadAPI.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.spireServerAttestorSPIFFEWorkloadAPI.image.pullPolicy }}
+          restartPolicy: Always
+          args:
+            - /trustbundle/socket
+          env:
+            - name: SPIFFE_ENDPOINT_SOCKET
+              value: "unix:///spiffe-workload-api/spire-agent.sock"
+            - name: SPIFFE_TRUST_DOMAIN
+              value: {{ $trustDomain }}
+          readinessProbe:
+            exec:
+              command:
+                - /ko-app/spire-server-attestor-spiffe-workload-api
+                - --healthcheck
+                - /trustbundle/socket
+            initialDelaySeconds: 5
+            periodSeconds: 30
+            timeoutSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          volumeMounts:
+            - name: spiffe-workload-api
+              mountPath: /spiffe-workload-api
+              readOnly: true
+            - name: trustbundle
+              mountPath: /trustbundle
+        - name: spire-agent
+          securityContext:
+            {{- include "spire-lib.securitycontext" . | nindent 12 }}
+          resources:
+            {{- toYaml .Values.spireAgent.resources | nindent 12 }}
+          image: {{ template "spire-lib.image" (dict "image" .Values.spireAgent.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.spireAgent.image.pullPolicy }}
+          restartPolicy: Always
+          args:
+            - -config
+            - /etc/spire/agent/six-agent.conf
+          ports:
+            - containerPort: 8182
+              name: healthz
+          livenessProbe:
+            httpGet:
+              path: /live
+              port: healthz
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: healthz
+          volumeMounts:
+            - name: spiffe-workload-api
+              mountPath: /spiffe-workload-api
+              readOnly: true
+            - name: spire-identity-exchange-config
+              mountPath: /etc/spire/agent/six-agent.conf
+              subPath: six-agent.conf
+              readOnly: true
+            - name: spire-agent-socket
+              mountPath: /agent
+            - name: trustbundle
+              mountPath: /trustbundle
+              readOnly: true
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- include "spire-lib.securitycontext" . | nindent 12 }}
+          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - -config
+            - /etc/spire/identity-exchange/six.conf
+            - -expandEnv
+          {{- with .Values.extraEnv }}
+          env:
+          {{- . | toYaml | nindent 12 }}
+          {{- end }}
+          ports:
+          {{- if .Values.rest.enabled }}
+            - containerPort: 8444
+              name: rest
+          {{- end }}
+          {{- if .Values.grpc.enabled }}
+            - containerPort: 8443
+              name: grpc
+          {{- end }}
+          volumeMounts:
+            - name: spiffe-workload-api
+              mountPath: {{ include "spire-identity-exchange.workload-api-socket-path" . | dir }}
+              readOnly: true
+            - name: certdir
+              mountPath: /secret
+              readOnly: true
+          volumeMounts:
+            - name: spire-identity-exchange-config
+              mountPath: /etc/spire/identity-exchange/six.conf
+              subPath: six.conf
+              readOnly: true
+            - name: spire-agent-socket
+              mountPath: /agent
+              readOnly: true
+          #readinessProbe:
+          #  httpGet:
+          #    path: /ready
+          #    port: healthz
+          #  {- toYaml .Values.readinessProbe | nindent 12 }}
+          #livenessProbe:
+          #  httpGet:
+          #    path: /live
+          #    port: healthz
+          #  {- toYaml .Values.livenessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: spiffe-workload-api
+          csi:
+            driver: "{{ .Values.csiDriverName }}"
+            readOnly: true
+        - name: certdir
+          {{- if .Values.tls.externalSecret.enabled }}
+          secret:
+            secretName: {{ .Values.tls.externalSecret.secretName }}
+          {{- else if .Values.tls.certManager.enabled }}
+          secret:
+            secretName: {{ include "spire-identity-exchange.fullname" . }}-cert
+          {{- end }}
+        - name: spire-agent-socket
+          emptyDir: {}
+        - name: trustbundle
+          emptyDir: {}
+        - name: spire-identity-exchange-config
+          configMap:
+            name: spire-identity-exchange
+        - name: spire-identity-exchange-secret
+          secret:
+            secretName: spire-identity-exchange
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

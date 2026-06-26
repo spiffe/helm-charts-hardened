@@ -1,0 +1,27 @@
+{{- if .Values.clusterRole.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "spire-identity-exchange.name" . }}
+rules:
+- apiGroups: ["authentication.k8s.io"]
+  resources: ["tokenreviews"]
+  verbs: ["create"]
+- nonResourceURLs:
+  - /.well-known/openid-configuration
+  - /openid/v1/jwks
+  verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "spire-identity-exchange.name" . }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "spire-identity-exchange.name" . }}
+subjects:
+- kind: ServiceAccount
+  name: {{ include "spire-identity-exchange.serviceAccountName" . }}
+  namespace: {{ include "spire-identity-exchange.namespace" . }}
+{{- end }}

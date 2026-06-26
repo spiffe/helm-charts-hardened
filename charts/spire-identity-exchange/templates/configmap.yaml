@@ -1,0 +1,91 @@
+{{- $tlsCount := 0 }}
+{{- if and .Values.enabled .Values.tls.externalSecret.enabled }}
+{{-   $tlsCount = add $tlsCount 1 }}
+{{- end }}
+{{- if and .Values.enabled .Values.tls.certManager.enabled }}
+{{-   $tlsCount = add $tlsCount 1 }}
+{{- end }}
+{{- if gt $tlsCount 1 }}
+{{-   fail "You must have one and only one TLS configuration enabled" }}
+{{- end }}
+{{- if lt (len .Values.auth.plugins) 1 }}
+{{-   fail "You must have at least one auth plugin defined" }}
+{{- end }}
+{{- if not (or .Values.rest.enabled .Values.grpc.enabled) }}
+{{-   fail "You must have rest and/or grpc enabled" }}
+{{- end }}
+{{- $trustDomain := include "spire-lib.trust-domain" . }}
+{{- include "spire-lib.check-strict-mode" (list . "trustDomain must be set" (eq $trustDomain "example.org"))}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spire-identity-exchange.fullname" . }}
+  namespace: {{ include "spire-identity-exchange.namespace" . }}
+  {{- with .Values.configMap.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+data:
+  six.conf: |
+    name: spire-identity-exchange
+    logLevel: info
+    server:
+      port: 8443
+      restPort: 8444
+      metricsPort: 4950
+      tls:
+        certFile: /secret/tls.crt
+        keyFile: /secret/tls.key
+    spire:
+      agentWorkloadSocketPath: /spiffe-workload-api/spire-agent.sock
+      agentDelegatedSocketPath: /agent/admin.sock
+      trustDomain: {{ $trustDomain }}
+      svidTTL: 1h
+    auth:
+      plugins:
+        {{- toYaml .Values.auth.plugins | nindent 8 }}
+      {{ with .Values.auth.stacks }}
+      stacks:
+        {{- toYaml .Values.auth.stacks | nindent 8 }}
+      {{- end }}
+
+  six-agent.conf: |
+    agent {
+        log_level = "DEBUG"
+        trust_domain = "example.org"
+        server_address = "spire-server.spire-server"
+        server_port = "443"
+
+        trust_bundle_url = "http://localhost/trustbundle"
+        trust_bundle_unix_socket = "/trustbundle/socket"
+        rebootstrap_mode = "always"
+        rebootstrap_delay = "5m"
+
+        admin_socket_path = "/agent/admin.sock"
+        authorized_delegates = ["spiffe://{{ $trustDomain }}/service/spire-identity-exchange"]
+    }
+
+    health_checks {
+        listener_enabled = true
+        bind_address = "0.0.0.0"
+        bind_port =  8182
+        live_path = "/live"
+        ready_path = "/ready"
+    }
+
+    plugins {
+       KeyManager "memory" {
+            plugin_data {}
+        }
+
+        NodeAttestor "x509pop" {
+            plugin_data {
+                spiffe_endpoint_socket = "unix:///spiffe-workload-api/spire-agent.sock"
+            }
+        }
+
+        WorkloadAttestor "unix" {
+            plugin_data {}
+        }
+    }
+
