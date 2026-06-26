@@ -61,6 +61,7 @@ data:
         rebootstrap_mode = "always"
         rebootstrap_delay = "5m"
 
+        data_dir = "/tmp"
         admin_socket_path = "/agent/admin.sock"
         authorized_delegates = ["spiffe://{{ $trustDomain }}/service/spire-identity-exchange"]
     }
