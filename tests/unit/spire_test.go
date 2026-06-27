@@ -19,13 +19,14 @@ func ValueStringRender(chart *helmchart.Chart, values string) (map[string]string
 	if err != nil {
 		return nil, err
 	}
-	chart.Values = merged
+	testChart := *chart
+	testChart.Values = merged
 	ro := helmutil.ReleaseOptions{Name: "spire", Namespace: "spire-server", Revision: 1, IsUpgrade: false, IsInstall: true}
-	v, err = helmutil.ToRenderValues(chart, merged, ro, helmutil.DefaultCapabilities)
+	v, err = helmutil.ToRenderValues(&testChart, merged, ro, helmutil.DefaultCapabilities)
 	if err != nil {
 		return nil, err
 	}
-	objs, err := helmengine.Render(chart, v)
+	objs, err := helmengine.Render(&testChart, v)
 	return objs, err
 }
 
