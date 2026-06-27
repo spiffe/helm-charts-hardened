@@ -131,7 +131,7 @@ server:
   {{- end }}
 
 plugins:
-  {{- if or .Values.credentialComposer.uniqueID.enabled .Values.credentialComposer.cel.enabled }}
+  {{- if or .Values.credentialComposer.uniqueID.enabled .Values.credentialComposer.cel.enabled .Values.spireIdentityExchange.enabled }}
   CredentialComposer:
     {{- if or .Values.credentialComposer.uniqueID.enabled }}
     uniqueid: {}
@@ -139,11 +139,19 @@ plugins:
     {{- with .Values.credentialComposer.cel }}
     {{- if .enabled }}
     cel:
-      plugin_cmd: "/cel/credentialcomposer-cel"
+      plugin_cmd: "/plugin/credentialcomposer-cel"
       plugin_checksum: {{ .checksum }}
       plugin_data:
         jwt:
           expression_string: {{ .jwt.expression | quote }}
+    {{- end }}
+    {{- end }}
+    {{- with .Values.credentialComposer.spireIdentityExchange }}
+    {{- if $root.Values.spireIdentityExchange.enabled }}
+    identityexchange:
+      plugin_cmd: "/plugin/credentialcomposer-identity-exchange"
+      plugin_checksum: {{ .checksum }}
+      plugin_data: {}
     {{- end }}
     {{- end }}
   {{- end }}
@@ -176,7 +184,7 @@ plugins:
 {{- end }}
 {{- end }}
 
-  {{- if or .Values.nodeAttestor.k8sPSAT.enabled .Values.nodeAttestor.externalK8sPSAT.enabled .Values.nodeAttestor.joinToken.enabled .Values.nodeAttestor.httpChallenge.enabled .Values.nodeAttestor.tpmDirect.enabled .Values.nodeAttestor.awsIID.enabled .Values.nodeAttestor.gcpIIT.enabled .Values.nodeAttestor.x509POP.enabled }}
+  {{- if or .Values.nodeAttestor.k8sPSAT.enabled .Values.nodeAttestor.externalK8sPSAT.enabled .Values.nodeAttestor.joinToken.enabled .Values.nodeAttestor.httpChallenge.enabled .Values.nodeAttestor.tpmDirect.enabled .Values.nodeAttestor.awsIID.enabled .Values.nodeAttestor.gcpIIT.enabled .Values.nodeAttestor.x509POP.enabled .Values.spireIdentityExchange.enabled }}
   NodeAttestor:
   {{- $clusters := default .Values.kubeConfigs .Values.nodeAttestor.externalK8sPSAT.clusters }}
   {{- if or (eq (.Values.nodeAttestor.k8sPSAT.enabled | toString) "true") (and (eq (.Values.nodeAttestor.externalK8sPSAT.enabled | toString) "true") (gt (len $clusters) 0)) }}
@@ -275,6 +283,17 @@ plugins:
         agent_path_template: {{ .agentPathTemplate | quote }}
         {{-   end }}
         {{- end }}
+  {{- end }}
+  {{- end }}
+  {{- with .Values.nodeAttestor.spireIdentityExchange }}
+  {{- if $root.Values.spireIdentityExchange.enabled }}
+    "x509pop:spire-identity-exchange":
+      plugin_data:
+        mode: spiffe
+        svid_prefix: {{ .svidPrefix | quote }}
+        max_intermediates: {{ .maxIntermediates }}
+        max_rsa_key_size: {{ .maxRSAKeySize }}
+        agent_path_template: {{ .agentPathTemplate | quote }}
   {{- end }}
   {{- end }}
   {{- with .Values.nodeAttestor.awsIID }}

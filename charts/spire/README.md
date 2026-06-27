@@ -389,6 +389,8 @@ Now you can interact with the Spire agent socket from your own application. The 
 
 ### SPIKE Pilot parameters
 
-| Name                  | Description                                            | Value   |
-| --------------------- | ------------------------------------------------------ | ------- |
-| `spike-pilot.enabled` | Enables deployment of SPIKE Pilot (Not for production) | `false` |
+| Name                                   | Description                                                            | Value               |
+| -------------------------------------- | ---------------------------------------------------------------------- | ------------------- |
+| `spike-pilot.enabled`                  | Enables deployment of SPIKE Pilot (Not for production)                 | `false`             |
+| `spire-identity-exchange.enabled`      | Enables deployment of the SPIRE Identity Exchange (Not for production) | `false`             |
+| `spire-identity-exchange.nameOverride` | Overrides the name of the SPIRE Identity Exchnage                      | `identity-exchange` |

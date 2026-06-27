@@ -254,7 +254,7 @@ reformatted from a dict of dicts to a dict of lists of dicts
 {{- range $type, $v := . }}
 {{ $type }}:
 {{-   range $name, $v2 := $v }}
-    - {{ $name }}: {{ $v2 | toYaml | nindent 8 }}
+    - {{ splitList ":" $name | first }}: {{ $v2 | toYaml | nindent 8 }}
 {{-   end }}
 {{- end }}
 {{- end }}
