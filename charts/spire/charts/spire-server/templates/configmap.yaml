@@ -139,7 +139,7 @@ plugins:
     {{- with .Values.credentialComposer.cel }}
     {{- if .enabled }}
     cel:
-      plugin_cmd: "/plugin/credentialcomposer-cel"
+      plugin_cmd: "/plugins/credentialcomposer-cel"
       plugin_checksum: {{ .checksum }}
       plugin_data:
         jwt:
@@ -149,7 +149,7 @@ plugins:
     {{- with .Values.credentialComposer.spireIdentityExchange }}
     {{- if $root.Values.spireIdentityExchange.enabled }}
     identityexchange:
-      plugin_cmd: "/plugin/credentialcomposer-identity-exchange"
+      plugin_cmd: "/plugins/credentialcomposer-identity-exchange"
       plugin_checksum: {{ .checksum }}
       plugin_data: {}
     {{- end }}
