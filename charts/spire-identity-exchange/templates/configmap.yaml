@@ -86,7 +86,11 @@ data:
         }
 
         WorkloadAttestor "unix" {
-            plugin_data {}
+            plugin_data {
+              # Only used for delegated api. Can be removed for the broker api in the future.
+              discover_workload_path = true
+              workload_size_limit = -1
+            }
         }
     }
 
