@@ -21,6 +21,15 @@ func ValueStringRender(chart *helmchart.Chart, values string) (map[string]string
 	}
 	testChart := *chart
 	testChart.Values = merged
+
+	var activeDeps []*helmchart.Chart
+        for _, dep := range testChart.Dependencies() {
+                if dep.Name() != "spire-identity-exchange" {
+                        activeDeps = append(activeDeps, dep)
+                }
+        }
+        testChart.SetDependencies(activeDeps...)
+
 	ro := helmutil.ReleaseOptions{Name: "spire", Namespace: "spire-server", Revision: 1, IsUpgrade: false, IsInstall: true}
 	v, err = helmutil.ToRenderValues(&testChart, merged, ro, helmutil.DefaultCapabilities)
 	if err != nil {
