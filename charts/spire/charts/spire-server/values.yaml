@@ -1144,7 +1144,7 @@ nodeAttestor:
     ## @param nodeAttestor.x509POP.mode What mode to set the plugin to. Currently only spiffe mode is supported
     mode: spiffe
     ## @param nodeAttestor.x509POP.spiffePrefix What prefix to use when mode is spiffe
-    spiffePrefix: /spire-exchange
+    spiffePrefix: /spire-exchange/k8s/
     ## @param nodeAttestor.x509POP.agentPathTemplate Override the default agent path template
     agentPathTemplate: ""
     ## @param nodeAttestor.x509POP.maxIntermediates Maximum number of intermediate certificates allowed in the certificate chain
