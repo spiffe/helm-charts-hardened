@@ -290,7 +290,7 @@ plugins:
         {{-   end }}
         {{- end }}
         {{- if .addClusterName.agentPathTemplate }}
-        {{-   $cn := printf "/%s" (include "spire-lib.cluster-name" $root) }}
+        {{-   $cn = printf "/%s" (include "spire-lib.cluster-name" $root) }}
         {{- end }}
         agent_path_template: {{ replace "${HELM_ADD_CLUSTER_NAME}" $cn $agentPathTemplate | quote }}
   {{- end }}
