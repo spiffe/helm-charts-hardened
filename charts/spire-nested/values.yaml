@@ -507,7 +507,7 @@ internal-spire-server-bottom-turtle-ha-a:
       ## @param internal-spire-server-bottom-turtle-ha-a.nodeAttestor.x509POP.spiffePrefix What prefix to use when mode is spiffe
       spiffePrefix: /spire-exchange/k8s
       ## @param internal-spire-server-bottom-turtle-ha-a.nodeAttestor.x509POP.agentPathTemplate Override the default agent path template
-      agentPathTemplate: "/{{ .PluginName }}/k8s${HELM_ADD_CLUSTER_NAME}{{ .SVIDPathTrimmed }}"
+      agentPathTemplate: "/{{ .PluginName }}/k8s${HELM_ADD_CLUSTER_NAME}/{{ .SVIDPathTrimmed }}"
       addClusterName:
         ## @param internal-spire-server-bottom-turtle-ha-a.nodeAttestor.x509POP.addClusterName.spiffePrefix Suffix the cluster name onto the spiffePrefix
         spiffePrefix: true
@@ -585,7 +585,7 @@ internal-spire-server-bottom-turtle-ha-b:
       ## @param internal-spire-server-bottom-turtle-ha-b.nodeAttestor.x509POP.spiffePrefix What prefix to use when mode is spiffe
       spiffePrefix: /spire-exchange/k8s
       ## @param internal-spire-server-bottom-turtle-ha-b.nodeAttestor.x509POP.agentPathTemplate Override the default agent path template
-      agentPathTemplate: "/{{ .PluginName }}/k8s${HELM_ADD_CLUSTER_NAME}{{ .SVIDPathTrimmed }}"
+      agentPathTemplate: "/{{ .PluginName }}/k8s${HELM_ADD_CLUSTER_NAME}/{{ .SVIDPathTrimmed }}"
       addClusterName:
         ## @param internal-spire-server-bottom-turtle-ha-b.nodeAttestor.x509POP.addClusterName.spiffePrefix Suffix the cluster name onto the spiffePrefix
         spiffePrefix: true
