@@ -151,7 +151,20 @@ plugins:
     identityexchange:
       plugin_cmd: "/plugins/credentialcomposer-identity-exchange"
       plugin_checksum: {{ .checksum }}
-      plugin_data: {}
+      plugin_data:
+        {{- $spiffePrefix := $root.Values.nodeAttestor.x509POP.spiffePrefix }}
+        {{- if not (hasSuffix "/" $spiffePrefix) }}
+        {{-     $spiffePrefix = printf "%s/" $spiffePrefix }}
+        {{- end }}
+        {{- if eq .prefix "" }}
+        {{-   if $root.Values.nodeAttestor.x509POP.addClusterName.spiffePrefix }}
+        prefix: {{ printf "%s%s/spire-identity-exchange/" $spiffePrefix (include "spire-lib.cluster-name" $root) | quote }}
+        {{-   else }}
+        prefix: {{ printf "%s/spire-identity-exchange/" $spiffePrefix | quote }}
+        {{-   end }}
+        {{- else }}
+        prefix: {{ .prefix | quote }}
+        {{- end }}
     {{- end }}
     {{- end }}
   {{- end }}
@@ -265,7 +278,7 @@ plugins:
   {{- end }}
   {{- end }}
   {{- with .Values.nodeAttestor.x509POP }}
-  {{- if eq (.enabled | toString) "true" }}
+  {{- if or (eq (.enabled | toString) "true") $root.Values.spireIdentityExchange.enabled }}
     x509pop:
       plugin_data:
         mode: {{ .mode }}

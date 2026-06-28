@@ -395,6 +395,8 @@ credentialComposer:
     checksum: 7584eb4bad67e64a30862a35ce5d61505f0af567f0d2785c5c9bd8977db1ce3d
     ## @param credentialComposer.spireIdentityExchange.pluginPath The filename in the container of the plugin
     pluginPath: /ko-app/spire-credentialcomposer-identity-exchange
+    ## @param credentialComposer.spireIdentityExchange.prefix The prefix to operate on
+    prefix: ""
 
 keyManager:
   disk:
@@ -1156,15 +1158,6 @@ nodeAttestor:
       spiffePrefix: true
       ## @param nodeAttestor.x509POP.addClusterName.agentPathTemplate Suffix the cluster name onto the agentPathTemplate
       agentPathTemplate: true
-  spireIdentityExchange:
-    ## @param nodeAttestor.spireIdentityExchange.spiffePrefix What prefix to use
-    spiffePrefix: /spire-exchange/spire-identity-exchange/
-    ## @param nodeAttestor.spireIdentityExchange.agentPathTemplate Override the default agent path template
-    agentPathTemplate: "/{{ .PluginName }}/spire-identity-exchange/{{ .SVIDPathTrimmed }}"
-    ## @param nodeAttestor.spireIdentityExchange.maxIntermediates Maximum number of intermediate certificates allowed in the certificate chain
-    maxIntermediates: 4
-    ## @param nodeAttestor.spireIdentityExchange.maxRSAKeySize Maximum RSA key size in bits allowed in certificates
-    maxRSAKeySize: 8192
 
 # The secrets needed for this plugin are configured in the secrets: section
 bundlePublisher:
@@ -1509,5 +1502,4 @@ kubeConfigs: {}
 
 spireIdentityExchange:
   ## @param spireIdentityExchange.enabled Enable the server side of the SPIRE Identity Exchange system
-  # KMF FIXME default this to false in the future
-  enabled: true
+  enabled: false
