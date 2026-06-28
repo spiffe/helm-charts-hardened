@@ -270,19 +270,29 @@ plugins:
       plugin_data:
         mode: {{ .mode }}
         {{- if .addClusterName.spiffePrefix }}
-        spiffe_prefix: {{ printf "%s/%s/" .spiffePrefix (include "spire-lib.cluster-name" $root) | quote }}
+        {{- $suffix := "" }}
+        {{- if not (hasSuffix "/" .spiffePrefix }}
+        {{- $suffix = "/" }}
+        {{- end }}
+        spiffe_prefix: {{ printf "%s%s%s/" .spiffePrefix $suffix (include "spire-lib.cluster-name" $root) | quote }}
         {{- else }}
         spiffe_prefix: {{ .spiffePrefix | quote }}
         {{- end }}
         max_intermediates: {{ .maxIntermediates }}
         max_rsa_key_size: {{ .maxRSAKeySize }}
-        {{- if ne .agentPathTemplate "" }}
-        {{-   if .addClusterName.agentPathTemplate }}
-        {{-     $cn := printf "/%s" (include "spire-lib.cluster-name" $root) }}
-        agent_path_template: {{ replace "${HELM_ADD_CLUSTER_NAME}" $cn .agentPathTemplate | quote }}
+        {{- $cn := "" }}
+        {{- $agentPathTemplate := .agentPathTemplate }}
+        {{- if (eq $agentPathTemplate "") }}
+        {{-   if eq .mode "spiffe" }}
+        {{-     $agentPathTemplate = "/{{ .PluginName }}/k8s${HELM_ADD_CLUSTER_NAME}/{{ .SVIDPathTrimmed }}" }}
         {{-   else }}
-        agent_path_template: {{ replace "${HELM_ADD_CLUSTER_NAME}" "" .agentPathTemplate | quote }}
+        {{-     $agentPathTemplate = "/{{ .PluginName }}/{{ .Fingerprint }}" }}
         {{-   end }}
+        {{- end }}
+        {{- if .addClusterName.agentPathTemplate }}
+        {{-   $cn := printf "/%s" (include "spire-lib.cluster-name" $root) }}
+        {{- end }}
+        agent_path_template: {{ replace "${HELM_ADD_CLUSTER_NAME}" $cn $agentPathTemplate | quote }}
         {{- end }}
   {{- end }}
   {{- end }}

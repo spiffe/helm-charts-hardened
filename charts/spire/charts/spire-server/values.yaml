@@ -1153,9 +1153,9 @@ nodeAttestor:
     maxRSAKeySize: 8192
     addClusterName:
       ## @param nodeAttestor.x509POP.addClusterName.spiffePrefix Suffix the cluster name onto the svidPrefix
-      spiffePrefix: false
+      spiffePrefix: true
       ## @param nodeAttestor.x509POP.addClusterName.agentPathTemplate Suffix the cluster name onto the agentPathTemplate
-      agentPathTemplate: false
+      agentPathTemplate: true
   spireIdentityExchange:
     ## @param nodeAttestor.spireIdentityExchange.spiffePrefix What prefix to use
     spiffePrefix: /spire-exchange/spire-identity-exchange/
