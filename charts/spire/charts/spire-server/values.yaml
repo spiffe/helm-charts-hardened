@@ -819,6 +819,35 @@ controllerManager:
         federatesWith:
         - spire-ha
 
+      spire-identity-exchange-trustbundle:
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spire-identity-exchange-trustbundle.enabled Enable this identity for controller manager
+        enabled: true
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spire-identity-exchange-trustbundle.spiffeIDTemplate The template to use for this rule.
+        spiffeIDTemplate: spiffe://{{ .TrustDomain }}/service/trustbundle-spire-identity-exchange
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spire-identity-exchange-trustbundle.type The type of rule this is.
+        type: spire-identity-exchange
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spire-identity-exchange-trustbundle.workloadSelectorTemplates [array] Workload selectors.
+        workloadSelectorTemplates:
+          - "k8s:container-name:spire-server-attestor"
+      spire-identity-exchange-service:
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spire-identity-exchange-service.enabled Enable this identity for controller manager
+        enabled: true
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spire-identity-exchange-service.spiffeIDTemplate The template to use for this rule.
+        spiffeIDTemplate: spiffe://{{ .TrustDomain }}/service/spire-identity-exchange
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spire-identity-exchange-service.type The type of rule this is.
+        type: spire-identity-exchange
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spire-identity-exchange-service.workloadSelectorTemplates [array] Workload selectors.
+        workloadSelectorTemplates:
+          - "k8s:container-name:spire-identity-exchange"
+      spire-identity-exchange-agent:
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spire-identity-exchange-agent.enabled Enable this identity for controller manager
+        enabled: true
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spire-identity-exchange-agent.type The type of rule this is.
+        type: spire-identity-exchange
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spire-identity-exchange-agent.workloadSelectorTemplates [array] Workload selectors.
+        workloadSelectorTemplates:
+          - "k8s:container-name:spire-agent"
+
       # You can specify additional ClusterSPIFFEIDs following this example:
       # foo:
       #   labels:

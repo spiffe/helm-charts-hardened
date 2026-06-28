@@ -415,3 +415,15 @@ subjects:
 {{-   end }}
 {{-   toYaml $podSecurityContext }}
 {{- end }}
+
+{{- define "spire-server.identity-exchange-spiffe-prefix" -}}
+{{-   if .Values.nodeAttestor.x509POP.addClusterName.spiffePrefix }}
+{{-     $suffix := "" }}
+{{-     if not (hasSuffix "/" .Values.nodeAttestor.x509POP.spiffePrefix) }}
+{{-       $suffix = "/" }}
+{{-     end }}
+{{-     printf "%s%s%s/" .Values.nodeAttestor.x509POP.spiffePrefix $suffix (include "spire-lib.cluster-name" .) }}
+{{-   else }}
+{{-     .Values.nodeAttestor.x509POP.spiffePrefix }}
+{{-   end }}
+{{- end }}

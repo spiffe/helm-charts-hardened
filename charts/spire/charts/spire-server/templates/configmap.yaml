@@ -154,7 +154,7 @@ plugins:
       plugin_data:
         {{- $spiffePrefix := $root.Values.nodeAttestor.x509POP.spiffePrefix }}
         {{- if not (hasSuffix "/" $spiffePrefix) }}
-        {{-     $spiffePrefix = printf "%s/" $spiffePrefix }}
+        {{-   $spiffePrefix = printf "%s/" $spiffePrefix }}
         {{- end }}
         {{- if eq .prefix "" }}
         {{-   if $root.Values.nodeAttestor.x509POP.addClusterName.spiffePrefix }}
@@ -282,15 +282,7 @@ plugins:
     x509pop:
       plugin_data:
         mode: {{ .mode }}
-        {{- if .addClusterName.spiffePrefix }}
-        {{-   $suffix := "" }}
-        {{-   if not (hasSuffix "/" .spiffePrefix) }}
-        {{-     $suffix = "/" }}
-        {{-   end }}
-        spiffe_prefix: {{ printf "%s%s%s/" .spiffePrefix $suffix (include "spire-lib.cluster-name" $root) | quote }}
-        {{- else }}
-        spiffe_prefix: {{ .spiffePrefix | quote }}
-        {{- end }}
+        spiffe_prefix: {{ include "spire-server.identity-exchange-spiffe-prefix" $root | quote }}
         max_intermediates: {{ .maxIntermediates }}
         max_rsa_key_size: {{ .maxRSAKeySize }}
         {{- $cn := "" }}
