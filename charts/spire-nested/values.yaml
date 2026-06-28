@@ -504,13 +504,13 @@ internal-spire-server-bottom-turtle-ha-a:
     x509POP:
       ## @param internal-spire-server-bottom-turtle-ha-a.nodeAttestor.x509POP.enabled Enable the x509 pop node attestor
       enabled: true
-      ## @param internal-spire-server-bottom-turtle-ha-a.nodeAttestor.x509POP.svidPrefix What prefix to use when mode is spiffe
-      svidPrefix: /spire-exchange/k8s
+      ## @param internal-spire-server-bottom-turtle-ha-a.nodeAttestor.x509POP.spiffePrefix What prefix to use when mode is spiffe
+      spiffePrefix: /spire-exchange/k8s
       ## @param internal-spire-server-bottom-turtle-ha-a.nodeAttestor.x509POP.agentPathTemplate Override the default agent path template
-      agentPathTemplate: "/{{ .PluginName }}/{{ .SVIDPathTrimmed }}/k8s"
+      agentPathTemplate: "/{{ .PluginName }}/k8s${HELM_ADD_CLUSTER_NAME}{{ .SVIDPathTrimmed }}"
       addClusterName:
-        ## @param internal-spire-server-bottom-turtle-ha-a.nodeAttestor.x509POP.addClusterName.svidPrefix Suffix the cluster name onto the svidPrefix
-        svidPrefix: true
+        ## @param internal-spire-server-bottom-turtle-ha-a.nodeAttestor.x509POP.addClusterName.spiffePrefix Suffix the cluster name onto the spiffePrefix
+        spiffePrefix: true
         ## @param internal-spire-server-bottom-turtle-ha-a.nodeAttestor.x509POP.addClusterName.agentPathTemplate Suffix the cluster name onto the agentPathTemplate
         agentPathTemplate: true
   upstreamAuthority:
@@ -582,13 +582,13 @@ internal-spire-server-bottom-turtle-ha-b:
     x509POP:
       ## @param internal-spire-server-bottom-turtle-ha-b.nodeAttestor.x509POP.enabled Enable the x509 pop node attestor
       enabled: true
-      ## @param internal-spire-server-bottom-turtle-ha-b.nodeAttestor.x509POP.svidPrefix What prefix to use when mode is spiffe
-      svidPrefix: /spire-exchange/k8s
+      ## @param internal-spire-server-bottom-turtle-ha-b.nodeAttestor.x509POP.spiffePrefix What prefix to use when mode is spiffe
+      spiffePrefix: /spire-exchange/k8s
       ## @param internal-spire-server-bottom-turtle-ha-b.nodeAttestor.x509POP.agentPathTemplate Override the default agent path template
-      agentPathTemplate: "/{{ .PluginName }}/{{ .SVIDPathTrimmed }}/k8s"
+      agentPathTemplate: "/{{ .PluginName }}/k8s${HELM_ADD_CLUSTER_NAME}{{ .SVIDPathTrimmed }}"
       addClusterName:
-        ## @param internal-spire-server-bottom-turtle-ha-b.nodeAttestor.x509POP.addClusterName.svidPrefix Suffix the cluster name onto the svidPrefix
-        svidPrefix: true
+        ## @param internal-spire-server-bottom-turtle-ha-b.nodeAttestor.x509POP.addClusterName.spiffePrefix Suffix the cluster name onto the spiffePrefix
+        spiffePrefix: true
         ## @param internal-spire-server-bottom-turtle-ha-b.nodeAttestor.x509POP.addClusterName.agentPathTemplate Suffix the cluster name onto the agentPathTemplate
         agentPathTemplate: true
   upstreamAuthority:

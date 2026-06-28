@@ -269,31 +269,21 @@ plugins:
     x509pop:
       plugin_data:
         mode: {{ .mode }}
-        {{- if .addClusterName.svidPrefix }}
-        svid_prefix: {{ printf "%s/%s" .svidPrefix (include "spire-lib.cluster-name" $root) | quote }}
+        {{- if .addClusterName.spiffePrefix }}
+        spiffe_prefix: {{ printf "%s/%s/" .spiffePrefix (include "spire-lib.cluster-name" $root) | quote }}
         {{- else }}
-        svid_prefix: {{ .svidPrefix | quote }}
+        spiffe_prefix: {{ .spiffePrefix | quote }}
         {{- end }}
         max_intermediates: {{ .maxIntermediates }}
         max_rsa_key_size: {{ .maxRSAKeySize }}
         {{- if ne .agentPathTemplate "" }}
         {{-   if .addClusterName.agentPathTemplate }}
-        agent_path_template: {{ printf "%s/%s" .agentPathTemplate (include "spire-lib.cluster-name" $root) | quote }}
+        {{-     $cn := printf "/%s" (include "spire-lib.cluster-name" $root) }}
+        agent_path_template: {{ replace "${HELM_ADD_CLUSTER_NAME}" $cn .agentPathTemplate | quote }}
         {{-   else }}
         agent_path_template: {{ .agentPathTemplate | quote }}
         {{-   end }}
         {{- end }}
-  {{- end }}
-  {{- end }}
-  {{- with .Values.nodeAttestor.spireIdentityExchange }}
-  {{- if $root.Values.spireIdentityExchange.enabled }}
-    "x509pop:spire-identity-exchange":
-      plugin_data:
-        mode: spiffe
-        svid_prefix: {{ .svidPrefix | quote }}
-        max_intermediates: {{ .maxIntermediates }}
-        max_rsa_key_size: {{ .maxRSAKeySize }}
-        agent_path_template: {{ .agentPathTemplate | quote }}
   {{- end }}
   {{- end }}
   {{- with .Values.nodeAttestor.awsIID }}
