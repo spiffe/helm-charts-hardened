@@ -271,7 +271,7 @@ plugins:
         mode: {{ .mode }}
         {{- if .addClusterName.spiffePrefix }}
         {{- $suffix := "" }}
-        {{- if not (hasSuffix "/" .spiffePrefix }}
+        {{- if not (hasSuffix "/" .spiffePrefix) }}
         {{- $suffix = "/" }}
         {{- end }}
         spiffe_prefix: {{ printf "%s%s%s/" .spiffePrefix $suffix (include "spire-lib.cluster-name" $root) | quote }}
