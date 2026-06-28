@@ -270,10 +270,10 @@ plugins:
       plugin_data:
         mode: {{ .mode }}
         {{- if .addClusterName.spiffePrefix }}
-        {{- $suffix := "" }}
-        {{- if not (hasSuffix "/" .spiffePrefix) }}
-        {{- $suffix = "/" }}
-        {{- end }}
+        {{-   $suffix := "" }}
+        {{-   if not (hasSuffix "/" .spiffePrefix) }}
+        {{-     $suffix = "/" }}
+        {{-   end }}
         spiffe_prefix: {{ printf "%s%s%s/" .spiffePrefix $suffix (include "spire-lib.cluster-name" $root) | quote }}
         {{- else }}
         spiffe_prefix: {{ .spiffePrefix | quote }}
@@ -293,7 +293,6 @@ plugins:
         {{-   $cn := printf "/%s" (include "spire-lib.cluster-name" $root) }}
         {{- end }}
         agent_path_template: {{ replace "${HELM_ADD_CLUSTER_NAME}" $cn $agentPathTemplate | quote }}
-        {{- end }}
   {{- end }}
   {{- end }}
   {{- with .Values.nodeAttestor.awsIID }}
