@@ -106,7 +106,7 @@ spec:
   spiffeIDTemplate: {{ $value.spiffeIDTemplate | quote }}
   {{- else if eq $key "spire-identity-exchange-agent" }}
   {{- $iePrefix := include "spire-server.identity-exchange-spiffe-prefix" $root }}
-  spiffeIDTemplate: "spiffe://{{ `{{ .TrustDomain }}` }}{{ $iePrefix }}{{ `{{ .PodMeta.Name }}` }}"
+  spiffeIDTemplate: "spiffe://{{ `{{ .TrustDomain }}` }}{{ $iePrefix }}spire-identity-exchange/{{ `{{ .PodMeta.Name }}` }}"
   {{- else }}
   spiffeIDTemplate: {{ $root.Values.controllerManager.identities.clusterSPIFFEIDs.default.spiffeIDTemplate | quote }}
   {{- end }}
