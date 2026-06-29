@@ -260,11 +260,9 @@ plugins:
   {{- if eq (.enabled | toString) "true" }}
     x509pop:
       plugin_data:
-        {{- if eq .mode "externalPKI" }}
+        {{- if eq (.mode | toString) "externalPKI" }}
         mode: external_pki
-        {{- if .caBundlePath }}
-        ca_bundle_path: {{ .caBundlePath | quote }}
-        {{- else if or (ne .caBundle.bundle "") (ne .caBundle.existingConfigMap "") }}
+        {{- if or (ne (.caBundle.bundle | default "") "") (ne (.caBundle.existingConfigMap | default "") "") }}
         ca_bundle_path: "/run/spire/data/x509pop-ca-bundle.pem"
         {{- end }}
         max_intermediates: {{ .maxIntermediates }}

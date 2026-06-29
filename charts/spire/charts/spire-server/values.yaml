@@ -1134,8 +1134,6 @@ nodeAttestor:
       bundle: ""
       ## @param nodeAttestor.x509POP.caBundle.existingConfigMap [nullable] Name of a ConfigMap containing a `ca-bundle.pem` key with the PEM CA bundle.
       existingConfigMap: ""
-    ## @param nodeAttestor.x509POP.caBundlePath Path to PEM CA bundle on disk when mode is externalPKI. Overrides chart-managed caBundle mount when set.
-    caBundlePath: ""
     ## @param nodeAttestor.x509POP.svidPrefix What prefix to use when mode is spiffe
     svidPrefix: /spire-exchange
     ## @param nodeAttestor.x509POP.agentPathTemplate Override the default agent path template

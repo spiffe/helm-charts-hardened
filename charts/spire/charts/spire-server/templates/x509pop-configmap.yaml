@@ -1,4 +1,4 @@
-{{- if and (eq (.Values.nodeAttestor.x509POP.enabled | toString) "true") (ne .Values.nodeAttestor.x509POP.caBundle.bundle "") }}
+{{- if and (eq (.Values.nodeAttestor.x509POP.enabled | toString) "true") (ne (.Values.nodeAttestor.x509POP.caBundle.bundle | default "") "") }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
