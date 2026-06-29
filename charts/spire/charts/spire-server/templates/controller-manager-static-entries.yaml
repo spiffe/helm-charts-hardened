@@ -8,11 +8,7 @@
 {{-       fail (printf "Unsupported property specified: %s" $skey) }}
 {{-     end }}
 {{-   end }}
-{{-   if hasPrefix "spire-identity-exchange" $key }}
-{{-     if not (hasKey $value "selectors") }}
-{{-       fail (printf "Required property selectors was not specified") }}
-{{-     end }}
-{{-   else }}
+{{-   if not (hasPrefix "spire-identity-exchange" $key) }}
 {{-     range $rprop := list "spiffeID" "selectors" "parentID" }}
 {{-       if not (hasKey $value $rprop) }}
 {{-         fail (printf "Required property %s was not specified" $rprop) }}
@@ -53,9 +49,15 @@
     federatesWith:
     {{- toYaml . | nindent 6 }}
     {{- end }}
+    {{- if and (eq $key "spire-identity-exchange") (not (hasKey $value "selectors")) }}
+    {{- $iePrefix := include "spire-server.identity-exchange-spiffe-prefix" $root | trimPrefix "/" }}
+    selectors:
+      - x509pop:subject:cn:{{ $iePrefix }}spire-identity-exchange
+    {{- else }}
     {{- with $value.selectors }}
     selectors:
       {{- toYaml . | nindent 6 }}
+    {{- end }}
     {{- end }}
     {{- with $value.dnsNames }}
     dnsNames:
