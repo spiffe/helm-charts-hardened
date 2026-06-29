@@ -856,8 +856,16 @@ controllerManager:
       #   namespaceSelector:
       #     matchLabels:
       #       foo: bar
-    ## @param controllerManager.identities.clusterStaticEntries Specify ClusterStaticEntry objects.
-    clusterStaticEntries: {}
+    clusterStaticEntries:
+      spire-identity-exchange:
+        ## @param controllerManager.identities.clusterStaticEntries.spire-identity-exchange.selectors [array] selector
+        selectors:
+          - x509pop:subject:cn:spire-exchange/k8s/example-cluster/spire-identity-exchange
+      #FIXME Only needed for delegated api. Can remove once spire-identity-exchange switched to the broker api.
+      spire-identity-exchange-agent:
+        ## @param controllerManager.identities.clusterStaticEntries.spire-identity-exchange-agent.selectors [array] selector
+        selectors:
+          - unix:path:/ko-app/spire-identity-exchange-server
     # foo:
     #   labels:
     #     foo: bar
