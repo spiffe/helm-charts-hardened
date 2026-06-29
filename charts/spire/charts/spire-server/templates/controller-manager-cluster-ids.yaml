@@ -67,7 +67,19 @@ matchLabels:
 {{-     end }}
 {{-   end }}
 {{-   if eq ($root.Values.controllerManager.enabled | toString) "true" }}
-{{-     if or (not (hasKey $value "enabled")) (eq ($value.enabled | toString) "true") }}
+{{-     $process := true }}
+{{-     if not (hasKey $value "enabled") }}
+{{-       if and (hasPrefix "spire-identity-exchange" $key) (not $root.Values.spireIdentityExchange.enabled) }}
+{{-         $process = false }}
+{{-       else if and (hasPrefix "spike" $key) (not $root.Values.spike.enabled) }}
+{{-         $process = false }}
+{{-       end }}
+{{-     else }}
+{{-       if not (eq ($value.enabled | toString) "true") }}
+{{-         $process = false }}
+{{-       end }}
+{{-     end }}
+{{-     if $process }}
 {{-       $type := dig "type" "base" $value }}
 {{-       if not (has $type (list "base" "raw" "spire-ha-agent" "child-servers" "oidc-discovery-provider" "oidc-discovery-provider-common" "spike-keeper" "spike-nexus" "spike-bootstrap" "spike-pilot" "spire-identity-exchange" "test-keys")) }}
 {{-         fail (printf "Type given: %s, must be one of [base, raw, spire-ha-agent, child-servers, oidc-discovery-provider, oidc-discovery-provider-common, spike-keeper, spike-nexus, spike-bootstrap, spike-pilot, spire-identity-exchange, test-keys]" $type) }}

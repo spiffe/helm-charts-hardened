@@ -16,7 +16,17 @@
 {{-     end }}
 {{-   end }}
 {{-   if eq ($root.Values.controllerManager.enabled | toString) "true" }}
-{{-     if or (not (hasKey $value "enabled")) (eq ($value.enabled | toString) "true") }}
+{{-     $process := true }}
+{{-     if not (hasKey $value "enabled") }}
+{{-       if and (hasPrefix "spire-identity-exchange" $key) (not $root.Values.spireIdentityExchange.enabled) }}
+{{-         $process = false }}
+{{-       end }}
+{{-     else }}
+{{-       if not (eq ($value.enabled | toString) "true") }}
+{{-         $process = false }}
+{{-       end }}
+{{-     end }}
+{{-     if $process }}
 - apiVersion: spire.spiffe.io/v1alpha1
   kind: ClusterStaticEntry
   metadata:

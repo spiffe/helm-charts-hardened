@@ -79,6 +79,12 @@ kubectl delete crds clusterfederatedtrustdomains.spire.spiffe.io clusterspiffeid
 
 We only support upgrading one major/minor version at a time. Version skipping isn't supported. Please see <https://spiffe.io/docs/latest/spire-helm-charts-hardened-about/upgrading/> for details.
 
+### 0.31.X
+
+- The x509POP plugin in spiffe mode has had its defaults changed. It allows easier and more secure setups. If using and upgrading, please review the settings.
+- To add the spike entries, you now must also specify spire-server.spike.enabled=true.
+- Experimental support for the spire-identity-exchange has been added.
+
 ### 0.30.X
 
 - The OIDC discovery issuer is now set automatically. We do not anticipate any negative impact; however, please verify your OIDC provider's integration with other services during your upgrade testing.

@@ -780,29 +780,21 @@ controllerManager:
         type: test-keys
 
       spike-keeper:
-        ## @param controllerManager.identities.clusterSPIFFEIDs.spike-keeper.enabled Enable this identity for controller manager
-        enabled: true
         ## @param controllerManager.identities.clusterSPIFFEIDs.spike-keeper.type The type of rule this is.
         type: spike-keeper
         ## @param controllerManager.identities.clusterSPIFFEIDs.spike-keeper.spiffeIDTemplate The template to use for this rule.
         spiffeIDTemplate: spiffe://{{ .TrustDomain }}/spike/keeper/{{ .PodMeta.Name }}
       spike-nexus:
-        ## @param controllerManager.identities.clusterSPIFFEIDs.spike-nexus.enabled Enable this identity for controller manager
-        enabled: true
         ## @param controllerManager.identities.clusterSPIFFEIDs.spike-nexus.type The type of rule this is.
         type: spike-nexus
         ## @param controllerManager.identities.clusterSPIFFEIDs.spike-nexus.spiffeIDTemplate The template to use for this rule.
         spiffeIDTemplate: spiffe://{{ .TrustDomain }}/spike/nexus/{{ .PodMeta.Name }}
       spike-bootstrap:
-        ## @param controllerManager.identities.clusterSPIFFEIDs.spike-bootstrap.enabled Enable this identity for controller manager
-        enabled: true
         ## @param controllerManager.identities.clusterSPIFFEIDs.spike-bootstrap.type The type of rule this is.
         type: spike-bootstrap
         ## @param controllerManager.identities.clusterSPIFFEIDs.spike-bootstrap.spiffeIDTemplate The template to use for this rule.
         spiffeIDTemplate: spiffe://{{ .TrustDomain }}/spike/bootstrap/{{ .PodMeta.Name }}
       spike-pilot:
-        ## @param controllerManager.identities.clusterSPIFFEIDs.spike-pilot.enabled Enable this identity for controller manager
-        enabled: true
         ## @param controllerManager.identities.clusterSPIFFEIDs.spike-pilot.type The type of rule this is.
         type: spike-pilot
         ## @param controllerManager.identities.clusterSPIFFEIDs.spike-pilot.spiffeIDTemplate The template to use for this rule.
@@ -820,8 +812,6 @@ controllerManager:
         - spire-ha
 
       spire-identity-exchange-trustbundle:
-        ## @param controllerManager.identities.clusterSPIFFEIDs.spire-identity-exchange-trustbundle.enabled Enable this identity for controller manager
-        enabled: true
         ## @param controllerManager.identities.clusterSPIFFEIDs.spire-identity-exchange-trustbundle.spiffeIDTemplate The template to use for this rule.
         spiffeIDTemplate: spiffe://{{ .TrustDomain }}/service/trustbundle-spire-identity-exchange
         ## @param controllerManager.identities.clusterSPIFFEIDs.spire-identity-exchange-trustbundle.type The type of rule this is.
@@ -830,8 +820,6 @@ controllerManager:
         workloadSelectorTemplates:
           - "k8s:container-name:spire-server-attestor"
       spire-identity-exchange-service:
-        ## @param controllerManager.identities.clusterSPIFFEIDs.spire-identity-exchange-service.enabled Enable this identity for controller manager
-        enabled: true
         ## @param controllerManager.identities.clusterSPIFFEIDs.spire-identity-exchange-service.spiffeIDTemplate The template to use for this rule.
         spiffeIDTemplate: spiffe://{{ .TrustDomain }}/service/spire-identity-exchange
         ## @param controllerManager.identities.clusterSPIFFEIDs.spire-identity-exchange-service.type The type of rule this is.
@@ -840,8 +828,6 @@ controllerManager:
         workloadSelectorTemplates:
           - "k8s:container-name:spire-identity-exchange"
       spire-identity-exchange-agent:
-        ## @param controllerManager.identities.clusterSPIFFEIDs.spire-identity-exchange-agent.enabled Enable this identity for controller manager
-        enabled: true
         ## @param controllerManager.identities.clusterSPIFFEIDs.spire-identity-exchange-agent.type The type of rule this is.
         type: spire-identity-exchange
         ## @param controllerManager.identities.clusterSPIFFEIDs.spire-identity-exchange-agent.workloadSelectorTemplates [array] Workload selectors.
@@ -1537,4 +1523,8 @@ kubeConfigs: {}
 
 spireIdentityExchange:
   ## @param spireIdentityExchange.enabled Enable the server side of the SPIRE Identity Exchange system
+  enabled: false
+
+spike:
+  ## @param spike.enabled Enable the server side of SPIKE
   enabled: false
