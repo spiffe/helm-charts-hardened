@@ -760,6 +760,9 @@ spire-identity-exchange-bottom-turtle-ha-a:
   nameOverride: identity-exchange
   ## @param spire-identity-exchange-bottom-turtle-ha-a.csiDriverName CSI driver name to use
   csiDriverName: a.csi.spiffe.io
+  server:
+    ## @param spire-identity-exchange-bottom-turtle-ha-a.server.nameOverride The name override setting of the internal SPIRE server
+    nameOverride: internal-server
 
 spire-identity-exchange-bottom-turtle-ha-b:
   ## @param spire-identity-exchange-bottom-turtle-ha-b.enabled Enable the spire-identity-exchange
@@ -768,3 +771,6 @@ spire-identity-exchange-bottom-turtle-ha-b:
   nameOverride: identity-exchange
   ## @param spire-identity-exchange-bottom-turtle-ha-b.csiDriverName CSI driver name to use
   csiDriverName: b.csi.spiffe.io
+  server:
+    ## @param spire-identity-exchange-bottom-turtle-ha-b.server.nameOverride The name override setting of the internal SPIRE server
+    nameOverride: internal-server

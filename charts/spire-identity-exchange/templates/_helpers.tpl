@@ -105,3 +105,15 @@ Create the name of the service account to use
 {{-   end }}
 {{-   toYaml $podSecurityContext }}
 {{- end }}
+
+{{- define "spire-identity-exchange.server-address" }}
+{{- if and (ne (len (dig "spire" "upstreamSpireAddress" "" .Values.global)) 0) .Values.upstream }}
+{{- print .Values.global.spire.upstreamSpireAddress }}
+{{- else if .Values.server.address }}
+{{- .Values.server.address }}
+{{- else if .Values.server.nameOverride }}
+{{ .Release.Name }}-{{ .Values.server.nameOverride }}.{{ include "spire-agent.server.namespace" . }}
+{{- else }}
+{{ .Release.Name }}-server.{{ include "spire-agent.server.namespace" . }}
+{{- end }}
+{{- end }}
