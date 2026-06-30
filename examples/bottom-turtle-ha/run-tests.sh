@@ -240,8 +240,7 @@ helm upgrade --install --create-namespace --namespace spire-mgmt --values "${COM
 helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/spire-values.yaml" \
   --wait spire-a charts/spire-nested \
   --set tags.bottomTurtleHAA=true \
-  --set "internal-spire-server-bottom-turtle-ha-a.spireIdentityExchange.enabled=true" \
-  --set "spire-identity-exchange-bottom-turtle-ha-a.enabled=true" \
+  --values "${SCRIPTPATH}/spire-identity-exchange-values.yaml" \
   --set "global.spire.ingressControllerType=ingress-nginx"
 
 docker exec -i chart-testing-worker /bin/bash -c "more /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/disk-keymanager/keys.json /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/spire-agent-persistence/agent-data.json | cat"
@@ -260,8 +259,7 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --wait spire-b charts/spire-nested \
   --set tags.bottomTurtleHAB=true \
   --set internal-spire-server-bottom-turtle-ha-b.upstreamAuthority.spire.server.port=8082 \
-  --set "internal-spire-server-bottom-turtle-ha-b.spireIdentityExchange.enabled=true" \
-  --set "spire-identity-exchange-bottom-turtle-ha-b.enabled=true" \
+  --values "${SCRIPTPATH}/spire-identity-exchange-values.yaml" \
   --set "global.spire.ingressControllerType=ingress-nginx"
 
 docker ps

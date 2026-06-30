@@ -1,0 +1,35 @@
+internal-spire-server-bottom-turtle-ha-b:
+  spireIdentityExchange.enabled: true
+
+internal-spire-server-bottom-turtle-ha-a:
+  spireIdentityExchange.enabled: true
+
+spire-identity-exchange-bottom-turtle-ha-a:
+  enabled: true
+  tls:
+    externalSecret:
+      enabled: true
+      secretName: spire-identity-exchange
+  auth:
+    plugins:
+      - plugin: k8s_psat
+        config:
+          audiences:
+            - spire-identity-exchange
+          allowedServiceAccounts:
+            - default/default
+
+spire-identity-exchange-bottom-turtle-ha-b:
+  enabled: true
+  tls:
+    externalSecret:
+      enabled: true
+      secretName: spire-identity-exchange
+  auth:
+    plugins:
+      - plugin: k8s_psat
+        config:
+          audiences:
+            - spire-identity-exchange
+          allowedServiceAccounts:
+            - default/default
