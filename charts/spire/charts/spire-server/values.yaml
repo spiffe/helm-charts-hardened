@@ -390,9 +390,9 @@ credentialComposer:
       registry: ghcr.io
       repository: spiffe/spire-credentialcomposer-identity-exchange
       pullPolicy: IfNotPresent
-      tag: "v0.1.0"
+      tag: "v0.2.0"
     ## @param credentialComposer.spireIdentityExchange.checksum The sha256 checksum of the plugin binary
-    checksum: 7584eb4bad67e64a30862a35ce5d61505f0af567f0d2785c5c9bd8977db1ce3d
+    checksum: 198bfed106794a60e565cb804cb6b360d4633e4542981abbea0c0c669ddd6036
     ## @param credentialComposer.spireIdentityExchange.pluginPath The filename in the container of the plugin
     pluginPath: /ko-app/spire-credentialcomposer-identity-exchange
     ## @param credentialComposer.spireIdentityExchange.prefix The prefix to operate on

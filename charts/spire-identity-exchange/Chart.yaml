@@ -3,7 +3,7 @@ name: spire-identity-exchange
 description: A Helm chart to install the SPIRE Identity Exchange.
 type: application
 version: 0.1.0
-appVersion: "0.1.0"
+appVersion: "0.2.0"
 keywords: ["spiffe", "spire", "identity exchange"]
 home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire-identity-exchange
 sources:
