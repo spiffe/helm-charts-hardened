@@ -184,10 +184,7 @@ spec:
           emptyDir: {}
         - name: spire-identity-exchange-config
           configMap:
-            name: spire-identity-exchange
-        - name: spire-identity-exchange-secret
-          secret:
-            secretName: spire-identity-exchange
+            name: {{ include "spire-identity-exchange.fullname" . }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
