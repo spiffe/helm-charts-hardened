@@ -53,8 +53,8 @@ data:
     agent {
         log_level = "DEBUG"
         trust_domain = {{ $trustDomain | quote }}
-        server_address: {{ include "spire-identity-exchange.server-address" . | trim | quote }}
-        server_port: {{ .Values.server.port | quote }}
+        server_address = {{ include "spire-identity-exchange.server-address" . | trim | quote }}
+        server_port = {{ .Values.server.port }}
         trust_bundle_url = "http://localhost/trustbundle"
         trust_bundle_unix_socket = "/trustbundle/socket"
         rebootstrap_mode = "always"
