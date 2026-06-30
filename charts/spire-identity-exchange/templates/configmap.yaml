@@ -52,7 +52,7 @@ data:
   six-agent.conf: |
     agent {
         log_level = "DEBUG"
-        trust_domain = "example.org"
+        trust_domain = {{ $trustDomain | quote }}
         server_address = "spire-server.spire-server"
         server_port = "443"
 
