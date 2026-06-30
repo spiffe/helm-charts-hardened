@@ -1,8 +1,10 @@
-internal-spire-server-bottom-turtle-ha-b:
-  spireIdentityExchange.enabled: true
-
 internal-spire-server-bottom-turtle-ha-a:
-  spireIdentityExchange.enabled: true
+  spireIdentityExchange:
+    enabled: true
+
+internal-spire-server-bottom-turtle-ha-b:
+  spireIdentityExchange:
+    enabled: true
 
 spire-identity-exchange-bottom-turtle-ha-a:
   tls:
