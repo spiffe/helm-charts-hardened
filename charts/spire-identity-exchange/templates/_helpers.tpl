@@ -106,14 +106,28 @@ Create the name of the service account to use
 {{-   toYaml $podSecurityContext }}
 {{- end }}
 
+{{- define "spire-identity-exchange.server.namespace" -}}
+{{-   if .Values.server.namespaceOverride -}}
+{{-     .Values.server.namespaceOverride -}}
+{{-   else if and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "namespaceLayout" true .Values.global) }}
+{{-     if ne (len (dig "spire" "namespaces" "server" "name" "" .Values.global)) 0 }}
+{{-       .Values.global.spire.namespaces.server.name }}
+{{-     else }}
+{{-       printf "spire-server" }}
+{{-     end }}
+{{-   else -}}
+{{-     .Release.Namespace -}}
+{{-   end -}}
+{{- end -}}
+
 {{- define "spire-identity-exchange.server-address" }}
-{{- if and (ne (len (dig "spire" "upstreamSpireAddress" "" .Values.global)) 0) .Values.upstream }}
-{{- print .Values.global.spire.upstreamSpireAddress }}
-{{- else if .Values.server.address }}
-{{- .Values.server.address }}
-{{- else if .Values.server.nameOverride }}
-{{ .Release.Name }}-{{ .Values.server.nameOverride }}.{{ include "spire-agent.server.namespace" . }}
-{{- else }}
-{{ .Release.Name }}-server.{{ include "spire-agent.server.namespace" . }}
-{{- end }}
+{{-   if and (ne (len (dig "spire" "upstreamSpireAddress" "" .Values.global)) 0) .Values.upstream }}
+{{-     print .Values.global.spire.upstreamSpireAddress }}
+{{-   else if .Values.server.address }}
+{{-     .Values.server.address }}
+{{-   else if .Values.server.nameOverride }}
+{{     .Release.Name }}-{{ .Values.server.nameOverride }}.{{ include "spire-identity-exchange.server.namespace" . }}
+{{-   else }}
+{{     .Release.Name }}-server.{{ include "spire-identity-exchange.server.namespace" . }}
+{{-   end }}
 {{- end }}
