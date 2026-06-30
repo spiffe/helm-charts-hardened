@@ -753,10 +753,14 @@ downstream-spiffe-csi-driver-bottom-turtle-ha-b:
     ## @param downstream-spiffe-csi-driver-bottom-turtle-ha-b.healthChecks.port The health check port
     port: 9816
 
-## @param spire-identity-exchange-bottom-turtle-ha-a [object] Enable the spire-identity-exchange
-spire-identity-exchange-bottom-turtle-ha-a: {}
-  # enabled: false
+spire-identity-exchange-bottom-turtle-ha-a:
+  ## @param spire-identity-exchange-bottom-turtle-ha-a.enabled Enable the spire-identity-exchange
+  enabled: false
+  ## @param spire-identity-exchange-bottom-turtle-ha-a.nameOverride name override
+  nameOverride: identity-exchange
 
-## @param spire-identity-exchange-bottom-turtle-ha-b [object] Enable the spire-identity-exchange
-spire-identity-exchange-bottom-turtle-ha-b: {}
-  # enabled: false
+spire-identity-exchange-bottom-turtle-ha-b:
+  ## @param spire-identity-exchange-bottom-turtle-ha-b.enabled Enable the spire-identity-exchange
+  enabled: false
+  ## @param spire-identity-exchange-bottom-turtle-ha-b.nameOverride name override
+  nameOverride: identity-exchange

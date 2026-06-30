@@ -228,6 +228,15 @@ kubectl get configmap -n kube-system coredns -o yaml | grep production.other || 
 kubectl rollout restart -n kube-system deployment/coredns
 kubectl rollout status -n kube-system -w --timeout=1m deploy/coredns
 
+mkdir -p certs
+openssl req -x509 -newkey rsa:2048 \
+    -keyout certs/server.key \
+    -out certs/server.pem -sha256 -days 365 -nodes \
+    -subj "/CN=localhost" \
+    -addext "basicConstraints=critical,CA:TRUE" \
+    -addext "subjectAltName=DNS:spire-identity-exchange.production.other,DNS:spire-identity-exchange-a.production.other,DNS:spire-identity-exchange-b.production.other"
+kubectl create secret tls -n spire-server spire-identity-exchange --key=certs/server.key --cert=certs/server.pem
+
 # Install the common components
 helm upgrade --install --create-namespace --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/spire-values.yaml" \
   spire charts/spire-nested \
