@@ -154,7 +154,7 @@ dependencies:
     repository: file://../spire/charts/spiffe-csi-driver
     version: 0.1.0
   - name: spire-identity-exchange
-    alias: spire-identity-exchange-bottom-turtle-ha-b
+    alias: spire-identity-exchange-bottom-turtle-ha-a
     condition: spire-identity-exchange-bottom-turtle-ha-a.enabled
     repository: file://../spire-identity-exchange
     version: 0.1.0
@@ -189,7 +189,7 @@ dependencies:
     repository: file://../spire/charts/spiffe-csi-driver
     version: 0.1.0
   - name: spire-identity-exchange
-    alias: spire-identity-exchange-bottom-turtle-ha-a
+    alias: spire-identity-exchange-bottom-turtle-ha-b
     condition: spire-identity-exchange-bottom-turtle-ha-b.enabled
     repository: file://../spire-identity-exchange
     version: 0.1.0
