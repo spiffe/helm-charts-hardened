@@ -115,7 +115,7 @@ spec:
             - name: spire-agent-data
               mountPath: /agent-data
       containers:
-        - name: {{ .Chart.Name }}
+        - name: spire-identity-exchange
           securityContext:
             {{- include "spire-lib.securitycontext" . | nindent 12 }}
           image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.image "global" .Values.global) }}
