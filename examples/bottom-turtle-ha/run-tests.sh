@@ -293,7 +293,7 @@ if [[ "${ENTRIES}" == "Found 0 entries" ]]; then
 fi
 
 kubectl get pods -A -o wide
-kubectl get ingress -A
+kubectl get ingress -A -o yaml
 
 helm test --namespace spire-mgmt spire-a
 helm test --namespace spire-mgmt spire-b
