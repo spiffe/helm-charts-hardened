@@ -419,7 +419,7 @@ subjects:
 {{- define "spire-server.identity-exchange-spiffe-prefix" -}}
 {{-   $cn := "" }}
 {{-   if .Values.nodeAttestor.x509POP.addClusterName.spiffePrefix }}
-{{-     $cn = printf "/%s" (include "spire-lib.cluster-name" $root) }}
+{{-     $cn = printf "/%s" (include "spire-lib.cluster-name" .) }}
 {{-   end }}
 {{-   replace "${HELM_ADD_CLUSTER_NAME}" $cn .Values.nodeAttestor.x509POP.spiffePrefix }}
 {{- end }}
