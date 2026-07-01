@@ -760,6 +760,14 @@ spire-identity-exchange-bottom-turtle-ha-a:
   nameOverride: identity-exchange
   ## @param spire-identity-exchange-bottom-turtle-ha-a.csiDriverName CSI driver name to use
   csiDriverName: a.csi.spiffe.io
+  rest:
+    ingress:
+      ## @param spire-identity-exchange-bottom-turtle-ha-a.rest.ingress.host Hostname override for the rest ingress service
+      host: "spire-identity-exchange-a-rest"
+  grpc:
+    ingress:
+      ## @param spire-identity-exchange-bottom-turtle-ha-a.grpc.ingress.host Hostname override for the rest ingress service
+      host: "spire-identity-exchange-a-grpc"
   server:
     ## @param spire-identity-exchange-bottom-turtle-ha-a.server.nameOverride The name override setting of the internal SPIRE server
     nameOverride: internal-server
@@ -774,3 +782,11 @@ spire-identity-exchange-bottom-turtle-ha-b:
   server:
     ## @param spire-identity-exchange-bottom-turtle-ha-b.server.nameOverride The name override setting of the internal SPIRE server
     nameOverride: internal-server
+  rest:
+    ingress:
+      ## @param spire-identity-exchange-bottom-turtle-ha-b.rest.ingress.host Hostname override for the rest ingress service
+      host: "spire-identity-exchange-b-rest"
+  grpc:
+    ingress:
+      ## @param spire-identity-exchange-bottom-turtle-ha-b.grpc.ingress.host Hostname override for the rest ingress service
+      host: "spire-identity-exchange-b-grpc"

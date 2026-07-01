@@ -7,6 +7,9 @@ internal-spire-server-bottom-turtle-ha-b:
     enabled: true
 
 spire-identity-exchange-bottom-turtle-ha-a:
+  rest:
+    ingress:
+      enabled: true
   tls:
     externalSecret:
       enabled: true
@@ -21,6 +24,9 @@ spire-identity-exchange-bottom-turtle-ha-a:
             - default/default
 
 spire-identity-exchange-bottom-turtle-ha-b:
+  rest:
+    ingress:
+      enabled: true
   tls:
     externalSecret:
       enabled: true
