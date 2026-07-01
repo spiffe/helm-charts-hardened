@@ -417,7 +417,7 @@ subjects:
 {{- end }}
 
 {{- define "spire-server.identity-exchange-spiffe-prefix" -}}
-{{-   $cn := ""
+{{-   $cn := "" }}
 {{-   if .Values.nodeAttestor.x509POP.addClusterName.spiffePrefix }}
 {{-     $cn = printf "/%s" (include "spire-lib.cluster-name" $root) }}
 {{-   end }}
