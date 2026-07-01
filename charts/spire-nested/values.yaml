@@ -494,6 +494,10 @@ internal-spire-server-bottom-turtle-ha-a:
         spire-ha-agent:
           ## @param internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent.enabled Enables the spire-ha-agent identity
           enabled: true
+      spire-identity-exchange-service:
+        ## @param internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.spire-identity-exchange-service.federatesWith [array] List of trust domains to federate with
+        federatesWith:
+          - spire-ha
   persistence:
     ## @param internal-spire-server-bottom-turtle-ha-a.persistence.type What type to use for peristence
     type: emptyDir
@@ -572,6 +576,10 @@ internal-spire-server-bottom-turtle-ha-b:
         spire-ha-agent:
           ## @param internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent.enabled Enables the spire-ha-agent identity
           enabled: true
+      spire-identity-exchange-service:
+        ## @param internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.spire-identity-exchange-service.federatesWith [array] List of trust domains to federate with
+        federatesWith:
+          - spire-ha
   persistence:
     ## @param internal-spire-server-bottom-turtle-ha-b.persistence.type What type to use for peristence
     type: emptyDir

@@ -293,7 +293,7 @@ if [[ "${ENTRIES}" == "Found 0 entries" ]]; then
 fi
 
 kubectl get pods -A -o wide
-kubectl get ingress -A -o yaml
+kubectl get ingress -A
 
 helm test --namespace spire-mgmt spire-a
 helm test --namespace spire-mgmt spire-b
@@ -302,7 +302,7 @@ curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discov
 kubectl apply -f "${SCRIPTPATH}/test-job.yaml"
 kubectl wait --for=condition=complete --timeout=60s job/test && \
 TOKEN=$(kubectl logs job/test)
-curl -f -H "Authorization: Bearer ${TOKEN}" -X POST --resolve "spire-identity-exchange-a-rest.production.other:443:$IP" "https://spire-identity-exchange-a-rest.production.other/api/v1/svid/k8s_psat/x509" -k -sS -q -vvv
+curl -f -H "Authorization: Bearer ${TOKEN}" -X POST --resolve "spire-identity-exchange-a-rest.production.other:443:$IP" "https://spire-identity-exchange-a-rest.production.other/api/v1/svid/k8s_psat/x509" -k -sS -q
 curl -f -H "Authorization: Bearer ${TOKEN}" -X POST --resolve "spire-identity-exchange-b-rest.production.other:443:$IP" "https://spire-identity-exchange-b-rest.production.other/api/v1/svid/k8s_psat/x509" -k -sS -q
 
 #Test out running only on side b since we know already only both servers work together, and that only side a works if we made it this far.
