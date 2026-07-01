@@ -225,7 +225,7 @@ common_test_url "$IP"
 # Get the host IP And add spire-server-[ab].${trust_domain} records to it so the spire-servers can talk back to root servers running on the host
 HOSTIP=$(ip addr show docker0 | grep 'inet ' | awk '{print $2}' | cut -d/ -f1)
 kubectl get configmap -n kube-system coredns -o yaml | grep hosts || kubectl get configmap -n kube-system coredns -o yaml | sed "/ready/a\        hosts {\n           fallthrough\n        }" | kubectl apply -f -
-kubectl get configmap -n kube-system coredns -o yaml | grep production.other || kubectl get configmap -n kube-system coredns -o yaml | sed "/hosts/a\           $HOSTIP spire-server-a.production.other\n           $HOSTIP oidc-discovery.production.other\n           $HOSTIP spire-server-b.production.other\n           $HOSTIP spire-identity-exchange-a.production.other\n           $HOSTIP spire-identity-exchange-b.production.other\n           $HOSTIP spire-identity-exchange.production.other\n" | kubectl apply -f -
+kubectl get configmap -n kube-system coredns -o yaml | grep production.other || kubectl get configmap -n kube-system coredns -o yaml | sed "/hosts/a\           $HOSTIP spire-server-a.production.other\n           $HOSTIP oidc-discovery.production.other\n           $HOSTIP spire-server-b.production.other\n" | kubectl apply -f -
 kubectl rollout restart -n kube-system deployment/coredns
 kubectl rollout status -n kube-system -w --timeout=1m deploy/coredns
 
@@ -302,7 +302,7 @@ curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discov
 kubectl apply -f "${SCRIPTPATH}/test-job.yaml"
 kubectl wait --for=condition=complete --timeout=60s job/test && \
 TOKEN=$(kubectl logs job/test)
-curl -f -H "Authorization: Bearer ${TOKEN}" -X POST --resolve "spire-identity-exchange-a-rest.production.other:443:$IP" "https://spire-identity-exchange-a-rest.production.other/api/v1/svid/k8s_psat/x509" -k -sS -q
+curl -f -H "Authorization: Bearer ${TOKEN}" -X POST --resolve "spire-identity-exchange-a-rest.production.other:443:$IP" "https://spire-identity-exchange-a-rest.production.other/api/v1/svid/k8s_psat/x509" -k -sS -q -vvv
 curl -f -H "Authorization: Bearer ${TOKEN}" -X POST --resolve "spire-identity-exchange-b-rest.production.other:443:$IP" "https://spire-identity-exchange-b-rest.production.other/api/v1/svid/k8s_psat/x509" -k -sS -q
 
 #Test out running only on side b since we know already only both servers work together, and that only side a works if we made it this far.
