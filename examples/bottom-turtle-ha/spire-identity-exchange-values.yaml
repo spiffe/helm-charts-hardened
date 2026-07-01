@@ -1,8 +1,26 @@
 internal-spire-server-bottom-turtle-ha-a:
+  controllerManager:
+    identities:
+      clusterStaticEntries:
+        test:
+          parentID: spiffe://production.other/spire-identity-exchange
+          spiffeID: spiffe://production.other/k8s-psat/test
+          selectors:
+            - k8s_psat:namespace:default
+            - k8s_psat:service_account_name:default
   spireIdentityExchange:
     enabled: true
 
 internal-spire-server-bottom-turtle-ha-b:
+  controllerManager:
+    identities:
+      clusterStaticEntries:
+        test:
+          parentID: spiffe://production.other/spire-identity-exchange
+          spiffeID: spiffe://production.other/k8s-psat/test
+          selectors:
+            - k8s_psat:namespace:default
+            - k8s_psat:service_account_name:default
   spireIdentityExchange:
     enabled: true
 
