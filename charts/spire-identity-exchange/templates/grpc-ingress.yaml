@@ -1,7 +1,7 @@
 {{- if .Values.grpc.ingress.enabled -}}
 {{- $port := .Values.grpc.service.port }}
 {{- $ingressControllerType := include "spire-lib.ingress-controller-type" (dict "global" .Values.global "ingress" .Values.grpc.ingress) }}
-{{- $fullName := include "spire-identity-exchange.fullname" . }}
+{{- $fullName := printf "%s-grpc" (include "spire-identity-exchange.fullname" .) }}
 {{- $path := "/" }}
 {{- $pathType := "Prefix" }}
 {{- $tlsSection := true }}

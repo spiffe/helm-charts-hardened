@@ -1,7 +1,7 @@
 {{- if .Values.rest.ingress.enabled -}}
 {{- $port := .Values.rest.service.port }}
 {{- $ingressControllerType := include "spire-lib.ingress-controller-type" (dict "global" .Values.global "ingress" .Values.rest.ingress) }}
-{{- $fullName := include "spire-identity-exchange.fullname" . }}
+{{- $fullName := printf "%s-rest" (include "spire-identity-exchange.fullname" .) }}
 {{- $path := "/" }}
 {{- $pathType := "Prefix" }}
 {{- $tlsSection := true }}
