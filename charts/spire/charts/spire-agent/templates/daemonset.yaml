@@ -40,6 +40,8 @@
 {{- end }}
 {{- $socketAlternateNames := index (include "spire-agent.socket-alternate-names" . | fromYaml) "names" }}
 {{- $socketPath := include "spire-agent.socket-path" . }}
+{{- $pluginsToLoad := include "spire-lib.extract_custom_plugin_images" . | fromYamlArray }}
+{{- $pluginLoaderNeeded := gt (len $pluginsToLoad) 0 }}
 ---
 apiVersion: apps/v1
 kind: DaemonSet
@@ -100,6 +102,56 @@ spec:
         {{- toYaml .Values.hostAliases | nindent 8 }}
       {{- end }}
       initContainers:
+        {{- if $pluginLoaderNeeded }}
+        - name: init-plugins
+          securityContext:
+            {{- include "spire-lib.securitycontext" . | nindent 12 }}
+          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.tools.busybox.image "global" .Values.global) }}
+          # SPIRE must be able to fork the plugin directly within its container. First copy a busybox so that the plugin can be copied into the right place.
+          command:
+            - busybox
+            - sh
+            - -ec
+            - |
+              cp -a /bin/busybox /plugins/busybox
+          volumeMounts:
+            - name: plugins
+              mountPath: /plugins
+          imagePullPolicy: {{ .Values.tools.busybox.image.pullPolicy }}
+        {{- end }}
+        {{- range $idx, $plugin := $pluginsToLoad }}
+        - name: {{ printf "init-plugin-%d" $idx }}
+          securityContext:
+            {{- include "spire-lib.securitycontext" $ | nindent 12 }}
+          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" $plugin.image "global" $.Values.global) }}
+          command:
+            - /plugins/busybox
+            - sh
+            - -ec
+            - |
+              /plugins/busybox mkdir -p /plugins/{{ dir $plugin.name }}
+              /plugins/busybox cp -a {{ $plugin.plugin_cmd }} /plugins/{{ $plugin.name }}
+          volumeMounts:
+            - name: plugins
+              mountPath: /plugins
+          imagePullPolicy: {{ $plugin.image.pullPolicy }}
+        {{- end }}
+        {{- if $pluginLoaderNeeded }}
+        - name: finalize-plugins
+          securityContext:
+            {{- include "spire-lib.securitycontext" . | nindent 12 }}
+          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.tools.busybox.image "global" .Values.global) }}
+          command:
+            - busybox
+            - sh
+            - -ec
+            - |
+              rm -f /plugins/busybox
+          volumeMounts:
+            - name: plugins
+              mountPath: /plugins
+          imagePullPolicy: {{ .Values.tools.busybox.image.pullPolicy }}
+        {{- end }}
         {{- if or (eq .Values.workloadAttestors.k8s.verification.type "hostCert") (eq .Values.workloadAttestors.k8s.verification.type "auto") }}
         - name: gather-host-cert
           securityContext:
@@ -326,6 +378,11 @@ spec:
               mountPath: /run/spire/bundle
             {{- end }}
             {{- end }}
+            {{- if $pluginLoaderNeeded }}
+            - name: plugins
+              mountPath: /plugins
+              readOnly: true
+            {{- end }}
             {{- if .Values.nodeAttestor.tpmDirect.enabled }}
             - name: tpm-direct
               mountPath: /tpm
@@ -418,6 +475,11 @@ spec:
           {{- else }}
           emptyDir: {}
           {{- end }}
+        {{- end }}
+        {{- if $pluginLoaderNeeded }}
+        - name: plugins
+          mountPath: /plugins
+          readOnly: true
         {{- end }}
         {{- if .Values.sockets.admin.mountOnHost }}
         - name: spire-agent-admin-socket-dir
