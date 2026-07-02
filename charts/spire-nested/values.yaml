@@ -280,6 +280,9 @@ external-root-spire-server-full:
         child-servers:
           ## @param external-root-spire-server-full.controllerManager.identities.clusterSPIFFEIDs.child-servers.enabled Enable child servers
           enabled: true
+          ## @param external-root-spire-server-full.controllerManager.identities.clusterSPIFFEIDs.child-servers.labels [object] Default label spire.spiffe.io/child-server is set to enable label-based informer filtering on the root cluster's external controller manager.
+          labels:
+            spire.spiffe.io/child-server: "true"
         default:
           ## @param external-root-spire-server-full.controllerManager.identities.clusterSPIFFEIDs.default.enabled Enable the default cluster spiffe id
           enabled: false
