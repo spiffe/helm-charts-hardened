@@ -153,6 +153,13 @@ dependencies:
       - bottomTurtleHAA
     repository: file://../spire/charts/spiffe-csi-driver
     version: 0.1.0
+  - name: spire-identity-exchange
+    alias: spire-identity-exchange-bottom-turtle-ha-a
+    condition: spire-identity-exchange-bottom-turtle-ha-a.enabled
+    repository: file://../spire-identity-exchange
+    version: 0.1.0
+    tags:
+      - bottomTurtleHAA
   - name: spire-server
     alias: internal-spire-server-bottom-turtle-ha-b
     condition: internal-spire-server-bottom-turtle-ha-b.enabled
@@ -181,6 +188,13 @@ dependencies:
       - bottomTurtleHAB
     repository: file://../spire/charts/spiffe-csi-driver
     version: 0.1.0
+  - name: spire-identity-exchange
+    alias: spire-identity-exchange-bottom-turtle-ha-b
+    condition: spire-identity-exchange-bottom-turtle-ha-b.enabled
+    repository: file://../spire-identity-exchange
+    version: 0.1.0
+    tags:
+      - bottomTurtleHAB
 annotations:
   artifacthub.io/category: security
   artifacthub.io/license: Apache-2.0

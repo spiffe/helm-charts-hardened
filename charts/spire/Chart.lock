@@ -32,5 +32,8 @@ dependencies:
 - name: spike-pilot
   repository: file://./charts/spike-pilot
   version: 0.1.0
-digest: sha256:c93438bb4c5317a25ffef1ce93dbd6c9dbd07295e101377e9a2bb8320ee14622
-generated: "2026-06-06T08:13:02.92098-07:00"
+- name: spire-identity-exchange
+  repository: file://../spire-identity-exchange
+  version: 0.1.0
+digest: sha256:38b85a4bf147cc86a432ac32dfd3473e27efc6b6a3c1563340444bbe049a4746
+generated: "2026-06-27T10:53:07.840372246-07:00"

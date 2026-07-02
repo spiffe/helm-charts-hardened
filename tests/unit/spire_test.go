@@ -15,12 +15,27 @@ func ValueStringRender(chart *helmchart.Chart, values string) (map[string]string
 	if err != nil {
 		return nil, err
 	}
-	ro := helmutil.ReleaseOptions{Name: "spire", Namespace: "spire-server", Revision: 1, IsUpgrade: false, IsInstall: true}
-	v, err = helmutil.ToRenderValues(chart, v, ro, helmutil.DefaultCapabilities)
+	merged, err := helmutil.CoalesceValues(chart, v)
 	if err != nil {
 		return nil, err
 	}
-	objs, err := helmengine.Render(chart, v)
+	testChart := *chart
+	testChart.Values = merged
+
+	var activeDeps []*helmchart.Chart
+        for _, dep := range testChart.Dependencies() {
+                if dep.Name() != "spire-identity-exchange" {
+                        activeDeps = append(activeDeps, dep)
+                }
+        }
+        testChart.SetDependencies(activeDeps...)
+
+	ro := helmutil.ReleaseOptions{Name: "spire", Namespace: "spire-server", Revision: 1, IsUpgrade: false, IsInstall: true}
+	v, err = helmutil.ToRenderValues(&testChart, merged, ro, helmutil.DefaultCapabilities)
+	if err != nil {
+		return nil, err
+	}
+	objs, err := helmengine.Render(&testChart, v)
 	return objs, err
 }
 

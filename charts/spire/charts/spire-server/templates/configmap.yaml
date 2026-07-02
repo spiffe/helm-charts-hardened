@@ -131,7 +131,7 @@ server:
   {{- end }}
 
 plugins:
-  {{- if or .Values.credentialComposer.uniqueID.enabled .Values.credentialComposer.cel.enabled }}
+  {{- if or .Values.credentialComposer.uniqueID.enabled .Values.credentialComposer.cel.enabled .Values.spireIdentityExchange.enabled }}
   CredentialComposer:
     {{- if or .Values.credentialComposer.uniqueID.enabled }}
     uniqueid: {}
@@ -139,11 +139,32 @@ plugins:
     {{- with .Values.credentialComposer.cel }}
     {{- if .enabled }}
     cel:
-      plugin_cmd: "/cel/credentialcomposer-cel"
+      plugin_cmd: "/plugins/credentialcomposer-cel"
       plugin_checksum: {{ .checksum }}
       plugin_data:
         jwt:
           expression_string: {{ .jwt.expression | quote }}
+    {{- end }}
+    {{- end }}
+    {{- with .Values.credentialComposer.spireIdentityExchange }}
+    {{- if $root.Values.spireIdentityExchange.enabled }}
+    identityexchange:
+      plugin_cmd: "/plugins/credentialcomposer-identity-exchange"
+      plugin_checksum: {{ .checksum }}
+      plugin_data:
+        {{- $spiffePrefix := $root.Values.nodeAttestor.x509POP.spiffePrefix }}
+        {{- if not (hasSuffix "/" $spiffePrefix) }}
+        {{-   $spiffePrefix = printf "%s/" $spiffePrefix }}
+        {{- end }}
+        {{- if eq .prefix "" }}
+        {{-   if $root.Values.nodeAttestor.x509POP.addClusterName.spiffePrefix }}
+        prefix: {{ printf "%s%s/spire-identity-exchange/" $spiffePrefix (include "spire-lib.cluster-name" $root) | quote }}
+        {{-   else }}
+        prefix: {{ printf "%s/spire-identity-exchange/" $spiffePrefix | quote }}
+        {{-   end }}
+        {{- else }}
+        prefix: {{ .prefix | quote }}
+        {{- end }}
     {{- end }}
     {{- end }}
   {{- end }}
@@ -176,7 +197,7 @@ plugins:
 {{- end }}
 {{- end }}
 
-  {{- if or .Values.nodeAttestor.k8sPSAT.enabled .Values.nodeAttestor.externalK8sPSAT.enabled .Values.nodeAttestor.joinToken.enabled .Values.nodeAttestor.httpChallenge.enabled .Values.nodeAttestor.tpmDirect.enabled .Values.nodeAttestor.awsIID.enabled .Values.nodeAttestor.gcpIIT.enabled .Values.nodeAttestor.x509POP.enabled }}
+  {{- if or .Values.nodeAttestor.k8sPSAT.enabled .Values.nodeAttestor.externalK8sPSAT.enabled .Values.nodeAttestor.joinToken.enabled .Values.nodeAttestor.httpChallenge.enabled .Values.nodeAttestor.tpmDirect.enabled .Values.nodeAttestor.awsIID.enabled .Values.nodeAttestor.gcpIIT.enabled .Values.nodeAttestor.x509POP.enabled .Values.spireIdentityExchange.enabled }}
   NodeAttestor:
   {{- $clusters := default .Values.kubeConfigs .Values.nodeAttestor.externalK8sPSAT.clusters }}
   {{- if or (eq (.Values.nodeAttestor.k8sPSAT.enabled | toString) "true") (and (eq (.Values.nodeAttestor.externalK8sPSAT.enabled | toString) "true") (gt (len $clusters) 0)) }}
@@ -257,24 +278,26 @@ plugins:
   {{- end }}
   {{- end }}
   {{- with .Values.nodeAttestor.x509POP }}
-  {{- if eq (.enabled | toString) "true" }}
+  {{- if or (eq (.enabled | toString) "true") $root.Values.spireIdentityExchange.enabled }}
     x509pop:
       plugin_data:
         mode: {{ .mode }}
-        {{- if .addClusterName.svidPrefix }}
-        svid_prefix: {{ printf "%s/%s" .svidPrefix (include "spire-lib.cluster-name" $root) | quote }}
-        {{- else }}
-        svid_prefix: {{ .svidPrefix | quote }}
-        {{- end }}
+        spiffe_prefix: {{ include "spire-server.identity-exchange-spiffe-prefix" $root | quote }}
         max_intermediates: {{ .maxIntermediates }}
         max_rsa_key_size: {{ .maxRSAKeySize }}
-        {{- if ne .agentPathTemplate "" }}
-        {{-   if .addClusterName.agentPathTemplate }}
-        agent_path_template: {{ printf "%s/%s" .agentPathTemplate (include "spire-lib.cluster-name" $root) | quote }}
+        {{- $cn := "" }}
+        {{- $agentPathTemplate := .agentPathTemplate }}
+        {{- if (eq $agentPathTemplate "") }}
+        {{-   if eq .mode "spiffe" }}
+        {{-     $agentPathTemplate = "/{{ .PluginName }}/k8s${HELM_ADD_CLUSTER_NAME}/{{ .SVIDPathTrimmed }}" }}
         {{-   else }}
-        agent_path_template: {{ .agentPathTemplate | quote }}
+        {{-     $agentPathTemplate = "/{{ .PluginName }}/{{ .Fingerprint }}" }}
         {{-   end }}
         {{- end }}
+        {{- if .addClusterName.agentPathTemplate }}
+        {{-   $cn = printf "/%s" (include "spire-lib.cluster-name" $root) }}
+        {{- end }}
+        agent_path_template: {{ replace "${HELM_ADD_CLUSTER_NAME}" $cn $agentPathTemplate | quote }}
   {{- end }}
   {{- end }}
   {{- with .Values.nodeAttestor.awsIID }}

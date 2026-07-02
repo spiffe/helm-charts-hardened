@@ -1,0 +1,360 @@
+# Default configuration for SPIRE Identity Exchange chart
+# SPDX-License-Identifier: APACHE-2.0
+
+## @skip global
+global: {}
+
+## @section Chart parameters
+##
+## @param agentSocketName The name of the spire-agent unix socket
+agentSocketName: spire-agent.sock
+## @param csiDriverName The csi driver to use
+csiDriverName: csi.spiffe.io
+
+## @param replicaCount Replica count
+replicaCount: 1
+
+## @param namespaceOverride Namespace override
+namespaceOverride: ""
+
+## @param annotations [object] Annotations for the deployment
+annotations: {}
+
+## @param labels [object] Labels for the deployment
+labels: {}
+  # if you configured your controller manager to register pods based on labels, you need to add these labels here too
+  # For instance:
+  # spiffe.io/spiffe-id: "true"
+
+image:
+  ## @param image.registry The OCI registry to pull the image from
+  ## @param image.repository The repository within the registry
+  ## @param image.pullPolicy The image pull policy
+  ## @param image.tag Overrides the image tag whose default is the chart appVersion
+  ##
+  registry: ghcr.io
+  repository: spiffe/spire-identity-exchange-server
+  pullPolicy: IfNotPresent
+  tag: ""
+
+spireServerAttestorSPIFFEWorkloadAPI:
+  ## @param spireServerAttestorSPIFFEWorkloadAPI.resources [object] Resource requests and limits
+  resources: {}
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # requests:
+    #   cpu: 50m
+    #   memory: 32Mi
+    # limits:
+    #   cpu: 100m
+    #   memory: 64Mi
+  image:
+    ## @param spireServerAttestorSPIFFEWorkloadAPI.image.registry The OCI registry to pull the image from
+    ## @param spireServerAttestorSPIFFEWorkloadAPI.image.repository The repository within the registry
+    ## @param spireServerAttestorSPIFFEWorkloadAPI.image.pullPolicy The image pull policy
+    ## @param spireServerAttestorSPIFFEWorkloadAPI.image.tag Overrides the image tag whose default is the chart appVersion
+    ##
+    registry: ghcr.io
+    repository: spiffe/spire-server-attestor-spiffe-workload-api
+    pullPolicy: IfNotPresent
+    tag: ""
+
+spireAgent:
+  ## @param spireAgent.resources [object] Resource requests and limits
+  resources: {}
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # requests:
+    #   cpu: 50m
+    #   memory: 32Mi
+    # limits:
+    #   cpu: 100m
+    #   memory: 64Mi
+  image:
+    ## @param spireAgent.image.registry The OCI registry to pull the image from
+    ## @param spireAgent.image.repository The repository within the registry
+    ## @param spireAgent.image.pullPolicy The image pull policy
+    ## @param spireAgent.image.tag Overrides the image tag whose default is the chart appVersion
+    ##
+    registry: ghcr.io
+    repository: spiffe/spire-agent
+    pullPolicy: IfNotPresent
+    tag: "1.15.1"
+
+## @param extraEnv [array] Extra environment variables to add to the spire identity exchange
+extraEnv: []
+
+## @param resources [object] Resource requests and limits
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # requests:
+  #   cpu: 50m
+  #   memory: 32Mi
+  # limits:
+  #   cpu: 100m
+  #   memory: 64Mi
+
+configMap:
+  ## @param configMap.annotations [object] Annotations to add to the SPIFFE OIDC Discovery Provider ConfigMap
+  annotations: {}
+
+## @param podSecurityContext [object] Pod security context for OIDC discovery provider pods
+podSecurityContext: {}
+  # fsGroup: 2000
+
+## @param securityContext [object] Security context for OIDC discovery provider deployment
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+## @param readinessProbe.initialDelaySeconds Initial delay seconds for readinessProbe
+## @param readinessProbe.periodSeconds Period seconds for readinessProbe
+##
+readinessProbe:
+  initialDelaySeconds: 5
+  periodSeconds: 5
+
+## @param livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
+## @param livenessProbe.periodSeconds Period seconds for livenessProbe
+##
+livenessProbe:
+  initialDelaySeconds: 5
+  periodSeconds: 5
+
+## @param podAnnotations [object] Pod annotations for Spire OIDC discovery provider
+podAnnotations: {}
+
+## @param podLabels [object] Labels to add to pods
+podLabels: {}
+
+# Select from one of the options below to be the source of certificates for OIDC Discovery Provider.
+# If none are enabled, connections won't be TLS encrypted.
+tls:
+
+  externalSecret:
+    ## @param tls.externalSecret.enabled Provide your own certificate/key via tls style Kubernetes Secret
+    enabled: false
+    ## @param tls.externalSecret.secretName Specify which Secret to use
+    secretName: ""
+
+  certManager:
+    ## @param tls.certManager.enabled Use certificateManager to create the certificate
+    enabled: false
+    issuer:
+      ## @param tls.certManager.issuer.create Create an issuer to use to issue the certificate
+      create: true
+      acme:
+        ## @param tls.certManager.issuer.acme.email Must be set in order to register with LetsEncrypt. By setting, you agree to their Terms of Service
+        email: ""
+        ## @param tls.certManager.issuer.acme.server Server to use to get certificate. Defaults to LetsEncrypt
+        server: https://acme-v02.api.letsencrypt.org/directory
+        # Testing server: https://acme-staging-v02.api.letsencrypt.org/directory
+        ## @param tls.certManager.issuer.acme.solvers [object] Configure the issuer solvers. Defaults to http01 via ingress.
+        solvers: {}
+        # - http01:
+        #     ingress:
+        #       ingressClassName: nginx
+    certificate:
+      ## @param tls.certManager.certificate.dnsNames Override the dnsNames on the certificate request. Defaults to the same settings as Ingress
+      dnsNames: []
+      ## @param tls.certManager.certificate.issuerRef.group If you are using an external plugin, specify the group for it here
+      ## @param tls.certManager.certificate.issuerRef.kind Kind of the issuer reference. Override if you want to use a ClusterIssuer
+      ## @param tls.certManager.certificate.issuerRef.name Name of the issuer to use. If unset, it will use the name of the built in issuer
+      issuerRef:
+        group: ""
+        kind: Issuer
+        name: ""
+
+config:
+  ## @param config.logLevel The log level, valid values are "debug", "info", "warn", and "error"
+  logLevel: info
+  ## @param config.logFormat The log format, valid values are "text" and "json"
+  logFormat: text
+
+## @param imagePullSecrets [array] Image pull secret names
+imagePullSecrets: []
+
+## @param nameOverride Name override
+nameOverride: ""
+
+## @param fullnameOverride Full name override
+fullnameOverride: ""
+
+## @param serviceAccount.create Specifies whether a service account should be created
+## @param serviceAccount.annotations Annotations to add to the service account
+## @param serviceAccount.name The name of the service account to use. If not set and create is true, a name is generated.
+##
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+deleteHook:
+  ## @param deleteHook.enabled Enable Helm hooks to autofix common delete issues (should be disabled when using `helm template`)
+  enabled: true
+
+## @param autoscaling.enabled Flag to enable autoscaling
+## @param autoscaling.minReplicas Minimum replicas for autoscaling
+## @param autoscaling.maxReplicas Maximum replicas for autoscaling
+## @param autoscaling.targetCPUUtilizationPercentage Target CPU utlization that triggers autoscaling
+## @param autoscaling.targetMemoryUtilizationPercentage Target Memory utlization that triggers autoscaling
+##
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+## @param nodeSelector [object] Node selector
+nodeSelector: {}
+
+## @param tolerations [array] iist of tolerations
+tolerations: []
+
+## @param affinity [object] Node affinity
+affinity: {}
+
+## @param trustDomain Set the trust domain to be used for the SPIFFE identifiers
+trustDomain: example.org
+
+## @param clusterDomain The name of the Kubernetes cluster (`kubeadm init --service-dns-domain`)
+clusterDomain: cluster.local
+
+auth:
+  ## @param auth.plugins [object] Plugins to load
+  plugins: []
+  ## @param auth.stacks [object] Stacks to load
+  stacks: []
+
+rest:
+  ## @param rest.enabled Enable the rest service
+  enabled: true
+  ## @param rest.service.type Service type
+  ## @param rest.service.port port for the service
+  ## @param rest.service.annotations Annotations for service resource
+  ##
+  service:
+    type: ClusterIP
+    port: 443
+    annotations: {}
+    # external-dns.alpha.kubernetes.io/hostname: spire-identity-exchange-rest.example.org
+    ## @param rest.service.loadBalancerIP IP address to assign to load balancer (if supported)
+    loadBalancerIP: ""
+  ingress:
+    ## @param rest.ingress.enabled Flag to enable ingress
+    enabled: false
+    ## @param rest.ingress.className Ingress class name
+    className: ""
+    ## @param rest.ingress.controllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, autodetection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""].
+    controllerType: ""
+    ## @param rest.ingress.annotations [object] Annotations for ingress object
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+      # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      # nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+
+    ## @param rest.ingress.host Host name for the ingress. If no '.' in host, trustDomain is automatically appended. The rest of the rules will be autogenerated. For more customizability, use hosts[] instead.
+    host: "spire-identity-exchange-rest"
+
+    ## @param rest.ingress.tlsSecret Secret that has the certs. If blank will use default certs. Used with host var.
+    tlsSecret: ""
+
+    ## @param rest.ingress.hosts [array] Host paths for ingress object. If emtpy, rules will be built based on the host var.
+    hosts: []
+    #  - host: spire-identity-exchange-rest.example.org
+    #    paths:
+    #      - path: /
+    #        pathType: Prefix
+
+    ## @param rest.ingress.tls [array] Secrets containining TLS certs to enable https on ingress. If emtpy, rules will be built based on the host and tlsSecret vars.
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - spire-identity-exchange-rest.example.org
+
+grpc:
+  ## @param grpc.enabled Enable the grpc service
+  enabled: false
+  ## @param grpc.service.type Service type
+  ## @param grpc.service.port port for the service
+  ## @param grpc.service.annotations Annotations for service resource
+  ##
+  service:
+    type: ClusterIP
+    port: 443
+    annotations: {}
+    # external-dns.alpha.kubernetes.io/hostname: spire-identity-exchange-grpc.example.org
+    ## @param grpc.service.loadBalancerIP IP address to assign to load balancer (if supported)
+    loadBalancerIP: ""
+  ingress:
+    ## @param grpc.ingress.enabled Flag to enable ingress
+    enabled: false
+    ## @param grpc.ingress.className Ingress class name
+    className: ""
+    ## @param grpc.ingress.controllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, autodetection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""].
+    controllerType: ""
+    ## @param grpc.ingress.annotations [object] Annotations for ingress object
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+      # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      # nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+
+    ## @param grpc.ingress.host Host name for the ingress. If no '.' in host, trustDomain is automatically appended. The grpc of the rules will be autogenerated. For more customizability, use hosts[] instead.
+    host: "spire-identity-exchange-grpc"
+
+    ## @param grpc.ingress.tlsSecret Secret that has the certs. If blank will use default certs. Used with host var.
+    tlsSecret: ""
+
+    ## @param grpc.ingress.hosts [array] Host paths for ingress object. If emtpy, rules will be built based on the host var.
+    hosts: []
+    #  - host: spire-identity-exchange-grpc.example.org
+    #    paths:
+    #      - path: /
+    #        pathType: Prefix
+
+    ## @param grpc.ingress.tls [array] Secrets containining TLS certs to enable https on ingress. If emtpy, rules will be built based on the host and tlsSecret vars.
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - spire-identiy-exchange-grpc.example.org
+
+tools:
+  kubectl:
+    ## @param tools.kubectl.image.registry The OCI registry to pull the image from
+    ## @param tools.kubectl.image.repository The repository within the registry
+    ## @param tools.kubectl.image.pullPolicy The image pull policy
+    ## @param tools.kubectl.image.tag Overrides the image tag whose default is the chart appVersion
+    ##
+    image:
+      registry: registry.k8s.io
+      repository: kubectl
+      pullPolicy: IfNotPresent
+      tag: ""
+clusterRole:
+  ## @param clusterRole.create create a k8s cluster role to allow access to token reviews and oidc discovery
+  create: true
+
+## @param server.address Address for Spire server
+## @param server.port Port number for Spire server
+## @param server.namespaceOverride Override the namespace for Spire server
+## @param server.nameOverride Override the name for Spire server. Should only be changed when building your own nested chart to ensure names align.
+##
+server:
+  address: ""
+  port: 443
+  namespaceOverride: ""
+  nameOverride: ""

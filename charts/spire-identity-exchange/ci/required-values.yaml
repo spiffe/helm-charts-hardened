@@ -1,0 +1,14 @@
+spire-identity-exchange:
+  enabled: true
+  tls:
+    externalSecret:
+      enabled: true
+      secretName: spire-identity-exchange
+  auth:
+    plugins:
+      - plugin: k8s_psat
+        config:
+          audiences:
+            - spire-identity-exchange
+          allowedServiceAccounts:
+            - default/default

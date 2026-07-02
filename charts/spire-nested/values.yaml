@@ -494,6 +494,10 @@ internal-spire-server-bottom-turtle-ha-a:
         spire-ha-agent:
           ## @param internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent.enabled Enables the spire-ha-agent identity
           enabled: true
+      spire-identity-exchange-service:
+        ## @param internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.spire-identity-exchange-service.federatesWith [array] List of trust domains to federate with
+        federatesWith:
+          - spire-ha
   persistence:
     ## @param internal-spire-server-bottom-turtle-ha-a.persistence.type What type to use for peristence
     type: emptyDir
@@ -504,13 +508,13 @@ internal-spire-server-bottom-turtle-ha-a:
     x509POP:
       ## @param internal-spire-server-bottom-turtle-ha-a.nodeAttestor.x509POP.enabled Enable the x509 pop node attestor
       enabled: true
-      ## @param internal-spire-server-bottom-turtle-ha-a.nodeAttestor.x509POP.svidPrefix What prefix to use when mode is spiffe
-      svidPrefix: /spire-exchange/k8s
+      ## @param internal-spire-server-bottom-turtle-ha-a.nodeAttestor.x509POP.spiffePrefix What prefix to use when mode is spiffe
+      spiffePrefix: /spire-exchange/k8s${HELM_ADD_CLUSTER_NAME}/
       ## @param internal-spire-server-bottom-turtle-ha-a.nodeAttestor.x509POP.agentPathTemplate Override the default agent path template
-      agentPathTemplate: "/{{ .PluginName }}/{{ .SVIDPathTrimmed }}/k8s"
+      agentPathTemplate: "/{{ .PluginName }}/k8s${HELM_ADD_CLUSTER_NAME}/{{ .SVIDPathTrimmed }}"
       addClusterName:
-        ## @param internal-spire-server-bottom-turtle-ha-a.nodeAttestor.x509POP.addClusterName.svidPrefix Suffix the cluster name onto the svidPrefix
-        svidPrefix: true
+        ## @param internal-spire-server-bottom-turtle-ha-a.nodeAttestor.x509POP.addClusterName.spiffePrefix Suffix the cluster name onto the spiffePrefix
+        spiffePrefix: true
         ## @param internal-spire-server-bottom-turtle-ha-a.nodeAttestor.x509POP.addClusterName.agentPathTemplate Suffix the cluster name onto the agentPathTemplate
         agentPathTemplate: true
   upstreamAuthority:
@@ -572,6 +576,10 @@ internal-spire-server-bottom-turtle-ha-b:
         spire-ha-agent:
           ## @param internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent.enabled Enables the spire-ha-agent identity
           enabled: true
+      spire-identity-exchange-service:
+        ## @param internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.spire-identity-exchange-service.federatesWith [array] List of trust domains to federate with
+        federatesWith:
+          - spire-ha
   persistence:
     ## @param internal-spire-server-bottom-turtle-ha-b.persistence.type What type to use for peristence
     type: emptyDir
@@ -582,13 +590,13 @@ internal-spire-server-bottom-turtle-ha-b:
     x509POP:
       ## @param internal-spire-server-bottom-turtle-ha-b.nodeAttestor.x509POP.enabled Enable the x509 pop node attestor
       enabled: true
-      ## @param internal-spire-server-bottom-turtle-ha-b.nodeAttestor.x509POP.svidPrefix What prefix to use when mode is spiffe
-      svidPrefix: /spire-exchange/k8s
+      ## @param internal-spire-server-bottom-turtle-ha-b.nodeAttestor.x509POP.spiffePrefix What prefix to use when mode is spiffe
+      spiffePrefix: /spire-exchange/k8s${HELM_ADD_CLUSTER_NAME}/
       ## @param internal-spire-server-bottom-turtle-ha-b.nodeAttestor.x509POP.agentPathTemplate Override the default agent path template
-      agentPathTemplate: "/{{ .PluginName }}/{{ .SVIDPathTrimmed }}/k8s"
+      agentPathTemplate: "/{{ .PluginName }}/k8s${HELM_ADD_CLUSTER_NAME}/{{ .SVIDPathTrimmed }}"
       addClusterName:
-        ## @param internal-spire-server-bottom-turtle-ha-b.nodeAttestor.x509POP.addClusterName.svidPrefix Suffix the cluster name onto the svidPrefix
-        svidPrefix: true
+        ## @param internal-spire-server-bottom-turtle-ha-b.nodeAttestor.x509POP.addClusterName.spiffePrefix Suffix the cluster name onto the spiffePrefix
+        spiffePrefix: true
         ## @param internal-spire-server-bottom-turtle-ha-b.nodeAttestor.x509POP.addClusterName.agentPathTemplate Suffix the cluster name onto the agentPathTemplate
         agentPathTemplate: true
   upstreamAuthority:
@@ -752,3 +760,41 @@ downstream-spiffe-csi-driver-bottom-turtle-ha-b:
   healthChecks:
     ## @param downstream-spiffe-csi-driver-bottom-turtle-ha-b.healthChecks.port The health check port
     port: 9816
+
+spire-identity-exchange-bottom-turtle-ha-a:
+  ## @param spire-identity-exchange-bottom-turtle-ha-a.enabled Enable the spire-identity-exchange
+  enabled: false
+  ## @param spire-identity-exchange-bottom-turtle-ha-a.nameOverride name override
+  nameOverride: identity-exchange
+  ## @param spire-identity-exchange-bottom-turtle-ha-a.csiDriverName CSI driver name to use
+  csiDriverName: a.csi.spiffe.io
+  rest:
+    ingress:
+      ## @param spire-identity-exchange-bottom-turtle-ha-a.rest.ingress.host Hostname override for the rest ingress service
+      host: "spire-identity-exchange-a-rest"
+  grpc:
+    ingress:
+      ## @param spire-identity-exchange-bottom-turtle-ha-a.grpc.ingress.host Hostname override for the rest ingress service
+      host: "spire-identity-exchange-a-grpc"
+  server:
+    ## @param spire-identity-exchange-bottom-turtle-ha-a.server.nameOverride The name override setting of the internal SPIRE server
+    nameOverride: internal-server
+
+spire-identity-exchange-bottom-turtle-ha-b:
+  ## @param spire-identity-exchange-bottom-turtle-ha-b.enabled Enable the spire-identity-exchange
+  enabled: false
+  ## @param spire-identity-exchange-bottom-turtle-ha-b.nameOverride name override
+  nameOverride: identity-exchange
+  ## @param spire-identity-exchange-bottom-turtle-ha-b.csiDriverName CSI driver name to use
+  csiDriverName: b.csi.spiffe.io
+  server:
+    ## @param spire-identity-exchange-bottom-turtle-ha-b.server.nameOverride The name override setting of the internal SPIRE server
+    nameOverride: internal-server
+  rest:
+    ingress:
+      ## @param spire-identity-exchange-bottom-turtle-ha-b.rest.ingress.host Hostname override for the rest ingress service
+      host: "spire-identity-exchange-b-rest"
+  grpc:
+    ingress:
+      ## @param spire-identity-exchange-bottom-turtle-ha-b.grpc.ingress.host Hostname override for the rest ingress service
+      host: "spire-identity-exchange-b-grpc"

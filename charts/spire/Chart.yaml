@@ -68,6 +68,10 @@ dependencies:
     condition: spike-pilot.enabled
     repository: file://./charts/spike-pilot
     version: 0.1.0
+  - name: spire-identity-exchange
+    condition: spire-identity-exchange.enabled
+    repository: file://../spire-identity-exchange
+    version: 0.1.0
 annotations:
   org.opencontainers.image.source: https://github.com/spiffe/helm-charts-hardened
   artifacthub.io/category: security

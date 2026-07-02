@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: test
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      hostAliases:
+      volumes:
+      - name: token-volume
+        projected:
+          sources:
+          - serviceAccountToken:
+              path: token
+              audience: spire-identity-exchange
+              expirationSeconds: 3600
+      containers:
+      - name: main
+        image: curlimages/curl:latest
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          cat /var/run/secrets/tokens/token
+        volumeMounts:
+        - name: token-volume
+          mountPath: /var/run/secrets/tokens

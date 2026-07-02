@@ -243,3 +243,9 @@ spike-nexus:
 spike-pilot:
   ## @param spike-pilot.enabled Enables deployment of SPIKE Pilot (Not for production)
   enabled: false
+
+spire-identity-exchange:
+  ## @param spire-identity-exchange.enabled Enables deployment of the SPIRE Identity Exchange (Not for production)
+  enabled: false
+  ## @param spire-identity-exchange.nameOverride Overrides the name of the SPIRE Identity Exchnage
+  nameOverride: identity-exchange

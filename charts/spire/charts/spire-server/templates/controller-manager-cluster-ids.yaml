@@ -20,6 +20,11 @@ matchLabels:
   release: {{ .Release.Name }}
   release-namespace: {{ .Release.Namespace }}
   component: oidc-discovery-provider
+{{-   else if eq .type "spire-identity-exchange" }}
+matchLabels:
+  release: {{ .Release.Name }}
+  release-namespace: {{ .Release.Namespace }}
+  component: spire-identity-exchange
 {{-   else if eq .type "spike-keeper" }}
 matchLabels:
   release: {{ .Release.Name }}
@@ -62,10 +67,22 @@ matchLabels:
 {{-     end }}
 {{-   end }}
 {{-   if eq ($root.Values.controllerManager.enabled | toString) "true" }}
-{{-     if or (not (hasKey $value "enabled")) (eq ($value.enabled | toString) "true") }}
+{{-     $process := true }}
+{{-     if not (hasKey $value "enabled") }}
+{{-       if and (hasPrefix "spire-identity-exchange" $key) (not $root.Values.spireIdentityExchange.enabled) }}
+{{-         $process = false }}
+{{-       else if and (hasPrefix "spike" $key) (not $root.Values.spike.enabled) }}
+{{-         $process = false }}
+{{-       end }}
+{{-     else }}
+{{-       if not (eq ($value.enabled | toString) "true") }}
+{{-         $process = false }}
+{{-       end }}
+{{-     end }}
+{{-     if $process }}
 {{-       $type := dig "type" "base" $value }}
-{{-       if not (has $type (list "base" "raw" "spire-ha-agent" "child-servers" "oidc-discovery-provider" "oidc-discovery-provider-common" "spike-keeper" "spike-nexus" "spike-bootstrap" "spike-pilot" "test-keys")) }}
-{{-         fail (printf "Type given: %s, must be one of [base, raw, spire-ha-agent, child-servers, oidc-discovery-provider, oidc-discovery-provider-common, spike-keeper, spike-nexus, spike-bootstrap, spike-pilot, test-keys]" $type) }}
+{{-       if not (has $type (list "base" "raw" "spire-ha-agent" "child-servers" "oidc-discovery-provider" "oidc-discovery-provider-common" "spike-keeper" "spike-nexus" "spike-bootstrap" "spike-pilot" "spire-identity-exchange" "test-keys")) }}
+{{-         fail (printf "Type given: %s, must be one of [base, raw, spire-ha-agent, child-servers, oidc-discovery-provider, oidc-discovery-provider-common, spike-keeper, spike-nexus, spike-bootstrap, spike-pilot, spire-identity-exchange, test-keys]" $type) }}
 {{-       end }}
 {{-       $namespaceSelector := deepCopy (dig "namespaceSelector" (dict) $value) }}
 {{-       if ne $type "raw" }}
@@ -99,6 +116,9 @@ spec:
   {{- end }}
   {{- if and (hasKey $value "spiffeIDTemplate") (ne (len $value.spiffeIDTemplate) 0) }}
   spiffeIDTemplate: {{ $value.spiffeIDTemplate | quote }}
+  {{- else if eq $key "spire-identity-exchange-agent" }}
+  {{- $iePrefix := include "spire-server.identity-exchange-spiffe-prefix" $root }}
+  spiffeIDTemplate: "spiffe://{{ `{{ .TrustDomain }}` }}{{ $iePrefix }}spire-identity-exchange/{{ `{{ .PodMeta.Name }}` }}"
   {{- else }}
   spiffeIDTemplate: {{ $root.Values.controllerManager.identities.clusterSPIFFEIDs.default.spiffeIDTemplate | quote }}
   {{- end }}

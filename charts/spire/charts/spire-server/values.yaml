@@ -380,6 +380,23 @@ credentialComposer:
   uniqueID:
     ## @param credentialComposer.uniqueID.enabled Add the x509UniqueIdentifier attribute to workload X509-SVIDs
     enabled: false
+  spireIdentityExchange:
+    ## @param credentialComposer.spireIdentityExchange.image.registry The OCI registry to pull the image from
+    ## @param credentialComposer.spireIdentityExchange.image.repository The repository within the registry
+    ## @param credentialComposer.spireIdentityExchange.image.pullPolicy The image pull policy
+    ## @param credentialComposer.spireIdentityExchange.image.tag Overrides the image tag
+    ##
+    image:
+      registry: ghcr.io
+      repository: spiffe/spire-credentialcomposer-identity-exchange
+      pullPolicy: IfNotPresent
+      tag: "v0.2.0"
+    ## @param credentialComposer.spireIdentityExchange.checksum The sha256 checksum of the plugin binary
+    checksum: 198bfed106794a60e565cb804cb6b360d4633e4542981abbea0c0c669ddd6036
+    ## @param credentialComposer.spireIdentityExchange.pluginPath The filename in the container of the plugin
+    pluginPath: /ko-app/spire-credentialcomposer-identity-exchange
+    ## @param credentialComposer.spireIdentityExchange.prefix The prefix to operate on
+    prefix: ""
 
 keyManager:
   disk:
@@ -763,29 +780,21 @@ controllerManager:
         type: test-keys
 
       spike-keeper:
-        ## @param controllerManager.identities.clusterSPIFFEIDs.spike-keeper.enabled Enable this identity for controller manager
-        enabled: true
         ## @param controllerManager.identities.clusterSPIFFEIDs.spike-keeper.type The type of rule this is.
         type: spike-keeper
         ## @param controllerManager.identities.clusterSPIFFEIDs.spike-keeper.spiffeIDTemplate The template to use for this rule.
         spiffeIDTemplate: spiffe://{{ .TrustDomain }}/spike/keeper/{{ .PodMeta.Name }}
       spike-nexus:
-        ## @param controllerManager.identities.clusterSPIFFEIDs.spike-nexus.enabled Enable this identity for controller manager
-        enabled: true
         ## @param controllerManager.identities.clusterSPIFFEIDs.spike-nexus.type The type of rule this is.
         type: spike-nexus
         ## @param controllerManager.identities.clusterSPIFFEIDs.spike-nexus.spiffeIDTemplate The template to use for this rule.
         spiffeIDTemplate: spiffe://{{ .TrustDomain }}/spike/nexus/{{ .PodMeta.Name }}
       spike-bootstrap:
-        ## @param controllerManager.identities.clusterSPIFFEIDs.spike-bootstrap.enabled Enable this identity for controller manager
-        enabled: true
         ## @param controllerManager.identities.clusterSPIFFEIDs.spike-bootstrap.type The type of rule this is.
         type: spike-bootstrap
         ## @param controllerManager.identities.clusterSPIFFEIDs.spike-bootstrap.spiffeIDTemplate The template to use for this rule.
         spiffeIDTemplate: spiffe://{{ .TrustDomain }}/spike/bootstrap/{{ .PodMeta.Name }}
       spike-pilot:
-        ## @param controllerManager.identities.clusterSPIFFEIDs.spike-pilot.enabled Enable this identity for controller manager
-        enabled: true
         ## @param controllerManager.identities.clusterSPIFFEIDs.spike-pilot.type The type of rule this is.
         type: spike-pilot
         ## @param controllerManager.identities.clusterSPIFFEIDs.spike-pilot.spiffeIDTemplate The template to use for this rule.
@@ -802,6 +811,29 @@ controllerManager:
         federatesWith:
         - spire-ha
 
+      spire-identity-exchange-trustbundle:
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spire-identity-exchange-trustbundle.spiffeIDTemplate The template to use for this rule.
+        spiffeIDTemplate: spiffe://{{ .TrustDomain }}/service/trustbundle-spire-identity-exchange
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spire-identity-exchange-trustbundle.type The type of rule this is.
+        type: spire-identity-exchange
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spire-identity-exchange-trustbundle.workloadSelectorTemplates [array] Workload selectors.
+        workloadSelectorTemplates:
+          - "k8s:container-name:spire-server-attestor"
+      spire-identity-exchange-service:
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spire-identity-exchange-service.spiffeIDTemplate The template to use for this rule.
+        spiffeIDTemplate: spiffe://{{ .TrustDomain }}/service/spire-identity-exchange
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spire-identity-exchange-service.type The type of rule this is.
+        type: spire-identity-exchange
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spire-identity-exchange-service.workloadSelectorTemplates [array] Workload selectors.
+        workloadSelectorTemplates:
+          - "k8s:container-name:spire-identity-exchange"
+      spire-identity-exchange-agent:
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spire-identity-exchange-agent.type The type of rule this is.
+        type: spire-identity-exchange
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spire-identity-exchange-agent.workloadSelectorTemplates [array] Workload selectors.
+        workloadSelectorTemplates:
+          - "k8s:container-name:spire-agent"
+
       # You can specify additional ClusterSPIFFEIDs following this example:
       # foo:
       #   labels:
@@ -810,8 +842,14 @@ controllerManager:
       #   namespaceSelector:
       #     matchLabels:
       #       foo: bar
-    ## @param controllerManager.identities.clusterStaticEntries Specify ClusterStaticEntry objects.
-    clusterStaticEntries: {}
+    clusterStaticEntries:
+      ## @param  controllerManager.identities.clusterStaticEntries.spire-identity-exchange [object] Settings for the spire-identity-exchnage
+      spire-identity-exchange: {}
+      #FIXME Only needed for delegated api. Can remove once spire-identity-exchange switched to the broker api.
+      spire-identity-exchange-agent:
+        ## @param controllerManager.identities.clusterStaticEntries.spire-identity-exchange-agent.selectors [array] selector
+        selectors:
+          - unix:path:/ko-app/spire-identity-exchange-server
     # foo:
     #   labels:
     #     foo: bar
@@ -1128,8 +1166,8 @@ nodeAttestor:
     enabled: false
     ## @param nodeAttestor.x509POP.mode What mode to set the plugin to. Currently only spiffe mode is supported
     mode: spiffe
-    ## @param nodeAttestor.x509POP.svidPrefix What prefix to use when mode is spiffe
-    svidPrefix: /spire-exchange
+    ## @param nodeAttestor.x509POP.spiffePrefix What prefix to use when mode is spiffe
+    spiffePrefix: "/spire-exchange/k8s${HELM_ADD_CLUSTER_NAME}/"
     ## @param nodeAttestor.x509POP.agentPathTemplate Override the default agent path template
     agentPathTemplate: ""
     ## @param nodeAttestor.x509POP.maxIntermediates Maximum number of intermediate certificates allowed in the certificate chain
@@ -1137,10 +1175,10 @@ nodeAttestor:
     ## @param nodeAttestor.x509POP.maxRSAKeySize Maximum RSA key size in bits allowed in certificates
     maxRSAKeySize: 8192
     addClusterName:
-      ## @param nodeAttestor.x509POP.addClusterName.svidPrefix Suffix the cluster name onto the svidPrefix
-      svidPrefix: false
+      ## @param nodeAttestor.x509POP.addClusterName.spiffePrefix Suffix the cluster name onto the svidPrefix
+      spiffePrefix: true
       ## @param nodeAttestor.x509POP.addClusterName.agentPathTemplate Suffix the cluster name onto the agentPathTemplate
-      agentPathTemplate: false
+      agentPathTemplate: true
 
 # The secrets needed for this plugin are configured in the secrets: section
 bundlePublisher:
@@ -1482,3 +1520,11 @@ kubeConfigs: {}
 #     xxxxx
 # clusterb:
 #   kubeConfigBase64: eXl5Cnl5eQo=
+
+spireIdentityExchange:
+  ## @param spireIdentityExchange.enabled Enable the server side of the SPIRE Identity Exchange system
+  enabled: false
+
+spike:
+  ## @param spike.enabled Enable the server side of SPIKE
+  enabled: false

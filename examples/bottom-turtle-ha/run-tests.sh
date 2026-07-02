@@ -58,6 +58,7 @@ teardown() {
   kubectl exec -i -n spire-server spire-b-internal-server-0 -- spire-server entry show || true
   kubectl exec -i -n spire-server spire-a-internal-server-0 -- spire-server agent list -output json | yq e . - -P || true
   kubectl exec -i -n spire-server spire-b-internal-server-0 -- spire-server agent list -output json | yq e . - -P || true
+  kubectl get pods -A -o wide || true
 
   print_helm_releases
 
@@ -236,10 +237,22 @@ helm upgrade --install --create-namespace --namespace spire-mgmt --values "${COM
   --set "global.spire.ingressControllerType=ingress-nginx" \
   --set "spiffe-oidc-discovery-provider.ingress.enabled=true"
 
+# Create spire-identity-exchange cert for testing.
+mkdir -p certs
+openssl req -x509 -newkey rsa:2048 \
+    -keyout certs/server.key \
+    -out certs/server.pem -sha256 -days 365 -nodes \
+    -subj "/CN=localhost" \
+    -addext "basicConstraints=critical,CA:TRUE" \
+    -addext "subjectAltName=DNS:spire-identity-exchange.production.other,DNS:spire-identity-exchange-a.production.other,DNS:spire-identity-exchange-b.production.other"
+kubectl create secret tls -n spire-server spire-identity-exchange --key=certs/server.key --cert=certs/server.pem
+
 # Install server side a
 helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/spire-values.yaml" \
   --wait spire-a charts/spire-nested \
   --set tags.bottomTurtleHAA=true \
+  --values "${SCRIPTPATH}/spire-identity-exchange-values.yaml" \
+  --set "spire-identity-exchange-bottom-turtle-ha-a.enabled=true" \
   --set "global.spire.ingressControllerType=ingress-nginx"
 
 docker exec -i chart-testing-worker /bin/bash -c "more /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/disk-keymanager/keys.json /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/spire-agent-persistence/agent-data.json | cat"
@@ -258,6 +271,8 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --wait spire-b charts/spire-nested \
   --set tags.bottomTurtleHAB=true \
   --set internal-spire-server-bottom-turtle-ha-b.upstreamAuthority.spire.server.port=8082 \
+  --values "${SCRIPTPATH}/spire-identity-exchange-values.yaml" \
+  --set "spire-identity-exchange-bottom-turtle-ha-b.enabled=true" \
   --set "global.spire.ingressControllerType=ingress-nginx"
 
 docker ps
@@ -278,10 +293,17 @@ if [[ "${ENTRIES}" == "Found 0 entries" ]]; then
 fi
 
 kubectl get pods -A -o wide
+kubectl get ingress -A
 
 helm test --namespace spire-mgmt spire-a
 helm test --namespace spire-mgmt spire-b
 curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discovery.production.other/.well-known/openid-configuration" -s --fail
+
+kubectl apply -f "${SCRIPTPATH}/test-job.yaml"
+kubectl wait --for=condition=complete --timeout=60s job/test && \
+TOKEN=$(kubectl logs job/test)
+curl -f -H "Authorization: Bearer ${TOKEN}" -X POST --resolve "spire-identity-exchange-a-rest.production.other:443:$IP" "https://spire-identity-exchange-a-rest.production.other/api/v1/svid/k8s_psat/x509" -k -sS -q
+curl -f -H "Authorization: Bearer ${TOKEN}" -X POST --resolve "spire-identity-exchange-b-rest.production.other:443:$IP" "https://spire-identity-exchange-b-rest.production.other/api/v1/svid/k8s_psat/x509" -k -sS -q
 
 #Test out running only on side b since we know already only both servers work together, and that only side a works if we made it this far.
 helm delete -n spire-mgmt spire-a
