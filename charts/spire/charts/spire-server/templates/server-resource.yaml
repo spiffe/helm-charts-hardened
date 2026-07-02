@@ -391,6 +391,14 @@ spec:
               mountPath: /tmp-direct-hashes
             {{- end }}
             {{- end }}
+            {{- with .Values.nodeAttestor.x509POP }}
+            {{- if and (eq (.enabled | toString) "true") (eq (.mode | toString) "externalPKI") (or (ne (.caBundle.bundle | default "") "") (ne (.caBundle.existingConfigMap | default "") "")) }}
+            - name: x509pop-ca-bundle
+              mountPath: /run/spire/data/x509pop-ca-bundle.pem
+              subPath: ca-bundle.pem
+              readOnly: true
+            {{- end }}
+            {{- end }}
             {{- if or .Values.federation.tls.certManager.enabled .Values.federation.tls.externalSecret.enabled }}
             - name: bundle-endpoint-tls
               mountPath: /bundle-endpoint-tls
@@ -598,6 +606,17 @@ spec:
         - name: tpm-direct-hashes
           configMap:
             name: {{ include "spire-server.fullname" . }}-tpm-direct-hash
+        {{- end }}
+        {{- end }}
+        {{- with .Values.nodeAttestor.x509POP }}
+        {{- if and (eq (.enabled | toString) "true") (eq (.mode | toString) "externalPKI") (or (ne (.caBundle.bundle | default "") "") (ne (.caBundle.existingConfigMap | default "") "")) }}
+        - name: x509pop-ca-bundle
+          configMap:
+            {{- if ne (.caBundle.bundle | default "") "" }}
+            name: {{ $fullname }}-x509pop-ca
+            {{- else if ne (.caBundle.existingConfigMap | default "") "" }}
+            name: {{ .caBundle.existingConfigMap }}
+            {{- end }}
         {{- end }}
         {{- end }}
         {{- if .Values.federation.tls.certManager.enabled }}

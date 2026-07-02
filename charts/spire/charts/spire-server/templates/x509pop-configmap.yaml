@@ -1,0 +1,10 @@
+{{- if and (eq (.Values.nodeAttestor.x509POP.enabled | toString) "true") (ne (.Values.nodeAttestor.x509POP.caBundle.bundle | default "") "") }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spire-server.fullname" . }}-x509pop-ca
+  namespace: {{ include "spire-server.namespace" . }}
+data:
+  ca-bundle.pem: |
+    {{ .Values.nodeAttestor.x509POP.caBundle.bundle | nindent 4 }}
+{{- end }}

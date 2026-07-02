@@ -1126,8 +1126,14 @@ nodeAttestor:
   x509POP:
     ## @param nodeAttestor.x509POP.enabled Enable the x509_popg node attestor
     enabled: false
-    ## @param nodeAttestor.x509POP.mode What mode to set the plugin to. Currently only spiffe mode is supported
+    ## @param nodeAttestor.x509POP.mode Plugin mode: spiffe (exchange) or externalPKI (enrollment CA bundle)
     mode: spiffe
+    ## @extra nodeAttestor.x509POP.caBundle CA bundle for externalPKI mode. Provide inline PEM contents or reference an existing ConfigMap.
+    caBundle:
+      ## @param nodeAttestor.x509POP.caBundle.bundle [nullable] PEM CA bundle contents. When set, the chart creates and mounts a ConfigMap.
+      bundle: ""
+      ## @param nodeAttestor.x509POP.caBundle.existingConfigMap [nullable] Name of a ConfigMap containing a `ca-bundle.pem` key with the PEM CA bundle.
+      existingConfigMap: ""
     ## @param nodeAttestor.x509POP.svidPrefix What prefix to use when mode is spiffe
     svidPrefix: /spire-exchange
     ## @param nodeAttestor.x509POP.agentPathTemplate Override the default agent path template
