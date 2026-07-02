@@ -1,11 +1,11 @@
 {{- $tlsCount := 0 }}
-{{- if and .Values.enabled .Values.tls.externalSecret.enabled }}
+{{- if .Values.tls.externalSecret.enabled }}
 {{-   $tlsCount = add $tlsCount 1 }}
 {{- end }}
-{{- if and .Values.enabled .Values.tls.certManager.enabled }}
+{{- if .Values.tls.certManager.enabled }}
 {{-   $tlsCount = add $tlsCount 1 }}
 {{- end }}
-{{- if gt $tlsCount 1 }}
+{{- if ne $tlsCount 1 }}
 {{-   fail "You must have one and only one TLS configuration enabled" }}
 {{- end }}
 {{- if lt (len .Values.auth.plugins) 1 }}

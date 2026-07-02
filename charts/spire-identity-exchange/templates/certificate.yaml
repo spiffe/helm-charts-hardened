@@ -4,7 +4,12 @@ dnsNames:
   {{- if ne (len .Values.tls.certManager.certificate.dnsNames) 0 }}
   {{-   toYaml .Values.tls.certManager.certificate.dnsNames | nindent 4 }}
   {{- else }}
-  - {{ include "spire-lib.ingress-calculated-name" (dict "ingress" .Values.ingress "Values" .Values) }}
+  {{-   if .Values.rest.enabled }}
+    - {{ include "spire-lib.ingress-calculated-name" (dict "ingress" .Values.rest.ingress "Values" .Values) }}
+  {{-   end }}
+  {{-   if .Values.grpc.enabled }}
+    - {{ include "spire-lib.ingress-calculated-name" (dict "ingress" .Values.grpc.ingress "Values" .Values) }}
+  {{-   end }}
   {{- end }}
 issuerRef:
   {{- with .Values.tls.certManager.certificate.issuerRef.group }}
