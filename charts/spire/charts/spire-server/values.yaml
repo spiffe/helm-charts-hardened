@@ -251,6 +251,9 @@ bundleConfigMap: spire-bundle
 ## @param clusterDomain This is the value of your clusters `kubeadm init --service-dns-domain` flag
 clusterDomain: cluster.local
 
+## @param jwtSVIDSupport If false, completely disables JWT-SVID functionality. The server will not generate JWT keys, sign JWT-SVIDs, or implement JWT-related API calls. This is useful for deployments that don’t need JWT-SVIDs support.
+jwtSVIDSupport: true
+
 federation:
   ## @param federation.enabled Flag to enable federation
   enabled: false
