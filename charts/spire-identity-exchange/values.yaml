@@ -102,14 +102,14 @@ resources: {}
   #   memory: 64Mi
 
 configMap:
-  ## @param configMap.annotations [object] Annotations to add to the SPIFFE OIDC Discovery Provider ConfigMap
+  ## @param configMap.annotations [object] Annotations to add to the SPIRE Identity Exchange ConfigMap
   annotations: {}
 
-## @param podSecurityContext [object] Pod security context for OIDC discovery provider pods
+## @param podSecurityContext [object] Pod security context for SPIRE Identity Exchange pods
 podSecurityContext: {}
   # fsGroup: 2000
 
-## @param securityContext [object] Security context for OIDC discovery provider deployment
+## @param securityContext [object] Security context for SPIRE Identity Exchange deployment
 securityContext: {}
   # capabilities:
   #   drop:
@@ -132,14 +132,13 @@ livenessProbe:
   initialDelaySeconds: 5
   periodSeconds: 5
 
-## @param podAnnotations [object] Pod annotations for Spire OIDC discovery provider
+## @param podAnnotations [object] Pod annotations for SPIRE Identity Exchange
 podAnnotations: {}
 
 ## @param podLabels [object] Labels to add to pods
 podLabels: {}
 
-# Select from one of the options below to be the source of certificates for OIDC Discovery Provider.
-# If none are enabled, connections won't be TLS encrypted.
+# Select one of the options below to be the source of certificates for SPIRE Identity Exchange
 tls:
 
   externalSecret:
