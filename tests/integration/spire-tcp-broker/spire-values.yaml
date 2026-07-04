@@ -1,0 +1,35 @@
+global:
+  spire:
+    clusterName: primary-cluster
+    trustDomain: example.org
+
+spiffe-csi-driver:
+  enabled: false
+
+spiffe-oidc-discovery-provider:
+  enabled: false
+
+spire-server:
+  persistence:
+    type: emptyDir
+  controllerManager:
+    className: spire-server-spire
+    identities:
+      clusterSPIFFEIDs:
+        default:
+          enabled: false
+  nodeAttestor:
+    k8sPSAT:
+      podAgentsCluster:
+        clusterName: broker-pods
+        serviceAccountAllowList:
+          - broker-app-a:spire-tcp-broker
+          - broker-app-b:spire-tcp-broker
+
+spire-agent:
+  persistence:
+    type: emptyDir
+  workloadAttestors:
+    k8s:
+      verification:
+        type: skip

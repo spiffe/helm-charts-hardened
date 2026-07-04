@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "spire-tcp-broker.fullname" . | quote }}
+  namespace: {{ include "spire-tcp-broker.namespace" . | quote }}
+  labels:
+    {{- include "spire-tcp-broker.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: broker
+      port: {{ .Values.service.port }}
+      targetPort: broker
+      protocol: TCP
+  selector:
+    {{- include "spire-tcp-broker.selectorLabels" . | nindent 4 }}

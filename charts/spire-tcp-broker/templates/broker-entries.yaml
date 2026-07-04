@@ -1,0 +1,17 @@
+{{- range $broker := .Values.brokers }}
+{{- $brokerContext := dict "root" $ "broker" $broker }}
+---
+apiVersion: spire.spiffe.io/v1alpha1
+kind: ClusterStaticEntry
+metadata:
+  name: {{ include "spire-tcp-broker.broker-entry-name" $brokerContext | quote }}
+  labels:
+    {{- include "spire-tcp-broker.labels" $ | nindent 4 }}
+spec:
+  className: {{ $.Values.controllerManagerClassName | quote }}
+  spiffeID: {{ include "spire-tcp-broker.broker-id" $brokerContext | quote }}
+  parentID: {{ $.Values.workloadAgentAlias | quote }}
+  selectors:
+    - {{ printf "k8s:ns:%s" (include "spire-tcp-broker.broker-namespace" $brokerContext) | quote }}
+    - {{ printf "k8s:sa:%s" (include "spire-tcp-broker.broker-service-account-name" $brokerContext) | quote }}
+{{- end }}

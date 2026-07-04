@@ -1,0 +1,163 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "type": "object",
+  "properties": {
+    "replicas": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "server": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "type": "string"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "brokers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63,
+            "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+          },
+          "namespace": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63,
+            "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
+            "description": "Namespace containing the Broker workload. Defaults to the Helm release namespace."
+          },
+          "serviceAccountName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 253,
+            "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?([.][a-z0-9]([-a-z0-9]*[a-z0-9])?)*$",
+            "description": "Service account used by the Broker workload. Defaults to the Broker name."
+          },
+          "rbacRules": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "apiGroups",
+                "resources"
+              ],
+              "properties": {
+                "apiGroups": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "resources": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "staticEntries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "selectors"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^/?[A-Za-z0-9._-]+(/[A-Za-z0-9._-]+)*$",
+            "description": "SPIFFE ID path relative to the trust domain. A leading slash is optional."
+          },
+          "selectors": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "Selectors passed to the ClusterStaticEntry."
+          }
+        }
+      }
+    },
+    "healthChecks": {
+      "type": "object",
+      "properties": {
+        "port": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "service": {
+      "type": "object",
+      "properties": {
+        "port": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "livenessProbe": {
+      "type": "object",
+      "properties": {
+        "initialDelaySeconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "periodSeconds": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "readinessProbe": {
+      "type": "object",
+      "properties": {
+        "initialDelaySeconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "periodSeconds": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "clusterName": {
+      "type": "string"
+    },
+    "controllerManagerClassName": {
+      "type": "string"
+    },
+    "workloadAgentAlias": {
+      "type": "string",
+      "description": "SPIFFE ID of the agent alias that parents the Broker ClusterStaticEntries."
+    }
+  }
+}

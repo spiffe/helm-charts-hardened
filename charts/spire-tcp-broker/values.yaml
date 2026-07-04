@@ -1,0 +1,152 @@
+# Default configuration for SPIRE Broker over TCP
+# SPDX-License-Identifier: APACHE-2.0
+
+## @skip global
+global: {}
+
+## @section Chart parameters
+##
+
+## @param image.registry The OCI registry to pull the image from
+## @param image.repository The repository within the registry
+## @param image.pullPolicy The image pull policy
+## @param image.tag Overrides the image tag whose default is the chart appVersion
+##
+image:
+  registry: ghcr.io
+  repository: spiffe/spire-agent
+  pullPolicy: IfNotPresent
+  tag: ""
+
+## @param imagePullSecrets [array] Pull secrets for images
+imagePullSecrets: []
+
+## @param nameOverride Name override
+nameOverride: ""
+
+## @param fullnameOverride Fullname override
+fullnameOverride: ""
+
+## @param replicas Number of SPIRE broker agent replicas
+replicas: 1
+
+serviceAccount:
+  ## @param serviceAccount.annotations [object] Annotations to add to the service account
+  annotations: {}
+
+configMap:
+  ## @param configMap.annotations [object] Annotations to add to the SPIRE Broker Agent ConfigMap
+  annotations: {}
+
+## @param podAnnotations [object] Annotations to add to pods
+podAnnotations: {}
+
+## @param podLabels [object] Labels to add to pods
+podLabels: {}
+
+## @param podSecurityContext [object] Pod security context
+podSecurityContext: {}
+
+## @param securityContext [object] Security context
+securityContext: {}
+
+## @param resources [object] Resource requests and limits for the spire-agent container
+resources: {}
+
+## @param nodeSelector [object] Node selector
+nodeSelector: {}
+
+## @param tolerations [array] List of tolerations
+tolerations: []
+
+## @param affinity [object] Node affinity
+affinity: {}
+
+## @param priorityClassName Priority class assigned to deployment pods. Can be auto set with global.recommendations.priorityClassName.
+priorityClassName: ""
+
+## @param logLevel The log level, valid values are "debug", "info", "warn", and "error"
+logLevel: info
+## @param logFormat The log format, valid values are "text" and "json"
+logFormat: text
+## @param clusterName Name of the pod-agent cluster configured in the SPIRE server k8s_psat node attestor
+clusterName: ""
+## @param trustDomain The trust domain to be used for the SPIFFE identifiers
+trustDomain: example.org
+## @param trustBundleURL If set, obtain trust bundle from url instead of Kubernetes ConfigMap
+trustBundleURL: ""
+## @param trustBundleFormat If using trustBundleURL, what format is the url. Choices are "pem" and "spiffe"
+trustBundleFormat: spiffe
+## @param bundleConfigMap Configmap name for Spire bundle
+bundleConfigMap: spire-bundle
+## @param rebootstrapMode How the agent will behave when seeing an unknown x509 cert from the server. It can be set to never, auto, or always
+rebootstrapMode: always
+## @param rebootstrapDelay The agent will rebootstrap after configured amount of time on unknown x509 cert from the server
+rebootstrapDelay: 10m
+
+server:
+  ## @param server.address Address of the SPIRE server service
+  address: ""
+  ## @param server.port Port number for Spire server
+  port: 443
+
+healthChecks:
+  ## @param healthChecks.port Port where health checks are exposed
+  port: 9983
+
+livenessProbe:
+  ## @param livenessProbe.initialDelaySeconds Initial delay seconds for probe
+  initialDelaySeconds: 15
+  ## @param livenessProbe.periodSeconds Period seconds for probe
+  periodSeconds: 60
+
+readinessProbe:
+  ## @param readinessProbe.initialDelaySeconds Initial delay seconds for probe
+  initialDelaySeconds: 10
+  ## @param readinessProbe.periodSeconds Period seconds for probe
+  periodSeconds: 30
+
+service:
+  ## @param service.type Service type
+  type: ClusterIP
+  ## @param service.port Service port for the Broker API
+  port: 8443
+  ## @param service.annotations [object] Annotations for service resource
+  annotations: {}
+
+## @param controllerManagerClassName SPIRE Controller Manager class name that reconciles the agent alias
+controllerManagerClassName: ""
+## @param workloadAgentAlias SPIFFE ID of the agent alias that parents the Broker ClusterStaticEntries
+workloadAgentAlias: ""
+
+
+## @param brokers [array] Named Brokers allowed to use the Broker API over TCP. namespace defaults to the release namespace and serviceAccountName defaults to the Broker name.
+brokers: []
+# - name: broker
+#   namespace: broker-namespace # defaults to the release namespace
+#   serviceAccountName: broker-service-account # defaults to the Broker name
+#   rbacRules:
+#   - apiGroups: [""]
+#     resources: ["pods"]
+
+## @param staticEntries [array] Static entries parented by this Broker agent's alias. path is relative to the trust domain and selectors are passed to the ClusterStaticEntry.
+staticEntries: []
+# - path: workload/example
+#   selectors:
+#   - k8s:ns:example
+#   - k8s:sa:example
+
+## @param extraEnvVars [array] Extra environment variables to be added to the Spire Agent container
+extraEnvVars: []
+
+## @param extraVolumes [array] Extra volumes to be mounted on Spire Agent pods
+extraVolumes: []
+
+## @param extraVolumeMounts [array] Extra volume mounts for Spire Agent pods
+extraVolumeMounts: []
+
+## @param extraContainers [array] Additional containers to create with Spire Agent pods
+extraContainers: []
+
+## @param initContainers [array] Additional init containers to create with Spire Agent pods
+initContainers: []

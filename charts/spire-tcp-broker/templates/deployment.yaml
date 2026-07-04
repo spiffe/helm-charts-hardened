@@ -1,0 +1,120 @@
+{{- $configSum := (include (print $.Template.BasePath "/configmap.yaml") . | sha256sum) }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "spire-tcp-broker.fullname" . | quote }}
+  namespace: {{ include "spire-tcp-broker.namespace" . | quote }}
+  labels:
+    {{- include "spire-tcp-broker.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      {{- include "spire-tcp-broker.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ $configSum | quote }}
+        {{- with .Values.podAnnotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "spire-tcp-broker.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with (coalesce .Values.imagePullSecrets .Values.global.imagePullSecrets) }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "spire-tcp-broker.fullname" . | quote }}
+      securityContext:
+        {{- include "spire-lib.podsecuritycontext" . | nindent 8 }}
+      {{- include "spire-lib.default_cluster_priority_class_name" . | nindent 6 }}
+      {{- if gt (len .Values.initContainers) 0 }}
+      initContainers:
+        {{- toYaml .Values.initContainers | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: spire-agent
+          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          args: ["-config", "/opt/spire/conf/agent/agent.conf"]
+          securityContext:
+            {{- include "spire-lib.securitycontext" . | nindent 12 }}
+          env:
+            - name: PATH
+              value: "/opt/spire/bin:/bin"
+            {{- with .Values.extraEnvVars }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+              name: broker
+            - containerPort: {{ .Values.healthChecks.port }}
+              name: healthz
+          volumeMounts:
+            - name: spire-config
+              mountPath: /opt/spire/conf/agent
+              readOnly: true
+            - name: spire-agent-persistence
+              mountPath: /var/lib/spire
+            - name: spire-token
+              mountPath: /var/run/secrets/tokens
+            {{- if eq (len .Values.trustBundleURL) 0 }}
+            - name: spire-bundle
+              readOnly: true
+              mountPath: /run/spire/bundle
+            {{- end }}
+            {{- if gt (len .Values.extraVolumeMounts) 0 }}
+            {{- toYaml .Values.extraVolumeMounts | nindent 12 }}
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /live
+              port: healthz
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: healthz
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+        {{- if gt (len .Values.extraContainers) 0 }}
+        {{- toYaml .Values.extraContainers | nindent 8 }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: spire-config
+          configMap:
+            name: {{ include "spire-tcp-broker.fullname" . }}
+        - name: spire-agent-persistence
+          emptyDir: {}
+        - name: spire-token
+          projected:
+            sources:
+            - serviceAccountToken:
+                path: spire-agent
+                expirationSeconds: 7200
+                audience: spire-server
+        {{- if eq (len .Values.trustBundleURL) 0 }}
+        - name: spire-bundle
+          configMap:
+            name: {{ include "spire-lib.bundle-configmap" . | quote }}
+        {{- end }}
+        {{- if gt (len .Values.extraVolumes) 0 }}
+        {{- toYaml .Values.extraVolumes | nindent 8 }}
+        {{- end }}

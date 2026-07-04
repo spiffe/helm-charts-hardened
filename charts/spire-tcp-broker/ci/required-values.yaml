@@ -1,0 +1,10 @@
+clusterName: broker-pods
+server:
+  address: spire-server.spire-server
+controllerManagerClassName: spire-server-spire
+workloadAgentAlias: spiffe://example.org/spire/agent/broker-clients
+brokers:
+  - name: broker
+    rbacRules:
+      - apiGroups: [""]
+        resources: ["pods"]

@@ -1107,6 +1107,15 @@ nodeAttestor:
     allowedNodeLabelKeys: []
     ## @param nodeAttestor.k8sPSAT.allowedPodLabelKeys [array] Pod label keys considered for selectors
     allowedPodLabelKeys: []
+    podAgentsCluster:
+      ## @param nodeAttestor.k8sPSAT.podAgentsCluster.clusterName Name of an additional k8s_psat cluster for pod-based SPIRE agents. Empty disables the cluster.
+      clusterName: ""
+      ## @param nodeAttestor.k8sPSAT.podAgentsCluster.serviceAccountAllowList [array] Service accounts allowed to join the pod-agent cluster. If namespace is not specified, the SPIRE server namespace is used.
+      serviceAccountAllowList: []
+      ## @param nodeAttestor.k8sPSAT.podAgentsCluster.allowedNodeLabelKeys [array] Node label keys considered for pod-agent selectors
+      allowedNodeLabelKeys: []
+      ## @param nodeAttestor.k8sPSAT.podAgentsCluster.allowedPodLabelKeys [array] Pod label keys considered for pod-agent selectors
+      allowedPodLabelKeys: []
   externalK8sPSAT:
     ## @param nodeAttestor.externalK8sPSAT.enabled Enable PSAT k8s nodeattestor for external Kubernetes clusters
     enabled: true
