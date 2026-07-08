@@ -525,6 +525,30 @@ plugins:
   {{- end }}
   {{- end }}
 
+  {{- with .Values.upstreamAuthority.ejbca }}
+  {{- if eq (.enabled | toString) "true" }}
+  {{- $upstreamAuthorityUsed = add1 $upstreamAuthorityUsed }}
+  UpstreamAuthority:
+    ejbca:
+      plugin_data:
+        hostname: {{ .hostname | quote }}
+        client_cert_path: "/run/spire/upstream_ejbca/client.crt"
+        client_cert_key_path: "/run/spire/upstream_ejbca/client.key"
+        ca_name: {{ .caName | quote }}
+        end_entity_profile_name: {{ .endEntityProfileName | quote }}
+        certificate_profile_name: {{ .certificateProfileName | quote }}
+        {{- if ne .secret.data.caCert "" }}
+        ca_cert_path: "/run/spire/upstream_ejbca/ca.crt"
+        {{- end }}
+        {{- if ne .endEntityName "" }}
+        end_entity_name: {{ .endEntityName | quote }}
+        {{- end }}
+        {{- if ne .accountBindingId "" }}
+        account_binding_id: {{ .accountBindingId | quote }}
+        {{- end }}
+  {{- end }}
+  {{- end }}
+
   {{- with .Values.upstreamAuthority.certManager }}
   {{- if eq (.enabled | toString) "true" }}
   {{- $upstreamAuthorityUsed = add1 $upstreamAuthorityUsed }}

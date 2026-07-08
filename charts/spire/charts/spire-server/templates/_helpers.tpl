@@ -164,6 +164,17 @@ Create the name of the service account to use
 {{- end -}}
 {{- end }}
 
+{{- define "spire-server.upstream-ejbca-secret" -}}
+{{- $root := . }}
+{{- with .Values.upstreamAuthority.ejbca -}}
+{{- if eq (.secret.create | toString) "true" -}}
+{{ include "spire-server.fullname" $root }}-upstream-ejbca
+{{- else -}}
+{{ default (include "spire-server.fullname" $root) .secret.name }}
+{{- end -}}
+{{- end -}}
+{{- end }}
+
 {{- define "spire-controller-manager.fullname" -}}
 {{ include "spire-server.fullname" . | trimSuffix "-server" }}-controller-manager
 {{- end }}

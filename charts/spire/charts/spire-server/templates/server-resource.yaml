@@ -417,6 +417,11 @@ spec:
               mountPath: /run/spire/upstream_ca
               readOnly: false
             {{ end }}
+            {{- if eq (.Values.upstreamAuthority.ejbca.enabled | toString) "true" }}
+            - name: upstream-ejbca
+              mountPath: /run/spire/upstream_ejbca
+              readOnly: true
+            {{ end }}
             {{- if gt (len .Values.upstreamAuthority.spire.upstreamDriver) 0 }}
             - name: upstream-agent
               mountPath: /run/spire/upstream_agent
@@ -649,6 +654,11 @@ spec:
         - name: upstream-ca
           secret:
             secretName: {{ include "spire-server.upstream-ca-secret" . }}
+        {{- end }}
+        {{- if eq (.Values.upstreamAuthority.ejbca.enabled | toString) "true" }}
+        - name: upstream-ejbca
+          secret:
+            secretName: {{ include "spire-server.upstream-ejbca-secret" . }}
         {{- end }}
         {{- if gt (len .Values.upstreamAuthority.spire.upstreamDriver) 0 }}
         - name: upstream-agent

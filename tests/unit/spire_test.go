@@ -118,6 +118,28 @@ spire-server:
 			Expect(notes).Should(ContainSubstring("\"aws_pca\": {"))
 		})
 	})
+	Describe("spire-server.UpstreamAuthority.ejbca", func() {
+		It("plugin set ok", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  upstreamAuthority:
+    ejbca:
+      enabled: true
+      hostname: ejbca.example.org:8443
+      caName: SpireIntermediateCA
+      endEntityProfileName: SpireEEP
+      certificateProfileName: SpireIntermediateCACP
+      secret:
+        data:
+          caCert: dummy-ca
+`)
+			Expect(err).Should(Succeed())
+			notes := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(notes).Should(ContainSubstring("\"ejbca\": {"))
+			Expect(notes).Should(ContainSubstring("SpireIntermediateCA"))
+			Expect(notes).Should(ContainSubstring("ca_cert_path"))
+		})
+	})
 	Describe("spire-agent.customPlugin.tpm", func() {
 		It("plugin set ok", func() {
 			objs, err := ValueStringRender(chart, `

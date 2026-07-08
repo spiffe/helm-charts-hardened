@@ -454,6 +454,34 @@ upstreamAuthority:
         key: ""
         ## @param upstreamAuthority.disk.secret.data.bundle Trust bundle for upstreamAuthority.
         bundle: ""
+  ejbca:
+    ## @param upstreamAuthority.ejbca.enabled Flag to enable upstream authority plugin with EJBCA
+    enabled: false
+    ## @param upstreamAuthority.ejbca.hostname Hostname of the connected EJBCA server (e.g. "ejbca.example.com:8443")
+    hostname: ""
+    ## @param upstreamAuthority.ejbca.caName Name of a CA in the connected EJBCA instance that will issue the intermediate signing certificates
+    caName: ""
+    ## @param upstreamAuthority.ejbca.endEntityProfileName Name of an end entity profile in the connected EJBCA instance that is configured to issue SPIFFE certificates
+    endEntityProfileName: ""
+    ## @param upstreamAuthority.ejbca.certificateProfileName Name of a certificate profile in the connected EJBCA instance that is configured to issue intermediate CA certificates
+    certificateProfileName: ""
+    ## @param upstreamAuthority.ejbca.endEntityName (Optional) Customizes how the End Entity Name is selected. One of "cn", "dns", "uri", "ip", or a custom value
+    endEntityName: ""
+    ## @param upstreamAuthority.ejbca.accountBindingId (Optional) An account binding ID in EJBCA to associate with issued certificates
+    accountBindingId: ""
+    secret:
+      ## @param upstreamAuthority.ejbca.secret.create If disabled requires you to create a secret with the given keys (clientCert, clientKey and optional caCert) yourself.
+      create: true
+      ## @param upstreamAuthority.ejbca.secret.name If secret creation is disabled, the secret with this name will be used.
+      name: "spiffe-ejbca-client"
+      ## @extra upstreamAuthority.ejbca.secret.data If secret creation is enabled, will create a secret with the following mTLS credentials
+      data:
+        ## @param upstreamAuthority.ejbca.secret.data.clientCert Client certificate (public key) used to authenticate to EJBCA via mTLS.
+        clientCert: ""
+        ## @param upstreamAuthority.ejbca.secret.data.clientKey Client key matching the client certificate used to authenticate to EJBCA.
+        clientKey: ""
+        ## @param upstreamAuthority.ejbca.secret.data.caCert CA certificate used to validate the EJBCA server's certificate. Leave empty when the EJBCA server uses a publicly trusted certificate. When secret.create is false, set this to any non-empty value to enable ca_cert_path against your externally provided secret (mirrors the disk plugin's bundle behavior).
+        caCert: ""
   awsPCA:
     ## @param upstreamAuthority.awsPCA.enabled Flag to enable upstream authority plugin with AWS PCA
     enabled: false
