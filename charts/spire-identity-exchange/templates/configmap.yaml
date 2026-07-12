@@ -46,7 +46,7 @@ data:
         {{- toYaml .Values.auth.plugins | nindent 8 }}
       {{ with .Values.auth.stacks }}
       stacks:
-        {{- toYaml .Values.auth.stacks | nindent 8 }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
 
   six-agent.conf: |
