@@ -487,16 +487,6 @@ brokerAPI:
     ## @param brokerAPI.tcp.bindAddress The tcp address to bind to
     bindAddress: 0.0.0.0:8788
   brokers:
-    istio-ztunnel:
-      ## @param brokerAPI.brokers.istio-ztunnel.enabled Enable the istio-ztunnel
-      enabled: false
-      ## @param brokerAPI.brokers.istio-ztunnel.idTemplate The default id template
-      idTemplate: spiffe://{{ .TrustDomain }}/istio-ztunnel
-      allowedReferenceTypes:
-        ## @param brokerAPI.brokers.istio-ztunnel.allowedReferenceTypes[0].typeURL The type of reference allowed
-        ## @param brokerAPI.brokers.istio-ztunnel.allowedReferenceTypes[0].allowOverTCP Allow access over TCP
-        - typeURL: "type.googleapis.com/spiffe.broker.KubernetesObjectReference"
-          allowOverTCP: false
     spire-ha-agent:
       ## @param brokerAPI.brokers.spire-ha-agent.enabled Enable the istio-ztunnel
       enabled: false
