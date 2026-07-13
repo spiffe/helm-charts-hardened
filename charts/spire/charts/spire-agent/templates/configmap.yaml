@@ -98,6 +98,7 @@ agent:
             - type_url: {{ .typeURL | quote }}
               allow_over_tcp:A {{ .allowOverTCP }}
         {{- end }}
+      {{- end }}
     {{- with .Values.experimental }}
     {{- if eq (.enabled | toString) "true" }}
     sync_interval: {{ .syncInterval | quote }}
