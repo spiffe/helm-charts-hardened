@@ -83,7 +83,7 @@ spireAgent:
     registry: ghcr.io
     repository: spiffe/spire-agent
     pullPolicy: IfNotPresent
-    tag: "1.15.1"
+    tag: "1.15.2"
 
 ## @param extraEnv [array] Extra environment variables to add to the spire identity exchange
 extraEnv: []
