@@ -96,7 +96,7 @@ agent:
           {{- with .allowedReferenceTypes }}
           allowed_reference_types:
             - type_url: {{ .typeURL | quote }}
-              allow_over_tcp:A {{ .allowOverTCP }}
+              allow_over_tcp: {{ .allowOverTCP }}
         {{- end }}
       {{- end }}
     {{- with .Values.experimental }}
