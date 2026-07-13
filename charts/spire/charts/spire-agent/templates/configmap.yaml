@@ -92,7 +92,7 @@ agent:
       {{- end }}
       brokers:
         {{- range .Values.brokerAPI.brokers }}
-        - id: {{ tpl .idTemplate (dict "trustDomain" trustDomain) }}
+        - id: {{ tpl .idTemplate (dict "trustDomain" $trustDomain) }}
           {{- with .allowedReferenceTypes }}
           allowed_reference_types:
             - type_url: {{ .typeURL | quote }}
