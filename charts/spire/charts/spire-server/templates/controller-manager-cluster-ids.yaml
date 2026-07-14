@@ -92,6 +92,12 @@ matchLabels:
 {{-       end }}
 {{-       $podSelector := deepCopy (dig "podSelector" (dict) $value) }}
 {{-       $podSelector := merge $podSelector (include "spire-controller-manager-identity-podselector" (dict "type" $type "Release" $root.Release) | fromYaml ) }}
+{{-       $className := include "spire-server.controller-manager-class-name" $root }}
+{{-       $labels := dict }}
+{{-       if and (hasKey $value "labels") (gt (len $value.labels) 0) }}
+{{-         $labels = deepCopy $value.labels }}
+{{-       end }}
+{{-       $_ := set $labels "spire.spiffe.io/class-name" $className }}
 ---
 apiVersion: spire.spiffe.io/v1alpha1
 kind: ClusterSPIFFEID
@@ -101,12 +107,12 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- with $value.labels }}
+  {{- with $labels }}
   labels:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  className: {{ include "spire-server.controller-manager-class-name" $root | quote }}
+  className: {{ $className | quote }}
   {{- if hasKey $value "hint"  }}
   {{-   if ne $value.hint  "" }}
   hint: {{ $value.hint }}
