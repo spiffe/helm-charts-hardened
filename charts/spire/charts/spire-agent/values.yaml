@@ -467,6 +467,11 @@ sockets:
   admin:
     enabled: false
     mountOnHost: false
+  ## @param sockets.broker.enabled Enable the broker socket.
+  ## @param sockets.broker.mountOnHost Enable the broker socket to be visible on the host.
+  broker:
+    enabled: false
+    mountOnHost: false
 
 ## @param persistence.type What type of volume to use for persistence. Valid options emptyDir (reattestable node attestors) or hostPath (nonr-reattestable node attestors)
 ## @param persistence.hostPath Which path to use on the host when persistence.type = hostPath
@@ -474,3 +479,21 @@ sockets:
 persistence:
   type: emptyDir
   hostPath: /var/lib/spire/k8s/agent
+
+brokerAPI:
+  tcp:
+    ## @param brokerAPI.tcp.enabled Enable the broker api endpoint
+    enabled: false
+    ## @param brokerAPI.tcp.bindAddress The tcp address to bind to
+    bindAddress: 0.0.0.0:8788
+  brokers:
+    spire-ha-agent:
+      ## @param brokerAPI.brokers.spire-ha-agent.enabled Enable the istio-ztunnel
+      enabled: false
+      ## @param brokerAPI.brokers.spire-ha-agent.idTemplate The default id template
+      idTemplate: spiffe://{{ .TrustDomain }}/spire-ha-agent
+      allowedReferenceTypes:
+        ## @param brokerAPI.brokers.spire-ha-agent.allowedReferenceTypes[0].typeURL The type of reference allowed
+        ## @param brokerAPI.brokers.spire-ha-agent.allowedReferenceTypes[0].allowOverTCP Allow access over TCP
+        - typeURL: "type.googleapis.com/spiffe.broker.WorkloadPIDReference"
+          allowOverTCP: false
