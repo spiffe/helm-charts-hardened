@@ -81,24 +81,30 @@ agent:
     disable_spiffe_cert_validation: {{ eq .Values.sds.disableSPIFFECertValidation true }}
   {{- end }}
 
-  {{- if or (eq (.enabled | toString) "true") .Values.sockets.broker.enabled .Values.brokerAPI.tcp.enabled }}
+  {{- if or (eq (.enabled | toString) "true") .Values.sockets.broker.enabled .Values.brokerAPI.tcp.enabled (eq (.Values.experimental.enabled | toString) "true") }}
   experimental:
+    {{- if or (eq (.enabled | toString) "true") .Values.sockets.broker.enabled .Values.brokerAPI.tcp.enabled }}
     broker:
       {{- if .Values.sockets.broker.enabled }}
-      socket_path: "/tmp/spire-agent/broker/broker.sock" }}
+      socket_path: "/tmp/spire-agent/broker/broker.sock"
       {{- end }}
       {{- if .Values.brokerAPI.tcp.enabled }}
       bind_address: {{ .Values.brokerAPI.tcp.bindAddress | quote }}
       {{- end }}
       brokers:
         {{- range .Values.brokerAPI.brokers }}
-        - id: {{ tpl .idTemplate (dict "trustDomain" $trustDomain) }}
-          {{- with .allowedReferenceTypes }}
-          allowed_reference_types:
-            - type_url: {{ .typeURL | quote }}
-              allow_over_tcp: {{ .allowOverTCP }}
+        {{- if .enabled }}
+        - broker:
+          - id: {{ tpl .idTemplate (dict "TrustDomain" $trustDomain) }}
+            allowed_reference_types:
+              {{- range .allowedReferenceTypes }}
+              - allowed_reference_types:
+                  type_url: {{ .typeURL | quote }}
+                  allow_over_tcp: {{ .allowOverTCP }}
+              {{- end }}
         {{- end }}
-      {{- end }}
+        {{- end }}
+    {{- end }}
     {{- with .Values.experimental }}
     {{- if eq (.enabled | toString) "true" }}
     sync_interval: {{ .syncInterval | quote }}
