@@ -369,6 +369,11 @@ spec:
               mountPath: /tmp/spire-agent/private
               readOnly: false
             {{- end }}
+            {{- if .Values.sockets.broker.enabled }}
+            - name: spire-agent-broker-socket-dir
+              mountPath: /tmp/spire-agent/broker
+              readOnly: false
+            {{- end }}
             {{- if eq (len .Values.trustBundleURL) 0 }}
             - name: spire-bundle
               readOnly: true
@@ -492,6 +497,19 @@ spec:
             type: DirectoryOrCreate
         {{- else }}
         - name: spire-agent-admin-socket-dir
+          emptyDir: {}
+        {{- end }}
+        {{- if .Values.sockets.broker.mountOnHost }}
+        - name: spire-agent-broker-socket-dir
+          hostPath:
+            {{- if .Values.upstream }}
+            path: {{ printf "%s/upstream.csi.spiffe.io/broker" .Values.sockets.hostBasePath | quote }}
+            {{- else }}
+            path: {{ printf "%s/csi.spiffe.io/broker" .Values.sockets.hostBasePath | quote }}
+            {{- end }}
+            type: DirectoryOrCreate
+        {{- else }}
+        - name: spire-agent-broker-socket-dir
           emptyDir: {}
         {{- end }}
         {{- if eq .Values.persistence.type "hostPath" }}

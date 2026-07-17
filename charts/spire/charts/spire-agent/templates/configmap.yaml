@@ -81,9 +81,26 @@ agent:
     disable_spiffe_cert_validation: {{ eq .Values.sds.disableSPIFFECertValidation true }}
   {{- end }}
 
-  {{- with .Values.experimental }}
-  {{- if eq (.enabled | toString) "true" }}
+  {{- if or (eq (.enabled | toString) "true") .Values.sockets.broker.enabled .Values.brokerAPI.tcp.enabled }}
   experimental:
+    broker:
+      {{- if .Values.sockets.broker.enabled }}
+      socket_path: "/tmp/spire-agent/broker/broker.sock" }}
+      {{- end }}
+      {{- if .Values.brokerAPI.tcp.enabled }}
+      bind_address: {{ .Values.brokerAPI.tcp.bindAddress | quote }}
+      {{- end }}
+      brokers:
+        {{- range .Values.brokerAPI.brokers }}
+        - id: {{ tpl .idTemplate (dict "trustDomain" $trustDomain) }}
+          {{- with .allowedReferenceTypes }}
+          allowed_reference_types:
+            - type_url: {{ .typeURL | quote }}
+              allow_over_tcp: {{ .allowOverTCP }}
+        {{- end }}
+      {{- end }}
+    {{- with .Values.experimental }}
+    {{- if eq (.enabled | toString) "true" }}
     sync_interval: {{ .syncInterval | quote }}
     require_pq_kem: {{ .requirePQKEM }}
     {{- if gt (len .featureFlags) 0 }}
@@ -92,7 +109,8 @@ agent:
         - {{ . | quote }}
       {{- end }}
     {{- end }}
-  {{- end }}
+    {{- end }}
+    {{- end }}
   {{- end }}
 
 {{- $nodeAttestorUsed := add (len .Values.customPlugins.nodeAttestor) (len .Values.unsupportedBuiltInPlugins.nodeAttestor) }}
