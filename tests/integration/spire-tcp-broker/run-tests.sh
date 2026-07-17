@@ -278,10 +278,13 @@ for namespace in "${APP_A_NAMESPACE}" "${APP_B_NAMESPACE}"; do
   agent_config="$(k get configmap "${BROKER_RELEASE}" --namespace "${namespace}" -o jsonpath='{.data.agent\.conf}')"
   grep -Fq 'disable_workload_api = true' <<<"${agent_config}"
   grep -Fq 'disable_sds_api = true' <<<"${agent_config}"
-  if grep -Fq 'kubelet' <<<"${agent_config}"; then
-    echo "broker agent config unexpectedly contains kubelet client configuration" >&2
-    exit 1
-  fi
+  grep -Fq 'disable_kubelet_client = true' <<<"${agent_config}"
+  for setting in kubelet_ca_path kubelet_read_only_port kubelet_secure_port skip_kubelet_verification node_name_env token_path certificate_path private_key_path use_anonymous_authentication reload_interval; do
+    if grep -Fq "${setting}" <<<"${agent_config}"; then
+      echo "broker agent config unexpectedly contains kubelet client setting: ${setting}" >&2
+      exit 1
+    fi
+  done
 done
 
 run_case() {

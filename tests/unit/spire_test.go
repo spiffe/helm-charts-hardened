@@ -369,8 +369,11 @@ staticEntries:
 			Expect(brokerCM).Should(ContainSubstring(`disable_sds_api = true`))
 			Expect(brokerCM).Should(ContainSubstring(`allowed_reference_types = [`))
 			Expect(strings.Count(brokerCM, `WorkloadAttestor "k8s"`)).Should(Equal(1))
+			Expect(brokerCM).Should(ContainSubstring("disable_kubelet_client = true"))
 			Expect(brokerCM).ShouldNot(ContainSubstring("WorkloadPIDReference"))
+			Expect(brokerCM).ShouldNot(ContainSubstring("kubelet_ca_path"))
 			Expect(brokerCM).ShouldNot(ContainSubstring("skip_kubelet_verification"))
+			Expect(brokerCM).ShouldNot(ContainSubstring("node_name_env"))
 			Expect(brokerCM).ShouldNot(ContainSubstring("disable_container_selectors"))
 			Expect(brokerCM).ShouldNot(ContainSubstring("use_new_container_locator"))
 

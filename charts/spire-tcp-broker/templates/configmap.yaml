@@ -145,6 +145,7 @@ plugins {
 
   WorkloadAttestor "k8s" {
     plugin_data {
+      disable_kubelet_client = true
       experimental {
         api_server {
           cache {
