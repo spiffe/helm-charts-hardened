@@ -132,8 +132,9 @@ wait_for_jwt() {
 git clone https://github.com/spiffe/spire-ha-agent
 cd spire-ha-agent
 git checkout broker
-docker build -t ghcr.io/spiffe/spire-ha-agent:dev
+docker build -t ghcr.io/spiffe/spire-ha-agent:dev .
 kind load docker-image ghcr.io/spiffe/spire-ha-agent:dev --name chart-testing
+cd ..
 
 # Get the package repo and install the packages
 sudo curl -s -o /etc/apt/sources.list.d/spire-examples.list https://raw.githubusercontent.com/spiffe/spire-examples/refs/heads/main/examples/debs/amd64/spire-examples.list
