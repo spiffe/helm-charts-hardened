@@ -149,8 +149,6 @@ spec:
               value: unix:///var/run/spire/agent/sockets/a/csi.spiffe.io/admin/admin.sock
             - name: SPIRE_HA_AGENT_SOCKET_B
               value: unix:///var/run/spire/agent/sockets/b/csi.spiffe.io/admin/admin.sock
-            - name: SPIRE_HA_AGENT_WORKLOAD_SOCKET
-              value: unix:///var/run/spire/agent/sockets/a/csi.spiffe.io/public/spire-agent.sock
           {{-    else }}
             - name: SPIRE_HA_AGENT_BROKER_A
               value: unix:///var/run/spire/agent/sockets/a/csi.spiffe.io/broker/broker.sock
@@ -232,7 +230,7 @@ spec:
             path: {{ $socketPath | dir }}
             type: DirectoryOrCreate
         {{- end }}
-        {{- eq .Values.mode "delegated" }}
+        {{- if eq .Values.mode "delegated" }}
         - name: spire-ha-admin-socket-dir-upstream-a
           hostPath:
             path: {{ if .Values.singleSocket }}{{ .Values.sockets.single.admin.hostPath }}{{ else }}{{ .Values.sockets.a.admin.hostPath }}{{ end }}
