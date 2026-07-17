@@ -37,11 +37,11 @@ SPIRE_SERVER_IMAGE="${SPIRE_SERVER_IMAGE:-}"
 SPIRE_AGENT_IMAGE="${SPIRE_AGENT_IMAGE:-}"
 CLIENT_IMAGE="${CLIENT_IMAGE:-local/spire-tcp-broker-client:integration}"
 
-SERVER_NAMESPACE=spire-server
-MANAGEMENT_NAMESPACE=spire-mgmt
-APP_A_NAMESPACE=broker-app-a
-APP_B_NAMESPACE=broker-app-b
-BROKER_RELEASE=spire-tcp-broker
+SERVER_NAMESPACE="spire-server"
+MANAGEMENT_NAMESPACE="spire-mgmt"
+APP_A_NAMESPACE="broker-app-a"
+APP_B_NAMESPACE="broker-app-b"
+BROKER_RELEASE="spire-tcp-broker"
 CLEANUP=1
 
 usage() {
