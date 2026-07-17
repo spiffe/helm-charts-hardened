@@ -8,8 +8,33 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
 KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-chart-testing}"
 KUBE_CONTEXT="kind-${KIND_CLUSTER_NAME}"
 K8S="${K8S:-}"
-SPIRE_SERVER_IMAGE="${SPIRE_SERVER_IMAGE:-ghcr.io/spiffe/spire-server:1.15.1}"
-SPIRE_AGENT_IMAGE="${SPIRE_AGENT_IMAGE:-ghcr.io/spiffe/spire-agent:1.15.1}"
+DEFAULT_SPIRE_SERVER_IMAGE="ghcr.io/spiffe/spire-server:1.15.1"
+DEFAULT_SPIRE_AGENT_IMAGE="ghcr.io/spiffe/spire-agent:1.15.1"
+
+# To test against locally built SPIRE images from a SPIRE checkout:
+#   SPIRE_REPO=/path/to/spire
+#   SPIRE_TAG=1.15.1
+#   docker buildx build --load \
+#     --build-arg goversion="$(cat "${SPIRE_REPO}/.go-version")" \
+#     --build-arg TAG="${SPIRE_TAG}" \
+#     --target spire-server \
+#     --tag local/spire-server:spire-tcp-broker-integration \
+#     --file "${SPIRE_REPO}/Dockerfile" \
+#     "${SPIRE_REPO}"
+#   docker buildx build --load \
+#     --build-arg goversion="$(cat "${SPIRE_REPO}/.go-version")" \
+#     --build-arg TAG="${SPIRE_TAG}" \
+#     --target spire-agent \
+#     --tag local/spire-agent:spire-tcp-broker-integration \
+#     --file "${SPIRE_REPO}/Dockerfile" \
+#     "${SPIRE_REPO}"
+#
+# When both local images exist and SPIRE_SERVER_IMAGE/SPIRE_AGENT_IMAGE are
+# unset, the script uses these images automatically.
+LOCAL_SPIRE_SERVER_IMAGE="local/spire-server:spire-tcp-broker-integration"
+LOCAL_SPIRE_AGENT_IMAGE="local/spire-agent:spire-tcp-broker-integration"
+SPIRE_SERVER_IMAGE="${SPIRE_SERVER_IMAGE:-}"
+SPIRE_AGENT_IMAGE="${SPIRE_AGENT_IMAGE:-}"
 CLIENT_IMAGE="${CLIENT_IMAGE:-local/spire-tcp-broker-client:integration}"
 
 SERVER_NAMESPACE=spire-server
@@ -91,6 +116,34 @@ image_tag() {
   printf '%s\n' "${1##*:}"
 }
 
+resolve_spire_images() {
+  if [[ -n "${SPIRE_SERVER_IMAGE}" || -n "${SPIRE_AGENT_IMAGE}" ]]; then
+    SPIRE_SERVER_IMAGE="${SPIRE_SERVER_IMAGE:-${DEFAULT_SPIRE_SERVER_IMAGE}}"
+    SPIRE_AGENT_IMAGE="${SPIRE_AGENT_IMAGE:-${DEFAULT_SPIRE_AGENT_IMAGE}}"
+    return
+  fi
+
+  if docker image inspect "${LOCAL_SPIRE_SERVER_IMAGE}" >/dev/null 2>&1 &&
+    docker image inspect "${LOCAL_SPIRE_AGENT_IMAGE}" >/dev/null 2>&1; then
+    SPIRE_SERVER_IMAGE="${LOCAL_SPIRE_SERVER_IMAGE}"
+    SPIRE_AGENT_IMAGE="${LOCAL_SPIRE_AGENT_IMAGE}"
+    return
+  fi
+
+  SPIRE_SERVER_IMAGE="${DEFAULT_SPIRE_SERVER_IMAGE}"
+  SPIRE_AGENT_IMAGE="${DEFAULT_SPIRE_AGENT_IMAGE}"
+}
+
+load_spire_image_if_available() {
+  local image="$1"
+  if [[ "${image}" == "${DEFAULT_SPIRE_SERVER_IMAGE}" || "${image}" == "${DEFAULT_SPIRE_AGENT_IMAGE}" ]]; then
+    return
+  fi
+  if docker image inspect "${image}" >/dev/null 2>&1; then
+    kind load docker-image "${image}" --name "${KIND_CLUSTER_NAME}"
+  fi
+}
+
 cleanup() {
   set +e
   h uninstall "${BROKER_RELEASE}" --namespace "${APP_A_NAMESPACE}" >/dev/null 2>&1
@@ -133,6 +186,7 @@ on_exit() {
 
 trap 'on_exit $?' EXIT
 
+resolve_spire_images
 cleanup
 
 if ! h status spire-crds --namespace "${MANAGEMENT_NAMESPACE}" >/dev/null 2>&1; then
@@ -156,6 +210,8 @@ fi
 
 docker image inspect "${CLIENT_IMAGE}" >/dev/null
 kind load docker-image "${CLIENT_IMAGE}" --name "${KIND_CLUSTER_NAME}"
+load_spire_image_if_available "${SPIRE_SERVER_IMAGE}"
+load_spire_image_if_available "${SPIRE_AGENT_IMAGE}"
 
 for namespace in "${MANAGEMENT_NAMESPACE}" "${SERVER_NAMESPACE}" "${APP_A_NAMESPACE}" "${APP_B_NAMESPACE}"; do
   k create namespace "${namespace}" --dry-run=client -o yaml | k apply -f -
