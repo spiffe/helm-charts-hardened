@@ -244,7 +244,7 @@ helm upgrade --install --create-namespace --namespace spire-mgmt --values "${COM
   --set "global.spire.ingressControllerType=ingress-nginx" \
   --set "spiffe-oidc-discovery-provider.ingress.enabled=true" \
   --set "spire-ha-agent.image.tag=dev" \
-  --set "spire-ha-agent.image.pullPolicy=never"
+  --set "spire-ha-agent.image.pullPolicy=Never"
 
 # Create spire-identity-exchange cert for testing.
 mkdir -p certs
