@@ -685,6 +685,13 @@ downstream-spire-agent-bottom-turtle-ha-a:
       spire-ha-agent:
         ## @param downstream-spire-agent-bottom-turtle-ha-a.brokerAPI.brokers.spire-ha-agent.enabled Enable the spire-ha-agent by default
         enabled: true
+  workloadAttestors:
+    k8s:
+      brokerAPI:
+        brokers:
+          spire-ha-agent:
+            ## @param downstream-spire-agent-bottom-turtle-ha-a.workloadAttestors.k8s.brokerAPI.brokers.spire-ha-agent.enabled Enable the spire-ha-agent by default
+            enabled: true
 
 # Used with tags [bottomTurtleHAB]
 downstream-spire-agent-bottom-turtle-ha-b:
@@ -747,6 +754,13 @@ downstream-spire-agent-bottom-turtle-ha-b:
       spire-ha-agent:
         ## @param downstream-spire-agent-bottom-turtle-ha-b.brokerAPI.brokers.spire-ha-agent.enabled Enable the spire-ha-agent by default
         enabled: true
+  workloadAttestors:
+    k8s:
+      brokerAPI:
+        brokers:
+          spire-ha-agent:
+            ## @param downstream-spire-agent-bottom-turtle-ha-b.workloadAttestors.k8s.brokerAPI.brokers.spire-ha-agent.enabled Enable the spire-ha-agent by default
+            enabled: true
 
 # Used with tags [bottomTurtleHAA]
 downstream-spiffe-csi-driver-bottom-turtle-ha-a:
