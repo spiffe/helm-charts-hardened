@@ -39,21 +39,21 @@ sockets:
     broker:
       hostPath: /var/run/spire/agent/sockets/main/csi.spiffe.io/broker
     workload:
-      hostPath: /var/run/spire/agent-sockets/spire-agent.sock
+      hostPath: /var/run/spire/agent-sockets
   a:
     admin:
       hostPath: /var/run/spire/agent/sockets/a/csi.spiffe.io/admin
     broker:
       hostPath: /var/run/spire/agent/sockets/a/csi.spiffe.io/broker
     workload:
-      hostPath: /var/run/spire/agent/sockets/a/csi.spiffe.io/public/spire-agent.sock
+      hostPath: /var/run/spire/agent/sockets/a/csi.spiffe.io/public
   b:
     admin:
       hostPath: /var/run/spire/agent/sockets/b/csi.spiffe.io/admin
     broker:
       hostPath: /var/run/spire/agent/sockets/b/csi.spiffe.io/broker
     workload:
-      hostPath: /var/run/spire/agent/sockets/b/csi.spiffe.io/public/spire-agent.sock
+      hostPath: /var/run/spire/agent/sockets/b/csi.spiffe.io/public
 
 ## @param vsock Use a vsockets to expose the service rather then a unix socket
 vsock: false
