@@ -327,6 +327,6 @@ helm delete -n spire-mgmt spire-a
 kubectl rollout restart daemonset -n spire-system spire-ha-agent
 kubectl rollout status daemonset -n spire-system spire-ha-agent
 kubectl rollout restart deployment -n spire-server spiffe-oidc-discovery-provider
-kubectl rollout status deployment -n spire-server spiffe-oidc-discovery-provider --timeout=1m
+kubectl rollout status deployment -n spire-server spiffe-oidc-discovery-provider --timeout=5m
 curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discovery.production.other/.well-known/openid-configuration" -s --fail
 
