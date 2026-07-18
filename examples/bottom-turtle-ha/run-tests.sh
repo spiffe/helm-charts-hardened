@@ -269,7 +269,7 @@ docker exec -i chart-testing-worker /bin/bash -c "more /var/lib/kubelet/pods/*/v
 # Rollout just to sped up the tests
 kubectl patch deployment spiffe-oidc-discovery-provider -n spire-server --type='strategic' -p '{"spec": {"strategy": {"type": "Recreate", "rollingUpdate": null}}}'
 kubectl rollout restart daemonset -n spire-system spire-ha-agent
-kubectl rollout status daemonset -n spire-system spire-ha-agent
+kubectl rollout status daemonset -n spire-system spire-ha-agent --timeout=1m
 kubectl rollout restart deployment -n spire-server spiffe-oidc-discovery-provider
 kubectl rollout status deployment -n spire-server spiffe-oidc-discovery-provider --timeout=1m
 kubectl wait -n spire-server --for=condition=ready pod -l "app.kubernetes.io/name=spiffe-oidc-discovery-provider" --field-selector=status.phase=Running --timeout=90s
