@@ -488,7 +488,7 @@ brokerAPI:
     bindAddress: 0.0.0.0:8788
   brokers:
     spire-ha-agent:
-      ## @param brokerAPI.brokers.spire-ha-agent.enabled Enable the istio-ztunnel
+      ## @param brokerAPI.brokers.spire-ha-agent.enabled Enable the spire-ha-agent
       enabled: false
       ## @param brokerAPI.brokers.spire-ha-agent.idTemplate The default id template
       idTemplate: spiffe://{{ .TrustDomain }}/spire-ha-agent
