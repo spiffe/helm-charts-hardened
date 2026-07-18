@@ -214,6 +214,25 @@ plugins:
         {{- if eq (include "spire-agent.should-set-node-name-env" .) "true" }}
         node_name_env: "KUBELET_ADDR"
         {{- end }}
+        {{- if or .Values.sockets.broker.enabled .Values.brokerAPI.tcp.enabled }}
+        experimental:
+          broker:
+            access_policy: {{ .Values.workloadAttestors.k8s.brokerAPI.accessPolicy | quote }}
+            brokers:
+              {{- range $key, $value := .Values.workloadAttestors.k8s.brokerAPI.brokers }}
+              {{-   if or (not (hasKey $value "enabled")) $value.enabled }}
+              {{-     $idTemplate := (index $.Values.brokerAPI.brokers $key).idTemplate }}
+              {{-     if hasKey $value "idTemplate" }}
+              {{-       $idTemplate = $value.idTemplate }}
+              {{-     end }}
+              - broker:
+                - id: {{ tpl $idTemplate (dict "TrustDomain" $trustDomain) }}
+                  {{- with $value.podReferenceScope }}
+                  pod_reference_scope: {{ . | quote }}
+                  {{- end }}
+              {{-   end }}
+              {{- end }}
+        {{- end }}
   {{- end }}
 
   {{- if .Values.workloadAttestors.unix.enabled }}
