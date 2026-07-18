@@ -252,6 +252,15 @@ workloadAttestors:
     useNewContainerLocator: true
     ## @param workloadAttestors.k8s.verboseContainerLocatorLogs If true, enables verbose logging of mountinfo and cgroup information used to locate containers. Defaults to false
     verboseContainerLocatorLogs: false
+    brokerAPI:
+      ## @param workloadAttestors.k8s.brokerAPI.accessPolicy Which access policy to use. Supported values: enforced, permissive
+      accessPolicy: enforced
+      brokers:
+        spire-ha-agent:
+          ## @param workloadAttestors.k8s.brokerAPI.brokers.spire-ha-agent.enabled Enables the broker api
+          enabled: false
+          # idTemplate: spiffe://{{ .TrustDomain }}/spire-ha-agent
+          # podReferenceScope: agent_node
 
 dynamicRegistration:
   ## @param dynamicRegistration.enabled Deploys the sidecar helper for dynamic registration
