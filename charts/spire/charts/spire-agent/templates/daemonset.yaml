@@ -298,7 +298,8 @@ spec:
           command: ["bash", "-c"]
           args:
             - |
-              chown -R {{ printf "%v:%v" $podSecurityContext.runAsUser $podSecurityContext.fsGroup | quote }} {{ $socketPath | dir }} /tmp/spire-agent/private
+              chown -R {{ printf "%v:%v" $podSecurityContext.runAsUser $podSecurityContext.fsGroup | quote }} {{ $socketPath | dir }} /tmp/spire-agent/admin
+              chown -R {{ printf "%v:%v" $podSecurityContext.runAsUser $podSecurityContext.fsGroup | quote }} {{ $socketPath | dir }} /tmp/spire-agent/broker
               chown -R {{ printf "%v:%v" $podSecurityContext.runAsUser $podSecurityContext.fsGroup | quote }} /var/lib/spire
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
@@ -309,6 +310,8 @@ spec:
               mountPath: /var/lib/spire
             - name: spire-agent-admin-socket-dir
               mountPath: /tmp/spire-agent/private
+            - name: spire-agent-broker-socket-dir
+              mountPath: /tmp/spire-agent/broker
           securityContext:
             runAsUser: 0
             runAsGroup: 0
