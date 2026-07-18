@@ -60,7 +60,8 @@ teardown() {
   kubectl exec -i -n spire-server spire-b-internal-server-0 -- spire-server agent list -output json | yq e . - -P || true
   kubectl get pods -A -o wide || true
   kubectl describe daemonset pods -n spire-system || true
-  kubectl get configmap -n spire-system spire-agent -o yaml || true
+  kubectl get configmap -n spire-system || true
+  kubectl get configmap -n spire-system spire-a-agent-downstream -o yaml || true
 
   print_helm_releases
 
