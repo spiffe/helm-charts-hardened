@@ -264,7 +264,9 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --set tags.bottomTurtleHAA=true \
   --values "${SCRIPTPATH}/spire-identity-exchange-values.yaml" \
   --set "spire-identity-exchange-bottom-turtle-ha-a.enabled=true" \
-  --set "global.spire.ingressControllerType=ingress-nginx"
+  --set "global.spire.ingressControllerType=ingress-nginx" \
+  --set downstream-spire-agent-bottom-turtle-ha-a.sockets.broker.enabled=true \
+  --set downstream-spire-agent-bottom-turtle-ha-a.sockets.broker.mountOnHost=true
 
 docker exec -i chart-testing-worker /bin/bash -c "more /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/disk-keymanager/keys.json /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/spire-agent-persistence/agent-data.json | cat"
 
@@ -284,7 +286,9 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --set internal-spire-server-bottom-turtle-ha-b.upstreamAuthority.spire.server.port=8082 \
   --values "${SCRIPTPATH}/spire-identity-exchange-values.yaml" \
   --set "spire-identity-exchange-bottom-turtle-ha-b.enabled=true" \
-  --set "global.spire.ingressControllerType=ingress-nginx"
+  --set "global.spire.ingressControllerType=ingress-nginx" \
+  --set downstream-spire-agent-bottom-turtle-ha-b.sockets.broker.enabled=true \
+  --set downstream-spire-agent-bottom-turtle-ha-b.sockets.broker.mountOnHost=true
 
 docker ps
 docker exec -i chart-testing-worker /bin/bash -c "more /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/disk-keymanager/keys.json /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/spire-agent-persistence/agent-data.json | cat"
