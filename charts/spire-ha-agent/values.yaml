@@ -18,7 +18,7 @@ image:
   tag: ""
 
 ## @param mode If the spire-ha-agent will run in delegated or broker mode
-mode: delgated
+mode: delegated
 
 ## @param singleSocket If in singleSocket mode, only one driver is used
 singleSocket: false
