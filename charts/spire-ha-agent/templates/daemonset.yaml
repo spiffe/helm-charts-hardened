@@ -197,7 +197,7 @@ spec:
             {{-   if not .Values.singleSocket }}
             - name: spire-ha-broker-socket-dir-upstream-b
               mountPath: /var/run/spire/agent/sockets/b/csi.spiffe.io/broker
-            - name: spire-ha-workload-socket-dir-upstream-a
+            - name: spire-ha-workload-socket-dir-upstream-b
               mountPath: /var/run/spire/agent/sockets/b/csi.spiffe.io/public
             {{-   end }}
             {{- end }}
