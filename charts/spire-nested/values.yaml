@@ -688,6 +688,8 @@ downstream-spire-agent-bottom-turtle-ha-a:
   workloadAttestors:
     k8s:
       brokerAPI:
+        ## @param downstream-spire-agent-bottom-turtle-ha-a.workloadAttestors.k8s.brokerAPI.accessPolicy The default accessPolicy
+        accessPolicy: permissive
         brokers:
           spire-ha-agent:
             ## @param downstream-spire-agent-bottom-turtle-ha-a.workloadAttestors.k8s.brokerAPI.brokers.spire-ha-agent.enabled Enable the spire-ha-agent by default
@@ -757,6 +759,8 @@ downstream-spire-agent-bottom-turtle-ha-b:
   workloadAttestors:
     k8s:
       brokerAPI:
+        ## @param downstream-spire-agent-bottom-turtle-ha-b.workloadAttestors.k8s.brokerAPI.accessPolicy The default accessPolicy
+        accessPolicy: permissive
         brokers:
           spire-ha-agent:
             ## @param downstream-spire-agent-bottom-turtle-ha-b.workloadAttestors.k8s.brokerAPI.brokers.spire-ha-agent.enabled Enable the spire-ha-agent by default
