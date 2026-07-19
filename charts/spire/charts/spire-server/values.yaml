@@ -1443,7 +1443,7 @@ trustSync:
     registry: ghcr.io
     repository: spiffe/spire-ha-agent/spire-trust-sync
     pullPolicy: IfNotPresent
-    tag: "0.0.21"
+    tag: "0.2.0"
 
   ## @param trustSync.resources [object] Resource requests and limits
   resources: {}
