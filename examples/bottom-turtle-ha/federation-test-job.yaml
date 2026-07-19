@@ -1,0 +1,74 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: federation-test
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: federation-test
+    spec:
+      restartPolicy: Never
+      initContainers:
+      - name: static-busybox
+        # Replaced by run-tests.sh with the image from the spiffe-oidc-discovery-provider chart
+        image: replaced-by-run-tests.sh
+        command:
+        - sh
+        - -c
+        - |
+          cp /bin/busybox /data/busybox
+          chmod +x /data/busybox
+        volumeMounts:
+        - name: data-volume
+          mountPath: /data
+      containers:
+      - name: main
+        # Replaced by run-tests.sh with the image from the spire-agent chart
+        image: replaced-by-run-tests.sh
+        command:
+        - /data/busybox
+        - sh
+        - -xc
+        - |
+          SOCK=/spire-agent/spire-agent.sock
+          i=0
+          while [ "$i" -lt 60 ]; do
+            if XOUT=$(/opt/spire/bin/spire-agent api fetch x509 -socketPath "$SOCK" -write /data -timeout 5s 2>&1) &&
+               echo "$XOUT" | grep -q "for trust domain other.org" &&
+               JOUT=$(/opt/spire/bin/spire-agent api fetch jwt -audience test -socketPath "$SOCK" -timeout 5s 2>&1) &&
+               echo "$JOUT" | grep -q "bundle(other.org)"; then
+              # The other.org bundle was statically set to the same single CA on both sides,
+              # so every federated bundle delivered must contain exactly one certificate.
+              for f in /data/federated_bundle.*.pem; do
+                COUNT=$(grep -c "BEGIN CERTIFICATE" "$f")
+                if [ "$COUNT" != "1" ]; then
+                  echo "expected 1 CA in $f, got $COUNT"
+                  exit 1
+                fi
+              done
+              echo "$XOUT"
+              echo "$JOUT"
+              echo FEDERATION-OK
+              exit 0
+            fi
+            i=$((i+1))
+            sleep 2
+          done
+          echo "$XOUT"
+          echo "$JOUT"
+          exit 1
+        volumeMounts:
+        - name: data-volume
+          mountPath: /data
+        - name: spire-api
+          mountPath: /spire-agent
+          readOnly: true
+      volumes:
+      - name: data-volume
+        emptyDir: {}
+      - name: spire-api
+        csi:
+          driver: csi.spiffe.io
+          readOnly: true
