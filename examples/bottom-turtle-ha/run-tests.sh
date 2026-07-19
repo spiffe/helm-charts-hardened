@@ -211,7 +211,7 @@ if [ "${BROKER}" -eq 1 ]; then
   sudo /bin/bash -c '(echo SPIFFE_TRUST_DOMAIN=other.org; echo SPIRE_BIND_PORT=8083) > /etc/spire/server/other.env'
   sudo systemctl start spire-server@other
   wait_for_healthcheck spire-server /run/spire/server/sockets/other/private/api.sock
-  sudo spire-server bundle show -format spiffe -socketPath /run/spire/server/sockets/other/private/api.sock > /tmp/other-org-bundle.json
+  sudo spire-server bundle show -format spiffe -socketPath /run/spire/server/sockets/other/private/api.sock | sudo tee /tmp/other-org-bundle.json > /dev/null
   sudo systemctl stop spire-server@other
   grep -q '"x509-svid"' /tmp/other-org-bundle.json
   grep -q '"jwt-svid"' /tmp/other-org-bundle.json

@@ -36,13 +36,13 @@ spec:
           i=0
           while [ "$i" -lt 60 ]; do
             if XOUT=$(/opt/spire/bin/spire-agent api fetch x509 -socketPath "$SOCK" -write /data -timeout 5s 2>&1) &&
-               echo "$XOUT" | grep -q "for trust domain other.org" &&
+               echo "$XOUT" | /data/busybox grep -q "for trust domain other.org" &&
                JOUT=$(/opt/spire/bin/spire-agent api fetch jwt -audience test -socketPath "$SOCK" -timeout 5s 2>&1) &&
-               echo "$JOUT" | grep -q "bundle(other.org)"; then
+               echo "$JOUT" | /data/busybox grep -q "bundle(other.org)"; then
               # The other.org bundle was statically set to the same single CA on both sides,
               # so every federated bundle delivered must contain exactly one certificate.
               for f in /data/federated_bundle.*.pem; do
-                COUNT=$(grep -c "BEGIN CERTIFICATE" "$f")
+                COUNT=$(/data/busybox grep -c "BEGIN CERTIFICATE" "$f")
                 if [ "$COUNT" != "1" ]; then
                   echo "expected 1 CA in $f, got $COUNT"
                   exit 1
@@ -54,7 +54,7 @@ spec:
               exit 0
             fi
             i=$((i+1))
-            sleep 2
+            /data/busybox sleep 2
           done
           echo "$XOUT"
           echo "$JOUT"
