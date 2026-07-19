@@ -14,6 +14,7 @@ source "${SCRIPTPATH}/../../.github/scripts/parse-versions.sh"
 source "${TESTDIR}/common.sh"
 
 CLEANUP=1
+BROKER=0
 
 for i in "$@"; do
   case $i in
@@ -21,8 +22,28 @@ for i in "$@"; do
       CLEANUP=0
       shift # past argument=value
       ;;
+    -b)
+      BROKER=1
+      shift # past argument=value
+      ;;
   esac
 done
+
+# With -b, test the spire-ha-agent broker api instead of the delegated api.
+BROKER_MODE_ARGS=()
+BROKER_SOCKET_ARGS_A=()
+BROKER_SOCKET_ARGS_B=()
+if [ "${BROKER}" -eq 1 ]; then
+  BROKER_MODE_ARGS=(--set "spire-ha-agent.mode=broker")
+  BROKER_SOCKET_ARGS_A=(
+    --set downstream-spire-agent-bottom-turtle-ha-a.sockets.broker.enabled=true
+    --set downstream-spire-agent-bottom-turtle-ha-a.sockets.broker.mountOnHost=true
+  )
+  BROKER_SOCKET_ARGS_B=(
+    --set downstream-spire-agent-bottom-turtle-ha-b.sockets.broker.enabled=true
+    --set downstream-spire-agent-bottom-turtle-ha-b.sockets.broker.mountOnHost=true
+  )
+fi
 
 if [ "x${GITHUB_JOB}" != "x" ]; then
   echo "Running in GitHub"
@@ -239,7 +260,7 @@ helm upgrade --install --create-namespace --namespace spire-mgmt --values "${COM
   --set "global.spire.namespaces.create=true" \
   --set "global.spire.ingressControllerType=ingress-nginx" \
   --set "spiffe-oidc-discovery-provider.ingress.enabled=true" \
-  --set "spire-ha-agent.mode=broker"
+  "${BROKER_MODE_ARGS[@]}"
 
 # Create spire-identity-exchange cert for testing.
 mkdir -p certs
@@ -258,8 +279,7 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --values "${SCRIPTPATH}/spire-identity-exchange-values.yaml" \
   --set "spire-identity-exchange-bottom-turtle-ha-a.enabled=true" \
   --set "global.spire.ingressControllerType=ingress-nginx" \
-  --set downstream-spire-agent-bottom-turtle-ha-a.sockets.broker.enabled=true \
-  --set downstream-spire-agent-bottom-turtle-ha-a.sockets.broker.mountOnHost=true
+  "${BROKER_SOCKET_ARGS_A[@]}"
 
 docker exec -i chart-testing-worker /bin/bash -c "more /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/disk-keymanager/keys.json /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/spire-agent-persistence/agent-data.json | cat"
 
@@ -280,8 +300,7 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --values "${SCRIPTPATH}/spire-identity-exchange-values.yaml" \
   --set "spire-identity-exchange-bottom-turtle-ha-b.enabled=true" \
   --set "global.spire.ingressControllerType=ingress-nginx" \
-  --set downstream-spire-agent-bottom-turtle-ha-b.sockets.broker.enabled=true \
-  --set downstream-spire-agent-bottom-turtle-ha-b.sockets.broker.mountOnHost=true
+  "${BROKER_SOCKET_ARGS_B[@]}"
 
 docker ps
 docker exec -i chart-testing-worker /bin/bash -c "more /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/disk-keymanager/keys.json /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/spire-agent-persistence/agent-data.json | cat"
