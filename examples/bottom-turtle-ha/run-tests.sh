@@ -132,13 +132,6 @@ wait_for_jwt() {
 
 "${SCRIPTPATH}/../../.github/scripts/prepare-local-chart-deps.sh"
 
-git clone https://github.com/spiffe/spire-ha-agent
-cd spire-ha-agent
-git checkout broker
-docker build -t ghcr.io/spiffe/spire-ha-agent:dev .
-kind load docker-image ghcr.io/spiffe/spire-ha-agent:dev --name chart-testing
-cd ..
-
 # Get the package repo and install the packages
 sudo curl -s -o /etc/apt/sources.list.d/spire-examples.list https://raw.githubusercontent.com/spiffe/spire-examples/refs/heads/main/examples/debs/amd64/spire-examples.list
 sudo apt-get update
@@ -246,8 +239,6 @@ helm upgrade --install --create-namespace --namespace spire-mgmt --values "${COM
   --set "global.spire.namespaces.create=true" \
   --set "global.spire.ingressControllerType=ingress-nginx" \
   --set "spiffe-oidc-discovery-provider.ingress.enabled=true" \
-  --set "spire-ha-agent.image.tag=dev" \
-  --set "spire-ha-agent.image.pullPolicy=Never" \
   --set "spire-ha-agent.mode=broker"
 
 # Create spire-identity-exchange cert for testing.
