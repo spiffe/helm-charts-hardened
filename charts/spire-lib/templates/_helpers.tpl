@@ -366,3 +366,242 @@ Anything lower has an incompatible API.
 {{- print "crt" }}
 {{- end }}
 {{- end }}
+
+{{/* ---------------------------------------------------------------------------
+ * Gateway API helpers
+ *
+ * Gateway API support is entirely independent of Ingress. It is driven by a
+ * per-service `gatewayAPI:` values block (sibling of `ingress:`) with its own
+ * `enabled` flag, so a service can expose both an Ingress and Gateway API
+ * resources at the same time. The existing ingress helpers above are untouched.
+ *
+ * Only Standard-channel, v1 Gateway API resources are used
+ * (gateway.networking.k8s.io/v1): Gateway, HTTPRoute, TLSRoute, ListenerSet,
+ * BackendTLSPolicy. Requires Gateway API v1.5+ CRDs pre-installed.
+ * --------------------------------------------------------------------------- */}}
+
+{{/* Shared Gateway object name (global reference). Input: dict {global} */}}
+{{- define "spire-lib.gateway-name" -}}
+{{- dig "spire" "gatewayAPI" "gateway" "name" "spire-gateway" .global -}}
+{{- end }}
+
+{{/* Shared Gateway namespace. Input: dict {global, root}. Defaults to the release namespace. */}}
+{{- define "spire-lib.gateway-namespace" -}}
+{{- $ns := dig "spire" "gatewayAPI" "gateway" "namespace" "" .global -}}
+{{- if $ns -}}{{ $ns }}{{- else -}}{{ .root.Release.Namespace }}{{- end -}}
+{{- end }}
+
+{{/* Shared Gateway listener port (global reference, ListenerSets must match). Input: dict {global} */}}
+{{- define "spire-lib.gateway-port" -}}
+{{- dig "spire" "gatewayAPI" "gateway" "port" 443 .global -}}
+{{- end }}
+
+{{/* Resolve whether ListenerSet management is on for a service.
+ * Input: dict {gatewayAPI, global}. Per-service listenerSet.enabled (null=inherit)
+ * falls back to global.spire.gatewayAPI.manageListenerSets (default true).
+ * Returns the string "true" or "false".
+ */}}
+{{- define "spire-lib.gateway-manage-listenersets" -}}
+{{- $ls := dig "listenerSet" "enabled" nil .gatewayAPI -}}
+{{- if ne $ls nil -}}
+{{-   $ls -}}
+{{- else -}}
+{{-   dig "spire" "gatewayAPI" "manageListenerSets" true .global -}}
+{{- end -}}
+{{- end }}
+
+{{/* Default route kind from tlsSecret. Input: dict {gatewayAPI}. Empty tlsSecret => TLSRoute (passthrough). */}}
+{{- define "spire-lib.gateway-route-kind" -}}
+{{- if .gatewayAPI.tlsSecret -}}HTTPRoute{{- else -}}TLSRoute{{- end -}}
+{{- end }}
+
+{{/* parentRefs list items for a route.
+ * Input: dict {manageLS(bool), name, gatewayAPI, gwName, gwNs}
+ * - manageLS on: attach to the service's ListenerSet (kind ListenerSet, sectionName=name)
+ * - off + gatewayAPI.parentRefs set: use those verbatim
+ * - off + no override: attach directly to the shared Gateway
+ */}}
+{{- define "spire-lib.gateway-parentref" -}}
+{{- if .manageLS }}
+- group: gateway.networking.k8s.io
+  kind: ListenerSet
+  name: {{ .name | quote }}
+  sectionName: {{ .name | quote }}
+{{- else if .gatewayAPI.parentRefs }}
+{{ toYaml .gatewayAPI.parentRefs }}
+{{- else }}
+- group: gateway.networking.k8s.io
+  kind: Gateway
+  name: {{ .gwName | quote }}
+  namespace: {{ .gwNs | quote }}
+  {{- with .gatewayAPI.sectionName }}
+  sectionName: {{ . | quote }}
+  {{- end }}
+{{- end }}
+{{- end }}
+
+{{/* Emit Gateway API resources for one service: a Route, plus (optionally) a
+ * ListenerSet and a BackendTLSPolicy. Direct analogue of spire-lib.ingress-spec.
+ * Input dict:
+ *   root       - chart root context (.)
+ *   gatewayAPI - the per-service gatewayAPI values block
+ *   name       - base name for the emitted resources
+ *   namespace  - namespace for the emitted resources
+ *   svcName    - backend Service name
+ *   port       - backend Service port (number)
+ *   labels     - pre-rendered labels YAML (string)
+ *   routeKind  - "TLSRoute" or "HTTPRoute"
+ *   backendTLS - bool; when true and HTTPRoute, emit a BackendTLSPolicy (reencrypt)
+ *   path       - HTTPRoute path prefix (default "/")
+ */}}
+{{- define "spire-lib.gateway-routes" -}}
+{{- $g := .gatewayAPI -}}
+{{- $global := .root.Values.global -}}
+{{- $host := include "spire-lib.ingress-calculated-name" (dict "ingress" (dict "host" $g.host) "Values" .root.Values) | trim -}}
+{{- $gwName := include "spire-lib.gateway-name" (dict "global" $global) -}}
+{{- $gwNs := include "spire-lib.gateway-namespace" (dict "global" $global "root" .root) -}}
+{{- $port := include "spire-lib.gateway-port" (dict "global" $global) -}}
+{{- $manageLS := eq (include "spire-lib.gateway-manage-listenersets" (dict "gatewayAPI" $g "global" $global)) "true" -}}
+{{- $terminate := eq .routeKind "HTTPRoute" -}}
+{{- $path := default "/" .path -}}
+{{- $parentRefs := include "spire-lib.gateway-parentref" (dict "manageLS" $manageLS "name" .name "gatewayAPI" $g "gwName" $gwName "gwNs" $gwNs) -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: {{ .routeKind }}
+metadata:
+  name: {{ .name }}
+  namespace: {{ .namespace }}
+  labels:
+    {{- .labels | nindent 4 }}
+  {{- with $g.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  parentRefs:
+    {{- $parentRefs | trim | nindent 4 }}
+  hostnames:
+    - {{ $host | quote }}
+  rules:
+    {{- if $terminate }}
+    - matches:
+        - path:
+            type: PathPrefix
+            value: {{ $path | quote }}
+      backendRefs:
+        - name: {{ .svcName | quote }}
+          port: {{ .port }}
+    {{- else }}
+    - backendRefs:
+        - name: {{ .svcName | quote }}
+          port: {{ .port }}
+    {{- end }}
+{{- if $manageLS }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: ListenerSet
+metadata:
+  name: {{ .name }}
+  namespace: {{ .namespace }}
+  labels:
+    {{- .labels | nindent 4 }}
+spec:
+  parentRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: {{ $gwName | quote }}
+    namespace: {{ $gwNs | quote }}
+  listeners:
+    - name: {{ .name }}
+      hostname: {{ $host | quote }}
+      port: {{ $port }}
+      {{- if $terminate }}
+      protocol: HTTPS
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            group: ""
+            name: {{ $g.tlsSecret | quote }}
+      allowedRoutes:
+        namespaces:
+          from: Same
+        kinds:
+          - group: gateway.networking.k8s.io
+            kind: HTTPRoute
+      {{- else }}
+      protocol: TLS
+      tls:
+        mode: Passthrough
+      allowedRoutes:
+        namespaces:
+          from: Same
+        kinds:
+          - group: gateway.networking.k8s.io
+            kind: TLSRoute
+      {{- end }}
+{{- end }}
+{{- if and $terminate .backendTLS }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: BackendTLSPolicy
+metadata:
+  name: {{ .name }}
+  namespace: {{ .namespace }}
+  labels:
+    {{- .labels | nindent 4 }}
+spec:
+  targetRefs:
+    - group: ""
+      kind: Service
+      name: {{ .svcName | quote }}
+  validation:
+    hostname: {{ $host | quote }}
+    caCertificateRefs:
+      {{- if dig "backendTLS" "caCertificateRefs" (list) $g }}
+      {{- toYaml $g.backendTLS.caCertificateRefs | nindent 6 }}
+      {{- else }}
+      - group: ""
+        kind: ConfigMap
+        name: {{ include "spire-lib.bundle-configmap" .root | trim | quote }}
+      {{- end }}
+{{- end }}
+{{- end }}
+
+{{/* The shared Gateway object. Rendered only by the umbrella chart.
+ * Input: dict {root, gatewayObject} where gatewayObject is the umbrella-local
+ * `gatewayAPI.gateway` values block. name/namespace/port come from the global
+ * reference; className and listener policy are local.
+ */}}
+{{- define "spire-lib.gateway-resource" -}}
+{{- $global := .root.Values.global -}}
+{{- $obj := .gatewayObject -}}
+{{- $gwName := include "spire-lib.gateway-name" (dict "global" $global) -}}
+{{- $gwNs := include "spire-lib.gateway-namespace" (dict "global" $global "root" .root) -}}
+{{- $port := include "spire-lib.gateway-port" (dict "global" $global) -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ $gwName }}
+  namespace: {{ $gwNs }}
+  {{- with $obj.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  gatewayClassName: {{ required "gatewayAPI.gateway.className is required to render the shared Gateway" $obj.className | quote }}
+  allowedListeners:
+    namespaces:
+      from: {{ default "All" $obj.allowedListenersNamespaces }}
+  listeners:
+    - name: base
+      protocol: TLS
+      port: {{ $port }}
+      tls:
+        mode: Passthrough
+      allowedRoutes:
+        namespaces:
+          from: {{ default "All" $obj.allowedRoutesNamespaces }}
+    {{- with $obj.extraListeners }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+{{- end }}

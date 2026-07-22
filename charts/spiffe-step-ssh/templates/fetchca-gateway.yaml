@@ -1,0 +1,13 @@
+{{- if .Values.fetchCA.gatewayAPI.enabled -}}
+{{- $fullName := printf "%s-fetchca" (include "spiffe-step-ssh.fullname" .) -}}
+{{- include "spire-lib.gateway-routes" (dict
+      "root" .
+      "gatewayAPI" .Values.fetchCA.gatewayAPI
+      "name" $fullName
+      "namespace" .Release.Namespace
+      "svcName" $fullName
+      "port" .Values.fetchCA.service.port
+      "labels" (include "spiffe-step-ssh.labels" .)
+      "routeKind" (include "spire-lib.gateway-route-kind" (dict "gatewayAPI" .Values.fetchCA.gatewayAPI))
+      "backendTLS" false) }}
+{{- end }}

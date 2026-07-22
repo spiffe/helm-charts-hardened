@@ -1,0 +1,25 @@
+# Test-owned shared Gateway. Created outside the chart so its Envoy Gateway
+# data-plane Service (and ClusterIP) exists before the chart is installed,
+# letting the harness resolve the test hostnames to it in a single install pass.
+# name/namespace match the chart's global reference defaults
+# (global.spire.gatewayAPI.gateway.name=spire-gateway, namespace=release ns) so
+# the chart's ListenerSets and routes attach to it.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: spire-gateway
+  namespace: spire-server
+spec:
+  gatewayClassName: eg
+  allowedListeners:
+    namespaces:
+      from: All
+  listeners:
+    - name: base
+      protocol: TLS
+      port: 443
+      tls:
+        mode: Passthrough
+      allowedRoutes:
+        namespaces:
+          from: All

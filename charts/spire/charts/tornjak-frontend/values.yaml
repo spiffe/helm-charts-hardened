@@ -151,6 +151,31 @@ ingress:
   #    hosts:
   #      - tornjak-frontend.example.org
 
+## Gateway API exposure for the Tornjak frontend UI. Independent of `ingress`.
+## The frontend serves plaintext HTTP, so this is always an HTTPRoute with edge
+## TLS termination at the Gateway; set tlsSecret to supply the listener cert.
+gatewayAPI:
+  ## @param gatewayAPI.enabled Flag to expose the Tornjak frontend via Gateway API
+  enabled: false
+  ## @param gatewayAPI.host Host name for the route. If no '.' in host, trustDomain is automatically appended.
+  host: "tornjak-frontend"
+  ## @param gatewayAPI.tlsSecret Secret with the TLS cert for edge termination
+  tlsSecret: ""
+  ## @param gatewayAPI.annotations [object] Annotations for the route (and its ListenerSet)
+  annotations: {}
+  listenerSet:
+    ## @param gatewayAPI.listenerSet.enabled Manage a ListenerSet for this service's SNI listener. Null inherits global.spire.gatewayAPI.manageListenerSets.
+    enabled: null
+  ## @param gatewayAPI.parentRefs [array] parentRefs used when ListenerSet management is disabled (direct attach)
+  parentRefs: []
+  ## @param gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
+  sectionName: ""
+  backendTLS:
+    ## @param gatewayAPI.backendTLS.enabled Emit a BackendTLSPolicy (reencrypt) for terminated routes whose backend serves HTTPS
+    enabled: null
+    ## @param gatewayAPI.backendTLS.caCertificateRefs [array] ConfigMap refs holding the backend CA. Defaults to the SPIRE bundle configmap.
+    caCertificateRefs: []
+
 tests:
   bash:
     ## @param tests.bash.image.registry The OCI registry to pull the image from

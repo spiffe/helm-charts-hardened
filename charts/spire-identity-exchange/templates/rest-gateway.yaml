@@ -1,0 +1,13 @@
+{{- if .Values.rest.gatewayAPI.enabled -}}
+{{- $routeKind := include "spire-lib.gateway-route-kind" (dict "gatewayAPI" .Values.rest.gatewayAPI) -}}
+{{- include "spire-lib.gateway-routes" (dict
+      "root" .
+      "gatewayAPI" .Values.rest.gatewayAPI
+      "name" (printf "%s-rest" (include "spire-identity-exchange.fullname" .))
+      "namespace" (include "spire-identity-exchange.namespace" .)
+      "svcName" (printf "%s-rest" (include "spire-identity-exchange.fullname" .))
+      "port" .Values.rest.service.port
+      "labels" (include "spire-identity-exchange.labels" .)
+      "routeKind" $routeKind
+      "backendTLS" (eq $routeKind "HTTPRoute")) }}
+{{- end }}

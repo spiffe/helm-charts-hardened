@@ -1,0 +1,13 @@
+{{- if .Values.gatewayAPI.enabled -}}
+{{- $fullName := include "spike-nexus.fullname" . -}}
+{{- include "spire-lib.gateway-routes" (dict
+      "root" .
+      "gatewayAPI" .Values.gatewayAPI
+      "name" $fullName
+      "namespace" (include "spike-nexus.namespace" .)
+      "svcName" $fullName
+      "port" .Values.service.port
+      "labels" (include "spike-nexus.labels" .)
+      "routeKind" (include "spire-lib.gateway-route-kind" (dict "gatewayAPI" .Values.gatewayAPI))
+      "backendTLS" false) }}
+{{- end }}

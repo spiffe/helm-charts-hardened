@@ -1,0 +1,3 @@
+{{- if .Values.gatewayAPI.gateway.enabled }}
+{{- include "spire-lib.gateway-resource" (dict "root" . "gatewayObject" .Values.gatewayAPI.gateway) }}
+{{- end }}

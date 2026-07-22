@@ -1,0 +1,15 @@
+{{- if .Values.federation.enabled -}}
+{{- if .Values.federation.gatewayAPI.enabled -}}
+{{- $fullName := include "spire-server.fullname" . -}}
+{{- include "spire-lib.gateway-routes" (dict
+      "root" .
+      "gatewayAPI" .Values.federation.gatewayAPI
+      "name" (printf "%s-federation" $fullName)
+      "namespace" (include "spire-server.namespace" .)
+      "svcName" $fullName
+      "port" .Values.federation.bundleEndpoint.port
+      "labels" (include "spire-server.labels" .)
+      "routeKind" (include "spire-lib.gateway-route-kind" (dict "gatewayAPI" .Values.federation.gatewayAPI))
+      "backendTLS" false) }}
+{{- end }}
+{{- end }}

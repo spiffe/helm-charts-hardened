@@ -1,0 +1,18 @@
+# Expose the federation bundle endpoint via Gateway API. The federation pod
+# serves a web-PKI cert (externalSecret), so the Gateway uses TLS passthrough
+# (empty gatewayAPI.tlsSecret => TLSRoute + a passthrough SNI listener) and the
+# client validates the pod's cert directly. This is the https_web profile.
+spire-server:
+  tests:
+    tls:
+      enabled: true
+  federation:
+    enabled: true
+    tls:
+      spire:
+        enabled: false
+      externalSecret:
+        enabled: true
+        secretName: spire-server-federation-tls
+    gatewayAPI:
+      enabled: true

@@ -284,6 +284,31 @@ rest:
     #    hosts:
     #      - spire-identity-exchange-rest.example.org
 
+  ## Gateway API exposure for the REST endpoint. Independent of rest.ingress. The
+  ## backend serves HTTPS, so a set tlsSecret => HTTPRoute + BackendTLSPolicy
+  ## (reencrypt); blank tlsSecret => TLSRoute (SNI passthrough).
+  gatewayAPI:
+    ## @param rest.gatewayAPI.enabled Flag to expose the REST endpoint via Gateway API
+    enabled: false
+    ## @param rest.gatewayAPI.host Host name for the route. If no '.' in host, trustDomain is automatically appended.
+    host: "spire-identity-exchange-rest"
+    ## @param rest.gatewayAPI.tlsSecret Secret with the TLS cert for edge termination. Blank keeps passthrough.
+    tlsSecret: ""
+    ## @param rest.gatewayAPI.annotations [object] Annotations for the route (and its ListenerSet)
+    annotations: {}
+    listenerSet:
+      ## @param rest.gatewayAPI.listenerSet.enabled Manage a ListenerSet for this service's SNI listener. Null inherits global.spire.gatewayAPI.manageListenerSets.
+      enabled: null
+    ## @param rest.gatewayAPI.parentRefs [array] parentRefs used when ListenerSet management is disabled (direct attach)
+    parentRefs: []
+    ## @param rest.gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
+    sectionName: ""
+    backendTLS:
+      ## @param rest.gatewayAPI.backendTLS.enabled Emit a BackendTLSPolicy (reencrypt) for terminated routes whose backend serves HTTPS
+      enabled: null
+      ## @param rest.gatewayAPI.backendTLS.caCertificateRefs [array] ConfigMap refs holding the backend CA. Defaults to the SPIRE bundle configmap.
+      caCertificateRefs: []
+
 grpc:
   ## @param grpc.enabled Enable the grpc service
   enabled: false
@@ -330,6 +355,31 @@ grpc:
     #  - secretName: chart-example-tls
     #    hosts:
     #      - spire-identiy-exchange-grpc.example.org
+
+  ## Gateway API exposure for the gRPC endpoint. Independent of grpc.ingress. The
+  ## backend serves HTTPS, so a set tlsSecret => HTTPRoute + BackendTLSPolicy
+  ## (reencrypt); blank tlsSecret => TLSRoute (SNI passthrough).
+  gatewayAPI:
+    ## @param grpc.gatewayAPI.enabled Flag to expose the gRPC endpoint via Gateway API
+    enabled: false
+    ## @param grpc.gatewayAPI.host Host name for the route. If no '.' in host, trustDomain is automatically appended.
+    host: "spire-identity-exchange-grpc"
+    ## @param grpc.gatewayAPI.tlsSecret Secret with the TLS cert for edge termination. Blank keeps passthrough.
+    tlsSecret: ""
+    ## @param grpc.gatewayAPI.annotations [object] Annotations for the route (and its ListenerSet)
+    annotations: {}
+    listenerSet:
+      ## @param grpc.gatewayAPI.listenerSet.enabled Manage a ListenerSet for this service's SNI listener. Null inherits global.spire.gatewayAPI.manageListenerSets.
+      enabled: null
+    ## @param grpc.gatewayAPI.parentRefs [array] parentRefs used when ListenerSet management is disabled (direct attach)
+    parentRefs: []
+    ## @param grpc.gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
+    sectionName: ""
+    backendTLS:
+      ## @param grpc.gatewayAPI.backendTLS.enabled Emit a BackendTLSPolicy (reencrypt) for terminated routes whose backend serves HTTPS
+      enabled: null
+      ## @param grpc.gatewayAPI.backendTLS.caCertificateRefs [array] ConfigMap refs holding the backend CA. Defaults to the SPIRE bundle configmap.
+      caCertificateRefs: []
 
 tools:
   kubectl:

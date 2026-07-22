@@ -84,6 +84,22 @@ global:
     ## @param global.spire.ingressControllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, autodetection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""].
     ingressControllerType: ""
 
+    ## Gateway API reference settings shared across charts. Only the values needed
+    ## by other charts to attach their routes/ListenerSets to the shared Gateway
+    ## live here; the Gateway object itself is configured under the top-level
+    ## `gatewayAPI.gateway` block of this (umbrella) chart. Gateway API support is
+    ## independent of ingress and can be enabled alongside it.
+    gatewayAPI:
+      ## @param global.spire.gatewayAPI.manageListenerSets Default policy for whether services render a ListenerSet for their SNI listener. Each service may override via its gatewayAPI.listenerSet.enabled.
+      manageListenerSets: true
+      gateway:
+        ## @param global.spire.gatewayAPI.gateway.name Name of the shared Gateway object that routes and ListenerSets attach to
+        name: spire-gateway
+        ## @param global.spire.gatewayAPI.gateway.namespace Namespace of the shared Gateway object. Defaults to the release namespace if blank.
+        namespace: ""
+        ## @param global.spire.gatewayAPI.gateway.port Port the shared Gateway listens on. ListenerSet listeners must match this.
+        port: 443
+
     tools:
       kubectl:
         ## @param global.spire.tools.kubectl.tag Set to force the tag to use for all kubectl instances
@@ -128,6 +144,27 @@ global:
 #        # -- Allows to install the PodMonitor in another namespace then the spire components are installed into.
 #        namespace: "kube-prometheus-system"
 #        labels: {}
+
+## @section Gateway API parameters
+## Configuration for the optional shared Gateway object managed by this umbrella
+## chart. The Gateway is rendered here (rather than in a subchart) so it exists
+## even when spire-server is disabled. name/namespace/port come from
+## global.spire.gatewayAPI.gateway; className and listener policy are local.
+##
+gatewayAPI:
+  gateway:
+    ## @param gatewayAPI.gateway.enabled Render the shared Gateway object
+    enabled: false
+    ## @param gatewayAPI.gateway.className gatewayClassName for the shared Gateway (e.g. "eg"). Required when enabled.
+    className: ""
+    ## @param gatewayAPI.gateway.annotations [object] Annotations for the Gateway object
+    annotations: {}
+    ## @param gatewayAPI.gateway.allowedListenersNamespaces From which namespaces ListenerSets may attach to the Gateway. One of All, Same, Selector.
+    allowedListenersNamespaces: All
+    ## @param gatewayAPI.gateway.allowedRoutesNamespaces From which namespaces routes may attach directly to the base listener (used when ListenerSet management is off). One of All, Same, Selector.
+    allowedRoutesNamespaces: All
+    ## @param gatewayAPI.gateway.extraListeners [array] Additional listeners to add to the Gateway
+    extraListeners: []
 
 ## subcharts
 

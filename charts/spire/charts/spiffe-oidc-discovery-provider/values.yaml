@@ -345,6 +345,33 @@ ingress:
   #    hosts:
   #      - oidc-discovery.example.org
 
+## Gateway API exposure for the OIDC discovery provider. Independent of `ingress`.
+## Route kind follows the provider's TLS setting: TLS disabled => HTTPRoute (edge,
+## plaintext backend); TLS enabled + tlsSecret => HTTPRoute + BackendTLSPolicy
+## (reencrypt to the HTTPS backend); TLS enabled + no tlsSecret => TLSRoute
+## (SNI passthrough).
+gatewayAPI:
+  ## @param gatewayAPI.enabled Flag to expose the OIDC discovery provider via Gateway API
+  enabled: false
+  ## @param gatewayAPI.host Host name for the route. If no '.' in host, trustDomain is automatically appended.
+  host: "oidc-discovery"
+  ## @param gatewayAPI.tlsSecret Secret with the TLS cert for edge termination. Blank keeps passthrough when TLS is enabled.
+  tlsSecret: ""
+  ## @param gatewayAPI.annotations [object] Annotations for the route (and its ListenerSet)
+  annotations: {}
+  listenerSet:
+    ## @param gatewayAPI.listenerSet.enabled Manage a ListenerSet for this service's SNI listener. Null inherits global.spire.gatewayAPI.manageListenerSets.
+    enabled: null
+  ## @param gatewayAPI.parentRefs [array] parentRefs used when ListenerSet management is disabled (direct attach)
+  parentRefs: []
+  ## @param gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
+  sectionName: ""
+  backendTLS:
+    ## @param gatewayAPI.backendTLS.enabled Emit a BackendTLSPolicy (reencrypt) for terminated routes whose backend serves HTTPS
+    enabled: null
+    ## @param gatewayAPI.backendTLS.caCertificateRefs [array] ConfigMap refs holding the backend CA. Defaults to the SPIRE bundle configmap.
+    caCertificateRefs: []
+
 tests:
   ## @param tests.hostAliases [array] List of host aliases for testing
   hostAliases: []

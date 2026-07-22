@@ -72,6 +72,31 @@ stepIngress:
   #  - hosts:
   #      - spiffe-step-ssh.example.org
 
+## Gateway API exposure for the step endpoint. A sibling of stepIngress (never
+## nested under an ingress block). Empty tlsSecret => TLSRoute (SNI passthrough);
+## set => HTTPRoute.
+gatewayAPI:
+  ## @param gatewayAPI.enabled Flag to expose the step endpoint via Gateway API
+  enabled: false
+  ## @param gatewayAPI.host Host name for the route. If no '.' in host, trustDomain is automatically appended.
+  host: "spiffe-step-ssh"
+  ## @param gatewayAPI.tlsSecret Secret with the TLS cert for edge termination. Blank keeps passthrough.
+  tlsSecret: ""
+  ## @param gatewayAPI.annotations [object] Annotations for the route (and its ListenerSet)
+  annotations: {}
+  listenerSet:
+    ## @param gatewayAPI.listenerSet.enabled Manage a ListenerSet for this service's SNI listener. Null inherits global.spire.gatewayAPI.manageListenerSets.
+    enabled: null
+  ## @param gatewayAPI.parentRefs [array] parentRefs used when ListenerSet management is disabled (direct attach)
+  parentRefs: []
+  ## @param gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
+  sectionName: ""
+  backendTLS:
+    ## @param gatewayAPI.backendTLS.enabled Emit a BackendTLSPolicy (reencrypt) for terminated routes whose backend serves HTTPS
+    enabled: null
+    ## @param gatewayAPI.backendTLS.caCertificateRefs [array] ConfigMap refs holding the backend CA. Defaults to the SPIRE bundle configmap.
+    caCertificateRefs: []
+
 ## @skip step
 step:
   service:
@@ -232,6 +257,31 @@ fetchCA:
     tls: []
     #  - hosts:
     #      - spiffe-step-ssh-fetchca.example.org
+
+  ## Gateway API exposure for the fetchCA endpoint. A sibling of fetchCA.ingress
+  ## (never nested under an ingress block). Empty tlsSecret => TLSRoute (SNI
+  ## passthrough); set => HTTPRoute.
+  gatewayAPI:
+    ## @param fetchCA.gatewayAPI.enabled Flag to expose the fetchCA endpoint via Gateway API
+    enabled: false
+    ## @param fetchCA.gatewayAPI.host Host name for the route. If no '.' in host, trustDomain is automatically appended.
+    host: "spiffe-step-ssh-fetchca"
+    ## @param fetchCA.gatewayAPI.tlsSecret Secret with the TLS cert for edge termination. Blank keeps passthrough.
+    tlsSecret: ""
+    ## @param fetchCA.gatewayAPI.annotations [object] Annotations for the route (and its ListenerSet)
+    annotations: {}
+    listenerSet:
+      ## @param fetchCA.gatewayAPI.listenerSet.enabled Manage a ListenerSet for this service's SNI listener. Null inherits global.spire.gatewayAPI.manageListenerSets.
+      enabled: null
+    ## @param fetchCA.gatewayAPI.parentRefs [array] parentRefs used when ListenerSet management is disabled (direct attach)
+    parentRefs: []
+    ## @param fetchCA.gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
+    sectionName: ""
+    backendTLS:
+      ## @param fetchCA.gatewayAPI.backendTLS.enabled Emit a BackendTLSPolicy (reencrypt) for terminated routes whose backend serves HTTPS
+      enabled: null
+      ## @param fetchCA.gatewayAPI.backendTLS.caCertificateRefs [array] ConfigMap refs holding the backend CA. Defaults to the SPIRE bundle configmap.
+      caCertificateRefs: []
 
   ## @param fetchCA.autoscaling.enabled Enable autoscaling
   ## @param fetchCA.autoscaling.minReplicas Minimum number of replicas to deploy

@@ -343,6 +343,31 @@ federation:
     #    If Profile Type == https_web:
     #    secretName: spire-server-federation-tls
 
+  ## Gateway API exposure for the federation bundle endpoint. Independent of
+  ## federation.ingress; both may be enabled at once. Empty tlsSecret => TLSRoute
+  ## (SNI passthrough); set tlsSecret => HTTPRoute (edge terminate).
+  gatewayAPI:
+    ## @param federation.gatewayAPI.enabled Flag to expose the federation endpoint via Gateway API
+    enabled: false
+    ## @param federation.gatewayAPI.host Host name for the route. If no '.' in host, trustDomain is automatically appended.
+    host: "spire-server-federation"
+    ## @param federation.gatewayAPI.tlsSecret Secret with the TLS cert for edge termination. Blank keeps TLS passthrough (TLSRoute).
+    tlsSecret: ""
+    ## @param federation.gatewayAPI.annotations [object] Annotations for the route (and its ListenerSet)
+    annotations: {}
+    listenerSet:
+      ## @param federation.gatewayAPI.listenerSet.enabled Manage a ListenerSet for this service's SNI listener. Null inherits global.spire.gatewayAPI.manageListenerSets.
+      enabled: null
+    ## @param federation.gatewayAPI.parentRefs [array] parentRefs used when ListenerSet management is disabled (direct attach)
+    parentRefs: []
+    ## @param federation.gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
+    sectionName: ""
+    backendTLS:
+      ## @param federation.gatewayAPI.backendTLS.enabled Emit a BackendTLSPolicy (reencrypt) for terminated routes whose backend serves HTTPS
+      enabled: null
+      ## @param federation.gatewayAPI.backendTLS.caCertificateRefs [array] ConfigMap refs holding the backend CA. Defaults to the SPIRE bundle configmap.
+      caCertificateRefs: []
+
 caSubject:
   ## @param caSubject.country Country for Spire server CA
   country: ARPA
@@ -1056,6 +1081,31 @@ ingress:
   #    hosts:
   #      - spire-server.example.org
 
+## Gateway API exposure for the spire-server API. Independent of `ingress`; both
+## may be enabled at once. Empty tlsSecret => TLSRoute (SNI passthrough of mTLS
+## to the pod); set tlsSecret => HTTPRoute (edge terminate).
+gatewayAPI:
+  ## @param gatewayAPI.enabled Flag to expose spire-server via Gateway API
+  enabled: false
+  ## @param gatewayAPI.host Host name for the route. If no '.' in host, trustDomain is automatically appended.
+  host: "spire-server"
+  ## @param gatewayAPI.tlsSecret Secret with the TLS cert for edge termination. Blank keeps TLS passthrough (TLSRoute).
+  tlsSecret: ""
+  ## @param gatewayAPI.annotations [object] Annotations for the route (and its ListenerSet)
+  annotations: {}
+  listenerSet:
+    ## @param gatewayAPI.listenerSet.enabled Manage a ListenerSet for this service's SNI listener. Null inherits global.spire.gatewayAPI.manageListenerSets.
+    enabled: null
+  ## @param gatewayAPI.parentRefs [array] parentRefs used when ListenerSet management is disabled (direct attach)
+  parentRefs: []
+  ## @param gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
+  sectionName: ""
+  backendTLS:
+    ## @param gatewayAPI.backendTLS.enabled Emit a BackendTLSPolicy (reencrypt) for terminated routes whose backend serves HTTPS
+    enabled: null
+    ## @param gatewayAPI.backendTLS.caCertificateRefs [array] ConfigMap refs holding the backend CA. Defaults to the SPIRE bundle configmap.
+    caCertificateRefs: []
+
 ## @param extraEnv [array] Extra environment variables to add to the spire server
 extraEnv: []
 
@@ -1357,6 +1407,30 @@ tornjak:
     #  - secretName: chart-example-tls
     #    hosts:
     #      - tornjak-backend.example.org
+
+  ## Gateway API exposure for the Tornjak backend. Route kind follows the tornjak
+  ## connectionType: non-http => TLSRoute (passthrough), http => HTTPRoute (edge).
+  gatewayAPI:
+    ## @param tornjak.gatewayAPI.enabled Flag to expose the Tornjak backend via Gateway API
+    enabled: false
+    ## @param tornjak.gatewayAPI.host Host name for the route. If no '.' in host, trustDomain is automatically appended.
+    host: "tornjak-backend"
+    ## @param tornjak.gatewayAPI.tlsSecret Secret with the TLS cert for edge termination (used when connectionType is http). Blank keeps passthrough.
+    tlsSecret: ""
+    ## @param tornjak.gatewayAPI.annotations [object] Annotations for the route (and its ListenerSet)
+    annotations: {}
+    listenerSet:
+      ## @param tornjak.gatewayAPI.listenerSet.enabled Manage a ListenerSet for this service's SNI listener. Null inherits global.spire.gatewayAPI.manageListenerSets.
+      enabled: null
+    ## @param tornjak.gatewayAPI.parentRefs [array] parentRefs used when ListenerSet management is disabled (direct attach)
+    parentRefs: []
+    ## @param tornjak.gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
+    sectionName: ""
+    backendTLS:
+      ## @param tornjak.gatewayAPI.backendTLS.enabled Emit a BackendTLSPolicy (reencrypt) for terminated routes whose backend serves HTTPS
+      enabled: null
+      ## @param tornjak.gatewayAPI.backendTLS.caCertificateRefs [array] ConfigMap refs holding the backend CA. Defaults to the SPIRE bundle configmap.
+      caCertificateRefs: []
 
   ## @param tornjak.startupProbe.failureThreshold Failure threshold count
   ## @param tornjak.startupProbe.initialDelaySeconds Initial delay seconds

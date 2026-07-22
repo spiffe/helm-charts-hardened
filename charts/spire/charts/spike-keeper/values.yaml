@@ -141,3 +141,28 @@ ingress:
 
   ## @param ingress.tls [array] Secrets containing TLS certs to enable https on ingress. If empty, rules will be built based on the host and tlsSecret vars.
   tls: []
+
+## Gateway API exposure for spike-keeper. One route + ListenerSet per replica
+## (host suffixed with the replica index, like the ingress). Independent of
+## `ingress`. Empty tlsSecret => TLSRoute (SNI passthrough).
+gatewayAPI:
+  ## @param gatewayAPI.enabled Flag to expose spike-keeper via Gateway API
+  enabled: false
+  ## @param gatewayAPI.host Host name for the routes. A `-<index>` suffix is added per replica. If no '.' in host, trustDomain is automatically appended.
+  host: "keeper"
+  ## @param gatewayAPI.tlsSecret Secret with the TLS cert for edge termination. Blank keeps passthrough.
+  tlsSecret: ""
+  ## @param gatewayAPI.annotations [object] Annotations for the routes (and their ListenerSets)
+  annotations: {}
+  listenerSet:
+    ## @param gatewayAPI.listenerSet.enabled Manage a ListenerSet for each replica's SNI listener. Null inherits global.spire.gatewayAPI.manageListenerSets.
+    enabled: null
+  ## @param gatewayAPI.parentRefs [array] parentRefs used when ListenerSet management is disabled (direct attach)
+  parentRefs: []
+  ## @param gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
+  sectionName: ""
+  backendTLS:
+    ## @param gatewayAPI.backendTLS.enabled Emit a BackendTLSPolicy (reencrypt) for terminated routes whose backend serves HTTPS
+    enabled: null
+    ## @param gatewayAPI.backendTLS.caCertificateRefs [array] ConfigMap refs holding the backend CA. Defaults to the SPIRE bundle configmap.
+    caCertificateRefs: []

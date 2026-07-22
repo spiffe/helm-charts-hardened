@@ -1,0 +1,15 @@
+{{- if .Values.tornjak.gatewayAPI.enabled -}}
+{{- $isHttp := eq (include "spire-tornjak.connectionType" .) "http" -}}
+{{- $routeKind := $isHttp | ternary "HTTPRoute" "TLSRoute" -}}
+{{- $port := $isHttp | ternary .Values.tornjak.service.ports.http .Values.tornjak.service.ports.https -}}
+{{- include "spire-lib.gateway-routes" (dict
+      "root" .
+      "gatewayAPI" .Values.tornjak.gatewayAPI
+      "name" (include "spire-tornjak.fullname" .)
+      "namespace" (include "spire-server.namespace" .)
+      "svcName" (include "spire-tornjak.servicename" .)
+      "port" $port
+      "labels" (include "spire-server.labels" .)
+      "routeKind" $routeKind
+      "backendTLS" false) }}
+{{- end }}
