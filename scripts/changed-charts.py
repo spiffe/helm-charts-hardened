@@ -3,9 +3,9 @@
 """Detect top-level charts needing release and order them dependencies-first.
 
 A companion to chart-graph.py / release-chart.sh. Given the repo as-is, this
-reports which top-level charts under the charts root have unreleased changes
-(or are brand new) and prints them so that a chart always appears after the
-charts it depends on. The first entries are charts with no local dependencies.
+reports which top-level charts under the charts root need releasing and prints
+them so that a chart always appears after the charts it depends on. The first
+entries are charts with no local dependencies.
 
 Change detection is per-chart and uses git release tags of the form
 ``<chart>-<X.Y.Z>`` (the same scheme as release-chart.sh's latest_chart_tag):
@@ -14,11 +14,13 @@ Change detection is per-chart and uses git release tags of the form
 * commits touching charts/<chart> since tag    -> CHANGED
 * otherwise                                    -> UNCHANGED
 
+By default the output is the full release blast radius: every chart that
+changed itself or is new, *plus* every chart that (transitively) depends on one
+of those -- because releasing a base chart cascades version bumps to its
+dependents (as release-chart.sh does). Those pulled-in charts are labelled
+DEPENDENT. Pass --direct-only for just the charts with their own changes.
+
 Notes:
-* Detection is per-chart *own* changes/newness only. A chart whose only pending
-  change would be a bumped dependency it consumes is NOT flagged here;
-  release-chart.sh already cascades those bumps when the base chart is released.
-  Use this list to pick the base-most charts to release.
 * Requires local tags to be present/current. Pass --fetch-tags (or run
   ``git fetch --tags`` beforehand) if your local tags may be stale.
 """
@@ -38,6 +40,7 @@ yaml = YAML(typ="safe")
 
 NEW = "NEW"
 CHANGED = "CHANGED"
+DEPENDENT = "DEPENDENT"
 UNCHANGED = "UNCHANGED"
 
 
@@ -64,6 +67,16 @@ def parse_args() -> argparse.Namespace:
         choices=("names", "detail"),
         default="names",
         help="Output format (default: names).",
+    )
+    parser.add_argument(
+        "--direct-only",
+        action="store_true",
+        help="Only charts with their own changes/newness; skip the dependents expansion.",
+    )
+    parser.add_argument(
+        "--no-status",
+        action="store_true",
+        help="In --output detail, omit the status column.",
     )
     parser.add_argument(
         "--all",
@@ -94,22 +107,63 @@ def main() -> int:
         print(f"No charts found under {charts_root}", file=sys.stderr)
         return 1
 
-    ordered = topological_order(charts)
+    dependents = build_dependents(charts)
+    ordered = topological_order(charts, dependents)
     status = {
         name: chart_status(charts[name], charts_root) for name in ordered
     }
 
+    # Seed with charts that changed themselves / are new, then (unless
+    # --direct-only) expand to every chart that transitively depends on the
+    # seed -- the full set a release will cascade-bump.
+    seed = {name for name, state in status.items() if state in (NEW, CHANGED)}
+    release_set = seed if args.direct_only else dependents_closure(seed, dependents)
+
     for name in ordered:
-        if not args.all and status[name] == UNCHANGED:
+        if args.all:
+            pass
+        elif name not in release_set:
             continue
+
+        label = classify(name, status[name], release_set, charts)
 
         if args.output == "detail":
             deps = ", ".join(charts[name].dependencies) or "-"
-            print(f"{name}\t{status[name]}\tdeps: {deps}")
+            if args.no_status:
+                print(f"{name}\tdeps: {deps}")
+            else:
+                print(f"{name}\t{label}\tdeps: {deps}")
         else:
             print(name)
 
     return 0
+
+
+def classify(
+    name: str, status: str, release_set: set[str], charts: dict[str, Chart]
+) -> str:
+    """Label a chart by why it is being released (own change vs. dependency)."""
+    if status in (NEW, CHANGED):
+        return status
+    if name in release_set:
+        via = [dep for dep in charts[name].dependencies if dep in release_set]
+        return f"{DEPENDENT} (via {', '.join(via)})" if via else DEPENDENT
+    return status
+
+
+def dependents_closure(
+    seed: set[str], dependents: dict[str, set[str]]
+) -> set[str]:
+    """Expand a seed set to include every chart that transitively depends on it."""
+    closure = set(seed)
+    stack = list(seed)
+    while stack:
+        current = stack.pop()
+        for dependent in dependents.get(current, ()):
+            if dependent not in closure:
+                closure.add(dependent)
+                stack.append(dependent)
+    return closure
 
 
 def parse_dependency_owners(
@@ -165,16 +219,24 @@ def discover_charts(charts_root: Path) -> dict[str, Chart]:
     return charts
 
 
-def topological_order(charts: dict[str, Chart]) -> list[str]:
+def build_dependents(charts: dict[str, Chart]) -> dict[str, set[str]]:
+    """Build the reverse map {chart -> set of charts that depend on it}."""
+    dependents: dict[str, set[str]] = {name: set() for name in charts}
+    for name, chart in charts.items():
+        for dep in chart.dependencies:
+            if dep in charts:
+                dependents[dep].add(name)
+    return dependents
+
+
+def topological_order(
+    charts: dict[str, Chart], dependents: dict[str, set[str]]
+) -> list[str]:
     """Order charts so each appears after its local dependencies (base-first)."""
     remaining_deps = {
         name: {dep for dep in chart.dependencies if dep in charts}
         for name, chart in charts.items()
     }
-    dependents: dict[str, set[str]] = {name: set() for name in charts}
-    for name, deps in remaining_deps.items():
-        for dep in deps:
-            dependents[dep].add(name)
 
     ready = sorted(name for name, deps in remaining_deps.items() if not deps)
     order: list[str] = []
