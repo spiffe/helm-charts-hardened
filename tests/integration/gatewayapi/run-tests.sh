@@ -97,12 +97,12 @@ kubectl apply -f "${DEPS}/gatewayclass-eg.yaml"
 kubectl apply -f "${DEPS}/gateway-eg.yaml"
 
 # Capture the Envoy Gateway data-plane Service ClusterIP. Envoy Gateway labels
-# the Service with the owning Gateway (spire-gateway in spire-server).
+# the Service with the owning Gateway (spire in spire-server).
 echo "Waiting for the Envoy Gateway data-plane Service to be provisioned..."
 ip=""
 for _ in $(seq 1 60); do
   ip=$(kubectl -n envoy-gateway-system get svc \
-    -l "gateway.envoyproxy.io/owning-gateway-namespace=spire-server,gateway.envoyproxy.io/owning-gateway-name=spire-gateway" \
+    -l "gateway.envoyproxy.io/owning-gateway-namespace=spire-server,gateway.envoyproxy.io/owning-gateway-name=spire" \
     -o jsonpath='{.items[0].spec.clusterIP}' 2>/dev/null || true)
   if [[ -n "$ip" && "$ip" != "None" ]]; then
     break

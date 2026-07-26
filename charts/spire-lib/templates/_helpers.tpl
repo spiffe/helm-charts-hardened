@@ -382,7 +382,7 @@ Anything lower has an incompatible API.
 
 {{/* Shared Gateway object name (global reference). Input: dict {global} */}}
 {{- define "spire-lib.gateway-name" -}}
-{{- dig "spire" "gatewayAPI" "gateway" "name" "spire-gateway" .global -}}
+{{- dig "spire" "gatewayAPI" "gateway" "name" "spire" .global -}}
 {{- end }}
 
 {{/* Shared Gateway namespace. Input: dict {global, root}. Defaults to the release namespace. */}}

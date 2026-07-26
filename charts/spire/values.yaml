@@ -94,7 +94,7 @@ global:
       manageListenerSets: true
       gateway:
         ## @param global.spire.gatewayAPI.gateway.name Name of the shared Gateway object that routes and ListenerSets attach to
-        name: spire-gateway
+        name: spire
         ## @param global.spire.gatewayAPI.gateway.namespace Namespace of the shared Gateway object. Defaults to the release namespace if blank.
         namespace: ""
         ## @param global.spire.gatewayAPI.gateway.port Port the shared Gateway listens on. ListenerSet listeners must match this.
