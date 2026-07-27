@@ -1,0 +1,16 @@
+{{- range $staticEntry := .Values.staticEntries }}
+{{- $staticEntryContext := dict "root" $ "entry" $staticEntry }}
+---
+apiVersion: spire.spiffe.io/v1alpha1
+kind: ClusterStaticEntry
+metadata:
+  name: {{ include "spire-tcp-broker.static-entry-name" $staticEntryContext | quote }}
+  labels:
+    {{- include "spire-tcp-broker.labels" $ | nindent 4 }}
+spec:
+  className: {{ $.Values.controllerManagerClassName | quote }}
+  spiffeID: {{ include "spire-tcp-broker.static-entry-id" $staticEntryContext | quote }}
+  parentID: {{ include "spire-tcp-broker.agent-alias-id" $ | quote }}
+  selectors:
+    {{- toYaml $staticEntry.selectors | nindent 4 }}
+{{- end }}

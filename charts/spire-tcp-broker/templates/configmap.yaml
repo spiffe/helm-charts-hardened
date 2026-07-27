@@ -1,0 +1,194 @@
+{{- define "spire-tcp-broker.check-config-values" -}}
+{{- if eq .Values.clusterName "" }}
+{{-   fail "clusterName must be set to the podAgentsCluster name configured on the SPIRE server" }}
+{{- end }}
+{{- if eq .Values.server.address "" }}
+{{-   fail "server.address must be set" }}
+{{- end }}
+{{- $trustDomain := include "spire-lib.trust-domain" . }}
+{{- include "spire-lib.check-strict-mode" (list . "trustDomain must be set" (eq $trustDomain "example.org"))}}
+{{- if eq (len .Values.brokers) 0 }}
+{{-   fail "brokers requires at least one broker" }}
+{{- end }}
+{{- $brokerNames := dict }}
+{{- range $brokerIdx, $broker := .Values.brokers }}
+{{-   $brokerName := toString $broker.name }}
+{{-   if eq $brokerName "" }}
+{{-     fail (printf "brokers[%d].name is required" $brokerIdx) }}
+{{-   end }}
+{{-   if or (gt (len $brokerName) 63) (not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$" $brokerName)) }}
+{{-     fail (printf "brokers[%d].name %q must be a valid DNS label" $brokerIdx $brokerName) }}
+{{-   end }}
+{{-   if hasKey $brokerNames $brokerName }}
+{{-     fail (printf "broker name %q is duplicated" $brokerName) }}
+{{-   end }}
+{{-   $_ := set $brokerNames $brokerName true }}
+{{-   $rbacName := include "spire-tcp-broker.rbac-name" (dict "root" $ "name" $brokerName) }}
+{{-   if or (gt (len $rbacName) 253) (not (regexMatch "^[a-z0-9]([-a-z0-9.]*[a-z0-9])?$" $rbacName)) }}
+{{-     fail (printf "brokers[%d].generated resource name %q must be a valid Kubernetes resource name" $brokerIdx $rbacName) }}
+{{-   end }}
+{{-   $brokerContext := dict "root" $ "broker" $broker }}
+{{-   $brokerNamespace := include "spire-tcp-broker.broker-namespace" $brokerContext }}
+{{-   if or (gt (len $brokerNamespace) 63) (not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$" $brokerNamespace)) }}
+{{-     fail (printf "brokers[%d].namespace %q must be a valid DNS label" $brokerIdx $brokerNamespace) }}
+{{-   end }}
+{{-   $brokerServiceAccountName := include "spire-tcp-broker.broker-service-account-name" $brokerContext }}
+{{-   if or (gt (len $brokerServiceAccountName) 253) (not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?([.][a-z0-9]([-a-z0-9]*[a-z0-9])?)*$" $brokerServiceAccountName)) }}
+{{-     fail (printf "brokers[%d].serviceAccountName %q must be a valid DNS subdomain" $brokerIdx $brokerServiceAccountName) }}
+{{-   end }}
+{{-   $brokerEntryName := include "spire-tcp-broker.broker-entry-name" $brokerContext }}
+{{-   if or (gt (len $brokerEntryName) 253) (not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?([.][a-z0-9]([-a-z0-9]*[a-z0-9])?)*$" $brokerEntryName)) }}
+{{-     fail (printf "brokers[%d].generated ClusterStaticEntry name %q must be a valid Kubernetes resource name" $brokerIdx $brokerEntryName) }}
+{{-   end }}
+{{-   range $ruleIdx, $rule := (default (list) $broker.rbacRules) }}
+{{-       if eq (len (default (list) $rule.apiGroups)) 0 }}
+{{-         fail (printf "brokers[%d].rbacRules[%d].apiGroups requires at least one entry" $brokerIdx $ruleIdx) }}
+{{-       end }}
+{{-       if eq (len (default (list) $rule.resources)) 0 }}
+{{-         fail (printf "brokers[%d].rbacRules[%d].resources requires at least one entry" $brokerIdx $ruleIdx) }}
+{{-       end }}
+{{-   end }}
+{{- end }}
+{{- $staticEntryPaths := dict }}
+{{- range $staticEntryIdx, $staticEntry := .Values.staticEntries }}
+{{-   $staticEntryContext := dict "root" $ "entry" $staticEntry }}
+{{-   $staticEntryPath := include "spire-tcp-broker.static-entry-path" $staticEntryContext }}
+{{-   if eq $staticEntryPath "" }}
+{{-     fail (printf "staticEntries[%d].path is required" $staticEntryIdx) }}
+{{-   end }}
+{{-   if not (regexMatch "^[A-Za-z0-9._-]+(/[A-Za-z0-9._-]+)*$" $staticEntryPath) }}
+{{-     fail (printf "staticEntries[%d].path %q must be a valid SPIFFE ID path" $staticEntryIdx $staticEntry.path) }}
+{{-   end }}
+{{-   if or (eq $staticEntryPath "spire") (hasPrefix "spire/" $staticEntryPath) }}
+{{-     fail (printf "staticEntries[%d].path %q is in the reserved SPIFFE ID namespace" $staticEntryIdx $staticEntry.path) }}
+{{-   end }}
+{{-   range $segment := splitList "/" $staticEntryPath }}
+{{-     if or (eq $segment ".") (eq $segment "..") }}
+{{-       fail (printf "staticEntries[%d].path %q must not contain dot segments" $staticEntryIdx $staticEntry.path) }}
+{{-     end }}
+{{-   end }}
+{{-   if hasKey $staticEntryPaths $staticEntryPath }}
+{{-     fail (printf "static entry path %q is duplicated" $staticEntryPath) }}
+{{-   end }}
+{{-   $_ := set $staticEntryPaths $staticEntryPath true }}
+{{-   if eq (len (default (list) $staticEntry.selectors)) 0 }}
+{{-     fail (printf "staticEntries[%d].selectors requires at least one selector" $staticEntryIdx) }}
+{{-   end }}
+{{-   range $selectorIdx, $selector := $staticEntry.selectors }}
+{{-     if eq (toString $selector) "" }}
+{{-       fail (printf "staticEntries[%d].selectors[%d] must not be empty" $staticEntryIdx $selectorIdx) }}
+{{-     end }}
+{{-   end }}
+{{-   $staticEntryName := include "spire-tcp-broker.static-entry-name" $staticEntryContext }}
+{{-   if or (gt (len $staticEntryName) 253) (not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?([.][a-z0-9]([-a-z0-9]*[a-z0-9])?)*$" $staticEntryName)) }}
+{{-     fail (printf "staticEntries[%d].generated ClusterStaticEntry name %q must be a valid Kubernetes resource name" $staticEntryIdx $staticEntryName) }}
+{{-   end }}
+{{- end }}
+{{- if eq .Values.controllerManagerClassName "" }}
+{{-   fail "controllerManagerClassName must be set" }}
+{{- end }}
+{{- if eq .Values.workloadAgentAlias "" }}
+{{-   fail "workloadAgentAlias must be set to the SPIFFE ID of the agent alias that parents Broker entries" }}
+{{- end }}
+{{- end }}
+
+{{- define "spire-tcp-broker.hcl-config" -}}
+{{- $trustDomain := include "spire-lib.trust-domain" . }}
+agent {
+  data_dir = "/var/lib/spire"
+  log_level = {{ .Values.logLevel | quote }}
+  log_format = {{ .Values.logFormat | quote }}
+  rebootstrap_mode = {{ .Values.rebootstrapMode | quote }}
+  rebootstrap_delay = {{ .Values.rebootstrapDelay | quote }}
+  server_address = {{ .Values.server.address | quote }}
+  server_port = {{ .Values.server.port }}
+  disable_workload_api = true
+  disable_sds_api = true
+  trust_bundle_format = {{ .Values.trustBundleFormat | quote }}
+  {{- if ne (len .Values.trustBundleURL) 0 }}
+  trust_bundle_url = {{ .Values.trustBundleURL | quote }}
+  {{- else }}
+  trust_bundle_path = {{ printf "/run/spire/bundle/bundle.%s" (include "spire-lib.trust-bundle-ext" (dict "trustBundleFormat" .Values.trustBundleFormat)) | quote }}
+  {{- end }}
+  trust_domain = {{ $trustDomain | quote }}
+
+  experimental {
+    broker {
+      bind_address = {{ printf "0.0.0.0:%d" (int .Values.service.port) | quote }}
+      brokers = [
+        {{- range .Values.brokers }}
+        {
+          id = {{ include "spire-tcp-broker.broker-id" (dict "root" $ "broker" .) | quote }}
+          allowed_reference_types = [
+            {
+              type_url = {{ include "spire-tcp-broker.broker-kubernetes-object-reference-type" $ | quote }}
+              allow_over_tcp = true
+            },
+          ]
+        },
+        {{- end }}
+      ]
+    }
+  }
+}
+
+plugins {
+  NodeAttestor "k8s_psat" {
+    plugin_data {
+      cluster = {{ .Values.clusterName | quote }}
+    }
+  }
+
+  KeyManager "memory" {
+    plugin_data {}
+  }
+
+  WorkloadAttestor "k8s" {
+    plugin_data {
+      disable_kubelet_client = true
+      experimental {
+        api_server {
+          cache {
+            enabled = true
+          }
+        }
+        broker {
+          access_policy = "enforced"
+          brokers = [
+            {{- range .Values.brokers }}
+            {
+              id = {{ include "spire-tcp-broker.broker-id" (dict "root" $ "broker" .) | quote }}
+              pod_reference_scope = "cluster"
+            },
+            {{- end }}
+          ]
+        }
+      }
+    }
+  }
+}
+
+health_checks {
+  listener_enabled = true
+  bind_address = "0.0.0.0"
+  bind_port = {{ .Values.healthChecks.port }}
+  live_path = "/live"
+  ready_path = "/ready"
+}
+{{- end }}
+{{- include "spire-tcp-broker.check-config-values" . }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spire-tcp-broker.fullname" . | quote }}
+  namespace: {{ include "spire-tcp-broker.namespace" . | quote }}
+  labels:
+    {{- include "spire-tcp-broker.labels" . | nindent 4 }}
+  {{- with .Values.configMap.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+data:
+  agent.conf: |
+    {{- include "spire-tcp-broker.hcl-config" . | nindent 4 }}

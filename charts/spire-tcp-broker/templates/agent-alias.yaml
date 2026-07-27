@@ -1,0 +1,14 @@
+apiVersion: spire.spiffe.io/v1alpha1
+kind: ClusterStaticEntry
+metadata:
+  name: {{ printf "%s-agent-alias" (include "spire-tcp-broker.cluster-fullname" .) | quote }}
+  labels:
+    {{- include "spire-tcp-broker.labels" . | nindent 4 }}
+spec:
+  className: {{ .Values.controllerManagerClassName | quote }}
+  spiffeID: {{ include "spire-tcp-broker.agent-alias-id" . | quote }}
+  parentID: {{ include "spire-tcp-broker.server-id" . | quote }}
+  selectors:
+    - {{ printf "k8s_psat:cluster:%s" .Values.clusterName | quote }}
+    - {{ printf "k8s_psat:agent_ns:%s" (include "spire-tcp-broker.namespace" .) | quote }}
+    - {{ printf "k8s_psat:agent_sa:%s" (include "spire-tcp-broker.fullname" .) | quote }}

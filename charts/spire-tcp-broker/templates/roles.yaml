@@ -1,0 +1,63 @@
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ include "spire-tcp-broker.cluster-fullname" . | quote }}
+rules:
+  - apiGroups: ["*"]
+    resources: ["*"]
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups: ["authorization.k8s.io"]
+    resources:
+      - subjectaccessreviews
+    verbs:
+      - create
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ include "spire-tcp-broker.cluster-fullname" . | quote }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "spire-tcp-broker.fullname" . | quote }}
+    namespace: {{ include "spire-tcp-broker.namespace" . | quote }}
+roleRef:
+  kind: ClusterRole
+  name: {{ include "spire-tcp-broker.cluster-fullname" . | quote }}
+  apiGroup: rbac.authorization.k8s.io
+{{- range $broker := .Values.brokers }}
+{{- $rules := default (list) $broker.rbacRules }}
+{{- if gt (len $rules) 0 }}
+{{- $brokerID := include "spire-tcp-broker.broker-id" (dict "root" $ "broker" $broker) }}
+{{- $rbacName := include "spire-tcp-broker.rbac-name" (dict "root" $ "name" $broker.name) }}
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ $rbacName | quote }}
+rules:
+  {{- range $rule := $rules }}
+  - apiGroups:
+      {{- toYaml $rule.apiGroups | nindent 6 }}
+    resources:
+      {{- toYaml $rule.resources | nindent 6 }}
+    verbs:
+      - impersonate-via-spire
+  {{- end }}
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ $rbacName | quote }}
+subjects:
+  - kind: User
+    name: {{ $brokerID | quote }}
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: {{ $rbacName | quote }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
+{{- end }}

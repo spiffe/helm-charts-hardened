@@ -1,0 +1,14 @@
+brokers:
+  - name: broker-b
+    rbacRules:
+      - apiGroups:
+          - ""
+        resources:
+          - configmaps
+
+staticEntries:
+  - path: target-b
+    selectors:
+      - k8s:resource:configmaps.core
+      - k8s:namespace:broker-app-b
+      - k8s:name:target-b

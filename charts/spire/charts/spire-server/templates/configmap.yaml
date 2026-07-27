@@ -1,6 +1,16 @@
 {{- include "spire-lib.check-strict-mode" (list . "clusterName must be set" (eq (include "spire-lib.cluster-name" .) "example-cluster"))}}
 {{- include "spire-lib.check-strict-mode" (list . "trustDomain must be set" (eq (include "spire-lib.trust-domain" .) "example.org"))}}
 {{- include "spire-lib.check-strict-mode" (list . "jwtIssuer must be set" (eq (include "spire-lib.jwt-issuer" .) "https://oidc-discovery.example.org"))}}
+{{- $podAgentsCluster := .Values.nodeAttestor.k8sPSAT.podAgentsCluster }}
+{{- if and (eq $podAgentsCluster.clusterName "") (gt (len $podAgentsCluster.serviceAccountAllowList) 0) }}
+{{-   fail "nodeAttestor.k8sPSAT.podAgentsCluster.clusterName is required when serviceAccountAllowList is configured" }}
+{{- end }}
+{{- if and (ne $podAgentsCluster.clusterName "") (eq (len $podAgentsCluster.serviceAccountAllowList) 0) }}
+{{-   fail "nodeAttestor.k8sPSAT.podAgentsCluster.serviceAccountAllowList requires at least one service account when clusterName is configured" }}
+{{- end }}
+{{- if and .Values.nodeAttestor.k8sPSAT.enabled (eq $podAgentsCluster.clusterName (include "spire-lib.cluster-name" .)) }}
+{{-   fail "nodeAttestor.k8sPSAT.podAgentsCluster.clusterName must differ from the primary k8sPSAT cluster name" }}
+{{- end }}
 {{- include "spire-lib.check-strict-mode" (list . "caSubject.country must be set" (eq (include "spire-server.ca-subject-country" .) "ARPA"))}}
 {{- include "spire-lib.check-strict-mode" (list . "caSubject.organization must be set" (eq (include "spire-server.ca-subject-organization" .) "Example"))}}
 {{- include "spire-lib.check-strict-mode" (list . "caSubject.commonName must be set" (eq (include "spire-server.ca-subject-common-name" .) "example.org"))}}
@@ -197,10 +207,10 @@ plugins:
 {{- end }}
 {{- end }}
 
-  {{- if or .Values.nodeAttestor.k8sPSAT.enabled .Values.nodeAttestor.externalK8sPSAT.enabled .Values.nodeAttestor.joinToken.enabled .Values.nodeAttestor.httpChallenge.enabled .Values.nodeAttestor.tpmDirect.enabled .Values.nodeAttestor.awsIID.enabled .Values.nodeAttestor.gcpIIT.enabled .Values.nodeAttestor.x509POP.enabled .Values.spireIdentityExchange.enabled }}
+  {{- if or .Values.nodeAttestor.k8sPSAT.enabled (ne .Values.nodeAttestor.k8sPSAT.podAgentsCluster.clusterName "") .Values.nodeAttestor.externalK8sPSAT.enabled .Values.nodeAttestor.joinToken.enabled .Values.nodeAttestor.httpChallenge.enabled .Values.nodeAttestor.tpmDirect.enabled .Values.nodeAttestor.awsIID.enabled .Values.nodeAttestor.gcpIIT.enabled .Values.nodeAttestor.x509POP.enabled .Values.spireIdentityExchange.enabled }}
   NodeAttestor:
   {{- $clusters := default .Values.kubeConfigs .Values.nodeAttestor.externalK8sPSAT.clusters }}
-  {{- if or (eq (.Values.nodeAttestor.k8sPSAT.enabled | toString) "true") (and (eq (.Values.nodeAttestor.externalK8sPSAT.enabled | toString) "true") (gt (len $clusters) 0)) }}
+  {{- if or (or (eq (.Values.nodeAttestor.k8sPSAT.enabled | toString) "true") (ne .Values.nodeAttestor.k8sPSAT.podAgentsCluster.clusterName "")) (and (eq (.Values.nodeAttestor.externalK8sPSAT.enabled | toString) "true") (gt (len $clusters) 0)) }}
     k8s_psat:
       plugin_data:
         clusters:
@@ -213,6 +223,16 @@ plugins:
               {{ toYaml .allowedNodeLabelKeys | nindent 14 }}
             allowed_pod_label_keys:
               {{ toYaml .allowedPodLabelKeys | nindent 14 }}
+          {{- end }}
+          {{- if ne .podAgentsCluster.clusterName "" }}
+        - {{ .podAgentsCluster.clusterName | quote }}:
+            service_account_allow_list: {{ include "spire-server.podAgentsClusterServiceAccountAllowedList" $root | trim }}
+            use_pod_uid_for_agent_id: true
+            audience: {{ .audience }}
+            allowed_node_label_keys:
+              {{ toYaml .podAgentsCluster.allowedNodeLabelKeys | nindent 14 }}
+            allowed_pod_label_keys:
+              {{ toYaml .podAgentsCluster.allowedPodLabelKeys | nindent 14 }}
           {{- end }}
           {{- end }}
           {{- if eq (.Values.nodeAttestor.externalK8sPSAT.enabled | toString) "true" }}

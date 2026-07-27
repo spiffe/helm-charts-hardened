@@ -192,7 +192,22 @@ Create the name of the service account to use
 {{-   end }}
 {{-   $list | toJson }}
 {{- else }}
-[{{ printf "%s:%s-agent" $releaseNamespace .Release.Name | quote }}]
+{{-   list (printf "%s:%s-agent" $releaseNamespace .Release.Name) | toJson }}
+{{- end }}
+{{- end }}
+
+{{- define "spire-server.podAgentsClusterServiceAccountAllowedList" }}
+{{- $releaseNamespace := include "spire-server.namespace" . }}
+{{- if ne (len .Values.nodeAttestor.k8sPSAT.podAgentsCluster.serviceAccountAllowList) 0 }}
+{{-   $list := list }}
+{{-   range .Values.nodeAttestor.k8sPSAT.podAgentsCluster.serviceAccountAllowList }}
+{{-     if contains ":" . }}
+{{-       $list = append $list . }}
+{{-     else }}
+{{-       $list = append $list ( printf "%s:%s" $releaseNamespace . ) | }}
+{{-     end }}
+{{-   end }}
+{{-   $list | toJson }}
 {{- end }}
 {{- end }}
 

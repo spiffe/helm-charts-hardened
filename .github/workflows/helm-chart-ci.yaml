@@ -28,7 +28,7 @@ concurrency:
 env:
   HELM_VERSION: v3.16.2
   PYTHON_VERSION: 3.11.3
-  KIND_VERSION: v0.24.0
+  KIND_VERSION: v0.31.0
   CHART_TESTING_VERSION: v3.8.0
 
 jobs:
@@ -187,7 +187,7 @@ jobs:
       - name: Run chart-testing (install)
         run: |
           helm install -n spire-server spire-crds charts/spire-crds
-          ct install --config ct.yaml --excluded-charts spire-crds,spiffe-step-ssh,spire-ha-agent,spire-lib,spire-identity-exchange \
+          ct install --config ct.yaml --excluded-charts spire-crds,spiffe-step-ssh,spire-ha-agent,spire-lib,spire-identity-exchange,spire-tcp-broker \
             --target-branch ${{ github.base_ref || inputs.target_branch }}
 
       - name: Test summary
