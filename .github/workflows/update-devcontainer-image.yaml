@@ -31,7 +31,7 @@ jobs:
       - name: Install regctl
         uses: regclient/actions/regctl-installer@c48159175b58fb90cccd0f98410927a81e04a166 # main
       - name: Log in to GHCR
-        uses: docker/login-action@06fb636fac595d6fb4b28a5dfcb21a6f5091859c # v4.5.0
+        uses: docker/login-action@abd2ef45e78c5afb21d64d4ca52ee8550d9572c7 # v4.5.1
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
