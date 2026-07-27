@@ -416,7 +416,7 @@ Anything lower has an incompatible API.
 {{- end }}
 
 {{/* parentRefs list items for a route.
- * Input: dict {manageLS(bool), name, gatewayAPI, gwName, gwNs}
+ * Input: dict {manageLS(bool), name, gatewayAPI, gwName, gwNS}
  * - manageLS on: attach to the service's ListenerSet (kind ListenerSet, sectionName=name)
  * - off + gatewayAPI.parentRefs set: use those verbatim
  * - off + no override: attach directly to the shared Gateway
@@ -433,7 +433,7 @@ Anything lower has an incompatible API.
 - group: gateway.networking.k8s.io
   kind: Gateway
   name: {{ .gwName | quote }}
-  namespace: {{ .gwNs | quote }}
+  namespace: {{ .gwNS | quote }}
   {{- with .gatewayAPI.sectionName }}
   sectionName: {{ . | quote }}
   {{- end }}
@@ -459,12 +459,12 @@ Anything lower has an incompatible API.
 {{- $global := .root.Values.global -}}
 {{- $host := include "spire-lib.ingress-calculated-name" (dict "ingress" (dict "host" $g.host) "Values" .root.Values) | trim -}}
 {{- $gwName := include "spire-lib.gateway-name" (dict "global" $global) -}}
-{{- $gwNs := include "spire-lib.gateway-namespace" (dict "global" $global "root" .root) -}}
+{{- $gwNS := include "spire-lib.gateway-namespace" (dict "global" $global "root" .root) -}}
 {{- $port := include "spire-lib.gateway-port" (dict "global" $global) -}}
 {{- $manageLS := eq (include "spire-lib.gateway-manage-listenersets" (dict "gatewayAPI" $g "global" $global)) "true" -}}
 {{- $terminate := eq .routeKind "HTTPRoute" -}}
 {{- $path := default "/" .path -}}
-{{- $parentRefs := include "spire-lib.gateway-parentref" (dict "manageLS" $manageLS "name" .name "gatewayAPI" $g "gwName" $gwName "gwNs" $gwNs) -}}
+{{- $parentRefs := include "spire-lib.gateway-parentref" (dict "manageLS" $manageLS "name" .name "gatewayAPI" $g "gwName" $gwName "gwNS" $gwNS) -}}
 apiVersion: gateway.networking.k8s.io/v1
 kind: {{ .routeKind }}
 metadata:
@@ -509,7 +509,7 @@ spec:
     group: gateway.networking.k8s.io
     kind: Gateway
     name: {{ $gwName | quote }}
-    namespace: {{ $gwNs | quote }}
+    namespace: {{ $gwNS | quote }}
   listeners:
     - name: {{ .name }}
       hostname: {{ $host | quote }}
@@ -576,13 +576,13 @@ spec:
 {{- $global := .root.Values.global -}}
 {{- $obj := .gatewayObject -}}
 {{- $gwName := include "spire-lib.gateway-name" (dict "global" $global) -}}
-{{- $gwNs := include "spire-lib.gateway-namespace" (dict "global" $global "root" .root) -}}
+{{- $gwNS := include "spire-lib.gateway-namespace" (dict "global" $global "root" .root) -}}
 {{- $port := include "spire-lib.gateway-port" (dict "global" $global) -}}
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: {{ $gwName }}
-  namespace: {{ $gwNs }}
+  namespace: {{ $gwNS }}
   {{- with $obj.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
