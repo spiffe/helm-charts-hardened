@@ -197,7 +197,7 @@ plugins:
 {{- end }}
 {{- end }}
 
-  {{- if or .Values.nodeAttestor.k8sPSAT.enabled .Values.nodeAttestor.externalK8sPSAT.enabled .Values.nodeAttestor.joinToken.enabled .Values.nodeAttestor.httpChallenge.enabled .Values.nodeAttestor.tpmDirect.enabled .Values.nodeAttestor.awsIID.enabled .Values.nodeAttestor.gcpIIT.enabled .Values.nodeAttestor.x509POP.enabled .Values.spireIdentityExchange.enabled }}
+  {{- if or .Values.nodeAttestor.k8sPSAT.enabled .Values.nodeAttestor.externalK8sPSAT.enabled .Values.nodeAttestor.joinToken.enabled .Values.nodeAttestor.httpChallenge.enabled .Values.nodeAttestor.tpmDirect.enabled .Values.nodeAttestor.awsIID.enabled .Values.nodeAttestor.gcpIIT.enabled .Values.nodeAttestor.x509POP.enabled .Values.spireIdentityExchange.enabled .Values.unsupportedBuiltInPlugins.nodeAttestor }}
   NodeAttestor:
   {{- $clusters := default .Values.kubeConfigs .Values.nodeAttestor.externalK8sPSAT.clusters }}
   {{- if or (eq (.Values.nodeAttestor.k8sPSAT.enabled | toString) "true") (and (eq (.Values.nodeAttestor.externalK8sPSAT.enabled | toString) "true") (gt (len $clusters) 0)) }}
@@ -345,6 +345,9 @@ plugins:
         {{- end }}
   {{- end }}
   {{- end }}
+{{- if .Values.unsupportedBuiltInPlugins.nodeAttestor }}
+  {{- .Values.unsupportedBuiltInPlugins.nodeAttestor | toYaml | nindent 4 }}
+{{- end }}
   {{- end }}
 
   {{- with .Values.keyManager.disk }}
