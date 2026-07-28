@@ -282,7 +282,16 @@ plugins:
     x509pop:
       plugin_data:
         mode: {{ .mode }}
+        {{- if eq .mode "spiffe" }}
         spiffe_prefix: {{ include "spire-server.identity-exchange-spiffe-prefix" $root | quote }}
+        {{- end }}
+        {{- if ne .caBundlePath "" }}
+        ca_bundle_path: {{ .caBundlePath | quote }}
+        {{- end }}
+        {{- if not (empty .caBundlePaths) }}
+        ca_bundle_paths:
+          {{ toYaml .caBundlePaths | nindent 10 }}
+        {{- end }}
         max_intermediates: {{ .maxIntermediates }}
         max_rsa_key_size: {{ .maxRSAKeySize }}
         {{- $cn := "" }}

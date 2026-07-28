@@ -1195,10 +1195,14 @@ nodeAttestor:
   x509POP:
     ## @param nodeAttestor.x509POP.enabled Enable the x509_popg node attestor
     enabled: false
-    ## @param nodeAttestor.x509POP.mode What mode to set the plugin to. Currently only spiffe mode is supported
+    ## @param nodeAttestor.x509POP.mode What mode to set the plugin to. "spiffe" uses the spire-identity-exchange flow (spiffePrefix below); "external_pki" verifies certificates against caBundlePath/caBundlePaths instead
     mode: spiffe
     ## @param nodeAttestor.x509POP.spiffePrefix What prefix to use when mode is spiffe
     spiffePrefix: "/spire-exchange/k8s${HELM_ADD_CLUSTER_NAME}/"
+    ## @param nodeAttestor.x509POP.caBundlePath Path to a single trusted CA bundle file on disk, used when mode is external_pki. Mutually exclusive with caBundlePaths - use this for a single file
+    caBundlePath: ""
+    ## @param nodeAttestor.x509POP.caBundlePaths [array] Paths to multiple trusted CA bundle files on disk, used when mode is external_pki. Mutually exclusive with caBundlePath - use this when CA certificates span more than one file
+    caBundlePaths: []
     ## @param nodeAttestor.x509POP.agentPathTemplate Override the default agent path template
     agentPathTemplate: ""
     ## @param nodeAttestor.x509POP.maxIntermediates Maximum number of intermediate certificates allowed in the certificate chain
