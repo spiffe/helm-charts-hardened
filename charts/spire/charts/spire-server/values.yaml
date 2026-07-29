@@ -1544,6 +1544,9 @@ tests:
       tag: latest@sha256:90041f375e30f41aa7e0390075d8a69dc61900771d52fa98d63ee5d03d866a58
 
 ## @param kubeConfigs [object] Manage additional kubeconfig files to talk to external Kubernetes clusters
+## Each entry sets exactly one of kubeConfig, kubeConfigBase64, or externalSecret. Use externalSecret to
+## reference a kubeconfig from an externally-managed Secret instead of embedding it in values;
+## entries may reference different Secrets and mix with inline ones.
 kubeConfigs: {}
 # clustera:
 #   kubeConfig: |
@@ -1551,6 +1554,10 @@ kubeConfigs: {}
 #     xxxxx
 # clusterb:
 #   kubeConfigBase64: eXl5Cnl5eQo=
+# clusterc:
+#   externalSecret:
+#     name: my-kubeconfigs-secret   # name of the externally-managed Secret to read from
+#     key: clusterc                 # optional, defaults to the entry name
 
 spireIdentityExchange:
   ## @param spireIdentityExchange.enabled Enable the server side of the SPIRE Identity Exchange system
