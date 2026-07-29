@@ -257,4 +257,35 @@ spiffe-oidc-discovery-provider:
 			Expect(serverCM).Should(ContainSubstring(`"jwt_issuer": "https://oidc-discovery.example.org"`))
 		})
 	})
+	Describe("spire-server.kubeConfigs", func() {
+		secretTmpl := "spire/charts/spire-server/templates/kubeconfig-secret.yaml"
+		serverTmpl := "spire/charts/spire-server/templates/server-resource.yaml"
+		It("inline entry generates a Secret and a projected volume source referencing it", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  kubeConfigs:
+    clustera:
+      kubeConfig: |
+        apiVersion: v1
+        kind: Config
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[secretTmpl]).Should(ContainSubstring("kind: Secret"))
+			Expect(objs[serverTmpl]).Should(ContainSubstring("projected:"))
+			Expect(objs[serverTmpl]).Should(ContainSubstring("path: clustera"))
+		})
+		It("externalSecret entry wires a projected source and skips the generated Secret", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  kubeConfigs:
+    clusterb:
+      externalSecret:
+        name: my-ext-secret
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[secretTmpl]).ShouldNot(ContainSubstring("kind: Secret"))
+			Expect(objs[serverTmpl]).Should(ContainSubstring("name: my-ext-secret"))
+			Expect(objs[serverTmpl]).Should(ContainSubstring("path: clusterb"))
+		})
+	})
 })

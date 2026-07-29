@@ -179,6 +179,13 @@ Create the name of the service account to use
 {{ include "spire-server.fullname" . | trimSuffix "-server" }}-controller-manager
 {{- end }}
 
+{{/*
+Name of the chart-generated Secret holding the inline kubeConfigs entries.
+*/}}
+{{- define "spire-server.kubeconfigs-secret-name" -}}
+{{ include "spire-server.fullname" . }}-kubeconfigs
+{{- end }}
+
 {{- define "spire-server.serviceAccountAllowedList" }}
 {{- $releaseNamespace := include "spire-server.agent-namespace" . }}
 {{- if ne (len .Values.nodeAttestor.k8sPSAT.serviceAccountAllowList) 0 }}
