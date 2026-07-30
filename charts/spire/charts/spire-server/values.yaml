@@ -343,9 +343,6 @@ federation:
     #    If Profile Type == https_web:
     #    secretName: spire-server-federation-tls
 
-  ## Gateway API exposure for the federation bundle endpoint. Independent of
-  ## federation.ingress; both may be enabled at once. Empty tlsSecret => TLSRoute
-  ## (SNI passthrough); set tlsSecret => HTTPRoute (edge terminate).
   gatewayAPI:
     ## @param federation.gatewayAPI.enabled Flag to expose the federation endpoint via Gateway API (TLS passthrough)
     enabled: false
@@ -1074,9 +1071,6 @@ ingress:
   #    hosts:
   #      - spire-server.example.org
 
-## Gateway API exposure for the spire-server API. Independent of `ingress`; both
-## may be enabled at once. Empty tlsSecret => TLSRoute (SNI passthrough of mTLS
-## to the pod); set tlsSecret => HTTPRoute (edge terminate).
 gatewayAPI:
   ## @param gatewayAPI.enabled Flag to expose spire-server via Gateway API (TLS passthrough)
   enabled: false
