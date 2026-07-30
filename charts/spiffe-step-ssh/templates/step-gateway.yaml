@@ -8,6 +8,5 @@
       "svcName" $fullName
       "port" .Values.step.service.port
       "labels" (include "spiffe-step-ssh.labels" .)
-      "routeKind" (include "spire-lib.gateway-route-kind" (dict "gatewayAPI" .Values.gatewayAPI))
-      "backendTLS" false) }}
+      "routeKind" "TLSRoute") }}
 {{- end }}

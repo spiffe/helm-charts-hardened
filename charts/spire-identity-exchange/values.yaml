@@ -303,10 +303,10 @@ rest:
     parentRefs: []
     ## @param rest.gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
     sectionName: ""
+    # BackendTLSPolicy (reencrypt) is emitted automatically for the terminated
+    # HTTPS backend when gatewayAPI.tlsSecret is set.
     backendTLS:
-      ## @param rest.gatewayAPI.backendTLS.enabled Emit a BackendTLSPolicy (reencrypt) for terminated routes whose backend serves HTTPS
-      enabled: null
-      ## @param rest.gatewayAPI.backendTLS.caCertificateRefs [array] ConfigMap refs holding the backend CA. Defaults to the SPIRE bundle configmap.
+      ## @param rest.gatewayAPI.backendTLS.caCertificateRefs [array] ConfigMap refs holding the backend CA used to validate the re-encrypted connection. Defaults to the SPIRE bundle configmap.
       caCertificateRefs: []
 
 grpc:
@@ -375,10 +375,10 @@ grpc:
     parentRefs: []
     ## @param grpc.gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
     sectionName: ""
+    # BackendTLSPolicy (reencrypt) is emitted automatically for the terminated
+    # HTTPS backend when gatewayAPI.tlsSecret is set.
     backendTLS:
-      ## @param grpc.gatewayAPI.backendTLS.enabled Emit a BackendTLSPolicy (reencrypt) for terminated routes whose backend serves HTTPS
-      enabled: null
-      ## @param grpc.gatewayAPI.backendTLS.caCertificateRefs [array] ConfigMap refs holding the backend CA. Defaults to the SPIRE bundle configmap.
+      ## @param grpc.gatewayAPI.backendTLS.caCertificateRefs [array] ConfigMap refs holding the backend CA used to validate the re-encrypted connection. Defaults to the SPIRE bundle configmap.
       caCertificateRefs: []
 
 tools:

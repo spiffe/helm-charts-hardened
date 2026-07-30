@@ -170,11 +170,6 @@ gatewayAPI:
   parentRefs: []
   ## @param gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
   sectionName: ""
-  backendTLS:
-    ## @param gatewayAPI.backendTLS.enabled Emit a BackendTLSPolicy (reencrypt) for terminated routes whose backend serves HTTPS
-    enabled: null
-    ## @param gatewayAPI.backendTLS.caCertificateRefs [array] ConfigMap refs holding the backend CA. Defaults to the SPIRE bundle configmap.
-    caCertificateRefs: []
 
 tests:
   bash:

@@ -23,7 +23,6 @@
       "svcName" (printf "%s-%s" $fullName $i)
       "port" $root.Values.service.port
       "labels" (include "spike-keeper.labels" $root)
-      "routeKind" (include "spire-lib.gateway-route-kind" (dict "gatewayAPI" $gi))
-      "backendTLS" false) }}
+      "routeKind" "TLSRoute") }}
 {{- end }}
 {{- end }}

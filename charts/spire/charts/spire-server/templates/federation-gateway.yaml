@@ -9,7 +9,6 @@
       "svcName" $fullName
       "port" .Values.federation.bundleEndpoint.port
       "labels" (include "spire-server.labels" .)
-      "routeKind" (include "spire-lib.gateway-route-kind" (dict "gatewayAPI" .Values.federation.gatewayAPI))
-      "backendTLS" false) }}
+      "routeKind" "TLSRoute") }}
 {{- end }}
 {{- end }}
