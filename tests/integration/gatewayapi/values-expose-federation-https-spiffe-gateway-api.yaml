@@ -1,0 +1,9 @@
+# Alternate federation profile (https_spiffe): the federation endpoint is
+# exposed via Gateway API with TLS passthrough of the pod's SPIFFE-authenticated
+# endpoint. Provided for a targeted passthrough-federation test; NOT referenced
+# by run-tests.sh by default (mirrors the production https_spiffe variant).
+spire-server:
+  federation:
+    enabled: true
+    gatewayAPI:
+      enabled: true

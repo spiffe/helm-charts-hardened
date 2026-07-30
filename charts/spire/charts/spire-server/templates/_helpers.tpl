@@ -364,9 +364,14 @@ The code below determines what connection type should be used.
 
 {{- define "spire-server.test.federation-ingress-args" }}
 {{-   $args := list }}
-{{-   $host := include "spire-lib.ingress-calculated-name" (dict "Values" .Values "ingress" .Values.federation.ingress) }}
-{{-   if gt (len .Values.federation.ingress.tls) 0 }}
-{{-     $host = index (index (index .Values.federation.ingress.tls 0) "hosts") 0 }}
+{{-   $host := "" }}
+{{-   if .host }}
+{{-     $host = .host }}
+{{-   else }}
+{{-     $host = include "spire-lib.ingress-calculated-name" (dict "Values" .Values "ingress" .Values.federation.ingress) }}
+{{-     if gt (len .Values.federation.ingress.tls) 0 }}
+{{-       $host = index (index (index .Values.federation.ingress.tls 0) "hosts") 0 }}
+{{-     end }}
 {{-   end }}
 {{-   if dig "tests" "tls" "enabled" false .Values }}
 {{-     if ne (len (dig "tests" "tls" "customCA" "" .Values)) 0 }}
