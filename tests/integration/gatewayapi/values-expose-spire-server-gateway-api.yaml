@@ -1,0 +1,7 @@
+# Expose spire-server via Gateway API using TLS passthrough (mTLS terminated at
+# the pod). Empty gatewayAPI.tlsSecret => TLSRoute + a passthrough SNI listener.
+# The shared Gateway object is created by the test harness (not the chart), so
+# gatewayAPI.gateway.enabled is left at its default (false).
+spire-server:
+  gatewayAPI:
+    enabled: true

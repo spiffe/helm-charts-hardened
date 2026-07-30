@@ -343,6 +343,21 @@ federation:
     #    If Profile Type == https_web:
     #    secretName: spire-server-federation-tls
 
+  gatewayAPI:
+    ## @param federation.gatewayAPI.enabled Flag to expose the federation endpoint via Gateway API (TLS passthrough)
+    enabled: false
+    ## @param federation.gatewayAPI.host Host name for the route. If no '.' in host, trustDomain is automatically appended.
+    host: "spire-server-federation"
+    ## @param federation.gatewayAPI.annotations [object] Annotations for the route (and its ListenerSet)
+    annotations: {}
+    listenerSet:
+      ## @param federation.gatewayAPI.listenerSet.enabled Manage a ListenerSet for this service's SNI listener. Null inherits global.spire.gatewayAPI.manageListenerSets.
+      enabled: null
+    ## @param federation.gatewayAPI.parentRefs [array] parentRefs used when ListenerSet management is disabled (direct attach)
+    parentRefs: []
+    ## @param federation.gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
+    sectionName: ""
+
 caSubject:
   ## @param caSubject.country Country for Spire server CA
   country: ARPA
@@ -1056,6 +1071,21 @@ ingress:
   #    hosts:
   #      - spire-server.example.org
 
+gatewayAPI:
+  ## @param gatewayAPI.enabled Flag to expose spire-server via Gateway API (TLS passthrough)
+  enabled: false
+  ## @param gatewayAPI.host Host name for the route. If no '.' in host, trustDomain is automatically appended.
+  host: "spire-server"
+  ## @param gatewayAPI.annotations [object] Annotations for the route (and its ListenerSet)
+  annotations: {}
+  listenerSet:
+    ## @param gatewayAPI.listenerSet.enabled Manage a ListenerSet for this service's SNI listener. Null inherits global.spire.gatewayAPI.manageListenerSets.
+    enabled: null
+  ## @param gatewayAPI.parentRefs [array] parentRefs used when ListenerSet management is disabled (direct attach)
+  parentRefs: []
+  ## @param gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
+  sectionName: ""
+
 ## @param extraEnv [array] Extra environment variables to add to the spire server
 extraEnv: []
 
@@ -1357,6 +1387,25 @@ tornjak:
     #  - secretName: chart-example-tls
     #    hosts:
     #      - tornjak-backend.example.org
+
+  ## Gateway API exposure for the Tornjak backend. Route kind follows the tornjak
+  ## connectionType: non-http => TLSRoute (passthrough), http => HTTPRoute (edge).
+  gatewayAPI:
+    ## @param tornjak.gatewayAPI.enabled Flag to expose the Tornjak backend via Gateway API
+    enabled: false
+    ## @param tornjak.gatewayAPI.host Host name for the route. If no '.' in host, trustDomain is automatically appended.
+    host: "tornjak-backend"
+    ## @param tornjak.gatewayAPI.tlsSecret Secret with the TLS cert for edge termination (used when connectionType is http). Blank keeps passthrough.
+    tlsSecret: ""
+    ## @param tornjak.gatewayAPI.annotations [object] Annotations for the route (and its ListenerSet)
+    annotations: {}
+    listenerSet:
+      ## @param tornjak.gatewayAPI.listenerSet.enabled Manage a ListenerSet for this service's SNI listener. Null inherits global.spire.gatewayAPI.manageListenerSets.
+      enabled: null
+    ## @param tornjak.gatewayAPI.parentRefs [array] parentRefs used when ListenerSet management is disabled (direct attach)
+    parentRefs: []
+    ## @param tornjak.gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
+    sectionName: ""
 
   ## @param tornjak.startupProbe.failureThreshold Failure threshold count
   ## @param tornjak.startupProbe.initialDelaySeconds Initial delay seconds

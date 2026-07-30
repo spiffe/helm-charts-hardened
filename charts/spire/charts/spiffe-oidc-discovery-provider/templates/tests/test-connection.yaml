@@ -9,6 +9,9 @@
 {{- if gt (len .Values.ingress.hosts) 0 }}
 {{-   $host = (index .Values.ingress.hosts 0).host }}
 {{- end }}
+{{- if .Values.gatewayAPI.enabled }}
+{{-   $host = include "spire-lib.ingress-calculated-name" (dict "Values" .Values "ingress" (dict "host" .Values.gatewayAPI.host)) | trim }}
+{{- end }}
 apiVersion: v1
 kind: Pod
 metadata:
@@ -40,7 +43,7 @@ spec:
       args: ['-s', '-f', '-k', '{{ $protocol }}://{{ include "spiffe-oidc-discovery-provider.fullname" . }}.{{ include "spiffe-oidc-discovery-provider.namespace" . }}.svc.{{ include "spire-lib.cluster-domain" . }}:{{ $port }}/.well-known/openid-configuration']
       securityContext:
         {{- include "spire-lib.securitycontext" . | nindent 8 }}
-    {{- if .Values.ingress.enabled }}
+    {{- if or .Values.ingress.enabled .Values.gatewayAPI.enabled }}
     - name: curl-ingress
       image: {{ template "spire-lib.image" (dict "image" .Values.tests.bash.image "global" .Values.global) }}
       command: ['curl']

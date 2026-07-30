@@ -1,0 +1,18 @@
+{{- if .Values.gatewayAPI.enabled -}}
+{{- $tlsEnabled := eq (include "spiffe-oidc-discovery-provider.tls-enabled" .) "true" -}}
+{{- $hasSecret := ne (default "" .Values.gatewayAPI.tlsSecret) "" -}}
+{{- $port := $tlsEnabled | ternary .Values.service.ports.https .Values.service.ports.http -}}
+{{- $routeKind := (or (not $tlsEnabled) $hasSecret) | ternary "HTTPRoute" "TLSRoute" -}}
+{{- $backendTLS := and $tlsEnabled $hasSecret -}}
+{{- $fullName := include "spiffe-oidc-discovery-provider.fullname" . -}}
+{{- include "spire-lib.gateway-routes" (dict
+      "root" .
+      "gatewayAPI" .Values.gatewayAPI
+      "name" $fullName
+      "namespace" (include "spiffe-oidc-discovery-provider.namespace" .)
+      "svcName" $fullName
+      "port" $port
+      "labels" (include "spiffe-oidc-discovery-provider.labels" .)
+      "routeKind" $routeKind
+      "backendTLS" $backendTLS) }}
+{{- end }}
