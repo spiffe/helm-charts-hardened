@@ -601,8 +601,32 @@ spec:
           emptyDir: {}
         {{- if gt (len .Values.kubeConfigs) 0 }}
         - name: kubeconfigs
-          secret:
-            secretName: {{ include "spire-server.fullname" . }}-kubeconfigs
+          projected:
+            sources:
+            {{- $inlineNames := list }}
+            {{- range $name, $value := .Values.kubeConfigs }}
+            {{-   if not (hasKey $value "externalSecret") }}
+            {{-     $inlineNames = append $inlineNames $name }}
+            {{-   end }}
+            {{- end }}
+            {{- if gt (len $inlineNames) 0 }}
+            - secret:
+                name: {{ include "spire-server.kubeconfigs-secret-name" . }}
+                items:
+                {{- range $name := ($inlineNames | sortAlpha) }}
+                - key: {{ $name }}
+                  path: {{ $name }}
+                {{- end }}
+            {{- end }}
+            {{- range $name, $value := .Values.kubeConfigs }}
+            {{-   if hasKey $value "externalSecret" }}
+            - secret:
+                name: {{ $value.externalSecret.name }}
+                items:
+                - key: {{ $value.externalSecret.key | default $name }}
+                  path: {{ $name }}
+            {{-   end }}
+            {{- end }}
         {{- end }}
         {{- if $pluginLoaderNeeded }}
         - name: plugins
