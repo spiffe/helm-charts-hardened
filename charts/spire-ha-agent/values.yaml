@@ -17,22 +17,43 @@ image:
   pullPolicy: IfNotPresent
   tag: ""
 
+## @param mode If the spire-ha-agent will run in delegated or broker mode
+mode: delegated
+
 ## @param singleSocket If in singleSocket mode, only one driver is used
 singleSocket: false
 
-## @param sockets.single.admin.hostPath Where the sockets are on disk when in single socket mode
-## @param sockets.a.admin.hostPath Where the sockets are on disk
-## @param sockets.b.admin.hostPath Where the sockets are on disk
+## @param sockets.single.admin.hostPath Where the admin socket is on disk when in single socket mode
+## @param sockets.a.admin.hostPath Where the a admin socket is on disk
+## @param sockets.b.admin.hostPath Where the b admin sockets is on disk
+## @param sockets.single.broker.hostPath Where the broker socket is on disk when in single socket mode
+## @param sockets.a.broker.hostPath Where the a broker socket is on disk
+## @param sockets.b.broker.hostPath Where the b broker socket is on disk
+## @param sockets.single.workload.hostPath Where the broker socket is on disk when in single socket mode
+## @param sockets.a.workload.hostPath Where the a workload socket is on disk
+## @param sockets.b.workload.hostPath Where the b workload socket is on disk
 sockets:
   single:
     admin:
       hostPath: /var/run/spire/agent/sockets/main/csi.spiffe.io/admin
+    broker:
+      hostPath: /var/run/spire/agent/sockets/main/csi.spiffe.io/broker
+    workload:
+      hostPath: /var/run/spire/agent-sockets
   a:
     admin:
       hostPath: /var/run/spire/agent/sockets/a/csi.spiffe.io/admin
+    broker:
+      hostPath: /var/run/spire/agent/sockets/a/csi.spiffe.io/broker
+    workload:
+      hostPath: /var/run/spire/agent/sockets/a/csi.spiffe.io/public
   b:
     admin:
       hostPath: /var/run/spire/agent/sockets/b/csi.spiffe.io/admin
+    broker:
+      hostPath: /var/run/spire/agent/sockets/b/csi.spiffe.io/broker
+    workload:
+      hostPath: /var/run/spire/agent/sockets/b/csi.spiffe.io/public
 
 ## @param vsock Use a vsockets to expose the service rather then a unix socket
 vsock: false

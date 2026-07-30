@@ -119,6 +119,9 @@ spec:
         - name: {{ .Chart.Name | quote }}
           image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          args:
+            - "-mode"
+            - {{ .Values.mode | quote }}
           securityContext:
             privileged: true
 #FIXME read permission to api socket
@@ -131,13 +134,31 @@ spec:
           {{- if .Values.singleSocket }}
             - name: SPIRE_HA_AGENT_SINGLE
               value: enabled
+          {{-   if eq .Values.mode "delegated" }}
             - name: SPIRE_HA_AGENT_SOCKET
               value: unix:///var/run/spire/agent/sockets/a/csi.spiffe.io/admin/admin.sock
+          {{-    else }}
+            - name: SPIRE_HA_AGENT_BROKER
+              value: unix:///var/run/spire/agent/sockets/a/csi.spiffe.io/broker/broker.sock
+            - name: SPIRE_HA_AGENT_WORKLOAD_SOCKET
+              value: unix:///var/run/spire/agent/sockets/a/csi.spiffe.io/public/spire-agent.sock
+          {{-    end }}
           {{- else }}
+          {{-   if eq .Values.mode "delegated" }}
             - name: SPIRE_HA_AGENT_SOCKET_A
               value: unix:///var/run/spire/agent/sockets/a/csi.spiffe.io/admin/admin.sock
             - name: SPIRE_HA_AGENT_SOCKET_B
               value: unix:///var/run/spire/agent/sockets/b/csi.spiffe.io/admin/admin.sock
+          {{-    else }}
+            - name: SPIRE_HA_AGENT_BROKER_A
+              value: unix:///var/run/spire/agent/sockets/a/csi.spiffe.io/broker/broker.sock
+            - name: SPIRE_HA_AGENT_BROKER_B
+              value: unix:///var/run/spire/agent/sockets/b/csi.spiffe.io/broker/broker.sock
+            - name: SPIRE_HA_AGENT_WORKLOAD_SOCKET_A
+              value: unix:///var/run/spire/agent/sockets/a/csi.spiffe.io/public/spire-agent.sock
+            - name: SPIRE_HA_AGENT_WORKLOAD_SOCKET_B
+              value: unix:///var/run/spire/agent/sockets/b/csi.spiffe.io/public/spire-agent.sock
+          {{-    end }}
           {{- end }}
           {{- if .Values.vsock }}
             - name: SPIRE_HA_AGENT_VSOCK
@@ -161,11 +182,24 @@ spec:
               mountPath: /tmp/spire-ha-agent/public
               readOnly: false
             {{- end }}
+            {{- if eq .Values.mode "delegated" }}
             - name: spire-ha-admin-socket-dir-upstream-a
               mountPath: /var/run/spire/agent/sockets/a/csi.spiffe.io/admin
-            {{- if not .Values.singleSocket }}
+            {{-   if not .Values.singleSocket }}
             - name: spire-ha-admin-socket-dir-upstream-b
               mountPath: /var/run/spire/agent/sockets/b/csi.spiffe.io/admin
+            {{-   end }}
+            {{- else }}
+            - name: spire-ha-broker-socket-dir-upstream-a
+              mountPath: /var/run/spire/agent/sockets/a/csi.spiffe.io/broker
+            - name: spire-ha-workload-socket-dir-upstream-a
+              mountPath: /var/run/spire/agent/sockets/a/csi.spiffe.io/public
+            {{-   if not .Values.singleSocket }}
+            - name: spire-ha-broker-socket-dir-upstream-b
+              mountPath: /var/run/spire/agent/sockets/b/csi.spiffe.io/broker
+            - name: spire-ha-workload-socket-dir-upstream-b
+              mountPath: /var/run/spire/agent/sockets/b/csi.spiffe.io/public
+            {{-   end }}
             {{- end }}
             - name: dev
               mountPath: /dev
@@ -196,15 +230,36 @@ spec:
             path: {{ $socketPath | dir }}
             type: DirectoryOrCreate
         {{- end }}
+        {{- if eq .Values.mode "delegated" }}
         - name: spire-ha-admin-socket-dir-upstream-a
           hostPath:
             path: {{ if .Values.singleSocket }}{{ .Values.sockets.single.admin.hostPath }}{{ else }}{{ .Values.sockets.a.admin.hostPath }}{{ end }}
             type: DirectoryOrCreate
-        {{- if not .Values.singleSocket }}
+        {{-   if not .Values.singleSocket }}
         - name: spire-ha-admin-socket-dir-upstream-b
           hostPath:
             path: {{ .Values.sockets.b.admin.hostPath }}
             type: DirectoryOrCreate
+        {{-   end }}
+        {{- else }}
+        - name: spire-ha-broker-socket-dir-upstream-a
+          hostPath:
+            path: {{ if .Values.singleSocket }}{{ .Values.sockets.single.broker.hostPath }}{{ else }}{{ .Values.sockets.a.broker.hostPath }}{{ end }}
+            type: DirectoryOrCreate
+        - name: spire-ha-workload-socket-dir-upstream-a
+          hostPath:
+            path: {{ if .Values.singleSocket }}{{ .Values.sockets.single.workload.hostPath }}{{ else }}{{ .Values.sockets.a.workload.hostPath }}{{ end }}
+            type: DirectoryOrCreate
+        {{-   if not .Values.singleSocket }}
+        - name: spire-ha-broker-socket-dir-upstream-b
+          hostPath:
+            path: {{ .Values.sockets.b.broker.hostPath }}
+            type: DirectoryOrCreate
+        - name: spire-ha-workload-socket-dir-upstream-b
+          hostPath:
+            path: {{ .Values.sockets.b.workload.hostPath }}
+            type: DirectoryOrCreate
+        {{-   end }}
         {{- end }}
         - name: dev
           hostPath:
