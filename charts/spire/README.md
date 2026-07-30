@@ -81,6 +81,7 @@ We only support upgrading one major/minor version at a time. Version skipping is
 
 ### 0.30.X
 
+- Upgrade the spire-crds chart first
 - The OIDC discovery issuer is now set automatically. We do not anticipate any negative impact; however, please verify your OIDC provider's integration with other services during your upgrade testing.
 - The x509POP plugin in spiffe mode has had its defaults changed. It allows easier and more secure setups. If using and upgrading, please review the settings.
 - To add the spike entries, you now must also specify spire-server.spike.enabled=true.
