@@ -1,18 +1,35 @@
-{{- $tlsCount := 0 }}
-{{- if .Values.tls.externalSecret.enabled }}
-{{-   $tlsCount = add $tlsCount 1 }}
+{{- $fileTLS := or .Values.tls.rest.enabled .Values.tls.grpc.enabled }}
+{{- if $fileTLS }}
+{{-   $tlsCount := 0 }}
+{{-   if .Values.tls.externalSecret.enabled }}
+{{-     $tlsCount = add $tlsCount 1 }}
+{{-   end }}
+{{-   if .Values.tls.certManager.enabled }}
+{{-     $tlsCount = add $tlsCount 1 }}
+{{-   end }}
+{{-   if ne $tlsCount 1 }}
+{{-     fail "You must have one and only one TLS configuration enabled (tls.externalSecret or tls.certManager) when a tls listener is enabled" }}
+{{-   end }}
+{{-   if and .Values.tls.certManager.enabled (eq (len .Values.tls.certManager.certificate.dnsNames) 0) }}
+{{-     if and .Values.tls.rest.enabled (not (or .Values.tls.rest.ingress.enabled .Values.tls.rest.gatewayAPI.enabled)) }}
+{{-       fail "tls.certManager takes the certificate hostname from the exposure: enable tls.rest.ingress or tls.rest.gatewayAPI, or set tls.certManager.certificate.dnsNames" }}
+{{-     end }}
+{{-     if and .Values.tls.grpc.enabled (not (or .Values.tls.grpc.ingress.enabled .Values.tls.grpc.gatewayAPI.enabled)) }}
+{{-       fail "tls.certManager takes the certificate hostname from the exposure: enable tls.grpc.ingress or tls.grpc.gatewayAPI, or set tls.certManager.certificate.dnsNames" }}
+{{-     end }}
+{{-   end }}
 {{- end }}
-{{- if .Values.tls.certManager.enabled }}
-{{-   $tlsCount = add $tlsCount 1 }}
+{{- if kindIs "slice" .Values.auth.plugins }}
+{{-   fail "auth.plugins is a mapping keyed by plugin name, not a list: replace each `- plugin: k8s_psat` entry with a `k8s_psat:` key holding its config" }}
 {{- end }}
-{{- if ne $tlsCount 1 }}
-{{-   fail "You must have one and only one TLS configuration enabled" }}
+{{- if kindIs "slice" .Values.auth.stacks }}
+{{-   fail "auth.stacks is a mapping keyed by stack name, not a list: replace each `- name: foo` / `plugins: [...]` entry with a `foo:` key holding `plugins: [...]`" }}
 {{- end }}
 {{- if lt (len .Values.auth.plugins) 1 }}
 {{-   fail "You must have at least one auth plugin defined" }}
 {{- end }}
-{{- if not (or .Values.rest.enabled .Values.grpc.enabled) }}
-{{-   fail "You must have rest and/or grpc enabled" }}
+{{- if not (or $fileTLS .Values.spiffe.rest.enabled .Values.spiffe.grpc.enabled) }}
+{{-   fail "You must enable at least one listener: tls.rest, tls.grpc, spiffe.rest or spiffe.grpc" }}
 {{- end }}
 {{- $trustDomain := include "spire-lib.trust-domain" . }}
 {{- include "spire-lib.check-strict-mode" (list . "trustDomain must be set" (eq $trustDomain "example.org"))}}
@@ -28,23 +45,37 @@ metadata:
 data:
   six.conf: |
     name: spire-identity-exchange
-    logLevel: info
+    logLevel: {{ .Values.config.logLevel }}
     server:
-      port: 8443
-      restPort: 8444
-      metricsPort: 4950
+      metricsPort: {{ .Values.telemetry.prometheus.port }}
       tls:
+        {{- if $fileTLS }}
         certFile: /secret/tls.crt
         keyFile: /secret/tls.key
+        {{- end }}
+        grpc:
+          enable: {{ .Values.tls.grpc.enabled }}
+          port: {{ .Values.tls.grpc.port }}
+        rest:
+          enable: {{ .Values.tls.rest.enabled }}
+          port: {{ .Values.tls.rest.port }}
+      spiffe:
+        grpc:
+          enable: {{ .Values.spiffe.grpc.enabled }}
+          port: {{ .Values.spiffe.grpc.port }}
+        rest:
+          enable: {{ .Values.spiffe.rest.enabled }}
+          port: {{ .Values.spiffe.rest.port }}
     spire:
-      agentWorkloadSocketPath: /spiffe-workload-api/spire-agent.sock
+      agentWorkloadSocketPath: {{ include "spire-identity-exchange.workload-api-socket-path" . }}
       agentDelegatedSocketPath: /agent/admin.sock
       trustDomain: {{ $trustDomain }}
       svidTTL: 1h
     auth:
+      passthroughPlugins: {{ .Values.auth.passthroughPlugins }}
       plugins:
         {{- toYaml .Values.auth.plugins | nindent 8 }}
-      {{ with .Values.auth.stacks }}
+      {{- with .Values.auth.stacks }}
       stacks:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -80,7 +111,7 @@ data:
 
         NodeAttestor "x509pop" {
             plugin_data {
-                spiffe_endpoint_socket = "unix:///spiffe-workload-api/spire-agent.sock"
+                spiffe_endpoint_socket = "unix://{{ include "spire-identity-exchange.workload-api-socket-path" . }}"
             }
         }
 

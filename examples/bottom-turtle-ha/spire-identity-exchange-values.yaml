@@ -25,16 +25,17 @@ internal-spire-server-bottom-turtle-ha-b:
     enabled: true
 
 spire-identity-exchange-bottom-turtle-ha-a:
-  rest:
-    ingress:
-      enabled: true
   tls:
     externalSecret:
       enabled: true
       secretName: spire-identity-exchange
+    rest:
+      enabled: true
+      ingress:
+        enabled: true
   auth:
     plugins:
-      - plugin: k8s_psat
+      k8s_psat:
         config:
           audiences:
             - spire-identity-exchange
@@ -42,16 +43,17 @@ spire-identity-exchange-bottom-turtle-ha-a:
             - default/default
 
 spire-identity-exchange-bottom-turtle-ha-b:
-  rest:
-    ingress:
-      enabled: true
   tls:
     externalSecret:
       enabled: true
       secretName: spire-identity-exchange
+    rest:
+      enabled: true
+      ingress:
+        enabled: true
   auth:
     plugins:
-      - plugin: k8s_psat
+      k8s_psat:
         config:
           audiences:
             - spire-identity-exchange

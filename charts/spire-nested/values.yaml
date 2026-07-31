@@ -799,14 +799,24 @@ spire-identity-exchange-bottom-turtle-ha-a:
   nameOverride: identity-exchange
   ## @param spire-identity-exchange-bottom-turtle-ha-a.csiDriverName CSI driver name to use
   csiDriverName: a.csi.spiffe.io
-  rest:
-    ingress:
-      ## @param spire-identity-exchange-bottom-turtle-ha-a.rest.ingress.host Hostname override for the rest ingress service
-      host: "spire-identity-exchange-a-rest"
-  grpc:
-    ingress:
-      ## @param spire-identity-exchange-bottom-turtle-ha-a.grpc.ingress.host Hostname override for the rest ingress service
-      host: "spire-identity-exchange-a-grpc"
+  tls:
+    rest:
+      ingress:
+        ## @param spire-identity-exchange-bottom-turtle-ha-a.tls.rest.ingress.host Hostname override for the rest ingress service
+        host: "spire-identity-exchange-a-rest"
+    grpc:
+      ingress:
+        ## @param spire-identity-exchange-bottom-turtle-ha-a.tls.grpc.ingress.host Hostname override for the grpc ingress service
+        host: "spire-identity-exchange-a-grpc"
+  spiffe:
+    rest:
+      ingress:
+        ## @param spire-identity-exchange-bottom-turtle-ha-a.spiffe.rest.ingress.host Hostname override for the SVID-served rest ingress service
+        host: "spire-identity-exchange-a-rest-spiffe"
+    grpc:
+      ingress:
+        ## @param spire-identity-exchange-bottom-turtle-ha-a.spiffe.grpc.ingress.host Hostname override for the SVID-served grpc ingress service
+        host: "spire-identity-exchange-a-grpc-spiffe"
   server:
     ## @param spire-identity-exchange-bottom-turtle-ha-a.server.nameOverride The name override setting of the internal SPIRE server
     nameOverride: internal-server
@@ -821,11 +831,21 @@ spire-identity-exchange-bottom-turtle-ha-b:
   server:
     ## @param spire-identity-exchange-bottom-turtle-ha-b.server.nameOverride The name override setting of the internal SPIRE server
     nameOverride: internal-server
-  rest:
-    ingress:
-      ## @param spire-identity-exchange-bottom-turtle-ha-b.rest.ingress.host Hostname override for the rest ingress service
-      host: "spire-identity-exchange-b-rest"
-  grpc:
-    ingress:
-      ## @param spire-identity-exchange-bottom-turtle-ha-b.grpc.ingress.host Hostname override for the rest ingress service
-      host: "spire-identity-exchange-b-grpc"
+  tls:
+    rest:
+      ingress:
+        ## @param spire-identity-exchange-bottom-turtle-ha-b.tls.rest.ingress.host Hostname override for the rest ingress service
+        host: "spire-identity-exchange-b-rest"
+    grpc:
+      ingress:
+        ## @param spire-identity-exchange-bottom-turtle-ha-b.tls.grpc.ingress.host Hostname override for the grpc ingress service
+        host: "spire-identity-exchange-b-grpc"
+  spiffe:
+    rest:
+      ingress:
+        ## @param spire-identity-exchange-bottom-turtle-ha-b.spiffe.rest.ingress.host Hostname override for the SVID-served rest ingress service
+        host: "spire-identity-exchange-b-rest-spiffe"
+    grpc:
+      ingress:
+        ## @param spire-identity-exchange-bottom-turtle-ha-b.spiffe.grpc.ingress.host Hostname override for the SVID-served grpc ingress service
+        host: "spire-identity-exchange-b-grpc-spiffe"

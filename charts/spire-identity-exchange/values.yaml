@@ -138,48 +138,24 @@ podAnnotations: {}
 ## @param podLabels [object] Labels to add to pods
 podLabels: {}
 
-# Select one of the options below to be the source of certificates for SPIRE Identity Exchange
-tls:
-
-  externalSecret:
-    ## @param tls.externalSecret.enabled Provide your own certificate/key via tls style Kubernetes Secret
-    enabled: false
-    ## @param tls.externalSecret.secretName Specify which Secret to use
-    secretName: ""
-
-  certManager:
-    ## @param tls.certManager.enabled Use certificateManager to create the certificate
-    enabled: false
-    issuer:
-      ## @param tls.certManager.issuer.create Create an issuer to use to issue the certificate
-      create: true
-      acme:
-        ## @param tls.certManager.issuer.acme.email Must be set in order to register with LetsEncrypt. By setting, you agree to their Terms of Service
-        email: ""
-        ## @param tls.certManager.issuer.acme.server Server to use to get certificate. Defaults to LetsEncrypt
-        server: https://acme-v02.api.letsencrypt.org/directory
-        # Testing server: https://acme-staging-v02.api.letsencrypt.org/directory
-        ## @param tls.certManager.issuer.acme.solvers [object] Configure the issuer solvers. Defaults to http01 via ingress.
-        solvers: {}
-        # - http01:
-        #     ingress:
-        #       ingressClassName: nginx
-    certificate:
-      ## @param tls.certManager.certificate.dnsNames Override the dnsNames on the certificate request. Defaults to the same settings as Ingress
-      dnsNames: []
-      ## @param tls.certManager.certificate.issuerRef.group If you are using an external plugin, specify the group for it here
-      ## @param tls.certManager.certificate.issuerRef.kind Kind of the issuer reference. Override if you want to use a ClusterIssuer
-      ## @param tls.certManager.certificate.issuerRef.name Name of the issuer to use. If unset, it will use the name of the built in issuer
-      issuerRef:
-        group: ""
-        kind: Issuer
-        name: ""
-
 config:
   ## @param config.logLevel The log level, valid values are "debug", "info", "warn", and "error"
   logLevel: info
   ## @param config.logFormat The log format, valid values are "text" and "json"
   logFormat: text
+
+# The metrics endpoint is always served; spire-identity-exchange requires a nonzero port for it.
+telemetry:
+  prometheus:
+    ## @param telemetry.prometheus.port Port for prometheus metrics
+    port: 4950
+    podMonitor:
+      ## @param telemetry.prometheus.podMonitor.enabled Enable podMonitor for prometheus
+      enabled: false
+      ## @param telemetry.prometheus.podMonitor.namespace Override where to install the podMonitor, if not set will use the same namespace as the helm release
+      namespace: ""
+      ## @param telemetry.prometheus.podMonitor.labels [object] Pod labels to filter for prometheus monitoring
+      labels: {}
 
 ## @param imagePullSecrets [array] Image pull secret names
 imagePullSecrets: []
@@ -232,154 +208,326 @@ trustDomain: example.org
 clusterDomain: cluster.local
 
 auth:
-  ## @param auth.plugins [object] Plugins to load
-  plugins: []
-  ## @param auth.stacks [object] Stacks to load
-  stacks: []
+  ## @param auth.plugins [object] Plugins to load, keyed by plugin name. The key doubles as the plugin type, so a `plugin` field is only needed when they differ.
+  plugins: {}
+  ## @param auth.stacks [object] Stacks to load, keyed by stack name. Each stack validates one token per member plugin.
+  stacks: {}
+  ## @param auth.passthroughPlugins Address each plugin as a stack of its own, in addition to any stacks defined above
+  passthroughPlugins: true
 
-rest:
-  ## @param rest.enabled Enable the rest service
-  enabled: true
-  ## @param rest.service.type Service type
-  ## @param rest.service.port port for the service
-  ## @param rest.service.annotations Annotations for service resource
-  ##
-  service:
-    type: ClusterIP
-    port: 443
-    annotations: {}
-    # external-dns.alpha.kubernetes.io/hostname: spire-identity-exchange-rest.example.org
-    ## @param rest.service.loadBalancerIP IP address to assign to load balancer (if supported)
-    loadBalancerIP: ""
-  ingress:
-    ## @param rest.ingress.enabled Flag to enable ingress
+# Listeners served with a certificate from disk. Select one of the options below to be the source of that certificate.
+tls:
+
+  externalSecret:
+    ## @param tls.externalSecret.enabled Provide your own certificate/key via tls style Kubernetes Secret
     enabled: false
-    ## @param rest.ingress.className Ingress class name
-    className: ""
-    ## @param rest.ingress.controllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, autodetection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""].
-    controllerType: ""
-    ## @param rest.ingress.annotations [object] Annotations for ingress object
-    annotations: {}
-      # kubernetes.io/ingress.class: nginx
-      # kubernetes.io/tls-acme: "true"
-      # nginx.ingress.kubernetes.io/ssl-redirect: "true"
-      # nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    ## @param tls.externalSecret.secretName Specify which Secret to use
+    secretName: ""
 
-    ## @param rest.ingress.host Host name for the ingress. If no '.' in host, trustDomain is automatically appended. The rest of the rules will be autogenerated. For more customizability, use hosts[] instead.
-    host: "spire-identity-exchange-rest"
-
-    ## @param rest.ingress.tlsSecret Secret that has the certs. If blank will use default certs. Used with host var.
-    tlsSecret: ""
-
-    ## @param rest.ingress.hosts [array] Host paths for ingress object. If emtpy, rules will be built based on the host var.
-    hosts: []
-    #  - host: spire-identity-exchange-rest.example.org
-    #    paths:
-    #      - path: /
-    #        pathType: Prefix
-
-    ## @param rest.ingress.tls [array] Secrets containining TLS certs to enable https on ingress. If emtpy, rules will be built based on the host and tlsSecret vars.
-    tls: []
-    #  - secretName: chart-example-tls
-    #    hosts:
-    #      - spire-identity-exchange-rest.example.org
-
-  ## Gateway API exposure for the REST endpoint. Independent of rest.ingress. The
-  ## backend serves HTTPS, so a set tlsSecret => HTTPRoute + BackendTLSPolicy
-  ## (reencrypt); blank tlsSecret => TLSRoute (SNI passthrough).
-  gatewayAPI:
-    ## @param rest.gatewayAPI.enabled Flag to expose the REST endpoint via Gateway API
+  certManager:
+    ## @param tls.certManager.enabled Use certificateManager to create the certificate
     enabled: false
-    ## @param rest.gatewayAPI.host Host name for the route. If no '.' in host, trustDomain is automatically appended.
-    host: "spire-identity-exchange-rest"
-    ## @param rest.gatewayAPI.tlsSecret Secret with the TLS cert for edge termination. Blank keeps passthrough.
-    tlsSecret: ""
-    ## @param rest.gatewayAPI.annotations [object] Annotations for the route (and its ListenerSet)
-    annotations: {}
-    listenerSet:
-      ## @param rest.gatewayAPI.listenerSet.enabled Manage a ListenerSet for this service's SNI listener. Null inherits global.spire.gatewayAPI.manageListenerSets.
-      enabled: null
-    ## @param rest.gatewayAPI.parentRefs [array] parentRefs used when ListenerSet management is disabled (direct attach)
-    parentRefs: []
-    ## @param rest.gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
-    sectionName: ""
-    # BackendTLSPolicy (reencrypt) is emitted automatically for the terminated
-    # HTTPS backend when gatewayAPI.tlsSecret is set.
-    backendTLS:
-      ## @param rest.gatewayAPI.backendTLS.caCertificateRefs [array] ConfigMap refs holding the backend CA used to validate the re-encrypted connection. Defaults to the SPIRE bundle configmap.
-      caCertificateRefs: []
+    issuer:
+      ## @param tls.certManager.issuer.create Create an issuer to use to issue the certificate
+      create: true
+      acme:
+        ## @param tls.certManager.issuer.acme.email Must be set in order to register with LetsEncrypt. By setting, you agree to their Terms of Service
+        email: ""
+        ## @param tls.certManager.issuer.acme.server Server to use to get certificate. Defaults to LetsEncrypt
+        server: https://acme-v02.api.letsencrypt.org/directory
+        # Testing server: https://acme-staging-v02.api.letsencrypt.org/directory
+        ## @param tls.certManager.issuer.acme.solvers [object] Configure the issuer solvers. Defaults to http01 via ingress.
+        solvers: {}
+        # - http01:
+        #     ingress:
+        #       ingressClassName: nginx
+    certificate:
+      ## @param tls.certManager.certificate.dnsNames Override the dnsNames on the certificate request. Defaults to the same settings as Ingress
+      dnsNames: []
+      ## @param tls.certManager.certificate.issuerRef.group If you are using an external plugin, specify the group for it here
+      ## @param tls.certManager.certificate.issuerRef.kind Kind of the issuer reference. Override if you want to use a ClusterIssuer
+      ## @param tls.certManager.certificate.issuerRef.name Name of the issuer to use. If unset, it will use the name of the built in issuer
+      issuerRef:
+        group: ""
+        kind: Issuer
+        name: ""
 
-grpc:
-  ## @param grpc.enabled Enable the grpc service
-  enabled: false
-  ## @param grpc.service.type Service type
-  ## @param grpc.service.port port for the service
-  ## @param grpc.service.annotations Annotations for service resource
-  ##
-  service:
-    type: ClusterIP
-    port: 443
-    annotations: {}
-    # external-dns.alpha.kubernetes.io/hostname: spire-identity-exchange-grpc.example.org
-    ## @param grpc.service.loadBalancerIP IP address to assign to load balancer (if supported)
-    loadBalancerIP: ""
-  ingress:
-    ## @param grpc.ingress.enabled Flag to enable ingress
+  rest:
+    ## @param tls.rest.enabled Enable the REST listener served with the certificate from disk
     enabled: false
-    ## @param grpc.ingress.className Ingress class name
-    className: ""
-    ## @param grpc.ingress.controllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, autodetection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""].
-    controllerType: ""
-    ## @param grpc.ingress.annotations [object] Annotations for ingress object
-    annotations: {}
-      # kubernetes.io/ingress.class: nginx
-      # kubernetes.io/tls-acme: "true"
-      # nginx.ingress.kubernetes.io/ssl-redirect: "true"
-      # nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    ## @param tls.rest.port Container port for the REST listener served with the certificate from disk
+    port: 8444
+    ## @param tls.rest.service.type Service type
+    ## @param tls.rest.service.port port for the service
+    ## @param tls.rest.service.annotations Annotations for service resource
+    ##
+    service:
+      type: ClusterIP
+      port: 443
+      annotations: {}
+      # external-dns.alpha.kubernetes.io/hostname: spire-identity-exchange-rest.example.org
+      ## @param tls.rest.service.loadBalancerIP IP address to assign to load balancer (if supported)
+      loadBalancerIP: ""
+    ingress:
+      ## @param tls.rest.ingress.enabled Flag to enable ingress
+      enabled: false
+      ## @param tls.rest.ingress.className Ingress class name
+      className: ""
+      ## @param tls.rest.ingress.controllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, autodetection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""].
+      controllerType: ""
+      ## @param tls.rest.ingress.annotations [object] Annotations for ingress object
+      annotations: {}
+        # kubernetes.io/ingress.class: nginx
+        # kubernetes.io/tls-acme: "true"
+        # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        # nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
 
-    ## @param grpc.ingress.host Host name for the ingress. If no '.' in host, trustDomain is automatically appended. The grpc of the rules will be autogenerated. For more customizability, use hosts[] instead.
-    host: "spire-identity-exchange-grpc"
+      ## @param tls.rest.ingress.host Host name for the ingress. If no '.' in host, trustDomain is automatically appended. The rest of the rules will be autogenerated. For more customizability, use hosts[] instead.
+      host: "spire-identity-exchange-rest"
 
-    ## @param grpc.ingress.tlsSecret Secret that has the certs. If blank will use default certs. Used with host var.
-    tlsSecret: ""
+      ## @param tls.rest.ingress.tlsSecret Secret that has the certs. If blank will use default certs. Used with host var.
+      tlsSecret: ""
 
-    ## @param grpc.ingress.hosts [array] Host paths for ingress object. If emtpy, rules will be built based on the host var.
-    hosts: []
-    #  - host: spire-identity-exchange-grpc.example.org
-    #    paths:
-    #      - path: /
-    #        pathType: Prefix
+      ## @param tls.rest.ingress.hosts [array] Host paths for ingress object. If emtpy, rules will be built based on the host var.
+      hosts: []
+      #  - host: spire-identity-exchange-rest.example.org
+      #    paths:
+      #      - path: /
+      #        pathType: Prefix
 
-    ## @param grpc.ingress.tls [array] Secrets containining TLS certs to enable https on ingress. If emtpy, rules will be built based on the host and tlsSecret vars.
-    tls: []
-    #  - secretName: chart-example-tls
-    #    hosts:
-    #      - spire-identiy-exchange-grpc.example.org
+      ## @param tls.rest.ingress.tls [array] Secrets containining TLS certs to enable https on ingress. If emtpy, rules will be built based on the host and tlsSecret vars.
+      tls: []
+      #  - secretName: chart-example-tls
+      #    hosts:
+      #      - spire-identity-exchange-rest.example.org
 
-  ## Gateway API exposure for the gRPC endpoint. Independent of grpc.ingress. The
-  ## backend serves HTTPS, so a set tlsSecret => HTTPRoute + BackendTLSPolicy
-  ## (reencrypt); blank tlsSecret => TLSRoute (SNI passthrough).
-  gatewayAPI:
-    ## @param grpc.gatewayAPI.enabled Flag to expose the gRPC endpoint via Gateway API
+    ## Gateway API exposure for this endpoint. A set tlsSecret gives HTTPRoute (reencrypt); blank gives TLSRoute (SNI passthrough).
+    gatewayAPI:
+      ## @param tls.rest.gatewayAPI.enabled Flag to expose the endpoint via Gateway API
+      enabled: false
+      ## @param tls.rest.gatewayAPI.host Host name for the route. If no '.' in host, trustDomain is automatically appended.
+      host: "spire-identity-exchange-rest"
+      ## @param tls.rest.gatewayAPI.tlsSecret Secret with the TLS cert for edge termination. Blank keeps passthrough.
+      tlsSecret: ""
+      ## @param tls.rest.gatewayAPI.annotations [object] Annotations for the route (and its ListenerSet)
+      annotations: {}
+      listenerSet:
+        ## @param tls.rest.gatewayAPI.listenerSet.enabled Manage a ListenerSet for this service's SNI listener. Null inherits global.spire.gatewayAPI.manageListenerSets.
+        enabled: null
+      ## @param tls.rest.gatewayAPI.parentRefs [array] parentRefs used when ListenerSet management is disabled (direct attach)
+      parentRefs: []
+      ## @param tls.rest.gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
+      sectionName: ""
+      # BackendTLSPolicy (reencrypt) is emitted automatically for the terminated
+      # HTTPS backend when gatewayAPI.tlsSecret is set.
+      backendTLS:
+        ## @param tls.rest.gatewayAPI.backendTLS.caCertificateRefs [array] ConfigMap refs holding the backend CA used to validate the re-encrypted connection. Defaults to the SPIRE bundle configmap.
+        caCertificateRefs: []
+
+  grpc:
+    ## @param tls.grpc.enabled Enable the gRPC listener served with the certificate from disk
     enabled: false
-    ## @param grpc.gatewayAPI.host Host name for the route. If no '.' in host, trustDomain is automatically appended.
-    host: "spire-identity-exchange-grpc"
-    ## @param grpc.gatewayAPI.tlsSecret Secret with the TLS cert for edge termination. Blank keeps passthrough.
-    tlsSecret: ""
-    ## @param grpc.gatewayAPI.annotations [object] Annotations for the route (and its ListenerSet)
-    annotations: {}
-    listenerSet:
-      ## @param grpc.gatewayAPI.listenerSet.enabled Manage a ListenerSet for this service's SNI listener. Null inherits global.spire.gatewayAPI.manageListenerSets.
-      enabled: null
-    ## @param grpc.gatewayAPI.parentRefs [array] parentRefs used when ListenerSet management is disabled (direct attach)
-    parentRefs: []
-    ## @param grpc.gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
-    sectionName: ""
-    # BackendTLSPolicy (reencrypt) is emitted automatically for the terminated
-    # HTTPS backend when gatewayAPI.tlsSecret is set.
-    backendTLS:
-      ## @param grpc.gatewayAPI.backendTLS.caCertificateRefs [array] ConfigMap refs holding the backend CA used to validate the re-encrypted connection. Defaults to the SPIRE bundle configmap.
-      caCertificateRefs: []
+    ## @param tls.grpc.port Container port for the gRPC listener served with the certificate from disk
+    port: 8443
+    ## @param tls.grpc.service.type Service type
+    ## @param tls.grpc.service.port port for the service
+    ## @param tls.grpc.service.annotations Annotations for service resource
+    ##
+    service:
+      type: ClusterIP
+      port: 443
+      annotations: {}
+      # external-dns.alpha.kubernetes.io/hostname: spire-identity-exchange-grpc.example.org
+      ## @param tls.grpc.service.loadBalancerIP IP address to assign to load balancer (if supported)
+      loadBalancerIP: ""
+    ingress:
+      ## @param tls.grpc.ingress.enabled Flag to enable ingress
+      enabled: false
+      ## @param tls.grpc.ingress.className Ingress class name
+      className: ""
+      ## @param tls.grpc.ingress.controllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, autodetection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""].
+      controllerType: ""
+      ## @param tls.grpc.ingress.annotations [object] Annotations for ingress object
+      annotations: {}
+        # kubernetes.io/ingress.class: nginx
+        # kubernetes.io/tls-acme: "true"
+        # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        # nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+
+      ## @param tls.grpc.ingress.host Host name for the ingress. If no '.' in host, trustDomain is automatically appended. The grpc of the rules will be autogenerated. For more customizability, use hosts[] instead.
+      host: "spire-identity-exchange-grpc"
+
+      ## @param tls.grpc.ingress.tlsSecret Secret that has the certs. If blank will use default certs. Used with host var.
+      tlsSecret: ""
+
+      ## @param tls.grpc.ingress.hosts [array] Host paths for ingress object. If emtpy, rules will be built based on the host var.
+      hosts: []
+      #  - host: spire-identity-exchange-grpc.example.org
+      #    paths:
+      #      - path: /
+      #        pathType: Prefix
+
+      ## @param tls.grpc.ingress.tls [array] Secrets containining TLS certs to enable https on ingress. If emtpy, rules will be built based on the host and tlsSecret vars.
+      tls: []
+      #  - secretName: chart-example-tls
+      #    hosts:
+      #      - spire-identiy-exchange-grpc.example.org
+
+    ## Gateway API exposure for this endpoint. A set tlsSecret gives HTTPRoute (reencrypt); blank gives TLSRoute (SNI passthrough).
+    gatewayAPI:
+      ## @param tls.grpc.gatewayAPI.enabled Flag to expose the endpoint via Gateway API
+      enabled: false
+      ## @param tls.grpc.gatewayAPI.host Host name for the route. If no '.' in host, trustDomain is automatically appended.
+      host: "spire-identity-exchange-grpc"
+      ## @param tls.grpc.gatewayAPI.tlsSecret Secret with the TLS cert for edge termination. Blank keeps passthrough.
+      tlsSecret: ""
+      ## @param tls.grpc.gatewayAPI.annotations [object] Annotations for the route (and its ListenerSet)
+      annotations: {}
+      listenerSet:
+        ## @param tls.grpc.gatewayAPI.listenerSet.enabled Manage a ListenerSet for this service's SNI listener. Null inherits global.spire.gatewayAPI.manageListenerSets.
+        enabled: null
+      ## @param tls.grpc.gatewayAPI.parentRefs [array] parentRefs used when ListenerSet management is disabled (direct attach)
+      parentRefs: []
+      ## @param tls.grpc.gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
+      sectionName: ""
+      # BackendTLSPolicy (reencrypt) is emitted automatically for the terminated
+      # HTTPS backend when gatewayAPI.tlsSecret is set.
+      backendTLS:
+        ## @param tls.grpc.gatewayAPI.backendTLS.caCertificateRefs [array] ConfigMap refs holding the backend CA used to validate the re-encrypted connection. Defaults to the SPIRE bundle configmap.
+        caCertificateRefs: []
+
+# Listeners served with this deployment's own X509-SVID from the Workload API. No certificate files needed.
+spiffe:
+
+  rest:
+    ## @param spiffe.rest.enabled Enable the REST listener served with this deployment's own X509-SVID
+    enabled: true
+    ## @param spiffe.rest.port Container port for the REST listener served with this deployment's own X509-SVID
+    port: 8544
+    ## @param spiffe.rest.service.type Service type
+    ## @param spiffe.rest.service.port port for the service
+    ## @param spiffe.rest.service.annotations Annotations for service resource
+    ##
+    service:
+      type: ClusterIP
+      port: 443
+      annotations: {}
+      # external-dns.alpha.kubernetes.io/hostname: spire-identity-exchange-rest-spiffe.example.org
+      ## @param spiffe.rest.service.loadBalancerIP IP address to assign to load balancer (if supported)
+      loadBalancerIP: ""
+    ingress:
+      ## @param spiffe.rest.ingress.enabled Flag to enable ingress
+      enabled: false
+      ## @param spiffe.rest.ingress.className Ingress class name
+      className: ""
+      ## @param spiffe.rest.ingress.controllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, autodetection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""].
+      controllerType: ""
+      ## @param spiffe.rest.ingress.annotations [object] Annotations for ingress object
+      annotations: {}
+        # kubernetes.io/ingress.class: nginx
+        # kubernetes.io/tls-acme: "true"
+        # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        # nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+
+      ## @param spiffe.rest.ingress.host Host name for the ingress. If no '.' in host, trustDomain is automatically appended. The rest of the rules will be autogenerated. For more customizability, use hosts[] instead.
+      host: "spire-identity-exchange-rest-spiffe"
+
+      ## @param spiffe.rest.ingress.tlsSecret Secret that has the certs. If blank will use default certs. Used with host var.
+      tlsSecret: ""
+
+      ## @param spiffe.rest.ingress.hosts [array] Host paths for ingress object. If emtpy, rules will be built based on the host var.
+      hosts: []
+      #  - host: spire-identity-exchange-rest-spiffe.example.org
+      #    paths:
+      #      - path: /
+      #        pathType: Prefix
+
+      ## @param spiffe.rest.ingress.tls [array] Secrets containining TLS certs to enable https on ingress. If emtpy, rules will be built based on the host and tlsSecret vars.
+      tls: []
+      #  - secretName: chart-example-tls
+      #    hosts:
+      #      - spire-identity-exchange-rest-spiffe.example.org
+
+    ## Gateway API exposure for this endpoint. Always a TLSRoute (SNI passthrough): an X509-SVID has no DNS SAN, so edge termination cannot validate this backend.
+    gatewayAPI:
+      ## @param spiffe.rest.gatewayAPI.enabled Flag to expose the endpoint via Gateway API
+      enabled: false
+      ## @param spiffe.rest.gatewayAPI.host Host name for the route. If no '.' in host, trustDomain is automatically appended.
+      host: "spire-identity-exchange-rest-spiffe"
+      ## @param spiffe.rest.gatewayAPI.annotations [object] Annotations for the route (and its ListenerSet)
+      annotations: {}
+      listenerSet:
+        ## @param spiffe.rest.gatewayAPI.listenerSet.enabled Manage a ListenerSet for this service's SNI listener. Null inherits global.spire.gatewayAPI.manageListenerSets.
+        enabled: null
+      ## @param spiffe.rest.gatewayAPI.parentRefs [array] parentRefs used when ListenerSet management is disabled (direct attach)
+      parentRefs: []
+      ## @param spiffe.rest.gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
+      sectionName: ""
+
+  grpc:
+    ## @param spiffe.grpc.enabled Enable the gRPC listener served with this deployment's own X509-SVID
+    enabled: false
+    ## @param spiffe.grpc.port Container port for the gRPC listener served with this deployment's own X509-SVID
+    port: 8543
+    ## @param spiffe.grpc.service.type Service type
+    ## @param spiffe.grpc.service.port port for the service
+    ## @param spiffe.grpc.service.annotations Annotations for service resource
+    ##
+    service:
+      type: ClusterIP
+      port: 443
+      annotations: {}
+      # external-dns.alpha.kubernetes.io/hostname: spire-identity-exchange-grpc-spiffe.example.org
+      ## @param spiffe.grpc.service.loadBalancerIP IP address to assign to load balancer (if supported)
+      loadBalancerIP: ""
+    ingress:
+      ## @param spiffe.grpc.ingress.enabled Flag to enable ingress
+      enabled: false
+      ## @param spiffe.grpc.ingress.className Ingress class name
+      className: ""
+      ## @param spiffe.grpc.ingress.controllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, autodetection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""].
+      controllerType: ""
+      ## @param spiffe.grpc.ingress.annotations [object] Annotations for ingress object
+      annotations: {}
+        # kubernetes.io/ingress.class: nginx
+        # kubernetes.io/tls-acme: "true"
+        # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        # nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+
+      ## @param spiffe.grpc.ingress.host Host name for the ingress. If no '.' in host, trustDomain is automatically appended. The grpc of the rules will be autogenerated. For more customizability, use hosts[] instead.
+      host: "spire-identity-exchange-grpc-spiffe"
+
+      ## @param spiffe.grpc.ingress.tlsSecret Secret that has the certs. If blank will use default certs. Used with host var.
+      tlsSecret: ""
+
+      ## @param spiffe.grpc.ingress.hosts [array] Host paths for ingress object. If emtpy, rules will be built based on the host var.
+      hosts: []
+      #  - host: spire-identity-exchange-grpc-spiffe.example.org
+      #    paths:
+      #      - path: /
+      #        pathType: Prefix
+
+      ## @param spiffe.grpc.ingress.tls [array] Secrets containining TLS certs to enable https on ingress. If emtpy, rules will be built based on the host and tlsSecret vars.
+      tls: []
+      #  - secretName: chart-example-tls
+      #    hosts:
+      #      - spire-identiy-exchange-grpc-spiffe.example.org
+
+    ## Gateway API exposure for this endpoint. Always a TLSRoute (SNI passthrough): an X509-SVID has no DNS SAN, so edge termination cannot validate this backend.
+    gatewayAPI:
+      ## @param spiffe.grpc.gatewayAPI.enabled Flag to expose the endpoint via Gateway API
+      enabled: false
+      ## @param spiffe.grpc.gatewayAPI.host Host name for the route. If no '.' in host, trustDomain is automatically appended.
+      host: "spire-identity-exchange-grpc-spiffe"
+      ## @param spiffe.grpc.gatewayAPI.annotations [object] Annotations for the route (and its ListenerSet)
+      annotations: {}
+      listenerSet:
+        ## @param spiffe.grpc.gatewayAPI.listenerSet.enabled Manage a ListenerSet for this service's SNI listener. Null inherits global.spire.gatewayAPI.manageListenerSets.
+        enabled: null
+      ## @param spiffe.grpc.gatewayAPI.parentRefs [array] parentRefs used when ListenerSet management is disabled (direct attach)
+      parentRefs: []
+      ## @param spiffe.grpc.gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
+      sectionName: ""
 
 tools:
   kubectl:

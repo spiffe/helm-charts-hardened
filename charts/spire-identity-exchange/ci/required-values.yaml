@@ -4,9 +4,11 @@ spire-identity-exchange:
     externalSecret:
       enabled: true
       secretName: spire-identity-exchange
+    rest:
+      enabled: true
   auth:
     plugins:
-      - plugin: k8s_psat
+      k8s_psat:
         config:
           audiences:
             - spire-identity-exchange
