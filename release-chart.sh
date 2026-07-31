@@ -320,7 +320,7 @@ if [ -n "${dry_run}" ] && [ -n "${from_current_branch}" ] ; then
   exit 0
 fi
 
-git add release-chart.sh "charts/${chart}/"{Chart.yaml,README.md}
+git add "charts/${chart}/"{Chart.yaml,README.md}
 for chart_dir in "${unique_dependency_charts[@]}" ; do
   git add "${chart_dir}/Chart.yaml"
   if [ -f "${chart_dir}/Chart.lock" ] ; then
@@ -343,7 +343,12 @@ for chart_dir in charts/*/; do
   fi
 done
 
-cat <<EOF | gh pr create --base main --body-file - "${dry_run}"
+gh_create_args=(--base main --body-file -)
+if [ -n "${dry_run}" ] ; then
+  gh_create_args+=("${dry_run}")
+fi
+
+if ! cat <<EOF | gh pr create "${gh_create_args[@]}"
 Please review the below changelog to ensure this matches up with the semantic version being applied.
 
 > [!Important]
@@ -375,6 +380,9 @@ done)
 
 ${commits_since_previous_release}
 EOF
+then
+  print_error_and_exit "failed to create the release PR for branch '${branch_name}'; not attempting auto-merge"
+fi
 
 if [ -n "${dry_run}" ] ; then
   echo >&2
@@ -394,7 +402,7 @@ if [ -n "${dry_run}" ] ; then
   exit
 fi
 
-gh pr merge --auto -r -d
+gh pr merge --auto -r -d "${branch_name}"
 if [ -z "${from_current_branch}" ] ; then
   git checkout main
 fi
