@@ -23,6 +23,8 @@
 ##   - GitHub CLI (gh)
 ##   - npm (if readme-generator is not already installed)
 ##   - yq
+##   - the Helm repositories required by chart dependencies (see chart-repos in
+##     ct.yaml); the script prints the needed 'helm repo add' lines if any are missing
 ##
 ## Commands
 ##
@@ -161,6 +163,61 @@ function chart_has_remote_dependencies {
   [ "${remote_count}" -gt 0 ]
 }
 
+function remote_chart_repositories {
+  local chart_yaml
+
+  {
+    while IFS= read -r chart_yaml ; do
+      if [ -n "${chart_yaml}" ] ; then
+        yq e -N '.dependencies[]? | select(((.repository // "") | test("^file://")) | not) | .repository' "${chart_yaml}"
+      fi
+    done < <(find charts -name Chart.yaml)
+  } | "${SED}" -e 's#/*$##' | sort -u
+}
+
+function configured_helm_repositories {
+  helm repo list -o yaml 2>/dev/null | yq e -N '.[]?.url' - 2>/dev/null | "${SED}" -e 's#/*$##' | sort -u
+}
+
+function helm_repository_name {
+  local repo_url=$1
+  local repo_name
+
+  repo_name="$(REPO_URL="${repo_url}" \
+    yq e -N '.chart-repos[]? | split("=") | select((.[1] | sub("/+$", "")) == strenv(REPO_URL)) | .[0]' ct.yaml 2>/dev/null | head -n 1)"
+
+  if [ -z "${repo_name}" ] ; then
+    repo_name="$(printf '%s\n' "${repo_url}" | "${SED}" -E -e 's#^[a-zA-Z]+://##' -e 's#[/.].*$##')"
+  fi
+
+  echo "${repo_name}"
+}
+
+function require_helm_repositories {
+  local configured repo_url
+  local missing=''
+
+  configured="$(configured_helm_repositories)"
+
+  while IFS= read -r repo_url ; do
+    if [ -z "${repo_url}" ] ; then
+      continue
+    fi
+    if ! printf '%s\n' "${configured}" | grep -qxF "${repo_url}" ; then
+      missing="${missing}  helm repo add $(helm_repository_name "${repo_url}") ${repo_url}"$'\n'
+    fi
+  done < <(remote_chart_repositories)
+
+  if [ -n "${missing}" ] ; then
+    print_error 'chart dependencies require Helm repositories that are not configured locally.'
+    echo >&2
+    echo >&2 'Run the following, then rerun this script:'
+    echo >&2
+    printf '%s' "${missing}" >&2
+    exit 1
+  fi
+}
+
 function refresh_chart_dependencies {
   local chart_dir
   local refreshed_repos=''
@@ -170,7 +227,9 @@ function refresh_chart_dependencies {
       helm repo update
       refreshed_repos='true'
     fi
-    helm dependency update --skip-refresh "${chart_dir}"
+    if ! helm dependency update --skip-refresh "${chart_dir}" ; then
+      print_error_and_exit "helm dependency update failed for ${chart_dir}; its Chart.lock would be left stale and CI lint would reject the release"
+    fi
   done
 }
 
@@ -240,6 +299,8 @@ fi
 if [ ! -f "charts/${chart}/Chart.yaml" ] ; then
   print_error_and_exit "no chart named '${chart}' in charts folder"
 fi
+
+require_helm_repositories
 
 if [ -n "${from_current_branch}" ] ; then
   branch_name="$(git branch --show-current)"
