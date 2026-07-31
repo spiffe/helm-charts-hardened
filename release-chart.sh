@@ -343,7 +343,8 @@ for chart_dir in charts/*/; do
   fi
 done
 
-gh_create_args=(--base main --body-file -)
+pr_title="Bump ${chart} Helm Chart version from ${current_version} to ${new_version}"
+gh_create_args=(--base main --title "${pr_title}" --body-file -)
 if [ -n "${dry_run}" ] ; then
   gh_create_args+=("${dry_run}")
 fi
