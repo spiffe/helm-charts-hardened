@@ -125,8 +125,14 @@ spec:
             - -config
             - /etc/spire/identity-exchange/six.conf
             - -expand-env
-          {{- with .Values.extraEnv }}
           env:
+            - name: SPIFFE_TRUST_DOMAIN
+              value: {{ $trustDomain | quote }}
+            - name: K8S_CLUSTER_NAME
+              value: {{ include "spire-lib.cluster-name" . | trim | quote }}
+            - name: SPIFFE_JWT_ISSUER
+              value: {{ include "spire-lib.jwt-issuer" . | trim | quote }}
+          {{- with .Values.extraEnv }}
           {{- . | toYaml | nindent 12 }}
           {{- end }}
           ports:

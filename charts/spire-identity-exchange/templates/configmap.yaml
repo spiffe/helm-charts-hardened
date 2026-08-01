@@ -32,6 +32,16 @@
 {{-   fail "You must enable at least one listener: tls.rest, tls.grpc, spiffe.rest or spiffe.grpc" }}
 {{- end }}
 {{- $trustDomain := include "spire-lib.trust-domain" . }}
+{{- $root := . }}
+{{- $enabledPlugins := list }}
+{{- range $name, $config := .Values.auth.plugins }}
+{{-   if ne (dig "enabled" true ($config | default dict)) false }}
+{{-     $enabledPlugins = append $enabledPlugins $name }}
+{{-   end }}
+{{- end }}
+{{- if lt (len $enabledPlugins) 1 }}
+{{-   fail "Every auth plugin is disabled: at least one entry in auth.plugins must have enabled: true" }}
+{{- end }}
 {{- include "spire-lib.check-strict-mode" (list . "trustDomain must be set" (eq $trustDomain "example.org"))}}
 apiVersion: v1
 kind: ConfigMap
@@ -74,8 +84,99 @@ data:
     auth:
       passthroughPlugins: {{ .Values.auth.passthroughPlugins }}
       plugins:
-        {{- toYaml .Values.auth.plugins | nindent 8 }}
-      {{- with .Values.auth.stacks }}
+        {{- range $name, $config := .Values.auth.plugins }}
+        {{-   if has $name $enabledPlugins }}
+        {{-   $pluginType := include "spire-identity-exchange.plugin-type" (dict "root" $root "name" $name "config" $config) }}
+        {{-   $cfg := $config.config | default dict }}
+        {{ $name | quote }}:
+        {{-   with $config.plugin }}
+          plugin: {{ . | quote }}
+        {{-   end }}
+          config:
+        {{-   if eq $pluginType "k8s_psat" }}
+        {{-     if hasKey $cfg "kubeconfig" }}
+        {{-       fail (printf "auth.plugins.%s.config: kubeconfig is not supported by this chart. In a pod, spire-identity-exchange always authenticates to the Kubernetes API with the in-cluster credentials of its own ServiceAccount and ignores a kubeconfig file, so pointing it at another cluster would silently validate tokens against the local one instead." $name) }}
+        {{-     end }}
+        {{-     $_ := include "spire-identity-exchange.check-plugin-options" (dict "name" $name "type" $pluginType "config" $cfg "options" (dict
+                   "clusterName" "string"
+                   "audiences" "[]string"
+                   "allowedNamespaces" "[]string"
+                   "allowedServiceAccounts" "[]string"
+                   "jwksCheck" "bool"
+                   "tokenReview" "bool")) }}
+        {{-     $jwksCheck := ne (dig "jwksCheck" true $cfg) false }}
+        {{-     $tokenReview := ne (dig "tokenReview" true $cfg) false }}
+        {{-     if not (or $jwksCheck $tokenReview) }}
+        {{-       fail (printf "auth.plugins.%s.config: jwksCheck and tokenReview cannot both be false; at least one validation stage must remain active" $name) }}
+        {{-     end }}
+        {{-     if $jwksCheck }}
+        {{-       $_ := include "spire-identity-exchange.check-plugin-required" (dict "name" $name "type" $pluginType "config" $cfg "required" (list "audiences")) }}
+        {{-     end }}
+        {{-     if and (empty $cfg.allowedNamespaces) (empty $cfg.allowedServiceAccounts) }}
+        {{-       fail (printf "auth.plugins.%s.config: at least one of allowedNamespaces or allowedServiceAccounts must be set" $name) }}
+        {{-     end }}
+        {{-     toYaml $config.config | nindent 12 }}
+        {{-   else if eq $pluginType "spiffe" }}
+        {{-     if hasKey $cfg "agentWorkloadSocketPath" }}
+        {{-       fail (printf "auth.plugins.%s.config: agentWorkloadSocketPath is set by this chart, not in values. The SPIRE Agent workload socket is mounted from the SPIFFE CSI driver and the path is filled in automatically when connectWithTrustBundle is true." $name) }}
+        {{-     end }}
+        {{-     $_ := include "spire-identity-exchange.check-plugin-options" (dict "name" $name "type" $pluginType "config" $cfg "options" (dict
+                   "issuerURL" "string"
+                   "discoveryURL" "string"
+                   "trustDomain" "string"
+                   "audiences" "[]string"
+                   "pathPatterns" "[]string"
+                   "connectWithTrustBundle" "bool")) }}
+        {{-     $_ := include "spire-identity-exchange.check-plugin-required" (dict "name" $name "type" $pluginType "config" $cfg "required" (list "issuerURL" "audiences" "trustDomain" "pathPatterns")) }}
+        {{-     $effective := $cfg }}
+        {{-     if $cfg.connectWithTrustBundle }}
+        {{-       $effective = merge (dict "agentWorkloadSocketPath" (include "spire-identity-exchange.workload-api-socket-path" $root)) $cfg }}
+        {{-     end }}
+        {{-     toYaml $effective | nindent 12 }}
+        {{-   else if eq $pluginType "github" }}
+        {{-     $_ := include "spire-identity-exchange.check-plugin-options" (dict "name" $name "type" $pluginType "config" $cfg "options" (dict
+                   "issuerURL" "string"
+                   "audiences" "[]string"
+                   "allowedRepositoryOwners" "[]string"
+                   "allowedRepositories" "[]string")) }}
+        {{-     $_ := include "spire-identity-exchange.check-plugin-required" (dict "name" $name "type" $pluginType "config" $cfg "required" (list "audiences")) }}
+        {{-     if and (empty $cfg.allowedRepositoryOwners) (empty $cfg.allowedRepositories) }}
+        {{-       fail (printf "auth.plugins.%s.config: at least one of allowedRepositoryOwners or allowedRepositories must be set" $name) }}
+        {{-     end }}
+        {{-     toYaml $config.config | nindent 12 }}
+        {{-   else if eq $pluginType "gitlab" }}
+        {{-     $_ := include "spire-identity-exchange.check-plugin-options" (dict "name" $name "type" $pluginType "config" $cfg "options" (dict
+                   "issuerURL" "string"
+                   "audiences" "[]string"
+                   "allowedNamespacePaths" "[]string"
+                   "allowedProjectPaths" "[]string")) }}
+        {{-     $_ := include "spire-identity-exchange.check-plugin-required" (dict "name" $name "type" $pluginType "config" $cfg "required" (list "audiences")) }}
+        {{-     if and (empty $cfg.allowedNamespacePaths) (empty $cfg.allowedProjectPaths) }}
+        {{-       fail (printf "auth.plugins.%s.config: at least one of allowedNamespacePaths or allowedProjectPaths must be set" $name) }}
+        {{-     end }}
+        {{-     toYaml $config.config | nindent 12 }}
+        {{-   end }}
+        {{-   end }}
+        {{- end }}
+        {{- with .Values.auth.unsupportedBuiltInPlugins }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- $stacks := dict }}
+      {{- range $stackName, $stack := .Values.auth.stacks }}
+      {{-   if ne (dig "enabled" true ($stack | default dict)) false }}
+      {{-     range $plugin := $stack.plugins }}
+      {{-       if not (has $plugin $enabledPlugins) }}
+      {{-         if hasKey $root.Values.auth.plugins $plugin }}
+      {{-           fail (printf "auth.stacks.%s lists plugin %q, which is disabled. Set auth.plugins.%s.enabled: true or drop it from the stack; the exchange refuses to start when a stack names a plugin it did not load." $stackName $plugin $plugin) }}
+      {{-         else }}
+      {{-           fail (printf "auth.stacks.%s lists plugin %q, which is not defined in auth.plugins" $stackName $plugin) }}
+      {{-         end }}
+      {{-       end }}
+      {{-     end }}
+      {{-     $_ := set $stacks $stackName (omit $stack "enabled") }}
+      {{-   end }}
+      {{- end }}
+      {{- with $stacks }}
       stacks:
         {{- toYaml . | nindent 8 }}
       {{- end }}

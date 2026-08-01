@@ -204,16 +204,48 @@ affinity: {}
 ## @param trustDomain Set the trust domain to be used for the SPIFFE identifiers
 trustDomain: example.org
 
+## @param clusterName The name of this Kubernetes cluster, as it appears in SPIFFE ID paths
+clusterName: example-cluster
+
+## @param jwtIssuer The issuer URL for JWT-SVIDs. Defaults to https://oidc-discovery.$trustDomain
+jwtIssuer: ""
+
 ## @param clusterDomain The name of the Kubernetes cluster (`kubeadm init --service-dns-domain`)
 clusterDomain: cluster.local
 
 auth:
-  ## @param auth.plugins [object] Plugins to load, keyed by plugin name. The key doubles as the plugin type, so a `plugin` field is only needed when they differ.
-  plugins: {}
-  ## @param auth.stacks [object] Stacks to load, keyed by stack name. Each stack validates one token per member plugin.
-  stacks: {}
-  ## @param auth.passthroughPlugins Address each plugin as a stack of its own, in addition to any stacks defined above
-  passthroughPlugins: true
+  plugins:
+    k8sPSAT:
+      enabled: true
+      plugin: k8s_psat
+      config:
+        audiences:
+          - spire-identity-exchange
+        allowedServiceAccounts:
+          - "*"
+    spiffe:
+      enabled: true
+      config:
+        issuerURL: "${SPIFFE_JWT_ISSUER}"
+        # discoveryURL: "http://localhost:8181"
+        trustDomain: "${SPIFFE_TRUST_DOMAIN}"
+        pathPatterns:
+          - "^/k8s/${K8S_CLUSTER_NAME}/node/[^/]+"
+        audiences:
+          - spire-identity-exchange
+        connectWithTrustBundle: true
+
+  stacks:
+    image-pull:
+      enabled: true
+      plugins:
+        - spiffe
+        - k8sPSAT
+
+  unsupportedBuiltInPlugins: {}
+
+  ## @param auth.passthroughPlugins Address each plugin as a stack of its own, in addition to any stacks defined
+  passthroughPlugins: false
 
 # Listeners served with a certificate from disk. Select one of the options below to be the source of that certificate.
 tls:

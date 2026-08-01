@@ -131,3 +131,57 @@ Create the name of the service account to use
 {{     .Release.Name }}-server.{{ include "spire-identity-exchange.server.namespace" . }}
 {{-   end }}
 {{- end }}
+
+{{- define "spire-identity-exchange.plugin-type" }}
+{{-   $type := .name }}
+{{-   with .config.plugin }}
+{{-     $type = . }}
+{{-   end }}
+{{-   if not (has $type (list "k8s_psat" "spiffe" "github" "gitlab" )) }}
+{{-     fail (printf "Unknown plugin type specified: %s" $type) }}
+{{-   end }}
+{{-   printf "%s" $type }}
+{{- end }}
+
+{{/*
+Validate one plugin's config block against the option table for its type.
+Emits nothing; only fails.
+Args: dict "name" <instance name> "type" <plugin type> "config" <config map>
+           "options" <dict of option name -> "string" | "[]string" | "bool">
+*/}}
+{{- define "spire-identity-exchange.check-plugin-options" }}
+{{-   $ctx := . }}
+{{-   $valid := keys $ctx.options | sortAlpha | join ", " }}
+{{-   range $key, $val := $ctx.config }}
+{{-     if not (hasKey $ctx.options $key) }}
+{{-       fail (printf "auth.plugins.%s.config: %q is not a valid option for plugin type %q (valid options: %s). Use auth.unsupportedBuiltInPlugins to pass through options this chart does not model." $ctx.name $key $ctx.type $valid) }}
+{{-     end }}
+{{-     $want := index $ctx.options $key }}
+{{-     if eq $want "[]string" }}
+{{-       if not (kindIs "slice" $val) }}
+{{-         fail (printf "auth.plugins.%s.config.%s: expected a list of strings, got %s" $ctx.name $key (kindOf $val)) }}
+{{-       end }}
+{{-       range $val }}
+{{-         if not (kindIs "string" .) }}
+{{-           fail (printf "auth.plugins.%s.config.%s: every entry must be a string, got %s" $ctx.name $key (kindOf .)) }}
+{{-         end }}
+{{-       end }}
+{{-     else if not (kindIs $want $val) }}
+{{-       fail (printf "auth.plugins.%s.config.%s: expected %s, got %s" $ctx.name $key $want (kindOf $val)) }}
+{{-     end }}
+{{-   end }}
+{{- end }}
+
+{{/*
+Fail if any of the named options is absent or empty. Emits nothing.
+Args: dict "name" <instance name> "type" <plugin type> "config" <config map>
+           "required" <list of option names>
+*/}}
+{{- define "spire-identity-exchange.check-plugin-required" }}
+{{-   $ctx := . }}
+{{-   range $ctx.required }}
+{{-     if empty (index $ctx.config .) }}
+{{-       fail (printf "auth.plugins.%s.config.%s is required for plugin type %q" $ctx.name . $ctx.type) }}
+{{-     end }}
+{{-   end }}
+{{- end }}
