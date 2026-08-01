@@ -35,12 +35,9 @@ spire-identity-exchange-bottom-turtle-ha-a:
         enabled: true
   auth:
     plugins:
-      k8s_psat:
-        config:
-          audiences:
-            - spire-identity-exchange
-          allowedServiceAccounts:
-            - default/default
+      k8sPSAT:
+        allowedServiceAccounts:
+          - default/default
 
 spire-identity-exchange-bottom-turtle-ha-b:
   tls:
@@ -52,10 +49,8 @@ spire-identity-exchange-bottom-turtle-ha-b:
       ingress:
         enabled: true
   auth:
+    passthroughPlugins: true
     plugins:
-      k8s_psat:
-        config:
-          audiences:
-            - spire-identity-exchange
-          allowedServiceAccounts:
-            - default/default
+      k8sPSAT:
+        allowedServiceAccounts:
+          - default/default
