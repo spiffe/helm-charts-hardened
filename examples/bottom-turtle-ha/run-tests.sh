@@ -95,6 +95,7 @@ teardown() {
   kubectl describe daemonset pods -n spire-system || true
   kubectl get configmap -n spire-system || true
   kubectl get configmap -n spire-system spire-a-agent-downstream -o yaml || true
+  kubectl get endpoints -n svc-server -o yaml || true
 
   print_helm_releases
 
