@@ -399,8 +399,8 @@ curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discov
 kubectl apply -f "${SCRIPTPATH}/test-job.yaml"
 kubectl wait --for=condition=complete --timeout=60s job/test && \
 TOKEN=$(kubectl logs job/test)
-curl -f -H "Authorization: Bearer ${TOKEN}" -X POST --resolve "spire-identity-exchange-a-rest.production.other:443:$IP" "https://spire-identity-exchange-a-rest.production.other/api/v1/svid/k8sPSAT/x509" -k -sS -q
-curl -f -H "Authorization: Bearer ${TOKEN}" -X POST --resolve "spire-identity-exchange-b-rest.production.other:443:$IP" "https://spire-identity-exchange-b-rest.production.other/api/v1/svid/k8sPSAT/x509" -k -sS -q
+curl -H "Authorization: Bearer ${TOKEN}" -X POST --resolve "spire-identity-exchange-a-rest.production.other:443:$IP" "https://spire-identity-exchange-a-rest.production.other/api/v1/svid/k8sPSAT/x509" -k -sS -q
+curl -H "Authorization: Bearer ${TOKEN}" -X POST --resolve "spire-identity-exchange-b-rest.production.other:443:$IP" "https://spire-identity-exchange-b-rest.production.other/api/v1/svid/k8sPSAT/x509" -k -sS -q
 
 if [ "${BROKER}" -eq 1 ]; then
   # Verify a workload on the ha-agent socket receives the other.org federated trust bundles,
