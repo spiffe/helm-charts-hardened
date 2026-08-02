@@ -88,7 +88,7 @@ spec:
             - -config
             - /etc/spire/agent/six-agent.conf
             - -socketPath
-            - {{ include "spire-identity-exchange.workload-api-socket-path" . | quote}}
+            - /agent-data/api.sock
           ports:
             - containerPort: 8182
               name: healthz
