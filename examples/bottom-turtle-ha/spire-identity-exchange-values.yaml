@@ -39,6 +39,9 @@ spire-identity-exchange-bottom-turtle-ha-a:
       k8s_psat:
         allowedServiceAccounts:
           - default/default
+#FIXME
+      spiffe:
+        enabled: false
     stacks:
       image_pull:
         enabled: false
@@ -58,6 +61,9 @@ spire-identity-exchange-bottom-turtle-ha-b:
       k8s_psat:
         allowedServiceAccounts:
           - default/default
+#FIXME
+      spiffe:
+        enabled: false
     stacks:
       image_pull:
         enabled: false
