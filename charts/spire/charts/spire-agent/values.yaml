@@ -231,7 +231,7 @@ nodeAttestor:
 
 # workloadAttestors determine a workload's properties and then generate a set of selectors associated with it.
 workloadAttestors:
-  # unix is a workload attestor which generates unix-based selectors like 'uid' and 'gid'.
+  # unix is a workload attestor which generates unix-based selectors like 'uid' and 'gid'.
   unix:
     ## @param workloadAttestors.unix.enabled Enables the Unix workload attestor
     enabled: false
@@ -252,6 +252,15 @@ workloadAttestors:
     useNewContainerLocator: true
     ## @param workloadAttestors.k8s.verboseContainerLocatorLogs If true, enables verbose logging of mountinfo and cgroup information used to locate containers. Defaults to false
     verboseContainerLocatorLogs: false
+    brokerAPI:
+      ## @param workloadAttestors.k8s.brokerAPI.accessPolicy Which access policy to use. Supported values: enforced, permissive
+      accessPolicy: enforced
+      brokers:
+        spire-ha-agent:
+          ## @param workloadAttestors.k8s.brokerAPI.brokers.spire-ha-agent.enabled Enables the broker api
+          enabled: false
+          # idTemplate: spiffe://{{ .TrustDomain }}/spire-ha-agent
+          # podReferenceScope: agent_node
 
 dynamicRegistration:
   ## @param dynamicRegistration.enabled Deploys the sidecar helper for dynamic registration
@@ -447,6 +456,17 @@ tools:
       repository: kubectl
       pullPolicy: IfNotPresent
       tag: ""
+  busybox:
+    ## @param tools.busybox.image.registry The OCI registry to pull the image from
+    ## @param tools.busybox.image.repository The repository within the registry
+    ## @param tools.busybox.image.pullPolicy The image pull policy
+    ## @param tools.busybox.image.tag Overrides the image tag whose default is the chart appVersion
+    ##
+    image:
+      registry: ""
+      repository: busybox
+      pullPolicy: IfNotPresent
+      tag: 1.37.0-uclibc
 
 sockets:
   ## @param sockets.hostBasePath Path on which the agent socket is made available when admin.mountOnHost is true
@@ -456,6 +476,11 @@ sockets:
   admin:
     enabled: false
     mountOnHost: false
+  ## @param sockets.broker.enabled Enable the broker socket.
+  ## @param sockets.broker.mountOnHost Enable the broker socket to be visible on the host.
+  broker:
+    enabled: false
+    mountOnHost: false
 
 ## @param persistence.type What type of volume to use for persistence. Valid options emptyDir (reattestable node attestors) or hostPath (nonr-reattestable node attestors)
 ## @param persistence.hostPath Which path to use on the host when persistence.type = hostPath
@@ -463,3 +488,21 @@ sockets:
 persistence:
   type: emptyDir
   hostPath: /var/lib/spire/k8s/agent
+
+brokerAPI:
+  tcp:
+    ## @param brokerAPI.tcp.enabled Enable the broker api endpoint
+    enabled: false
+    ## @param brokerAPI.tcp.bindAddress The tcp address to bind to
+    bindAddress: 0.0.0.0:8788
+  brokers:
+    spire-ha-agent:
+      ## @param brokerAPI.brokers.spire-ha-agent.enabled Enable the spire-ha-agent
+      enabled: false
+      ## @param brokerAPI.brokers.spire-ha-agent.idTemplate The default id template
+      idTemplate: spiffe://{{ .TrustDomain }}/spire-ha-agent
+      allowedReferenceTypes:
+        ## @param brokerAPI.brokers.spire-ha-agent.allowedReferenceTypes[0].typeURL The type of reference allowed
+        ## @param brokerAPI.brokers.spire-ha-agent.allowedReferenceTypes[0].allowOverTCP Allow access over TCP
+        - typeURL: "type.googleapis.com/spiffe.broker.WorkloadPIDReference"
+          allowOverTCP: false

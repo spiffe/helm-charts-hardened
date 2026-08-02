@@ -164,8 +164,26 @@ Create the name of the service account to use
 {{- end -}}
 {{- end }}
 
+{{- define "spire-server.upstream-ejbca-secret" -}}
+{{- $root := . }}
+{{- with .Values.upstreamAuthority.ejbca -}}
+{{- if eq (.secret.create | toString) "true" -}}
+{{ include "spire-server.fullname" $root }}-upstream-ejbca
+{{- else -}}
+{{ default (include "spire-server.fullname" $root) .secret.name }}
+{{- end -}}
+{{- end -}}
+{{- end }}
+
 {{- define "spire-controller-manager.fullname" -}}
 {{ include "spire-server.fullname" . | trimSuffix "-server" }}-controller-manager
+{{- end }}
+
+{{/*
+Name of the chart-generated Secret holding the inline kubeConfigs entries.
+*/}}
+{{- define "spire-server.kubeconfigs-secret-name" -}}
+{{ include "spire-server.fullname" . }}-kubeconfigs
 {{- end }}
 
 {{- define "spire-server.serviceAccountAllowedList" }}
@@ -346,9 +364,14 @@ The code below determines what connection type should be used.
 
 {{- define "spire-server.test.federation-ingress-args" }}
 {{-   $args := list }}
-{{-   $host := include "spire-lib.ingress-calculated-name" (dict "Values" .Values "ingress" .Values.federation.ingress) }}
-{{-   if gt (len .Values.federation.ingress.tls) 0 }}
-{{-     $host = index (index (index .Values.federation.ingress.tls 0) "hosts") 0 }}
+{{-   $host := "" }}
+{{-   if .host }}
+{{-     $host = .host }}
+{{-   else }}
+{{-     $host = include "spire-lib.ingress-calculated-name" (dict "Values" .Values "ingress" .Values.federation.ingress) }}
+{{-     if gt (len .Values.federation.ingress.tls) 0 }}
+{{-       $host = index (index (index .Values.federation.ingress.tls 0) "hosts") 0 }}
+{{-     end }}
 {{-   end }}
 {{-   if dig "tests" "tls" "enabled" false .Values }}
 {{-     if ne (len (dig "tests" "tls" "customCA" "" .Values)) 0 }}
@@ -414,4 +437,12 @@ subjects:
 {{-     end }}
 {{-   end }}
 {{-   toYaml $podSecurityContext }}
+{{- end }}
+
+{{- define "spire-server.identity-exchange-spiffe-prefix" -}}
+{{-   $cn := "" }}
+{{-   if .Values.nodeAttestor.x509POP.addClusterName.spiffePrefix }}
+{{-     $cn = printf "/%s" (include "spire-lib.cluster-name" .) }}
+{{-   end }}
+{{-   replace "${HELM_ADD_CLUSTER_NAME}" $cn .Values.nodeAttestor.x509POP.spiffePrefix }}
 {{- end }}

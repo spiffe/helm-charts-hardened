@@ -1,0 +1,13 @@
+{{- if .Values.gatewayAPI.enabled -}}
+{{- $fullName := include "tornjak-frontend.fullname" . -}}
+{{- include "spire-lib.gateway-routes" (dict
+      "root" .
+      "gatewayAPI" .Values.gatewayAPI
+      "name" $fullName
+      "namespace" (include "tornjak-frontend.namespace" .)
+      "svcName" $fullName
+      "port" .Values.service.port
+      "labels" (include "tornjak-frontend.labels" .)
+      "routeKind" "HTTPRoute"
+      "backendTLS" false) }}
+{{- end }}

@@ -1,0 +1,83 @@
+{{- if eq ((dig "deleteHooks" "enabled" .Values.deleteHook.enabled .Values.global) | toString) "true" }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "spire-identity-exchange.serviceAccountName" . }}-pre-delete
+  namespace: {{ include "spire-identity-exchange.namespace" . }}
+  labels:
+    {{- include "spire-identity-exchange.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-delete-policy": before-hook-creation, hook-succeeded, hook-failed
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "spire-identity-exchange.fullname" . }}-pre-delete
+  namespace: {{ include "spire-identity-exchange.namespace" . }}
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-delete-policy": before-hook-creation, hook-succeeded, hook-failed
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    resourceNames: [{{ include "spire-identity-exchange.fullname" . | quote }}]
+    verbs: ["get", "delete"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ include "spire-identity-exchange.fullname" . }}-pre-delete
+  namespace: {{ include "spire-identity-exchange.namespace" . }}
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-delete-policy": before-hook-creation, hook-succeeded, hook-failed
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "spire-identity-exchange.serviceAccountName" . }}-pre-delete
+    namespace: {{ include "spire-identity-exchange.namespace" . }}
+roleRef:
+  kind: Role
+  name: {{ include "spire-identity-exchange.fullname" . }}-pre-delete
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "spire-identity-exchange.fullname" . }}-pre-delete
+  namespace: {{ include "spire-identity-exchange.namespace" . }}
+  labels:
+    {{- include "spire-identity-exchange.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-delete-policy": before-hook-creation, hook-succeeded, hook-failed
+spec:
+  template:
+    metadata:
+      name: {{ include "spire-identity-exchange.fullname" . }}-pre-delete
+    spec:
+      restartPolicy: Never
+      {{- with (coalesce .Values.imagePullSecrets .Values.global.imagePullSecrets) }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "spire-identity-exchange.serviceAccountName" . }}-pre-delete
+      securityContext:
+        {{- include "spire-lib.podsecuritycontext" . | nindent 8 }}
+      containers:
+      - name: pre-delete-job
+        securityContext:
+          {{- include "spire-lib.securitycontext" . | nindent 10 }}
+        image: {{ template "spire-lib.kubectl-image" (dict "appVersion" $.Chart.AppVersion "image" .Values.tools.kubectl.image "global" .Values.global "KubeVersion" .Capabilities.KubeVersion.Version) }}
+        args:
+          - delete
+          - -n
+          - {{ include "spire-identity-exchange.namespace" . }}
+          - deployment
+          - {{ include "spire-identity-exchange.fullname" . }}
+          - --wait
+        {{- with (((.Values).global).deleteHooks).resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+{{- end }}

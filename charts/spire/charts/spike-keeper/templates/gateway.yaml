@@ -1,0 +1,28 @@
+{{- if .Values.gatewayAPI.enabled -}}
+{{- $root := . -}}
+{{- $g := .Values.gatewayAPI -}}
+{{- $fullName := include "spike-keeper.fullname" . -}}
+{{- $last := sub (.Values.replicas | int) 1 | int -}}
+{{- range (seq 0 $last | toString | split " ") }}
+{{- $i := . }}
+{{- $host := $g.host }}
+{{- if contains "." $host }}
+{{-   $hostParts := regexSplit "[.]" $host 2 }}
+{{-   $host = printf "%s-%s.%s" (index $hostParts 0) $i (index $hostParts 1) }}
+{{- else }}
+{{-   $host = printf "%s-%s" $host $i }}
+{{- end }}
+{{- $gi := deepCopy $g }}
+{{- $_ := set $gi "host" $host }}
+---
+{{ include "spire-lib.gateway-routes" (dict
+      "root" $root
+      "gatewayAPI" $gi
+      "name" (printf "%s-%s" $fullName $i)
+      "namespace" (include "spike-keeper.namespace" $root)
+      "svcName" (printf "%s-%s" $fullName $i)
+      "port" $root.Values.service.port
+      "labels" (include "spike-keeper.labels" $root)
+      "routeKind" "TLSRoute") }}
+{{- end }}
+{{- end }}

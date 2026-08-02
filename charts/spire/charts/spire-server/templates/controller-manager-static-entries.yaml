@@ -1,5 +1,6 @@
 {{- define "spire-server.cluster-static-entries" -}}
 {{- $root := .root }}
+{{- $trustDomain := include "spire-lib.trust-domain" .root }}
 {{- $useShortName := .useShortName }}
 {{- range $key, $value := $root.Values.controllerManager.identities.clusterStaticEntries }}
 {{-   range $skey, $svalue := $value }}
@@ -7,13 +8,25 @@
 {{-       fail (printf "Unsupported property specified: %s" $skey) }}
 {{-     end }}
 {{-   end }}
-{{-   range $rprop := list "spiffeID" "selectors" "parentID" }}
-{{-     if not (hasKey $value $rprop) }}
-{{-       fail (printf "Required property %s was not specified" $rprop) }}
+{{-   if not (hasPrefix "spire-identity-exchange" $key) }}
+{{-     range $rprop := list "spiffeID" "selectors" "parentID" }}
+{{-       if not (hasKey $value $rprop) }}
+{{-         fail (printf "Required property %s was not specified" $rprop) }}
+{{-       end }}
 {{-     end }}
 {{-   end }}
 {{-   if eq ($root.Values.controllerManager.enabled | toString) "true" }}
-{{-     if or (not (hasKey $value "enabled")) (eq ($value.enabled | toString) "true") }}
+{{-     $process := true }}
+{{-     if not (hasKey $value "enabled") }}
+{{-       if and (hasPrefix "spire-identity-exchange" $key) (not $root.Values.spireIdentityExchange.enabled) }}
+{{-         $process = false }}
+{{-       end }}
+{{-     else }}
+{{-       if not (eq ($value.enabled | toString) "true") }}
+{{-         $process = false }}
+{{-       end }}
+{{-     end }}
+{{-     if $process }}
 - apiVersion: spire.spiffe.io/v1alpha1
   kind: ClusterStaticEntry
   metadata:
@@ -32,17 +45,29 @@
     {{- end }}
   spec:
     className: {{ include "spire-server.controller-manager-class-name" $root | quote }}
+    {{- if eq $key "spire-identity-exchange" }}
+    parentID: "spiffe://{{ $trustDomain }}/spire/server"
+    spiffeID: "spiffe://{{ $trustDomain }}/spire-identity-exchange"
+    {{- else if eq $key "spire-identity-exchange-agent" }}
+    parentID: "spiffe://{{ $trustDomain }}/spire-identity-exchange"
+    spiffeID: "spiffe://{{ $trustDomain }}/service/spire-identity-exchange"
+    {{- else }}
+    parentID: {{ $value.parentID | quote }}
     spiffeID: {{ $value.spiffeID | quote }}
+    {{- end }}
     {{- with $value.federatesWith }}
     federatesWith:
     {{- toYaml . | nindent 6 }}
     {{- end }}
+    {{- if and (eq $key "spire-identity-exchange") (not (hasKey $value "selectors")) }}
+    {{- $iePrefix := include "spire-server.identity-exchange-spiffe-prefix" $root | trimPrefix "/" }}
+    selectors:
+      - x509pop:subject:cn:{{ $iePrefix }}spire-identity-exchange
+    {{- else }}
     {{- with $value.selectors }}
     selectors:
       {{- toYaml . | nindent 6 }}
     {{- end }}
-    {{- with $value.parentID }}
-    parentID: {{ . | quote }}
     {{- end }}
     {{- with $value.dnsNames }}
     dnsNames:

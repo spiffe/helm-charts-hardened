@@ -15,12 +15,27 @@ func ValueStringRender(chart *helmchart.Chart, values string) (map[string]string
 	if err != nil {
 		return nil, err
 	}
-	ro := helmutil.ReleaseOptions{Name: "spire", Namespace: "spire-server", Revision: 1, IsUpgrade: false, IsInstall: true}
-	v, err = helmutil.ToRenderValues(chart, v, ro, helmutil.DefaultCapabilities)
+	merged, err := helmutil.CoalesceValues(chart, v)
 	if err != nil {
 		return nil, err
 	}
-	objs, err := helmengine.Render(chart, v)
+	testChart := *chart
+	testChart.Values = merged
+
+	var activeDeps []*helmchart.Chart
+        for _, dep := range testChart.Dependencies() {
+                if dep.Name() != "spire-identity-exchange" {
+                        activeDeps = append(activeDeps, dep)
+                }
+        }
+        testChart.SetDependencies(activeDeps...)
+
+	ro := helmutil.ReleaseOptions{Name: "spire", Namespace: "spire-server", Revision: 1, IsUpgrade: false, IsInstall: true}
+	v, err = helmutil.ToRenderValues(&testChart, merged, ro, helmutil.DefaultCapabilities)
+	if err != nil {
+		return nil, err
+	}
+	objs, err := helmengine.Render(&testChart, v)
 	return objs, err
 }
 
@@ -101,6 +116,28 @@ spire-server:
 			Expect(err).Should(Succeed())
 			notes := objs["spire/charts/spire-server/templates/configmap.yaml"]
 			Expect(notes).Should(ContainSubstring("\"aws_pca\": {"))
+		})
+	})
+	Describe("spire-server.UpstreamAuthority.ejbca", func() {
+		It("plugin set ok", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  upstreamAuthority:
+    ejbca:
+      enabled: true
+      hostname: ejbca.example.org:8443
+      caName: SpireIntermediateCA
+      endEntityProfileName: SpireEEP
+      certificateProfileName: SpireIntermediateCACP
+      secret:
+        data:
+          caCert: dummy-ca
+`)
+			Expect(err).Should(Succeed())
+			notes := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(notes).Should(ContainSubstring("\"ejbca\": {"))
+			Expect(notes).Should(ContainSubstring("SpireIntermediateCA"))
+			Expect(notes).Should(ContainSubstring("ca_cert_path"))
 		})
 	})
 	Describe("spire-agent.customPlugin.tpm", func() {
@@ -187,6 +224,68 @@ spire-server:
 			Expect(err).Should(Succeed())
 			notes := objs["spire/templates/NOTES.txt"]
 			Expect(notes).Should(ContainSubstring("Installed"))
+		})
+	})
+	Describe("spiffe-oidc-discovery-provider.jwtIssuer", func() {
+		It("auto-derives jwt_issuer from global.spire.jwtIssuer and matches spire-server", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  spire:
+    jwtIssuer: https://canonical.example.com
+`)
+			Expect(err).Should(Succeed())
+			oidcCM := objs["spire/charts/spiffe-oidc-discovery-provider/templates/configmap.yaml"]
+			Expect(oidcCM).Should(ContainSubstring(`"jwt_issuer": "https://canonical.example.com"`))
+			serverCM := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(serverCM).Should(ContainSubstring(`"jwt_issuer": "https://canonical.example.com"`))
+		})
+		It("propagates the subchart-local jwtIssuer to jwt_issuer", func() {
+			objs, err := ValueStringRender(chart, `
+spiffe-oidc-discovery-provider:
+  jwtIssuer: https://legacy.example.com
+`)
+			Expect(err).Should(Succeed())
+			oidcCM := objs["spire/charts/spiffe-oidc-discovery-provider/templates/configmap.yaml"]
+			Expect(oidcCM).Should(ContainSubstring(`"jwt_issuer": "https://legacy.example.com"`))
+		})
+		It("defaults to oidc-discovery.<trustDomain> when nothing is set and strict mode is disabled", func() {
+			objs, err := ValueStringRender(chart, ``)
+			Expect(err).Should(Succeed())
+			oidcCM := objs["spire/charts/spiffe-oidc-discovery-provider/templates/configmap.yaml"]
+			Expect(oidcCM).Should(ContainSubstring(`"jwt_issuer": "https://oidc-discovery.example.org"`))
+			serverCM := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(serverCM).Should(ContainSubstring(`"jwt_issuer": "https://oidc-discovery.example.org"`))
+		})
+	})
+	Describe("spire-server.kubeConfigs", func() {
+		secretTmpl := "spire/charts/spire-server/templates/kubeconfig-secret.yaml"
+		serverTmpl := "spire/charts/spire-server/templates/server-resource.yaml"
+		It("inline entry generates a Secret and a projected volume source referencing it", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  kubeConfigs:
+    clustera:
+      kubeConfig: |
+        apiVersion: v1
+        kind: Config
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[secretTmpl]).Should(ContainSubstring("kind: Secret"))
+			Expect(objs[serverTmpl]).Should(ContainSubstring("projected:"))
+			Expect(objs[serverTmpl]).Should(ContainSubstring("path: clustera"))
+		})
+		It("externalSecret entry wires a projected source and skips the generated Secret", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  kubeConfigs:
+    clusterb:
+      externalSecret:
+        name: my-ext-secret
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[secretTmpl]).ShouldNot(ContainSubstring("kind: Secret"))
+			Expect(objs[serverTmpl]).Should(ContainSubstring("name: my-ext-secret"))
+			Expect(objs[serverTmpl]).Should(ContainSubstring("path: clusterb"))
 		})
 	})
 })

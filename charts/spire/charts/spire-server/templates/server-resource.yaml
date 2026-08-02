@@ -64,6 +64,8 @@
 {{-     fail "clientKeyPath can only be set with database type mysql or aws_mysql." }}
 {{-   end }}
 {{- end }}
+{{- $pluginsToLoad := include "spire-lib.extract_custom_plugin_images" . | fromYamlArray }}
+{{- $pluginLoaderNeeded := or .Values.credentialComposer.cel.enabled .Values.spireIdentityExchange.enabled (gt (len $pluginsToLoad) 0) }}
 {{- if not .Values.externalServer }}
 apiVersion: apps/v1
 {{- if eq .Values.kind "statefulset" }}
@@ -121,10 +123,10 @@ spec:
       securityContext:
         {{- $podSecurityContext | toYaml | nindent 8 }}
       {{- include "spire-lib.default_cluster_priority_class_name" . | nindent 6 }}
-      {{- if or (gt (len .Values.initContainers) 0) (and .Values.upstreamAuthority.certManager.enabled .Values.upstreamAuthority.certManager.ca.create) .Values.nodeAttestor.tpmDirect.enabled .Values.credentialComposer.cel.enabled $needsChown }}
+      {{- if or (gt (len .Values.initContainers) 0) (and .Values.upstreamAuthority.certManager.enabled .Values.upstreamAuthority.certManager.ca.create) .Values.nodeAttestor.tpmDirect.enabled $pluginLoaderNeeded $needsChown }}
       initContainers:
-        {{- if .Values.credentialComposer.cel.enabled }}
-        - name: init-cel
+        {{- if $pluginLoaderNeeded }}
+        - name: init-plugins
           securityContext:
             {{- include "spire-lib.securitycontext" . | nindent 12 }}
           image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.tools.busybox.image "global" .Values.global) }}
@@ -134,27 +136,78 @@ spec:
             - sh
             - -ec
             - |
-              cp -a /bin/busybox /cel/busybox
+              cp -a /bin/busybox /plugins/busybox
           volumeMounts:
-            - name: cel
-              mountPath: /cel
-          imagePullPolicy: {{ .Values.credentialComposer.cel.image.pullPolicy }}
-        - name: init-cel2
+            - name: plugins
+              mountPath: /plugins
+          imagePullPolicy: {{ .Values.tools.busybox.image.pullPolicy }}
+        {{- end }}
+        {{- if .Values.credentialComposer.cel.enabled }}
+        - name: init-cel
           securityContext:
             {{- include "spire-lib.securitycontext" . | nindent 12 }}
           image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.credentialComposer.cel.image "global" .Values.global) }}
           # Second, use the previously copied busybox to copy the plugin into a volume that can be mounted where SPIRE can execute it.
           command:
-            - /cel/busybox
+            - /plugins/busybox
             - sh
             - -ec
             - |
-              /cel/busybox cp -a {{ .Values.credentialComposer.cel.pluginPath }} /cel/credentialcomposer-cel
-              /cel/busybox rm -f /cel/busybox
+              /plugins/busybox cp -a {{ .Values.credentialComposer.cel.pluginPath }} /plugins/credentialcomposer-cel
           volumeMounts:
-            - name: cel
-              mountPath: /cel
+            - name: plugins
+              mountPath: /plugins
           imagePullPolicy: {{ .Values.credentialComposer.cel.image.pullPolicy }}
+        {{- end }}
+        {{- if .Values.spireIdentityExchange.enabled }}
+        - name: init-six
+          securityContext:
+            {{- include "spire-lib.securitycontext" . | nindent 12 }}
+          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.credentialComposer.spireIdentityExchange.image "global" .Values.global) }}
+          # Second, use the previously copied busybox to copy the plugin into a volume that can be mounted where SPIRE can execute it.
+          command:
+            - /plugins/busybox
+            - sh
+            - -ec
+            - |
+              /plugins/busybox cp -a {{ .Values.credentialComposer.spireIdentityExchange.pluginPath }} /plugins/credentialcomposer-identity-exchange
+          volumeMounts:
+            - name: plugins
+              mountPath: /plugins
+          imagePullPolicy: {{ .Values.credentialComposer.spireIdentityExchange.image.pullPolicy }}
+        {{- end }}
+        {{- range $idx, $plugin := $pluginsToLoad }}
+        - name: {{ printf "init-plugin-%d" $idx }}
+          securityContext:
+            {{- include "spire-lib.securitycontext" $ | nindent 12 }}
+          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" $plugin.image "global" $.Values.global) }}
+          command:
+            - /plugins/busybox
+            - sh
+            - -ec
+            - |
+              /plugins/busybox mkdir -p /plugins/{{ dir $plugin.name }}
+              /plugins/busybox cp -a {{ $plugin.plugin_cmd }} /plugins/{{ $plugin.name }}
+          volumeMounts:
+            - name: plugins
+              mountPath: /plugins
+          imagePullPolicy: {{ $plugin.image.pullPolicy }}
+        {{- end }}
+        {{- if $pluginLoaderNeeded }}
+        - name: finalize-plugins
+          securityContext:
+            {{- include "spire-lib.securitycontext" . | nindent 12 }}
+          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.tools.busybox.image "global" .Values.global) }}
+          command:
+            - busybox
+            - sh
+            - -ec
+            - |
+              rm -f /plugins/busybox
+          volumeMounts:
+            - name: plugins
+              mountPath: /plugins
+          imagePullPolicy: {{ .Values.tools.busybox.image.pullPolicy }}
         {{- end }}
         {{- if .Values.nodeAttestor.tpmDirect.enabled }}
         - name: init-tpm-direct
@@ -337,9 +390,9 @@ spec:
               mountPath: /kubeconfigs
               readOnly: true
             {{- end }}
-            {{- if .Values.credentialComposer.cel.enabled }}
-            - name: cel
-              mountPath: /cel
+            {{- if $pluginLoaderNeeded }}
+            - name: plugins
+              mountPath: /plugins
               readOnly: true
             {{- end }}
             {{- if .Values.nodeAttestor.tpmDirect.enabled }}
@@ -363,6 +416,11 @@ spec:
             - name: upstream-ca
               mountPath: /run/spire/upstream_ca
               readOnly: false
+            {{ end }}
+            {{- if eq (.Values.upstreamAuthority.ejbca.enabled | toString) "true" }}
+            - name: upstream-ejbca
+              mountPath: /run/spire/upstream_ejbca
+              readOnly: true
             {{ end }}
             {{- if gt (len .Values.upstreamAuthority.spire.upstreamDriver) 0 }}
             - name: upstream-agent
@@ -528,6 +586,9 @@ spec:
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      {{- end }}
       volumes:
         - name: server-tmp
           emptyDir: {}
@@ -540,11 +601,35 @@ spec:
           emptyDir: {}
         {{- if gt (len .Values.kubeConfigs) 0 }}
         - name: kubeconfigs
-          secret:
-            secretName: {{ include "spire-server.fullname" . }}-kubeconfigs
+          projected:
+            sources:
+            {{- $inlineNames := list }}
+            {{- range $name, $value := .Values.kubeConfigs }}
+            {{-   if not (hasKey $value "externalSecret") }}
+            {{-     $inlineNames = append $inlineNames $name }}
+            {{-   end }}
+            {{- end }}
+            {{- if gt (len $inlineNames) 0 }}
+            - secret:
+                name: {{ include "spire-server.kubeconfigs-secret-name" . }}
+                items:
+                {{- range $name := ($inlineNames | sortAlpha) }}
+                - key: {{ $name }}
+                  path: {{ $name }}
+                {{- end }}
+            {{- end }}
+            {{- range $name, $value := .Values.kubeConfigs }}
+            {{-   if hasKey $value "externalSecret" }}
+            - secret:
+                name: {{ $value.externalSecret.name }}
+                items:
+                - key: {{ $value.externalSecret.key | default $name }}
+                  path: {{ $name }}
+            {{-   end }}
+            {{- end }}
         {{- end }}
-        {{- if .Values.credentialComposer.cel.enabled }}
-        - name: cel
+        {{- if $pluginLoaderNeeded }}
+        - name: plugins
           emptyDir: {}
         {{- end }}
         {{- if .Values.nodeAttestor.tpmDirect.enabled }}
@@ -593,6 +678,11 @@ spec:
         - name: upstream-ca
           secret:
             secretName: {{ include "spire-server.upstream-ca-secret" . }}
+        {{- end }}
+        {{- if eq (.Values.upstreamAuthority.ejbca.enabled | toString) "true" }}
+        - name: upstream-ejbca
+          secret:
+            secretName: {{ include "spire-server.upstream-ejbca-secret" . }}
         {{- end }}
         {{- if gt (len .Values.upstreamAuthority.spire.upstreamDriver) 0 }}
         - name: upstream-agent

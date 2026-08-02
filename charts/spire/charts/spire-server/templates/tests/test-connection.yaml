@@ -56,6 +56,21 @@ spec:
       securityContext:
         {{- include "spire-lib.securitycontext" . | nindent 8 }}
     {{- end }}
+    {{- if .Values.federation.gatewayAPI.enabled }}
+    {{- $gwHost := include "spire-lib.ingress-calculated-name" (dict "Values" .Values "ingress" (dict "host" .Values.federation.gatewayAPI.host)) | trim }}
+    - name: federation-gateway
+      image: {{ template "spire-lib.image" (dict "image" .Values.tests.bash.image "global" .Values.global) }}
+      command: ['curl']
+      args:
+        {{ include "spire-server.test.federation-ingress-args" (dict "Values" $values "host" $gwHost) | nindent 8 }}
+      {{- if ne (len (dig "tests" "tls" "customCA" "" $values)) 0 }}
+      volumeMounts:
+        - name: custom-ca
+          mountPath: /ca
+      {{- end }}
+      securityContext:
+        {{- include "spire-lib.securitycontext" . | nindent 8 }}
+    {{- end }}
   {{- if ne (len (dig "tests" "hostAliases" "" $values)) 0 }}
   hostAliases:
     {{- toYaml .Values.tests.hostAliases | nindent 4 }}

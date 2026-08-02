@@ -2,8 +2,9 @@ apiVersion: v2
 name: spire-crds
 description: >
   A Helm chart for deploying the Spire CRDS
+
 type: application
-version: 0.5.0
+version: 0.6.0
 appVersion: "0.0.1"
 keywords: ["spire-crds"]
 home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire

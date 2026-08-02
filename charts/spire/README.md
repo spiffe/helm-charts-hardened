@@ -1,6 +1,6 @@
 # spire
 
-![Version: 0.28.5](https://img.shields.io/badge/Version-0.28.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.15.1](https://img.shields.io/badge/AppVersion-1.15.1-informational?style=flat-square)
+![Version: 0.28.5](https://img.shields.io/badge/Version-0.28.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.15.2](https://img.shields.io/badge/AppVersion-1.15.2-informational?style=flat-square)
 [![Development Phase](https://github.com/spiffe/spiffe/blob/main/.img/maturity/dev.svg)](https://github.com/spiffe/spiffe/blob/main/MATURITY.md#development)
 
 A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
@@ -78,6 +78,14 @@ kubectl delete crds clusterfederatedtrustdomains.spire.spiffe.io clusterspiffeid
 ## Upgrade notes
 
 We only support upgrading one major/minor version at a time. Version skipping isn't supported. Please see <https://spiffe.io/docs/latest/spire-helm-charts-hardened-about/upgrading/> for details.
+
+### 0.30.X
+
+- Upgrade the spire-crds chart first
+- The OIDC discovery issuer is now set automatically. We do not anticipate any negative impact; however, please verify your OIDC provider's integration with other services during your upgrade testing.
+- The x509POP plugin in spiffe mode has had its defaults changed. It allows easier and more secure setups. If using and upgrading, please review the settings.
+- To add the spike entries, you now must also specify spire-server.spike.enabled=true.
+- Experimental support for the spire-identity-exchange has been added.
 
 ### 0.26.X
 
@@ -277,7 +285,7 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `global.k8s.clusterDomain`                       | Cluster domain name configured for Spire install                                                                                                                                                                                       | `cluster.local`   |
 | `global.spire.bundleConfigMap`                   | A configmap containing the Spire bundle                                                                                                                                                                                                | `""`              |
 | `global.spire.clusterName`                       | The name of the k8s cluster for Spire install                                                                                                                                                                                          | `example-cluster` |
-| `global.spire.jwtIssuer`                         | The issuer for Spire JWT tokens. Defaults to oidc-discovery.$trustDomain if unset                                                                                                                                                      | `""`              |
+| `global.spire.jwtIssuer`                         | Issuer URL used for both the JWT-SVID `iss` claim minted by spire-server and the `issuer` field advertised by the OIDC discovery document. Defaults to oidc-discovery.$trustDomain if unset                                            | `""`              |
 | `global.spire.trustDomain`                       | The trust domain for Spire install                                                                                                                                                                                                     | `example.org`     |
 | `global.spire.upstreamServerAddress`             | Set what address to use for the upstream server when using nested spire                                                                                                                                                                | `""`              |
 | `global.spire.caSubject.country`                 | Country for Spire server CA                                                                                                                                                                                                            | `""`              |
@@ -303,11 +311,26 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `global.spire.namespaces.server.labels`          | Labels to apply to the Spire server Namespace.                                                                                                                                                                                         | `{}`              |
 | `global.spire.strictMode`                        | Check values, such as trustDomain, are overridden with a suitable value for production.                                                                                                                                                | `false`           |
 | `global.spire.ingressControllerType`             | Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, autodetection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""]. | `""`              |
+| `global.spire.gatewayAPI.manageListenerSets`     | Default policy for whether services render a ListenerSet for their SNI listener. Each service may override via its gatewayAPI.listenerSet.enabled.                                                                                     | `true`            |
+| `global.spire.gatewayAPI.gateway.name`           | Name of the shared Gateway object that routes and ListenerSets attach to                                                                                                                                                               | `spire`           |
+| `global.spire.gatewayAPI.gateway.namespace`      | Namespace of the shared Gateway object. Defaults to the release namespace if blank.                                                                                                                                                    | `""`              |
+| `global.spire.gatewayAPI.gateway.port`           | Port the shared Gateway listens on. ListenerSet listeners must match this.                                                                                                                                                             | `443`             |
 | `global.spire.tools.kubectl.tag`                 | Set to force the tag to use for all kubectl instances                                                                                                                                                                                  | `""`              |
 | `global.installAndUpgradeHooks.enabled`          | Enable Helm hooks to autofix common install/upgrade issues (should be disabled when using `helm template`)                                                                                                                             | `true`            |
 | `global.installAndUpgradeHooks.resources`        | Resource requests and limits for installAndUpgradeHooks                                                                                                                                                                                | `{}`              |
 | `global.deleteHooks.enabled`                     | Enable Helm hooks to autofix common delete issues (should be disabled when using `helm template`)                                                                                                                                      | `true`            |
 | `global.deleteHooks.resources`                   | Resource requests and limits for deleteHooks                                                                                                                                                                                           | `{}`              |
+
+### Gateway API parameters
+
+| Name                                            | Description                                                                                                                                  | Value   |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `gatewayAPI.gateway.enabled`                    | Render the shared Gateway object                                                                                                             | `false` |
+| `gatewayAPI.gateway.className`                  | gatewayClassName for the shared Gateway (e.g. "eg"). Required when enabled.                                                                  | `""`    |
+| `gatewayAPI.gateway.annotations`                | Annotations for the Gateway object                                                                                                           | `{}`    |
+| `gatewayAPI.gateway.allowedListenersNamespaces` | From which namespaces ListenerSets may attach to the Gateway. One of All, Same, Selector.                                                    | `All`   |
+| `gatewayAPI.gateway.allowedRoutesNamespaces`    | From which namespaces routes may attach directly to the base listener (used when ListenerSet management is off). One of All, Same, Selector. | `All`   |
+| `gatewayAPI.gateway.extraListeners`             | Additional listeners to add to the Gateway                                                                                                   | `[]`    |
 
 ### Spire server parameters
 
@@ -385,6 +408,8 @@ Now you can interact with the Spire agent socket from your own application. The 
 
 ### SPIKE Pilot parameters
 
-| Name                  | Description                                            | Value   |
-| --------------------- | ------------------------------------------------------ | ------- |
-| `spike-pilot.enabled` | Enables deployment of SPIKE Pilot (Not for production) | `false` |
+| Name                                   | Description                                                            | Value               |
+| -------------------------------------- | ---------------------------------------------------------------------- | ------------------- |
+| `spike-pilot.enabled`                  | Enables deployment of SPIKE Pilot (Not for production)                 | `false`             |
+| `spire-identity-exchange.enabled`      | Enables deployment of the SPIRE Identity Exchange (Not for production) | `false`             |
+| `spire-identity-exchange.nameOverride` | Overrides the name of the SPIRE Identity Exchnage                      | `identity-exchange` |

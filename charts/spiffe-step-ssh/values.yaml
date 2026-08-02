@@ -72,6 +72,21 @@ stepIngress:
   #  - hosts:
   #      - spiffe-step-ssh.example.org
 
+gatewayAPI:
+  ## @param gatewayAPI.enabled Flag to expose the step endpoint via Gateway API (TLS passthrough)
+  enabled: false
+  ## @param gatewayAPI.host Host name for the route. If no '.' in host, trustDomain is automatically appended.
+  host: "spiffe-step-ssh"
+  ## @param gatewayAPI.annotations [object] Annotations for the route (and its ListenerSet)
+  annotations: {}
+  listenerSet:
+    ## @param gatewayAPI.listenerSet.enabled Manage a ListenerSet for this service's SNI listener. Null inherits global.spire.gatewayAPI.manageListenerSets.
+    enabled: null
+  ## @param gatewayAPI.parentRefs [array] parentRefs used when ListenerSet management is disabled (direct attach)
+  parentRefs: []
+  ## @param gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
+  sectionName: ""
+
 ## @skip step
 step:
   service:
@@ -232,6 +247,21 @@ fetchCA:
     tls: []
     #  - hosts:
     #      - spiffe-step-ssh-fetchca.example.org
+
+  gatewayAPI:
+    ## @param fetchCA.gatewayAPI.enabled Flag to expose the fetchCA endpoint via Gateway API (TLS passthrough)
+    enabled: false
+    ## @param fetchCA.gatewayAPI.host Host name for the route. If no '.' in host, trustDomain is automatically appended.
+    host: "spiffe-step-ssh-fetchca"
+    ## @param fetchCA.gatewayAPI.annotations [object] Annotations for the route (and its ListenerSet)
+    annotations: {}
+    listenerSet:
+      ## @param fetchCA.gatewayAPI.listenerSet.enabled Manage a ListenerSet for this service's SNI listener. Null inherits global.spire.gatewayAPI.manageListenerSets.
+      enabled: null
+    ## @param fetchCA.gatewayAPI.parentRefs [array] parentRefs used when ListenerSet management is disabled (direct attach)
+    parentRefs: []
+    ## @param fetchCA.gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
+    sectionName: ""
 
   ## @param fetchCA.autoscaling.enabled Enable autoscaling
   ## @param fetchCA.autoscaling.minReplicas Minimum number of replicas to deploy

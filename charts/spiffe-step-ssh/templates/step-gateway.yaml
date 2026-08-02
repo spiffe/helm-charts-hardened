@@ -1,0 +1,12 @@
+{{- if .Values.gatewayAPI.enabled -}}
+{{- $fullName := include "spiffe-step-ssh.fullname" . -}}
+{{- include "spire-lib.gateway-routes" (dict
+      "root" .
+      "gatewayAPI" .Values.gatewayAPI
+      "name" $fullName
+      "namespace" .Release.Namespace
+      "svcName" $fullName
+      "port" .Values.step.service.port
+      "labels" (include "spiffe-step-ssh.labels" .)
+      "routeKind" "TLSRoute") }}
+{{- end }}

@@ -1,0 +1,15 @@
+# Expose the OIDC discovery provider via Gateway API with HTTPS termination at
+# the edge. The provider's SPIRE TLS is disabled so it serves plaintext behind
+# the Gateway; the Gateway terminates TLS with tls-cert (set gatewayAPI.tlsSecret)
+# => HTTPRoute + a terminating SNI listener. The helm test curls the discovery
+# document over HTTPS and validates the gateway cert against the tls-cert CA.
+spiffe-oidc-discovery-provider:
+  tls:
+    spire:
+      enabled: false
+  tests:
+    tls:
+      enabled: true
+  gatewayAPI:
+    enabled: true
+    tlsSecret: tls-cert

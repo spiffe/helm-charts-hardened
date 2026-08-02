@@ -14,6 +14,7 @@ source "${SCRIPTPATH}/../../.github/scripts/parse-versions.sh"
 source "${TESTDIR}/common.sh"
 
 CLEANUP=1
+BROKER=0
 
 for i in "$@"; do
   case $i in
@@ -21,8 +22,37 @@ for i in "$@"; do
       CLEANUP=0
       shift # past argument=value
       ;;
+    -b)
+      BROKER=1
+      shift # past argument=value
+      ;;
   esac
 done
+
+# With -b, test the spire-ha-agent broker api instead of the delegated api.
+# Broker mode also supports federated trust bundles, so federate the ha-agent's own entry and a
+# dedicated federation-test workload entry with the other.org trust domain on both sides. Delegated
+# mode only tolerates the local and spire-ha bundles, so none of this may apply without -b.
+BROKER_MODE_ARGS=()
+BROKER_SOCKET_ARGS_A=()
+BROKER_SOCKET_ARGS_B=()
+if [ "${BROKER}" -eq 1 ]; then
+  BROKER_MODE_ARGS=(--set "spire-ha-agent.mode=broker")
+  BROKER_SOCKET_ARGS_A=(
+    --set downstream-spire-agent-bottom-turtle-ha-a.sockets.broker.enabled=true
+    --set downstream-spire-agent-bottom-turtle-ha-a.sockets.broker.mountOnHost=true
+    --set 'internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent.federatesWith={spire-ha,other.org}'
+    --set 'internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.clusterSPIFFEIDs.federation-test.federatesWith={other.org}'
+    --set 'internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.clusterSPIFFEIDs.federation-test.podSelector.matchLabels.app=federation-test'
+  )
+  BROKER_SOCKET_ARGS_B=(
+    --set downstream-spire-agent-bottom-turtle-ha-b.sockets.broker.enabled=true
+    --set downstream-spire-agent-bottom-turtle-ha-b.sockets.broker.mountOnHost=true
+    --set 'internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent.federatesWith={spire-ha,other.org}'
+    --set 'internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.clusterSPIFFEIDs.federation-test.federatesWith={other.org}'
+    --set 'internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.clusterSPIFFEIDs.federation-test.podSelector.matchLabels.app=federation-test'
+  )
+fi
 
 if [ "x${GITHUB_JOB}" != "x" ]; then
   echo "Running in GitHub"
@@ -36,6 +66,9 @@ teardown() {
   docker exec -i chart-testing-worker /bin/bash -c "more /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/disk-keymanager/keys.json /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/spire-agent-persistence/agent-data.json | cat"
   sudo systemctl status spire-server@a || true
   sudo systemctl status spire-server@b || true
+  sudo systemctl status spire-server@other || true
+  kubectl describe job federation-test || true
+  kubectl logs job/federation-test || true
   sudo spire-server entry show -instance a || true
   sudo spire-server entry show -instance b || true
   sudo systemctl status spire-controller-manager@a || true
@@ -58,6 +91,10 @@ teardown() {
   kubectl exec -i -n spire-server spire-b-internal-server-0 -- spire-server entry show || true
   kubectl exec -i -n spire-server spire-a-internal-server-0 -- spire-server agent list -output json | yq e . - -P || true
   kubectl exec -i -n spire-server spire-b-internal-server-0 -- spire-server agent list -output json | yq e . - -P || true
+  kubectl get pods -A -o wide || true
+  kubectl describe daemonset pods -n spire-system || true
+  kubectl get configmap -n spire-system || true
+  kubectl get configmap -n spire-system spire-a-agent-downstream -o yaml || true
 
   print_helm_releases
 
@@ -67,6 +104,7 @@ teardown() {
   fi
 
   if [ "${CLEANUP}" -eq 1 ]; then
+    kubectl delete job federation-test 2>/dev/null || true
     helm uninstall --namespace spire-mgmt spire-b 2>/dev/null || true
     helm uninstall --namespace spire-mgmt spire-a 2>/dev/null || true
     helm uninstall --namespace spire-mgmt spire 2>/dev/null || true
@@ -126,6 +164,30 @@ wait_for_jwt() {
   return 1
 }
 
+wait_for_entry_federation() {
+  local pod="$1"
+  local trustdomain="$2"
+  local timeout=60
+  local count=0
+  while [ "$count" -lt "$timeout" ]; do
+    if kubectl exec -i -n spire-server "$pod" -- spire-server entry show -spiffeID spiffe://production.other/spire-ha-agent | grep -q "$trustdomain"; then
+      return 0
+    fi
+    sleep 2
+    ((count++)) || true
+  done
+  return 1
+}
+
+run_federation_test_job() {
+  kubectl delete job federation-test 2>/dev/null || true
+  # Inject the images from the charts into the job so they always sync up
+  yq e "(.spec.template.spec.initContainers[] | select(.name == \"static-busybox\") | .image) = \"${BUSYBOX_IMAGE}\" | (.spec.template.spec.containers[] | select(.name == \"main\") | .image) = \"${AGENT_IMAGE}\"" \
+    "${SCRIPTPATH}/federation-test-job.yaml" | kubectl apply -f -
+  kubectl wait --for=condition=complete --timeout=240s job/federation-test
+  kubectl logs job/federation-test | grep FEDERATION-OK
+}
+
 "${SCRIPTPATH}/../../.github/scripts/prepare-local-chart-deps.sh"
 
 # Get the package repo and install the packages
@@ -135,6 +197,25 @@ sudo apt-get install -y spire-common spire-agent spire-server spire-controller-m
 
 # Set our testing trust domain
 sudo sed -i 's/example.org/production.other/' /etc/spiffe/default-trust-domain.env
+
+if [ "${BROKER}" -eq 1 ]; then
+  # Pull the federation test job images out of the charts so they always sync up.
+  AGENT_IMAGE=$(helm template t charts/spire -s charts/spire-agent/templates/daemonset.yaml --values "${COMMON_TEST_YOUR_VALUES}" --set spire-agent.enabled=true | yq e 'select(.kind=="DaemonSet") | .spec.template.spec.containers[] | select(.name=="spire-agent") | .image' -)
+  BUSYBOX_IMAGE=$(helm template t charts/spire -s charts/spiffe-oidc-discovery-provider/templates/tests/test-keys.yaml --values "${COMMON_TEST_YOUR_VALUES}" --set spiffe-oidc-discovery-provider.enabled=true | yq e 'select(.kind=="Pod") | .spec.initContainers[] | select(.name=="static-busybox") | .image' -)
+  echo "federation test job images: ${AGENT_IMAGE} ${BUSYBOX_IMAGE}"
+
+  # Mint a trust bundle for a foreign trust domain (other.org) to test federated trust bundle
+  # support. A throwaway third spire-server instance produces a genuine spiffe format bundle
+  # carrying both x509 and jwt authorities. The instance env file overrides the global trust
+  # domain since systemd applies later EnvironmentFiles last.
+  sudo /bin/bash -c '(echo SPIFFE_TRUST_DOMAIN=other.org; echo SPIRE_BIND_PORT=8083) > /etc/spire/server/other.env'
+  sudo systemctl start spire-server@other
+  wait_for_healthcheck spire-server /run/spire/server/sockets/other/private/api.sock
+  sudo spire-server bundle show -format spiffe -socketPath /run/spire/server/sockets/other/private/api.sock | sudo tee /tmp/other-org-bundle.json > /dev/null
+  sudo systemctl stop spire-server@other
+  grep -q '"x509-svid"' /tmp/other-org-bundle.json
+  grep -q '"jwt-svid"' /tmp/other-org-bundle.json
+fi
 
 # register some workloads with the spire server using manifests
 sudo mkdir -p /etc/spire/server/a/manifests/ /etc/spire/server/b/manifests/
@@ -234,20 +315,40 @@ helm upgrade --install --create-namespace --namespace spire-mgmt --values "${COM
   --set tags.haAgentCommon=true \
   --set "global.spire.namespaces.create=true" \
   --set "global.spire.ingressControllerType=ingress-nginx" \
-  --set "spiffe-oidc-discovery-provider.ingress.enabled=true"
+  --set "spiffe-oidc-discovery-provider.ingress.enabled=true" \
+  "${BROKER_MODE_ARGS[@]}"
+
+# Create spire-identity-exchange cert for testing.
+mkdir -p certs
+openssl req -x509 -newkey rsa:2048 \
+    -keyout certs/server.key \
+    -out certs/server.pem -sha256 -days 365 -nodes \
+    -subj "/CN=localhost" \
+    -addext "basicConstraints=critical,CA:TRUE" \
+    -addext "subjectAltName=DNS:spire-identity-exchange.production.other,DNS:spire-identity-exchange-a.production.other,DNS:spire-identity-exchange-b.production.other"
+kubectl create secret tls -n spire-server spire-identity-exchange --key=certs/server.key --cert=certs/server.pem
 
 # Install server side a
 helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/spire-values.yaml" \
   --wait spire-a charts/spire-nested \
   --set tags.bottomTurtleHAA=true \
-  --set "global.spire.ingressControllerType=ingress-nginx"
+  --values "${SCRIPTPATH}/spire-identity-exchange-values.yaml" \
+  --set "spire-identity-exchange-bottom-turtle-ha-a.enabled=true" \
+  --set "global.spire.ingressControllerType=ingress-nginx" \
+  "${BROKER_SOCKET_ARGS_A[@]}"
+
+if [ "${BROKER}" -eq 1 ]; then
+  # Install the other.org bundle so the controller manager can create the entries that federate
+  # with it. It retries any entries that failed with "unable to find federated bundle".
+  kubectl exec -i -n spire-server spire-a-internal-server-0 -- spire-server bundle set -format spiffe -id spiffe://other.org < /tmp/other-org-bundle.json
+fi
 
 docker exec -i chart-testing-worker /bin/bash -c "more /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/disk-keymanager/keys.json /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/spire-agent-persistence/agent-data.json | cat"
 
 # Rollout just to sped up the tests
 kubectl patch deployment spiffe-oidc-discovery-provider -n spire-server --type='strategic' -p '{"spec": {"strategy": {"type": "Recreate", "rollingUpdate": null}}}'
 kubectl rollout restart daemonset -n spire-system spire-ha-agent
-kubectl rollout status daemonset -n spire-system spire-ha-agent
+kubectl rollout status daemonset -n spire-system spire-ha-agent --timeout=1m
 kubectl rollout restart deployment -n spire-server spiffe-oidc-discovery-provider
 kubectl rollout status deployment -n spire-server spiffe-oidc-discovery-provider --timeout=1m
 kubectl wait -n spire-server --for=condition=ready pod -l "app.kubernetes.io/name=spiffe-oidc-discovery-provider" --field-selector=status.phase=Running --timeout=90s
@@ -258,7 +359,17 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   --wait spire-b charts/spire-nested \
   --set tags.bottomTurtleHAB=true \
   --set internal-spire-server-bottom-turtle-ha-b.upstreamAuthority.spire.server.port=8082 \
-  --set "global.spire.ingressControllerType=ingress-nginx"
+  --values "${SCRIPTPATH}/spire-identity-exchange-values.yaml" \
+  --set "spire-identity-exchange-bottom-turtle-ha-b.enabled=true" \
+  --set "global.spire.ingressControllerType=ingress-nginx" \
+  "${BROKER_SOCKET_ARGS_B[@]}"
+
+if [ "${BROKER}" -eq 1 ]; then
+  kubectl exec -i -n spire-server spire-b-internal-server-0 -- spire-server bundle set -format spiffe -id spiffe://other.org < /tmp/other-org-bundle.json
+  # Both sides' spire-ha-agent entries must federate with other.org before the workload test.
+  wait_for_entry_federation spire-a-internal-server-0 other.org
+  wait_for_entry_federation spire-b-internal-server-0 other.org
+fi
 
 docker ps
 docker exec -i chart-testing-worker /bin/bash -c "more /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/disk-keymanager/keys.json /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/spire-agent-persistence/agent-data.json | cat"
@@ -278,16 +389,34 @@ if [[ "${ENTRIES}" == "Found 0 entries" ]]; then
 fi
 
 kubectl get pods -A -o wide
+kubectl get ingress -A
 
 helm test --namespace spire-mgmt spire-a
 helm test --namespace spire-mgmt spire-b
 curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discovery.production.other/.well-known/openid-configuration" -s --fail
+
+kubectl apply -f "${SCRIPTPATH}/test-job.yaml"
+kubectl wait --for=condition=complete --timeout=60s job/test && \
+TOKEN=$(kubectl logs job/test)
+curl -f -H "Authorization: Bearer ${TOKEN}" -X POST --resolve "spire-identity-exchange-a-rest.production.other:443:$IP" "https://spire-identity-exchange-a-rest.production.other/api/v1/svid/k8s_psat/x509" -k -sS -q
+curl -f -H "Authorization: Bearer ${TOKEN}" -X POST --resolve "spire-identity-exchange-b-rest.production.other:443:$IP" "https://spire-identity-exchange-b-rest.production.other/api/v1/svid/k8s_psat/x509" -k -sS -q
+
+if [ "${BROKER}" -eq 1 ]; then
+  # Verify a workload on the ha-agent socket receives the other.org federated trust bundles,
+  # x509 and jwt, merged from both sides.
+  run_federation_test_job
+fi
 
 #Test out running only on side b since we know already only both servers work together, and that only side a works if we made it this far.
 helm delete -n spire-mgmt spire-a
 kubectl rollout restart daemonset -n spire-system spire-ha-agent
 kubectl rollout status daemonset -n spire-system spire-ha-agent
 kubectl rollout restart deployment -n spire-server spiffe-oidc-discovery-provider
-kubectl rollout status deployment -n spire-server spiffe-oidc-discovery-provider --timeout=1m
+kubectl rollout status deployment -n spire-server spiffe-oidc-discovery-provider --timeout=5m
 curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discovery.production.other/.well-known/openid-configuration" -s --fail
+
+if [ "${BROKER}" -eq 1 ]; then
+  # Verify the other.org federated trust bundles still serve with only side b running.
+  run_federation_test_job
+fi
 

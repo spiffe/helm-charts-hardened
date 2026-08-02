@@ -14,7 +14,7 @@
 {{-       fail (printf "plugin_checksum is a required field.") }}
 {{-     end }}
 {{-     range $sname, $svals := $nval }}
-{{-       if not (has $sname (list "plugin_cmd" "plugin_checksum" "plugin_data")) }}
+{{-       if not (has $sname (list "plugin_cmd" "plugin_checksum" "plugin_data" "image")) }}
 {{-         fail (printf "Unknown plugin setting specified: %s" $sname) }}
 {{-       end }}
 {{-     end }}
@@ -81,9 +81,32 @@ agent:
     disable_spiffe_cert_validation: {{ eq .Values.sds.disableSPIFFECertValidation true }}
   {{- end }}
 
-  {{- with .Values.experimental }}
-  {{- if eq (.enabled | toString) "true" }}
+  {{- if or (eq (.enabled | toString) "true") .Values.sockets.broker.enabled .Values.brokerAPI.tcp.enabled (eq (.Values.experimental.enabled | toString) "true") }}
   experimental:
+    {{- if or (eq (.enabled | toString) "true") .Values.sockets.broker.enabled .Values.brokerAPI.tcp.enabled }}
+    broker:
+      {{- if .Values.sockets.broker.enabled }}
+      socket_path: "/tmp/spire-agent/broker/broker.sock"
+      {{- end }}
+      {{- if .Values.brokerAPI.tcp.enabled }}
+      bind_address: {{ .Values.brokerAPI.tcp.bindAddress | quote }}
+      {{- end }}
+      brokers:
+        {{- range .Values.brokerAPI.brokers }}
+        {{- if .enabled }}
+        - broker:
+          - id: {{ tpl .idTemplate (dict "TrustDomain" $trustDomain) }}
+            allowed_reference_types:
+              {{- range .allowedReferenceTypes }}
+              - allowed_reference_types:
+                  type_url: {{ .typeURL | quote }}
+                  allow_over_tcp: {{ .allowOverTCP }}
+              {{- end }}
+        {{- end }}
+        {{- end }}
+    {{- end }}
+    {{- with .Values.experimental }}
+    {{- if eq (.enabled | toString) "true" }}
     sync_interval: {{ .syncInterval | quote }}
     require_pq_kem: {{ .requirePQKEM }}
     {{- if gt (len .featureFlags) 0 }}
@@ -92,7 +115,8 @@ agent:
         - {{ . | quote }}
       {{- end }}
     {{- end }}
-  {{- end }}
+    {{- end }}
+    {{- end }}
   {{- end }}
 
 {{- $nodeAttestorUsed := add (len .Values.customPlugins.nodeAttestor) (len .Values.unsupportedBuiltInPlugins.nodeAttestor) }}
@@ -189,6 +213,25 @@ plugins:
         verbose_container_locator_logs: {{ eq .Values.workloadAttestors.k8s.verboseContainerLocatorLogs true }}
         {{- if eq (include "spire-agent.should-set-node-name-env" .) "true" }}
         node_name_env: "KUBELET_ADDR"
+        {{- end }}
+        {{- if or .Values.sockets.broker.enabled .Values.brokerAPI.tcp.enabled }}
+        experimental:
+          broker:
+            access_policy: {{ .Values.workloadAttestors.k8s.brokerAPI.accessPolicy | quote }}
+            brokers:
+              {{- range $key, $value := .Values.workloadAttestors.k8s.brokerAPI.brokers }}
+              {{-   if or (not (hasKey $value "enabled")) $value.enabled }}
+              {{-     $idTemplate := (index $.Values.brokerAPI.brokers $key).idTemplate }}
+              {{-     if hasKey $value "idTemplate" }}
+              {{-       $idTemplate = $value.idTemplate }}
+              {{-     end }}
+              - broker:
+                - id: {{ tpl $idTemplate (dict "TrustDomain" $trustDomain) }}
+                  {{- with $value.podReferenceScope }}
+                  pod_reference_scope: {{ . | quote }}
+                  {{- end }}
+              {{-   end }}
+              {{- end }}
         {{- end }}
   {{- end }}
 
