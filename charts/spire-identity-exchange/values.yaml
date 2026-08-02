@@ -195,7 +195,7 @@ autoscaling:
 ## @param nodeSelector [object] Node selector
 nodeSelector: {}
 
-## @param tolerations [array] iist of tolerations
+## @param tolerations [array] list of tolerations
 tolerations: []
 
 ## @param affinity [object] Node affinity
@@ -215,33 +215,43 @@ clusterDomain: cluster.local
 
 auth:
   plugins:
-    k8sPSAT:
+    k8s_psat:
+      ## @param auth.plugins.k8s_psat.enabled Enable the k8s psat plugin
       enabled: true
-      plugin: k8s_psat
       config:
+        ## @param auth.plugins.k8s_psat.config.audiences [array] The audiences to allow
         audiences:
           - spire-identity-exchange
+        ## @param auth.plugins.k8s_psat.config.allowedServiceAccounts [array] The service accounts that are allowed
         allowedServiceAccounts:
           - "*"
     spiffe:
+      ## @param auth.plugins.spiffe.enabled Enable the spiffe plugin
       enabled: true
       config:
+        ## @param auth.plugins.spiffe.config.issuerURL The url to connect to for JWKS discovery
         issuerURL: "${SPIFFE_JWT_ISSUER}"
-        # discoveryURL: "http://localhost:8181"
+        ## @param auth.plugins.spiffe.config.trustDomain The trust domain to use
         trustDomain: "${SPIFFE_TRUST_DOMAIN}"
+        ## @param auth.plugins.spiffe.config.pathPatterns [array] The service accounts that are allowed
         pathPatterns:
           - "^/k8s/${K8S_CLUSTER_NAME}/node/[^/]+"
+        ## @param auth.plugins.spiffe.config.audiences [array] The audiences to allow
         audiences:
           - spire-identity-exchange
+        ## @param auth.plugins.spiffe.config.connectWithTrustBundle Use the trust bundle to validate the issuerURL
         connectWithTrustBundle: true
 
   stacks:
-    image-pull:
+    image_pull:
+      ## @param auth.stacks.image_pull.enabled Enable the image_pull stack
       enabled: true
+      ## @param auth.stacks.image_pull.plugins [array] List of plugins that are required by this stack
       plugins:
         - spiffe
-        - k8sPSAT
+        - k8s_psat
 
+  ## @param auth.unsupportedBuiltInPlugins [object] Unsupported mechanism to use plugins not yet supported by the chart.
   unsupportedBuiltInPlugins: {}
 
   ## @param auth.passthroughPlugins Address each plugin as a stack of its own, in addition to any stacks defined
