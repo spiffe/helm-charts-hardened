@@ -34,6 +34,7 @@ spire-identity-exchange-bottom-turtle-ha-a:
       ingress:
         enabled: true
   auth:
+    passthroughPlugins: true
     plugins:
       k8sPSAT:
         allowedServiceAccounts:
