@@ -41,7 +41,7 @@ spire-identity-exchange-bottom-turtle-ha-a:
           - default/default
 #FIXME remove
       spiffe:
-        enabled: false
+        enabled: true
     stacks:
       image-pull:
         enabled: false
@@ -63,7 +63,7 @@ spire-identity-exchange-bottom-turtle-ha-b:
           - default/default
 #FIXME remove
       spiffe:
-        enabled: false
+        enabled: true
     stacks:
       image-pull:
         enabled: false
