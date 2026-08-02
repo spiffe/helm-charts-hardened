@@ -88,7 +88,7 @@ data:
         {{-   if has $name $enabledPlugins }}
         {{-   $pluginType := include "spire-identity-exchange.plugin-type" (dict "root" $root "name" $name "config" $config) }}
         {{-   $cfg := $config.config | default dict }}
-        {{ $name | quote }}:
+        {{ if eq $name "k8sPSAT" }}k8s_psat{{ else }}{{ $name | quote }}{{ end }}:
         {{-   with $config.plugin }}
           plugin: {{ . | quote }}
         {{-   end }}
