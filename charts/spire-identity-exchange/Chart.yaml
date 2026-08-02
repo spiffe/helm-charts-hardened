@@ -2,7 +2,7 @@ apiVersion: v2
 name: spire-identity-exchange
 description: A Helm chart to install the SPIRE Identity Exchange.
 type: application
-version: 0.1.0
+version: 0.2.0
 appVersion: "v0.4.0"
 keywords: ["spiffe", "spire", "identity exchange"]
 home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire-identity-exchange
@@ -20,4 +20,4 @@ maintainers:
 dependencies:
   - name: spire-lib
     repository: file://../spire-lib
-    version: 0.2.0
+    version: 0.3.0
