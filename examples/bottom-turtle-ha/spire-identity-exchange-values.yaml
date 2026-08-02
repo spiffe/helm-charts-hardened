@@ -36,7 +36,7 @@ spire-identity-exchange-bottom-turtle-ha-a:
   auth:
     passthroughPlugins: true
     plugins:
-      k8sPSAT:
+      k8s_psat:
         allowedServiceAccounts:
           - default/default
 
@@ -52,6 +52,6 @@ spire-identity-exchange-bottom-turtle-ha-b:
   auth:
     passthroughPlugins: true
     plugins:
-      k8sPSAT:
+      k8s_psat:
         allowedServiceAccounts:
           - default/default
