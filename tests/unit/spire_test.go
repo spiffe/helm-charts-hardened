@@ -288,4 +288,35 @@ spire-server:
 			Expect(objs[serverTmpl]).Should(ContainSubstring("path: clusterb"))
 		})
 	})
+	Describe("spire-server.externalServerSubject", func() {
+		It("binds the external server's downstream RBAC to a ServiceAccount subject", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  externalServer: true
+  externalServerSubject:
+    kind: ServiceAccount
+    name: spire-external
+    namespace: spire-ext
+`)
+			Expect(err).Should(Succeed())
+			roles := objs["spire/charts/spire-server/templates/roles.yaml"]
+			Expect(roles).Should(ContainSubstring("kind: ServiceAccount"))
+			Expect(roles).Should(ContainSubstring(`name: "spire-external"`))
+			Expect(roles).Should(ContainSubstring(`namespace: "spire-ext"`))
+		})
+		It("binds the external server's downstream RBAC to a Group subject", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  externalServer: true
+  externalServerSubject:
+    kind: Group
+    name: spire-admins
+`)
+			Expect(err).Should(Succeed())
+			roles := objs["spire/charts/spire-server/templates/roles.yaml"]
+			Expect(roles).Should(ContainSubstring("apiGroup: rbac.authorization.k8s.io"))
+			Expect(roles).Should(ContainSubstring("kind: Group"))
+			Expect(roles).Should(ContainSubstring(`name: "spire-admins"`))
+		})
+	})
 })
