@@ -26,6 +26,14 @@ kind: statefulset
 ## @param externalServer Deploy only the bundle ConfigMap, RBAC rules, and identity documents but not the server. Use in a nested setup where the server is external.
 externalServer: false
 
+## @param externalServerSubject.kind RBAC subject kind the external (nested) server's downstream bindings are granted to. One of "User" (client-certificate identity, the historical default), "Group", or "ServiceAccount" (e.g. for a static-token kubeconfig). Only used when externalServer is true.
+## @param externalServerSubject.name Name of the subject. For kind "User" it must match the CN of the client certificate the external server presents; for kind "Group" it is the group name (e.g. a certificate O value); for kind "ServiceAccount" it is the name of the (operator-managed, out-of-band) ServiceAccount.
+## @param externalServerSubject.namespace Namespace of the ServiceAccount. Only used when kind is "ServiceAccount"; empty uses the server namespace.
+externalServerSubject:
+  kind: User
+  name: spire-root
+  namespace: ""
+
 ## @param imagePullSecrets [array] Pull secrets for images
 imagePullSecrets: []
 

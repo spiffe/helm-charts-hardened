@@ -412,12 +412,27 @@ The code below determines what connection type should be used.
 {{-   default .Values.caSubject.commonName $g }}
 {{- end }}
 
+{{- define "spire-server.external-server-subject-kind" -}}
+{{-   $kind := .Values.externalServerSubject.kind | default "User" }}
+{{-   if not (has $kind (list "User" "Group" "ServiceAccount")) }}
+{{-     fail (printf "Unknown externalServerSubject.kind: %s (must be \"User\", \"Group\", or \"ServiceAccount\")" $kind) }}
+{{-   end }}
+{{-   $kind }}
+{{- end }}
+
 {{- define "spire-server.subject" }}
 subjects:
 {{-   if .Values.externalServer }}
+{{-     $kind := include "spire-server.external-server-subject-kind" . }}
+{{-     if eq $kind "ServiceAccount" }}
+- kind: ServiceAccount
+  name: {{ .Values.externalServerSubject.name | quote }}
+  namespace: {{ .Values.externalServerSubject.namespace | default (include "spire-server.namespace" .) | quote }}
+{{-     else }}
 - apiGroup: rbac.authorization.k8s.io
-  kind: User
-  name: spire-root
+  kind: {{ $kind }}
+  name: {{ .Values.externalServerSubject.name | quote }}
+{{-     end }}
 {{-   else }}
 - kind: ServiceAccount
   name: {{ include "spire-server.serviceAccountName" . }}
