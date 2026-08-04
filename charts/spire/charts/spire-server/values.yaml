@@ -90,6 +90,8 @@ service:
   annotations: {}
   ## @param service.loadBalancerIP IP address to assign to load balancer (if supported)
   loadBalancerIP: ""
+  ## @param service.externalTrafficPolicy Traffic policy applied when service.type is LoadBalancer (e.g. "Local" to preserve client source IP). Defaults to "Cluster" when left empty.
+  externalTrafficPolicy: ""
 
 configMap:
   ## @param configMap.annotations [object] Annotations to add to the SPIRE Server ConfigMap
