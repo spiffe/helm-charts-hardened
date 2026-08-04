@@ -91,6 +91,7 @@ ignoreNamespaces:
 spireServerSocketPath: "/tmp/spire-server/private/api.sock"
 className: {{ include "spire-server.controller-manager-class-name" . | quote}}
 watchClassless: {{ if hasKey .settings "watchClassless" }}{{ .settings.watchClassless | toYaml }}{{ else }}{{ .defaults.watchClassless | toYaml }}{{ end }}
+filterByClassName: {{ if hasKey .settings "filterByClassName" }}{{ .settings.filterByClassName | toYaml }}{{ else }}{{ .defaults.filterByClassName | toYaml }}{{ end }}
 parentIDTemplate: {{ if hasKey .settings "parentIDTemplate" }}{{ .settings.parentIDTemplate | quote }}{{ else }}{{ .defaults.parentIDTemplate | quote }}{{ end }}
 {{- $reconcile := dict }}
 {{- if hasKey .settings "reconcile" }}
