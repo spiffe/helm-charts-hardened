@@ -186,6 +186,50 @@ Name of the chart-generated Secret holding the inline kubeConfigs entries.
 {{ include "spire-server.fullname" . }}-kubeconfigs
 {{- end }}
 
+{{/*
+Path of the staged jwt-svid exec plugin binary inside the shared plugins volume. Used both as the
+init-container copy target and as the exec kubeconfig command, so the two must stay in sync.
+*/}}
+{{- define "spire-server.jwt-svid-exec-binary-path" -}}
+/plugins/jwt-svid-exec
+{{- end }}
+
+{{/*
+Render an exec-credential kubeconfig for a kubeConfigs entry that uses jwtSVIDExec.
+Input: dict "jwtSVIDExec" <the entry's jwtSVIDExec source block> "root" <chart root context, provides .Values>.
+The file holds no secret: the exec plugin fetches a short-lived JWT-SVID from the local agent
+Workload API socket at every call. server/CA come from the source; command/socket are chart-wired.
+*/}}
+{{- define "spire-server.jwt-svid-exec-kubeconfig" -}}
+{{- $jwtSVIDExec := .jwtSVIDExec -}}
+{{- $root := .root -}}
+apiVersion: v1
+kind: Config
+clusters:
+- name: cluster
+  cluster:
+    server: {{ $jwtSVIDExec.server | quote }}
+    certificate-authority-data: {{ $jwtSVIDExec.certificateAuthorityData | quote }}
+users:
+- name: spiffe
+  user:
+    exec:
+      apiVersion: client.authentication.k8s.io/v1
+      command: {{ include "spire-server.jwt-svid-exec-binary-path" $root }}
+      interactiveMode: Never
+      env:
+      - name: SPIFFE_ENDPOINT_SOCKET
+        value: "unix://{{ $root.Values.jwtSVIDExecConfig.socketPath }}"
+      - name: SPIFFE_JWT_AUDIENCE
+        value: {{ $jwtSVIDExec.audience | default "k8s" | quote }}
+contexts:
+- name: cluster
+  context:
+    cluster: cluster
+    user: spiffe
+current-context: cluster
+{{- end }}
+
 {{- define "spire-server.serviceAccountAllowedList" }}
 {{- $releaseNamespace := include "spire-server.agent-namespace" . }}
 {{- if ne (len .Values.nodeAttestor.k8sPSAT.serviceAccountAllowList) 0 }}
