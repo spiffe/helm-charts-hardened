@@ -281,6 +281,14 @@ plugins:
   {{- if or (eq (.enabled | toString) "true") $root.Values.spireIdentityExchange.enabled }}
     x509pop:
       plugin_data:
+        {{- if eq (.mode | toString) "externalPKI" }}
+        mode: external_pki
+        {{- if or (ne (.caBundle.bundle | default "") "") (ne (.caBundle.existingConfigMap | default "") "") }}
+        ca_bundle_path: "/run/spire/data/x509pop-ca-bundle.pem"
+        {{- end }}
+        max_intermediates: {{ .maxIntermediates }}
+        max_rsa_key_size: {{ .maxRSAKeySize }}
+        {{- else }}
         mode: {{ .mode }}
         spiffe_prefix: {{ include "spire-server.identity-exchange-spiffe-prefix" $root | quote }}
         max_intermediates: {{ .maxIntermediates }}
@@ -298,6 +306,7 @@ plugins:
         {{-   $cn = printf "/%s" (include "spire-lib.cluster-name" $root) }}
         {{- end }}
         agent_path_template: {{ replace "${HELM_ADD_CLUSTER_NAME}" $cn $agentPathTemplate | quote }}
+        {{- end }}
   {{- end }}
   {{- end }}
   {{- with .Values.nodeAttestor.awsIID }}
