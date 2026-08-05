@@ -186,6 +186,63 @@ Name of the chart-generated Secret holding the inline kubeConfigs entries.
 {{ include "spire-server.fullname" . }}-kubeconfigs
 {{- end }}
 
+{{/*
+Path of the staged jwt-svid exec plugin binary inside the shared plugins volume. Used both as the
+init-container copy target and as the exec kubeconfig command, so the two must stay in sync.
+*/}}
+{{- define "spire-server.jwt-svid-exec-binary-path" -}}
+/plugins/jwt-svid-exec
+{{- end }}
+
+{{- define "spire-server.jwt-svid-exec-kubeconfig" -}}
+{{- $jwtSVIDExec := .jwtSVIDExec -}}
+{{- $root := .root -}}
+{{- $spiffeID := $root.Values.jwtSVIDExecConfig.spiffeID -}}
+{{- if not $spiffeID -}}
+{{- fail "jwtSVIDExecConfig.spiffeID is required when a kubeConfigs entry uses jwtSVIDExec" -}}
+{{- end -}}
+{{- $chartTD := include "spire-lib.trust-domain" $root -}}
+{{- if hasPrefix "/" $spiffeID -}}
+{{- $spiffeID = printf "spiffe://%s%s" $chartTD $spiffeID -}}
+{{- else if hasPrefix "spiffe://" $spiffeID -}}
+{{- $idTD := $spiffeID | trimPrefix "spiffe://" | splitList "/" | first -}}
+{{- if ne $idTD $chartTD -}}
+{{- fail (printf "jwtSVIDExecConfig.spiffeID trust domain %q must match the chart trust domain %q" $idTD $chartTD) -}}
+{{- end -}}
+{{- else -}}
+{{- fail (printf "jwtSVIDExecConfig.spiffeID %q must be a spiffe:// URI or a path starting with \"/\"" $spiffeID) -}}
+{{- end -}}
+apiVersion: v1
+kind: Config
+clusters:
+- name: cluster
+  cluster:
+    server: {{ $jwtSVIDExec.server | quote }}
+    certificate-authority-data: {{ $jwtSVIDExec.certificateAuthorityData | quote }}
+users:
+- name: spiffe
+  user:
+    exec:
+      apiVersion: client.authentication.k8s.io/v1
+      command: {{ include "spire-server.jwt-svid-exec-binary-path" $root }}
+      interactiveMode: Never
+      env:
+      - name: SPIFFE_JWT_SOURCE
+        value: "server-admin-api"
+      - name: SPIRE_SERVER_SOCKET
+        value: "unix:///tmp/spire-server/private/api.sock"
+      - name: SPIFFE_ID
+        value: {{ $spiffeID | quote }}
+      - name: SPIFFE_JWT_AUDIENCE
+        value: {{ $jwtSVIDExec.audience | default "k8s" | quote }}
+contexts:
+- name: cluster
+  context:
+    cluster: cluster
+    user: spiffe
+current-context: cluster
+{{- end }}
+
 {{- define "spire-server.serviceAccountAllowedList" }}
 {{- $releaseNamespace := include "spire-server.agent-namespace" . }}
 {{- if ne (len .Values.nodeAttestor.k8sPSAT.serviceAccountAllowList) 0 }}
