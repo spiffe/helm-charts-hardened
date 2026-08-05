@@ -124,6 +124,15 @@ autoscaling:
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
+## @param podDisruptionBudget.enabled Flag to enable a PodDisruptionBudget for the SPIRE server pods
+## @param podDisruptionBudget.minAvailable Minimum number/percentage of pods that must remain available (mutually exclusive with maxUnavailable)
+## @param podDisruptionBudget.maxUnavailable Maximum number/percentage of pods that can be unavailable (mutually exclusive with minAvailable)
+##
+podDisruptionBudget:
+  enabled: false
+  minAvailable: ""
+  maxUnavailable: ""
+
 ## @param nodeSelector [object] Select specific nodes to run on (currently only amd64 is supported by Tornjak)
 nodeSelector: {}
 
