@@ -409,7 +409,7 @@ spec:
             {{- end }}
             {{- end }}
             {{- with .Values.nodeAttestor.x509POP }}
-            {{- if and (eq (.enabled | toString) "true") (eq (.mode | toString) "externalPKI") (or (ne (.caBundle.bundle | default "") "") (ne (.caBundle.existingConfigMap | default "") "")) }}
+            {{- if and (eq (.enabled | toString) "true") (eq (.mode | toString) "externalPKI") }}
             - name: x509pop-ca-bundle
               mountPath: /run/spire/data/x509pop-ca-bundle.pem
               subPath: ca-bundle.pem
@@ -655,7 +655,7 @@ spec:
         {{- end }}
         {{- end }}
         {{- with .Values.nodeAttestor.x509POP }}
-        {{- if and (eq (.enabled | toString) "true") (eq (.mode | toString) "externalPKI") (or (ne (.caBundle.bundle | default "") "") (ne (.caBundle.existingConfigMap | default "") "")) }}
+        {{- if and (eq (.enabled | toString) "true") (eq (.mode | toString) "externalPKI") }}
         - name: x509pop-ca-bundle
           configMap:
             {{- if ne (.caBundle.bundle | default "") "" }}
