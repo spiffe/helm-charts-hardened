@@ -26,6 +26,14 @@ kind: statefulset
 ## @param externalServer Deploy only the bundle ConfigMap, RBAC rules, and identity documents but not the server. Use in a nested setup where the server is external.
 externalServer: false
 
+## @param externalServerSubject.kind RBAC subject kind the external (nested) server's downstream bindings are granted to. One of "User" (client-certificate identity, the historical default), "Group", or "ServiceAccount" (e.g. for a static-token kubeconfig). Only used when externalServer is true.
+## @param externalServerSubject.name Name of the subject. For kind "User" it must match the CN of the client certificate the external server presents; for kind "Group" it is the group name (e.g. a certificate O value); for kind "ServiceAccount" it is the name of the (operator-managed, out-of-band) ServiceAccount.
+## @param externalServerSubject.namespace Namespace of the ServiceAccount. Only used when kind is "ServiceAccount"; empty uses the server namespace.
+externalServerSubject:
+  kind: User
+  name: spire-root
+  namespace: ""
+
 ## @param imagePullSecrets [array] Pull secrets for images
 imagePullSecrets: []
 
@@ -82,6 +90,8 @@ service:
   annotations: {}
   ## @param service.loadBalancerIP IP address to assign to load balancer (if supported)
   loadBalancerIP: ""
+  ## @param service.externalTrafficPolicy Traffic policy applied when service.type is LoadBalancer (e.g. "Local" to preserve client source IP). Defaults to "Cluster" when left empty.
+  externalTrafficPolicy: ""
 
 configMap:
   ## @param configMap.annotations [object] Annotations to add to the SPIRE Server ConfigMap
@@ -638,6 +648,8 @@ controllerManager:
   className: ""
   ## @param controllerManager.watchClassless specify to process custom resources without class name specified. Useful to slowly migrate to class names from classless installs. Do not have two installs on the same k8s cluster both set to true.
   watchClassless: false
+  ## @param controllerManager.filterByClassName Restrict the ClusterSPIFFEID cache to this controller's className. Only enable after confirming target ClusterSPIFFEIDs already carry the className label, or existing registrations will be deleted.
+  filterByClassName: false
 
   ## @param controllerManager.entryIDPrefixCleanup Sets which entry prefixes to remove for migrations. Consult the spiffe.io docs about this option before changing. Its unlikely you will need to ever change it.
   entryIDPrefixCleanup: false
@@ -950,6 +962,8 @@ externalControllerManagers:
     className: ""
     ## @param externalControllerManagers.defaults.watchClassless specify to process custom resources without class name specified. Useful to slowly migrate to class names from classless installs. Do not have two installs on the same k8s cluster both set to true.
     watchClassless: false
+    ## @param externalControllerManagers.defaults.filterByClassName Restrict the ClusterSPIFFEID cache to this controller's className. Only enable after confirming target ClusterSPIFFEIDs already carry the className label, or existing registrations will be deleted.
+    filterByClassName: false
     ## @param externalControllerManagers.defaults.entryIDPrefixCleanup consult the spiffe.io docs about this option before changing. Its unlikely you will need to ever change it.
     entryIDPrefixCleanup: false
     ## @param externalControllerManagers.defaults.parentIDTemplate The template that is used to register workloads.
@@ -1225,8 +1239,14 @@ nodeAttestor:
   x509POP:
     ## @param nodeAttestor.x509POP.enabled Enable the x509_popg node attestor
     enabled: false
-    ## @param nodeAttestor.x509POP.mode What mode to set the plugin to. Currently only spiffe mode is supported
+    ## @param nodeAttestor.x509POP.mode Plugin mode: spiffe (exchange) or externalPKI (enrollment CA bundle)
     mode: spiffe
+    ## @extra nodeAttestor.x509POP.caBundle CA bundle for externalPKI mode. Provide inline PEM contents or reference an existing ConfigMap.
+    caBundle:
+      ## @param nodeAttestor.x509POP.caBundle.bundle [nullable] PEM CA bundle contents. When set, the chart creates and mounts a ConfigMap.
+      bundle: ""
+      ## @param nodeAttestor.x509POP.caBundle.existingConfigMap [nullable] Name of a ConfigMap containing a `ca-bundle.pem` key with the PEM CA bundle.
+      existingConfigMap: ""
     ## @param nodeAttestor.x509POP.spiffePrefix What prefix to use when mode is spiffe
     spiffePrefix: "/spire-exchange/k8s${HELM_ADD_CLUSTER_NAME}/"
     ## @param nodeAttestor.x509POP.agentPathTemplate Override the default agent path template

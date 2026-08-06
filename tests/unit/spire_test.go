@@ -187,6 +187,52 @@ spire-server:
 			Expect(notes).Should(ContainSubstring("Installed"))
 		})
 	})
+	Describe("spire-server.nodeAttestor.x509POP", func() {
+		It("renders externalPKI mode with chart-managed ca bundle", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  nodeAttestor:
+    k8sPSAT:
+      enabled: false
+    x509POP:
+      enabled: true
+      mode: externalPKI
+      caBundle:
+        bundle: |
+          -----BEGIN CERTIFICATE-----
+          MIIB...
+          -----END CERTIFICATE-----
+`)
+			Expect(err).Should(Succeed())
+			serverCM := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(serverCM).Should(ContainSubstring(`"mode": "external_pki"`))
+			Expect(serverCM).Should(ContainSubstring(`"ca_bundle_path": "/run/spire/data/x509pop-ca-bundle.pem"`))
+			Expect(objs).Should(HaveKey("spire/charts/spire-server/templates/x509pop-configmap.yaml"))
+			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
+			Expect(serverResource).Should(ContainSubstring("x509pop-ca-bundle"))
+			Expect(serverResource).Should(ContainSubstring("/run/spire/data/x509pop-ca-bundle.pem"))
+		})
+		It("renders externalPKI mode with existing ConfigMap reference", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  nodeAttestor:
+    k8sPSAT:
+      enabled: false
+    x509POP:
+      enabled: true
+      mode: externalPKI
+      caBundle:
+        existingConfigMap: my-enrollment-ca
+`)
+			Expect(err).Should(Succeed())
+			serverCM := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(serverCM).Should(ContainSubstring(`"mode": "external_pki"`))
+			Expect(serverCM).Should(ContainSubstring(`"ca_bundle_path": "/run/spire/data/x509pop-ca-bundle.pem"`))
+			Expect(objs["spire/charts/spire-server/templates/x509pop-configmap.yaml"]).ShouldNot(ContainSubstring("kind: ConfigMap"))
+			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
+			Expect(serverResource).Should(ContainSubstring("name: my-enrollment-ca"))
+		})
+	})
 	Describe("spire-server.nodeAttestor.awsIID.verifyOrganization", func() {
 		It("emits verify_organization in server config JSON", func() {
 			objs, err := ValueStringRender(chart, `
@@ -286,6 +332,37 @@ spire-server:
 			Expect(objs[secretTmpl]).ShouldNot(ContainSubstring("kind: Secret"))
 			Expect(objs[serverTmpl]).Should(ContainSubstring("name: my-ext-secret"))
 			Expect(objs[serverTmpl]).Should(ContainSubstring("path: clusterb"))
+		})
+	})
+	Describe("spire-server.externalServerSubject", func() {
+		It("binds the external server's downstream RBAC to a ServiceAccount subject", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  externalServer: true
+  externalServerSubject:
+    kind: ServiceAccount
+    name: spire-external
+    namespace: spire-ext
+`)
+			Expect(err).Should(Succeed())
+			roles := objs["spire/charts/spire-server/templates/roles.yaml"]
+			Expect(roles).Should(ContainSubstring("kind: ServiceAccount"))
+			Expect(roles).Should(ContainSubstring(`name: "spire-external"`))
+			Expect(roles).Should(ContainSubstring(`namespace: "spire-ext"`))
+		})
+		It("binds the external server's downstream RBAC to a Group subject", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  externalServer: true
+  externalServerSubject:
+    kind: Group
+    name: spire-admins
+`)
+			Expect(err).Should(Succeed())
+			roles := objs["spire/charts/spire-server/templates/roles.yaml"]
+			Expect(roles).Should(ContainSubstring("apiGroup: rbac.authorization.k8s.io"))
+			Expect(roles).Should(ContainSubstring("kind: Group"))
+			Expect(roles).Should(ContainSubstring(`name: "spire-admins"`))
 		})
 	})
 })
