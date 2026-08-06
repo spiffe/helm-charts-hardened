@@ -65,7 +65,11 @@
 {{-   end }}
 {{- end }}
 {{- $pluginsToLoad := include "spire-lib.extract_custom_plugin_images" . | fromYamlArray }}
-{{- $pluginLoaderNeeded := or .Values.credentialComposer.cel.enabled .Values.spireIdentityExchange.enabled (gt (len $pluginsToLoad) 0) }}
+{{- $jwtExecNeeded := false }}
+{{- range $name, $value := .Values.kubeConfigs }}
+{{-   if hasKey $value "jwtSVIDExec" }}{{ $jwtExecNeeded = true }}{{- end }}
+{{- end }}
+{{- $pluginLoaderNeeded := or .Values.credentialComposer.cel.enabled .Values.spireIdentityExchange.enabled (gt (len $pluginsToLoad) 0) $jwtExecNeeded }}
 {{- if not .Values.externalServer }}
 apiVersion: apps/v1
 {{- if eq .Values.kind "statefulset" }}
@@ -175,6 +179,23 @@ spec:
             - name: plugins
               mountPath: /plugins
           imagePullPolicy: {{ .Values.credentialComposer.spireIdentityExchange.image.pullPolicy }}
+        {{- end }}
+        {{- if $jwtExecNeeded }}
+        - name: init-jwt-svid-exec
+          securityContext:
+            {{- include "spire-lib.securitycontext" . | nindent 12 }}
+          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.jwtSVIDExecConfig.image "global" .Values.global) }}
+          # Use the previously copied busybox to stage the exec credential plugin binary where the kubeConfigs consumers can fork it.
+          command:
+            - /plugins/busybox
+            - sh
+            - -ec
+            - |
+              /plugins/busybox cp -a {{ .Values.jwtSVIDExecConfig.pluginPath }} {{ include "spire-server.jwt-svid-exec-binary-path" . }}
+          volumeMounts:
+            - name: plugins
+              mountPath: /plugins
+          imagePullPolicy: {{ .Values.jwtSVIDExecConfig.image.pullPolicy }}
         {{- end }}
         {{- range $idx, $plugin := $pluginsToLoad }}
         - name: {{ printf "init-plugin-%d" $idx }}
@@ -393,6 +414,11 @@ spec:
             {{- if $pluginLoaderNeeded }}
             - name: plugins
               mountPath: /plugins
+              readOnly: true
+            {{- end }}
+            {{- if $jwtExecNeeded }}
+            - name: jwt-svid-exec-socket
+              mountPath: {{ .Values.jwtSVIDExecConfig.socketPath | dir }}
               readOnly: true
             {{- end }}
             {{- if .Values.nodeAttestor.tpmDirect.enabled }}
@@ -639,6 +665,12 @@ spec:
         {{- if $pluginLoaderNeeded }}
         - name: plugins
           emptyDir: {}
+        {{- end }}
+        {{- if $jwtExecNeeded }}
+        - name: jwt-svid-exec-socket
+          csi:
+            driver: {{ .Values.jwtSVIDExecConfig.csiDriverName }}
+            readOnly: true
         {{- end }}
         {{- if .Values.nodeAttestor.tpmDirect.enabled }}
         - name: tpm-direct
