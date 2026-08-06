@@ -408,8 +408,8 @@ spec:
               mountPath: /tmp-direct-hashes
             {{- end }}
             {{- end }}
+            {{- if and (eq (.Values.nodeAttestor.x509POP.enabled | toString) "true") (eq (.Values.nodeAttestor.x509POP.mode | toString) "externalPKI") }}
             {{- with .Values.nodeAttestor.x509POP }}
-            {{- if and (eq (.enabled | toString) "true") (eq (.mode | toString) "externalPKI") }}
             - name: x509pop-ca-bundle
               mountPath: /run/spire/data/x509pop-ca-bundle.pem
               subPath: ca-bundle.pem
@@ -654,8 +654,8 @@ spec:
             name: {{ include "spire-server.fullname" . }}-tpm-direct-hash
         {{- end }}
         {{- end }}
+        {{- if and (eq (.Values.nodeAttestor.x509POP.enabled | toString) "true") (eq (.Values.nodeAttestor.x509POP.mode | toString) "externalPKI") }}
         {{- with .Values.nodeAttestor.x509POP }}
-        {{- if and (eq (.enabled | toString) "true") (eq (.mode | toString) "externalPKI") }}
         - name: x509pop-ca-bundle
           configMap:
             {{- if ne (.caBundle.bundle | default "") "" }}
