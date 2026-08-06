@@ -281,7 +281,7 @@ plugins:
   {{- if or (eq (.enabled | toString) "true") $root.Values.spireIdentityExchange.enabled }}
     x509pop:
       plugin_data:
-        {{- if eq (.mode | toString) "externalPKI" }}
+        {{- if eq .mode "externalPKI" }}
         mode: external_pki
         ca_bundle_path: "/run/spire/data/x509pop-ca-bundle.pem"
         max_intermediates: {{ .maxIntermediates }}
