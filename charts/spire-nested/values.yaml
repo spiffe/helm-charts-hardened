@@ -820,6 +820,10 @@ spire-identity-exchange-bottom-turtle-ha-a:
   server:
     ## @param spire-identity-exchange-bottom-turtle-ha-a.server.nameOverride The name override setting of the internal SPIRE server
     nameOverride: internal-server
+  auth:
+    spiffe:
+      ## @param spire-identity-exchange-bottom-turtle-ha-a.auth.spiffe.csiDriverName The csi driver to use
+      csiDriverName: csi.spiffe.io
 
 spire-identity-exchange-bottom-turtle-ha-b:
   ## @param spire-identity-exchange-bottom-turtle-ha-b.enabled Enable the spire-identity-exchange
@@ -849,3 +853,7 @@ spire-identity-exchange-bottom-turtle-ha-b:
       ingress:
         ## @param spire-identity-exchange-bottom-turtle-ha-b.spiffe.grpc.ingress.host Hostname override for the SVID-served grpc ingress service
         host: "spire-identity-exchange-b-grpc-spiffe"
+  auth:
+    spiffe:
+      ## @param spire-identity-exchange-bottom-turtle-ha-b.auth.spiffe.csiDriverName The csi driver to use
+      csiDriverName: csi.spiffe.io

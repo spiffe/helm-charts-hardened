@@ -88,6 +88,14 @@ data:
         {{-   if has $name $enabledPlugins }}
         {{-   $pluginType := include "spire-identity-exchange.plugin-type" (dict "root" $root "name" $name "config" $config) }}
         {{-   $cfg := $config.config | default dict }}
+        {{-   if hasKey ($config | default dict) "csiDriverName" }}
+        {{-     if ne $pluginType "spiffe" }}
+        {{-       fail (printf "auth.plugins.%s: csiDriverName is only supported on plugins of type \"spiffe\". Plugin type %q does not talk to a SPIRE Agent workload socket, so there is nothing to mount the driver for." $name $pluginType) }}
+        {{-     end }}
+        {{-     if not (kindIs "string" $config.csiDriverName) }}
+        {{-       fail (printf "auth.plugins.%s.csiDriverName: expected string, got %s" $name (kindOf $config.csiDriverName)) }}
+        {{-     end }}
+        {{-   end }}
         {{ if eq $name "k8sPSAT" }}k8s_psat{{ else }}{{ $name | quote }}{{ end }}:
         {{-   with $config.plugin }}
           plugin: {{ . | quote }}
@@ -128,9 +136,13 @@ data:
                    "pathPatterns" "[]string"
                    "connectWithTrustBundle" "bool")) }}
         {{-     $_ := include "spire-identity-exchange.check-plugin-required" (dict "name" $name "type" $pluginType "config" $cfg "required" (list "issuerURL" "audiences" "trustDomain" "pathPatterns")) }}
+        {{-     $driver := dig "csiDriverName" "" ($config | default dict) }}
+        {{-     if and (not (empty $driver)) (not $cfg.connectWithTrustBundle) }}
+        {{-       fail (printf "auth.plugins.%s: csiDriverName is only meaningful when config.connectWithTrustBundle is true; the SPIRE Agent workload socket is not used otherwise." $name) }}
+        {{-     end }}
         {{-     $effective := $cfg }}
         {{-     if $cfg.connectWithTrustBundle }}
-        {{-       $effective = merge (dict "agentWorkloadSocketPath" (include "spire-identity-exchange.workload-api-socket-path" $root)) $cfg }}
+        {{-       $effective = merge (dict "agentWorkloadSocketPath" (include "spire-identity-exchange.plugin-workload-api-socket-path" (dict "root" $root "driver" $driver))) $cfg }}
         {{-     end }}
         {{-     toYaml $effective | nindent 12 }}
         {{-   else if eq $pluginType "github" }}

@@ -92,6 +92,64 @@ Create the name of the service account to use
 {{- printf "/spiffe-workload-api/%s" .Values.agentSocketName }}
 {{- end }}
 
+{{/*
+Volume name for an extra SPIFFE CSI driver. Driver names are DNS subdomains and may
+contain dots, which a volume name (a DNS-1123 label) may not, so squash every run of
+non-alphanumeric characters down to a single dash.
+Args: the driver name as a string
+*/}}
+{{- define "spire-identity-exchange.csi-volume-name" -}}
+{{- printf "spiffe-workload-api-%s" (trimAll "-" (regexReplaceAll "[^a-z0-9]+" (lower .) "-")) | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Path to the SPIRE Agent workload socket one auth plugin should talk to. A plugin that
+names no driver of its own, or names the one the exchange itself uses, gets the socket
+already mounted for the pod; anything else gets its own mount under /spiffe-workload-apis.
+Args: dict "root" <root context> "driver" <csi driver name, may be empty>
+*/}}
+{{- define "spire-identity-exchange.plugin-workload-api-socket-path" -}}
+{{-   $root := .root }}
+{{-   $driver := .driver | default "" }}
+{{-   if or (eq $driver "") (eq $driver $root.Values.csiDriverName) }}
+{{-     include "spire-identity-exchange.workload-api-socket-path" $root }}
+{{-   else }}
+{{-     printf "/spiffe-workload-apis/%s/%s" $driver $root.Values.agentSocketName }}
+{{-   end }}
+{{- end }}
+
+{{/*
+The CSI drivers this release must mount in addition to the pod's own, collected from the
+enabled spiffe auth plugins. Deduplicated, so two plugins naming the same driver share one
+volume. Returns JSON of driver name -> volume name; callers pipe it through fromJson.
+*/}}
+{{- define "spire-identity-exchange.extra-csi-drivers" -}}
+{{-   $root := . }}
+{{-   $drivers := dict }}
+{{-   $volumeNames := dict }}
+{{-   range $name, $config := .Values.auth.plugins }}
+{{-     $config = $config | default dict }}
+{{-     if ne (dig "enabled" true $config) false }}
+{{-       $pluginType := include "spire-identity-exchange.plugin-type" (dict "root" $root "name" $name "config" $config) }}
+{{-       $driver := dig "csiDriverName" "" $config }}
+{{-       if and (eq $pluginType "spiffe") (not (empty $driver)) }}
+{{-         if not (kindIs "string" $driver) }}
+{{-           fail (printf "auth.plugins.%s.csiDriverName: expected string, got %s" $name (kindOf $driver)) }}
+{{-         end }}
+{{-         if ne $driver $root.Values.csiDriverName }}
+{{-           $volumeName := include "spire-identity-exchange.csi-volume-name" $driver }}
+{{-           if and (hasKey $volumeNames $volumeName) (ne (index $volumeNames $volumeName) $driver) }}
+{{-             fail (printf "auth.plugins.%s.csiDriverName: %q and %q both reduce to the volume name %q. Volume names allow only lowercase alphanumerics and dashes, so these two drivers cannot be told apart; rename one so they differ by more than punctuation." $name $driver (index $volumeNames $volumeName) $volumeName) }}
+{{-           end }}
+{{-           $_ := set $volumeNames $volumeName $driver }}
+{{-           $_ := set $drivers $driver $volumeName }}
+{{-         end }}
+{{-       end }}
+{{-     end }}
+{{-   end }}
+{{-   $drivers | toJson }}
+{{- end }}
+
 {{- define "spire-identity-exchange.podSecurityContext" -}}
 {{-   $podSecurityContext := include "spire-lib.podsecuritycontext" . | fromYaml }}
 {{-   $openshift := ((.Values).global).openshift | default false }}

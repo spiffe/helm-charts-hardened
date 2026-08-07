@@ -1,6 +1,7 @@
 {{- $configSum := (include (print $.Template.BasePath "/configmap.yaml") . | sha256sum) }}
 {{- $trustDomain := include "spire-lib.trust-domain" . }}
 {{- $fileTLS := or .Values.tls.rest.enabled .Values.tls.grpc.enabled }}
+{{- $extraCSIDrivers := include "spire-identity-exchange.extra-csi-drivers" . | fromJson }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -158,6 +159,11 @@ spec:
             - name: spiffe-workload-api
               mountPath: {{ include "spire-identity-exchange.workload-api-socket-path" . | dir }}
               readOnly: true
+            {{- range $driver, $volumeName := $extraCSIDrivers }}
+            - name: {{ $volumeName }}
+              mountPath: /spiffe-workload-apis/{{ $driver }}
+              readOnly: true
+            {{- end }}
             {{- if $fileTLS }}
             - name: certdir
               mountPath: /secret
@@ -187,6 +193,12 @@ spec:
           csi:
             driver: "{{ .Values.csiDriverName }}"
             readOnly: true
+        {{- range $driver, $volumeName := $extraCSIDrivers }}
+        - name: {{ $volumeName }}
+          csi:
+            driver: "{{ $driver }}"
+            readOnly: true
+        {{- end }}
         {{- if $fileTLS }}
         - name: certdir
           {{- if .Values.tls.externalSecret.enabled }}
