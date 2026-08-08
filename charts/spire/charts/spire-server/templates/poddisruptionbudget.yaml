@@ -14,7 +14,7 @@ spec:
   {{- if .Values.podDisruptionBudget.maxUnavailable }}
   maxUnavailable: {{ .Values.podDisruptionBudget.maxUnavailable }}
   {{- else }}
-  minAvailable: {{ .Values.podDisruptionBudget.minAvailable | default 1 }}
+  minAvailable: {{ .Values.podDisruptionBudget.minAvailable | default (max 1 (sub .Values.replicaCount 1)) }}
   {{- end }}
   selector:
     matchLabels:
