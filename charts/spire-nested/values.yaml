@@ -73,6 +73,24 @@ global:
     ## @param global.spire.ingressControllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, autodetection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""].
     ingressControllerType: ""
 
+    ## Shared Gateway that routes and ListenerSets attach to. The Gateway object itself is
+    ## rendered by the `gatewayAPI.gateway` block of this chart. Gateway API support is
+    ## independent of ingress and can be enabled alongside it.
+    gatewayAPI:
+      ## @param global.spire.gatewayAPI.manageListenerSets Default policy for whether services render a ListenerSet for their SNI listener. Each service may override via its gatewayAPI.listenerSet.enabled.
+      manageListenerSets: true
+      gateway:
+        ## @param global.spire.gatewayAPI.gateway.name Name of the shared Gateway object that routes and ListenerSets attach to
+        name: spire
+        ## The Gateway object and every route's parentRef both read this value, so they
+        ## cannot disagree. It defaults to the server namespace so the Gateway sits with
+        ## the workloads it fronts; a ListenerSet in another namespace still attaches, as
+        ## the Gateway allows listeners from all namespaces by default.
+        ## @param global.spire.gatewayAPI.gateway.namespace Namespace of the shared Gateway object. Defaults to the release namespace if blank.
+        namespace: spire-server
+        ## @param global.spire.gatewayAPI.gateway.port Port the shared Gateway listens on. ListenerSet listeners must match this.
+        port: 443
+
     tools:
       kubectl:
         ## @param global.spire.tools.kubectl.tag Set to force the tag to use for all kubectl instances
@@ -107,6 +125,233 @@ tags:
   bottomTurtleHAA: false
   ## @param tags.bottomTurtleHAB Setup HA side B for use with a Bottom Turtle architecture
   bottomTurtleHAB: false
+
+## The shared Gateway that routes and ListenerSets attach to. Only one release in a cluster
+## should render it. name/namespace/port come from global.spire.gatewayAPI.gateway; the
+## class and listener policy are local.
+##
+gatewayAPI:
+  gateway:
+    ## @param gatewayAPI.gateway.enabled Render the shared Gateway object
+    enabled: false
+    ## @param gatewayAPI.gateway.className gatewayClassName for the shared Gateway (e.g. "eg"). Required when enabled.
+    className: ""
+    ## @param gatewayAPI.gateway.annotations [object] Annotations for the Gateway object
+    annotations: {}
+    ## @param gatewayAPI.gateway.allowedListenersNamespaces From which namespaces ListenerSets may attach to the Gateway. One of All, Same, Selector.
+    allowedListenersNamespaces: All
+    ## @param gatewayAPI.gateway.allowedRoutesNamespaces From which namespaces routes may attach directly to the base listener (used when ListenerSet management is off). One of All, Same, Selector.
+    allowedRoutesNamespaces: All
+    ## @param gatewayAPI.gateway.extraListeners [array] Additional listeners to add to the Gateway
+    extraListeners: []
+
+## Combined exposure fronting the spire-identity-exchange of both HA sides. Only rendered
+## with tags.haAgentCommon; the per-side exposures under bottomTurtleHAA/B are untouched.
+## Each endpoint gets one Service selecting both sides' exchange pods, so the Ingress and
+## the Gateway API route need only a single backend. The matching listener must be enabled
+## on the sides themselves; if it is not, the Service simply has no endpoints.
+spireIdentityExchange:
+  ## @param spireIdentityExchange.podSelector [object] Labels selecting the exchange pods of both sides. Narrow it (for example by adding release-namespace) when other exchanges share the namespace.
+  podSelector:
+    component: spire-identity-exchange
+
+  ## Endpoints served with the certificate each side loads from disk.
+  tls:
+    rest:
+      ## @param spireIdentityExchange.tls.rest.enabled Expose the combined REST endpoint served with the on-disk certificate
+      enabled: false
+      ## @param spireIdentityExchange.tls.rest.service.type Service type
+      ## @param spireIdentityExchange.tls.rest.service.port port for the service
+      ## @param spireIdentityExchange.tls.rest.service.annotations Annotations for service resource
+      ##
+      service:
+        type: ClusterIP
+        port: 443
+        annotations: {}
+        ## @param spireIdentityExchange.tls.rest.service.loadBalancerIP IP address to assign to load balancer (if supported)
+        loadBalancerIP: ""
+      ingress:
+        ## @param spireIdentityExchange.tls.rest.ingress.enabled Flag to enable ingress
+        enabled: false
+        ## @param spireIdentityExchange.tls.rest.ingress.className Ingress class name
+        className: ""
+        ## @param spireIdentityExchange.tls.rest.ingress.controllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, autodetection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""].
+        controllerType: ""
+        ## @param spireIdentityExchange.tls.rest.ingress.annotations [object] Annotations for ingress object
+        annotations: {}
+        ## @param spireIdentityExchange.tls.rest.ingress.host Host name for the ingress. If no '.' in host, trustDomain is automatically appended. Must differ from the per-side hosts.
+        host: "spire-identity-exchange-rest"
+        ## @param spireIdentityExchange.tls.rest.ingress.tlsSecret Secret that has the certs. If blank will use default certs. Used with host var.
+        tlsSecret: ""
+        ## @param spireIdentityExchange.tls.rest.ingress.hosts [array] Host paths for ingress object. If emtpy, rules will be built based on the host var.
+        hosts: []
+        ## @param spireIdentityExchange.tls.rest.ingress.tls [array] Secrets containining TLS certs to enable https on ingress. If emtpy, rules will be built based on the host and tlsSecret vars.
+        tls: []
+      ## Gateway API exposure for this endpoint. A set tlsSecret gives HTTPRoute (reencrypt); blank gives TLSRoute (SNI passthrough).
+      gatewayAPI:
+        ## @param spireIdentityExchange.tls.rest.gatewayAPI.enabled Flag to expose the endpoint via Gateway API
+        enabled: false
+        ## @param spireIdentityExchange.tls.rest.gatewayAPI.host Host name for the route. If no '.' in host, trustDomain is automatically appended.
+        host: "spire-identity-exchange-rest"
+        ## @param spireIdentityExchange.tls.rest.gatewayAPI.tlsSecret Secret with the TLS cert for edge termination. Blank keeps passthrough.
+        tlsSecret: ""
+        ## @param spireIdentityExchange.tls.rest.gatewayAPI.annotations [object] Annotations for the route (and its ListenerSet)
+        annotations: {}
+        listenerSet:
+          ## @param spireIdentityExchange.tls.rest.gatewayAPI.listenerSet.enabled Manage a ListenerSet for this service's SNI listener. Null inherits global.spire.gatewayAPI.manageListenerSets.
+          enabled: null
+        ## @param spireIdentityExchange.tls.rest.gatewayAPI.parentRefs [array] parentRefs used when ListenerSet management is disabled (direct attach)
+        parentRefs: []
+        ## @param spireIdentityExchange.tls.rest.gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
+        sectionName: ""
+        backendTLS:
+          ## @param spireIdentityExchange.tls.rest.gatewayAPI.backendTLS.caCertificateRefs [array] ConfigMap refs holding the backend CA used to validate the re-encrypted connection. Defaults to the SPIRE bundle configmap.
+          caCertificateRefs: []
+    grpc:
+      ## @param spireIdentityExchange.tls.grpc.enabled Expose the combined gRPC endpoint served with the on-disk certificate
+      enabled: false
+      ## @param spireIdentityExchange.tls.grpc.service.type Service type
+      ## @param spireIdentityExchange.tls.grpc.service.port port for the service
+      ## @param spireIdentityExchange.tls.grpc.service.annotations Annotations for service resource
+      ##
+      service:
+        type: ClusterIP
+        port: 443
+        annotations: {}
+        ## @param spireIdentityExchange.tls.grpc.service.loadBalancerIP IP address to assign to load balancer (if supported)
+        loadBalancerIP: ""
+      ingress:
+        ## @param spireIdentityExchange.tls.grpc.ingress.enabled Flag to enable ingress
+        enabled: false
+        ## @param spireIdentityExchange.tls.grpc.ingress.className Ingress class name
+        className: ""
+        ## @param spireIdentityExchange.tls.grpc.ingress.controllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, autodetection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""].
+        controllerType: ""
+        ## @param spireIdentityExchange.tls.grpc.ingress.annotations [object] Annotations for ingress object
+        annotations: {}
+        ## @param spireIdentityExchange.tls.grpc.ingress.host Host name for the ingress. If no '.' in host, trustDomain is automatically appended. Must differ from the per-side hosts.
+        host: "spire-identity-exchange-grpc"
+        ## @param spireIdentityExchange.tls.grpc.ingress.tlsSecret Secret that has the certs. If blank will use default certs. Used with host var.
+        tlsSecret: ""
+        ## @param spireIdentityExchange.tls.grpc.ingress.hosts [array] Host paths for ingress object. If emtpy, rules will be built based on the host var.
+        hosts: []
+        ## @param spireIdentityExchange.tls.grpc.ingress.tls [array] Secrets containining TLS certs to enable https on ingress. If emtpy, rules will be built based on the host and tlsSecret vars.
+        tls: []
+      ## Gateway API exposure for this endpoint. A set tlsSecret gives HTTPRoute (reencrypt); blank gives TLSRoute (SNI passthrough).
+      gatewayAPI:
+        ## @param spireIdentityExchange.tls.grpc.gatewayAPI.enabled Flag to expose the endpoint via Gateway API
+        enabled: false
+        ## @param spireIdentityExchange.tls.grpc.gatewayAPI.host Host name for the route. If no '.' in host, trustDomain is automatically appended.
+        host: "spire-identity-exchange-grpc"
+        ## @param spireIdentityExchange.tls.grpc.gatewayAPI.tlsSecret Secret with the TLS cert for edge termination. Blank keeps passthrough.
+        tlsSecret: ""
+        ## @param spireIdentityExchange.tls.grpc.gatewayAPI.annotations [object] Annotations for the route (and its ListenerSet)
+        annotations: {}
+        listenerSet:
+          ## @param spireIdentityExchange.tls.grpc.gatewayAPI.listenerSet.enabled Manage a ListenerSet for this service's SNI listener. Null inherits global.spire.gatewayAPI.manageListenerSets.
+          enabled: null
+        ## @param spireIdentityExchange.tls.grpc.gatewayAPI.parentRefs [array] parentRefs used when ListenerSet management is disabled (direct attach)
+        parentRefs: []
+        ## @param spireIdentityExchange.tls.grpc.gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
+        sectionName: ""
+        backendTLS:
+          ## @param spireIdentityExchange.tls.grpc.gatewayAPI.backendTLS.caCertificateRefs [array] ConfigMap refs holding the backend CA used to validate the re-encrypted connection. Defaults to the SPIRE bundle configmap.
+          caCertificateRefs: []
+
+  ## Endpoints served with each side's own X509-SVID. Gateway API is always a TLSRoute
+  ## (SNI passthrough) here: an X509-SVID has no DNS SAN, so edge termination could never
+  ## validate these backends.
+  spiffe:
+    rest:
+      ## @param spireIdentityExchange.spiffe.rest.enabled Expose the combined REST endpoint served with each side's own X509-SVID
+      enabled: false
+      ## @param spireIdentityExchange.spiffe.rest.service.type Service type
+      ## @param spireIdentityExchange.spiffe.rest.service.port port for the service
+      ## @param spireIdentityExchange.spiffe.rest.service.annotations Annotations for service resource
+      ##
+      service:
+        type: ClusterIP
+        port: 443
+        annotations: {}
+        ## @param spireIdentityExchange.spiffe.rest.service.loadBalancerIP IP address to assign to load balancer (if supported)
+        loadBalancerIP: ""
+      ingress:
+        ## @param spireIdentityExchange.spiffe.rest.ingress.enabled Flag to enable ingress
+        enabled: false
+        ## @param spireIdentityExchange.spiffe.rest.ingress.className Ingress class name
+        className: ""
+        ## @param spireIdentityExchange.spiffe.rest.ingress.controllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, autodetection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""].
+        controllerType: ""
+        ## @param spireIdentityExchange.spiffe.rest.ingress.annotations [object] Annotations for ingress object
+        annotations: {}
+        ## @param spireIdentityExchange.spiffe.rest.ingress.host Host name for the ingress. If no '.' in host, trustDomain is automatically appended. Must differ from the per-side hosts.
+        host: "spire-identity-exchange-rest-spiffe"
+        ## @param spireIdentityExchange.spiffe.rest.ingress.tlsSecret Secret that has the certs. If blank will use default certs. Used with host var.
+        tlsSecret: ""
+        ## @param spireIdentityExchange.spiffe.rest.ingress.hosts [array] Host paths for ingress object. If emtpy, rules will be built based on the host var.
+        hosts: []
+        ## @param spireIdentityExchange.spiffe.rest.ingress.tls [array] Secrets containining TLS certs to enable https on ingress. If emtpy, rules will be built based on the host and tlsSecret vars.
+        tls: []
+      ## Gateway API exposure for this endpoint. Always a TLSRoute (SNI passthrough).
+      gatewayAPI:
+        ## @param spireIdentityExchange.spiffe.rest.gatewayAPI.enabled Flag to expose the endpoint via Gateway API
+        enabled: false
+        ## @param spireIdentityExchange.spiffe.rest.gatewayAPI.host Host name for the route. If no '.' in host, trustDomain is automatically appended.
+        host: "spire-identity-exchange-rest-spiffe"
+        ## @param spireIdentityExchange.spiffe.rest.gatewayAPI.annotations [object] Annotations for the route (and its ListenerSet)
+        annotations: {}
+        listenerSet:
+          ## @param spireIdentityExchange.spiffe.rest.gatewayAPI.listenerSet.enabled Manage a ListenerSet for this service's SNI listener. Null inherits global.spire.gatewayAPI.manageListenerSets.
+          enabled: null
+        ## @param spireIdentityExchange.spiffe.rest.gatewayAPI.parentRefs [array] parentRefs used when ListenerSet management is disabled (direct attach)
+        parentRefs: []
+        ## @param spireIdentityExchange.spiffe.rest.gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
+        sectionName: ""
+    grpc:
+      ## @param spireIdentityExchange.spiffe.grpc.enabled Expose the combined gRPC endpoint served with each side's own X509-SVID
+      enabled: false
+      ## @param spireIdentityExchange.spiffe.grpc.service.type Service type
+      ## @param spireIdentityExchange.spiffe.grpc.service.port port for the service
+      ## @param spireIdentityExchange.spiffe.grpc.service.annotations Annotations for service resource
+      ##
+      service:
+        type: ClusterIP
+        port: 443
+        annotations: {}
+        ## @param spireIdentityExchange.spiffe.grpc.service.loadBalancerIP IP address to assign to load balancer (if supported)
+        loadBalancerIP: ""
+      ingress:
+        ## @param spireIdentityExchange.spiffe.grpc.ingress.enabled Flag to enable ingress
+        enabled: false
+        ## @param spireIdentityExchange.spiffe.grpc.ingress.className Ingress class name
+        className: ""
+        ## @param spireIdentityExchange.spiffe.grpc.ingress.controllerType Specify what type of ingress controller you're using to add the necessary annotations accordingly. If blank, autodetection is attempted. If other, no annotations will be added. Must be one of [ingress-nginx, openshift, other, ""].
+        controllerType: ""
+        ## @param spireIdentityExchange.spiffe.grpc.ingress.annotations [object] Annotations for ingress object
+        annotations: {}
+        ## @param spireIdentityExchange.spiffe.grpc.ingress.host Host name for the ingress. If no '.' in host, trustDomain is automatically appended. Must differ from the per-side hosts.
+        host: "spire-identity-exchange-grpc-spiffe"
+        ## @param spireIdentityExchange.spiffe.grpc.ingress.tlsSecret Secret that has the certs. If blank will use default certs. Used with host var.
+        tlsSecret: ""
+        ## @param spireIdentityExchange.spiffe.grpc.ingress.hosts [array] Host paths for ingress object. If emtpy, rules will be built based on the host var.
+        hosts: []
+        ## @param spireIdentityExchange.spiffe.grpc.ingress.tls [array] Secrets containining TLS certs to enable https on ingress. If emtpy, rules will be built based on the host and tlsSecret vars.
+        tls: []
+      ## Gateway API exposure for this endpoint. Always a TLSRoute (SNI passthrough).
+      gatewayAPI:
+        ## @param spireIdentityExchange.spiffe.grpc.gatewayAPI.enabled Flag to expose the endpoint via Gateway API
+        enabled: false
+        ## @param spireIdentityExchange.spiffe.grpc.gatewayAPI.host Host name for the route. If no '.' in host, trustDomain is automatically appended.
+        host: "spire-identity-exchange-grpc-spiffe"
+        ## @param spireIdentityExchange.spiffe.grpc.gatewayAPI.annotations [object] Annotations for the route (and its ListenerSet)
+        annotations: {}
+        listenerSet:
+          ## @param spireIdentityExchange.spiffe.grpc.gatewayAPI.listenerSet.enabled Manage a ListenerSet for this service's SNI listener. Null inherits global.spire.gatewayAPI.manageListenerSets.
+          enabled: null
+        ## @param spireIdentityExchange.spiffe.grpc.gatewayAPI.parentRefs [array] parentRefs used when ListenerSet management is disabled (direct attach)
+        parentRefs: []
+        ## @param spireIdentityExchange.spiffe.grpc.gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
+        sectionName: ""
 
 ## subcharts
 
@@ -799,17 +1044,36 @@ spire-identity-exchange-bottom-turtle-ha-a:
   nameOverride: identity-exchange
   ## @param spire-identity-exchange-bottom-turtle-ha-a.csiDriverName CSI driver name to use
   csiDriverName: a.csi.spiffe.io
-  rest:
-    ingress:
-      ## @param spire-identity-exchange-bottom-turtle-ha-a.rest.ingress.host Hostname override for the rest ingress service
-      host: "spire-identity-exchange-a-rest"
-  grpc:
-    ingress:
-      ## @param spire-identity-exchange-bottom-turtle-ha-a.grpc.ingress.host Hostname override for the rest ingress service
-      host: "spire-identity-exchange-a-grpc"
+  tls:
+    rest:
+      ingress:
+        ## @param spire-identity-exchange-bottom-turtle-ha-a.tls.rest.ingress.host Hostname override for the rest ingress service
+        host: "spire-identity-exchange-a-rest"
+    grpc:
+      ingress:
+        ## @param spire-identity-exchange-bottom-turtle-ha-a.tls.grpc.ingress.host Hostname override for the grpc ingress service
+        host: "spire-identity-exchange-a-grpc"
+  spiffe:
+    rest:
+      ingress:
+        ## @param spire-identity-exchange-bottom-turtle-ha-a.spiffe.rest.ingress.host Hostname override for the SVID-served rest ingress service
+        host: "spire-identity-exchange-a-rest-spiffe"
+    grpc:
+      ingress:
+        ## @param spire-identity-exchange-bottom-turtle-ha-a.spiffe.grpc.ingress.host Hostname override for the SVID-served grpc ingress service
+        host: "spire-identity-exchange-a-grpc-spiffe"
   server:
     ## @param spire-identity-exchange-bottom-turtle-ha-a.server.nameOverride The name override setting of the internal SPIRE server
     nameOverride: internal-server
+  auth:
+    spiffe:
+      ## @param spire-identity-exchange-bottom-turtle-ha-a.auth.spiffe.csiDriverName The csi driver to use
+      csiDriverName: csi.spiffe.io
+    plugins:
+      spiffe:
+        config:
+          ## @param spire-identity-exchange-bottom-turtle-ha-a.auth.plugins.spiffe.config.discoveryURL The OIDC discovery provider to fetch keys from. This chart gives it a fullnameOverride, so the keySource convention does not apply.
+          discoveryURL: https://spiffe-oidc-discovery-provider
 
 spire-identity-exchange-bottom-turtle-ha-b:
   ## @param spire-identity-exchange-bottom-turtle-ha-b.enabled Enable the spire-identity-exchange
@@ -821,11 +1085,30 @@ spire-identity-exchange-bottom-turtle-ha-b:
   server:
     ## @param spire-identity-exchange-bottom-turtle-ha-b.server.nameOverride The name override setting of the internal SPIRE server
     nameOverride: internal-server
-  rest:
-    ingress:
-      ## @param spire-identity-exchange-bottom-turtle-ha-b.rest.ingress.host Hostname override for the rest ingress service
-      host: "spire-identity-exchange-b-rest"
-  grpc:
-    ingress:
-      ## @param spire-identity-exchange-bottom-turtle-ha-b.grpc.ingress.host Hostname override for the rest ingress service
-      host: "spire-identity-exchange-b-grpc"
+  tls:
+    rest:
+      ingress:
+        ## @param spire-identity-exchange-bottom-turtle-ha-b.tls.rest.ingress.host Hostname override for the rest ingress service
+        host: "spire-identity-exchange-b-rest"
+    grpc:
+      ingress:
+        ## @param spire-identity-exchange-bottom-turtle-ha-b.tls.grpc.ingress.host Hostname override for the grpc ingress service
+        host: "spire-identity-exchange-b-grpc"
+  spiffe:
+    rest:
+      ingress:
+        ## @param spire-identity-exchange-bottom-turtle-ha-b.spiffe.rest.ingress.host Hostname override for the SVID-served rest ingress service
+        host: "spire-identity-exchange-b-rest-spiffe"
+    grpc:
+      ingress:
+        ## @param spire-identity-exchange-bottom-turtle-ha-b.spiffe.grpc.ingress.host Hostname override for the SVID-served grpc ingress service
+        host: "spire-identity-exchange-b-grpc-spiffe"
+  auth:
+    spiffe:
+      ## @param spire-identity-exchange-bottom-turtle-ha-b.auth.spiffe.csiDriverName The csi driver to use
+      csiDriverName: csi.spiffe.io
+    plugins:
+      spiffe:
+        config:
+          ## @param spire-identity-exchange-bottom-turtle-ha-b.auth.plugins.spiffe.config.discoveryURL The OIDC discovery provider to fetch keys from. This chart gives it a fullnameOverride, so the keySource convention does not apply.
+          discoveryURL: https://spiffe-oidc-discovery-provider

@@ -1,0 +1,14 @@
+{{- if and .Values.tags.haAgentCommon .Values.spireIdentityExchange.tls.grpc.enabled .Values.spireIdentityExchange.tls.grpc.gatewayAPI.enabled -}}
+{{- $fullName := printf "%s-grpc" (include "spire-nested.identity-exchange-name" .) -}}
+{{- $routeKind := include "spire-lib.gateway-route-kind" (dict "gatewayAPI" .Values.spireIdentityExchange.tls.grpc.gatewayAPI) -}}
+{{- include "spire-lib.gateway-routes" (dict
+      "root" .
+      "gatewayAPI" .Values.spireIdentityExchange.tls.grpc.gatewayAPI
+      "name" $fullName
+      "namespace" (include "spire-nested.server-namespace" .)
+      "svcName" $fullName
+      "port" .Values.spireIdentityExchange.tls.grpc.service.port
+      "labels" (include "spire-nested.labels" .)
+      "routeKind" $routeKind
+      "backendTLS" (eq $routeKind "HTTPRoute")) }}
+{{- end }}

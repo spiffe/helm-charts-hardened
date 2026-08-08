@@ -1,0 +1,23 @@
+{{- if .Values.spiffe.grpc.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "spire-identity-exchange.fullname" . }}-grpc-spiffe
+  namespace: {{ include "spire-identity-exchange.namespace" . }}
+  {{- with .Values.spiffe.grpc.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.spiffe.grpc.service.type }}
+  {{- if and (eq .Values.spiffe.grpc.service.type "LoadBalancer") .Values.spiffe.grpc.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.spiffe.grpc.service.loadBalancerIP }}
+  {{- end }}
+  ports:
+    - name: https
+      port: {{ .Values.spiffe.grpc.service.port }}
+      targetPort: grpc-spiffe
+      protocol: TCP
+  selector:
+    {{- include "spire-identity-exchange.selectorLabels" . | nindent 4 }}
+{{- end }}

@@ -25,35 +25,46 @@ internal-spire-server-bottom-turtle-ha-b:
     enabled: true
 
 spire-identity-exchange-bottom-turtle-ha-a:
-  rest:
-    ingress:
-      enabled: true
   tls:
     externalSecret:
       enabled: true
       secretName: spire-identity-exchange
+    rest:
+      enabled: true
+      ingress:
+        enabled: true
   auth:
+#FIXME move these into the run script as they are not something the user will generally do?
+    passthroughPlugins: true
     plugins:
-      - plugin: k8s_psat
-        config:
-          audiences:
-            - spire-identity-exchange
-          allowedServiceAccounts:
-            - default/default
+      k8s_psat:
+        allowedServiceAccounts:
+          - default/default
+#FIXME
+      spiffe:
+        discoveryURL: "https://spiffe-oidc-discovery-provider"
+    stacks:
+      image_pull:
+        enabled: true
 
 spire-identity-exchange-bottom-turtle-ha-b:
-  rest:
-    ingress:
-      enabled: true
   tls:
     externalSecret:
       enabled: true
       secretName: spire-identity-exchange
+    rest:
+      enabled: true
+      ingress:
+        enabled: true
   auth:
+    passthroughPlugins: true
     plugins:
-      - plugin: k8s_psat
-        config:
-          audiences:
-            - spire-identity-exchange
-          allowedServiceAccounts:
-            - default/default
+      k8s_psat:
+        allowedServiceAccounts:
+          - default/default
+#FIXME
+      spiffe:
+        discoveryURL: "https://spiffe-oidc-discovery-provider"
+    stacks:
+      image_pull:
+        enabled: true
