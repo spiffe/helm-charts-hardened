@@ -42,10 +42,10 @@ spire-identity-exchange-bottom-turtle-ha-a:
           - default/default
 #FIXME
       spiffe:
-        discoveryURL: "https://spiffe-oidc-discovery-provider"
+        enabled: false
     stacks:
       image_pull:
-        enabled: true
+        enabled: false
 
 spire-identity-exchange-bottom-turtle-ha-b:
   tls:
@@ -64,7 +64,7 @@ spire-identity-exchange-bottom-turtle-ha-b:
           - default/default
 #FIXME
       spiffe:
-        discoveryURL: "https://spiffe-oidc-discovery-provider"
+        enabled: false
     stacks:
       image_pull:
-        enabled: true
+        enabled: false
