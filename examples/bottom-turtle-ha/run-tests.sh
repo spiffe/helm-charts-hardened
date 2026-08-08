@@ -331,7 +331,7 @@ kubectl create secret tls -n spire-server spire-identity-exchange --key=certs/se
 
 # Install server side a
 helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/spire-values.yaml" \
-  --wait spire-a charts/spire-nested \
+  --wait --timeout 10m spire-a charts/spire-nested \
   --set tags.bottomTurtleHAA=true \
   --values "${SCRIPTPATH}/spire-identity-exchange-values.yaml" \
   --set "spire-identity-exchange-bottom-turtle-ha-a.enabled=true" \
@@ -357,7 +357,7 @@ curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discov
 
 # Install server side b
 helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/spire-values.yaml" \
-  --wait spire-b charts/spire-nested \
+  --wait --timeout 10m spire-b charts/spire-nested \
   --set tags.bottomTurtleHAB=true \
   --set internal-spire-server-bottom-turtle-ha-b.upstreamAuthority.spire.server.port=8082 \
   --values "${SCRIPTPATH}/spire-identity-exchange-values.yaml" \
