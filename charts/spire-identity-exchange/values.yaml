@@ -228,6 +228,8 @@ auth:
     spiffe:
       ## @param auth.plugins.spiffe.enabled Enable the spiffe plugin
       enabled: true
+      ## @param auth.plugins.spiffe.keySource What source to use to fetch the keys. Can be oidc or oidcLocal. oidcLocal forces discoveryURL to be the internal discovery address.
+      keySource: oidcLocal
       ## @extra auth.plugins.spiffe.csiDriverName The CSI driver providing the SPIRE Agent workload socket this plugin attests against. Defaults to the chart level csiDriverName. Requires config.connectWithTrustBundle.
       config:
         ## @param auth.plugins.spiffe.config.issuerURL The url to connect to for JWKS discovery

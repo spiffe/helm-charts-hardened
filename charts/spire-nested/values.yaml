@@ -824,6 +824,11 @@ spire-identity-exchange-bottom-turtle-ha-a:
     spiffe:
       ## @param spire-identity-exchange-bottom-turtle-ha-a.auth.spiffe.csiDriverName The csi driver to use
       csiDriverName: csi.spiffe.io
+    plugins:
+      spiffe:
+        config:
+          ## @param spire-identity-exchange-bottom-turtle-ha-a.auth.plugins.spiffe.config.discoveryURL The OIDC discovery provider to fetch keys from. This chart gives it a fullnameOverride, so the keySource convention does not apply.
+          discoveryURL: https://spiffe-oidc-discovery-provider
 
 spire-identity-exchange-bottom-turtle-ha-b:
   ## @param spire-identity-exchange-bottom-turtle-ha-b.enabled Enable the spire-identity-exchange
@@ -857,3 +862,8 @@ spire-identity-exchange-bottom-turtle-ha-b:
     spiffe:
       ## @param spire-identity-exchange-bottom-turtle-ha-b.auth.spiffe.csiDriverName The csi driver to use
       csiDriverName: csi.spiffe.io
+    plugins:
+      spiffe:
+        config:
+          ## @param spire-identity-exchange-bottom-turtle-ha-b.auth.plugins.spiffe.config.discoveryURL The OIDC discovery provider to fetch keys from. This chart gives it a fullnameOverride, so the keySource convention does not apply.
+          discoveryURL: https://spiffe-oidc-discovery-provider

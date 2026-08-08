@@ -140,9 +140,16 @@ data:
         {{-     if and (not (empty $driver)) (not $cfg.connectWithTrustBundle) }}
         {{-       fail (printf "auth.plugins.%s: csiDriverName is only meaningful when config.connectWithTrustBundle is true; the SPIRE Agent workload socket is not used otherwise." $name) }}
         {{-     end }}
+        {{-     $keySource := dig "keySource" "oidc" ($config | default dict) }}
+        {{-     if not (has $keySource (list "oidc" "oidcLocal")) }}
+        {{-       fail (printf "auth.plugins.%s.keySource: %q is not valid; must be oidc or oidcLocal" $name $keySource) }}
+        {{-     end }}
         {{-     $effective := $cfg }}
         {{-     if $cfg.connectWithTrustBundle }}
         {{-       $effective = merge (dict "agentWorkloadSocketPath" (include "spire-identity-exchange.plugin-workload-api-socket-path" (dict "root" $root "driver" $driver))) $cfg }}
+        {{-     end }}
+        {{-     if and (eq $keySource "oidcLocal") (empty $cfg.discoveryURL) }}
+        {{-       $effective = merge (dict "discoveryURL" (printf "https://%s-spiffe-oidc-discovery-provider" $root.Release.Name)) $effective }}
         {{-     end }}
         {{-     toYaml $effective | nindent 12 }}
         {{-   else if eq $pluginType "github" }}
