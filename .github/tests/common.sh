@@ -25,6 +25,12 @@ $(kubectl get pods -o name -n "$1" | while read -r line; do echo logs for "${lin
 $( ([[ -n "$2" ]] && kubectl get pods -o name -n "$2") | while read -r line; do echo logs for "${line}"; kubectl logs -n "$2" "${line}" --all-containers=true --ignore-errors=true; done)
 \`\`\`
 
+MAX_BYTES=$((1024 * 1024))
+if [ "$(wc -c < "$GITHUB_STEP_SUMMARY")" -gt "$MAX_BYTES" ]; then
+    truncate -s $((MAX_BYTES - 14)) "$GITHUB_STEP_SUMMARY"
+    printf "\ntruncated...\n" >> "$GITHUB_STEP_SUMMARY"
+fi
+
 EOF
 }
 
