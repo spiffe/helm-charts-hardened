@@ -34,6 +34,7 @@ spire-identity-exchange-bottom-turtle-ha-a:
       ingress:
         enabled: true
   auth:
+#FIXME move these into the run script as they are not something the user will generally do?
     passthroughPlugins: true
     plugins:
       k8s_psat:
@@ -44,7 +45,7 @@ spire-identity-exchange-bottom-turtle-ha-a:
         discoveryURL: "https://spiffe-oidc-discovery-provider"
     stacks:
       image_pull:
-        enabled: false
+        enabled: true
 
 spire-identity-exchange-bottom-turtle-ha-b:
   tls:
@@ -63,7 +64,7 @@ spire-identity-exchange-bottom-turtle-ha-b:
           - default/default
 #FIXME
       spiffe:
-        enabled: false
+        discoveryURL: "https://spiffe-oidc-discovery-provider"
     stacks:
       image_pull:
-        enabled: false
+        enabled: true
