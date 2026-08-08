@@ -396,6 +396,8 @@ helm test --namespace spire-mgmt spire-a
 helm test --namespace spire-mgmt spire-b
 curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discovery.production.other/.well-known/openid-configuration" -s --fail
 
+sleep 600
+
 kubectl apply -f "${SCRIPTPATH}/test-job.yaml"
 kubectl wait --for=condition=complete --timeout=60s job/test && \
 TOKEN=$(kubectl logs job/test)
