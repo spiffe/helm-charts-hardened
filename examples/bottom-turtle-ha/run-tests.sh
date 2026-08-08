@@ -331,7 +331,7 @@ kubectl create secret tls -n spire-server spire-identity-exchange --key=certs/se
 
 # Install server side a
 helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/spire-values.yaml" \
-  --wait --timeout 10m spire-a charts/spire-nested \
+  --wait --timeout 7m spire-a charts/spire-nested \
   --set tags.bottomTurtleHAA=true \
   --values "${SCRIPTPATH}/spire-identity-exchange-values.yaml" \
   --set "spire-identity-exchange-bottom-turtle-ha-a.enabled=true" \
@@ -357,7 +357,7 @@ curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discov
 
 # Install server side b
 helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/spire-values.yaml" \
-  --wait --timeout 10m spire-b charts/spire-nested \
+  --wait --timeout 7m spire-b charts/spire-nested \
   --set tags.bottomTurtleHAB=true \
   --set internal-spire-server-bottom-turtle-ha-b.upstreamAuthority.spire.server.port=8082 \
   --values "${SCRIPTPATH}/spire-identity-exchange-values.yaml" \
@@ -395,8 +395,6 @@ kubectl get ingress -A
 helm test --namespace spire-mgmt spire-a
 helm test --namespace spire-mgmt spire-b
 curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discovery.production.other/.well-known/openid-configuration" -s --fail
-
-sleep 600
 
 kubectl apply -f "${SCRIPTPATH}/test-job.yaml"
 kubectl wait --for=condition=complete --timeout=60s job/test && \
