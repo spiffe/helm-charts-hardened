@@ -38,8 +38,9 @@ spire-identity-exchange-bottom-turtle-ha-a:
     passthroughPlugins: true
     plugins:
       k8s_psat:
-        allowedServiceAccounts:
-          - default/default
+        config:
+          allowedServiceAccounts:
+            - default/default
 #FIXME
       spiffe:
         enabled: true
@@ -60,8 +61,9 @@ spire-identity-exchange-bottom-turtle-ha-b:
     passthroughPlugins: true
     plugins:
       k8s_psat:
-        allowedServiceAccounts:
-          - default/default
+        config:
+          allowedServiceAccounts:
+            - default/default
 #FIXME
       spiffe:
         enabled: true

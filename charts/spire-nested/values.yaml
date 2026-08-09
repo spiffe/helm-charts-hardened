@@ -742,10 +742,10 @@ internal-spire-server-bottom-turtle-ha-a:
         spire-ha-agent:
           ## @param internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent.enabled Enables the spire-ha-agent identity
           enabled: true
-      spire-identity-exchange-service:
-        ## @param internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.spire-identity-exchange-service.federatesWith [array] List of trust domains to federate with
-        federatesWith:
-          - spire-ha
+        spire-identity-exchange-service:
+          ## @param internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.clusterSPIFFEIDs.spire-identity-exchange-service.federatesWith [array] List of trust domains to federate with
+          federatesWith:
+            - spire-ha
   persistence:
     ## @param internal-spire-server-bottom-turtle-ha-a.persistence.type What type to use for peristence
     type: emptyDir
@@ -824,10 +824,10 @@ internal-spire-server-bottom-turtle-ha-b:
         spire-ha-agent:
           ## @param internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent.enabled Enables the spire-ha-agent identity
           enabled: true
-      spire-identity-exchange-service:
-        ## @param internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.spire-identity-exchange-service.federatesWith [array] List of trust domains to federate with
-        federatesWith:
-          - spire-ha
+        spire-identity-exchange-service:
+          ## @param internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.clusterSPIFFEIDs.spire-identity-exchange-service.federatesWith [array] List of trust domains to federate with
+          federatesWith:
+            - spire-ha
   persistence:
     ## @param internal-spire-server-bottom-turtle-ha-b.persistence.type What type to use for peristence
     type: emptyDir
@@ -1066,11 +1066,10 @@ spire-identity-exchange-bottom-turtle-ha-a:
     ## @param spire-identity-exchange-bottom-turtle-ha-a.server.nameOverride The name override setting of the internal SPIRE server
     nameOverride: internal-server
   auth:
-    spiffe:
-      ## @param spire-identity-exchange-bottom-turtle-ha-a.auth.spiffe.csiDriverName The csi driver to use
-      csiDriverName: csi.spiffe.io
     plugins:
       spiffe:
+        ## @param spire-identity-exchange-bottom-turtle-ha-a.auth.plugins.spiffe.csiDriverName The csi driver the spiffe plugin reads its trust bundle from. The shared ha-agent, since that is what mints the oidc discovery provider's serving svid.
+        csiDriverName: csi.spiffe.io
         config:
           ## @param spire-identity-exchange-bottom-turtle-ha-a.auth.plugins.spiffe.config.discoveryURL The OIDC discovery provider to fetch keys from. This chart gives it a fullnameOverride, so the keySource convention does not apply.
           discoveryURL: https://spiffe-oidc-discovery-provider
@@ -1104,11 +1103,10 @@ spire-identity-exchange-bottom-turtle-ha-b:
         ## @param spire-identity-exchange-bottom-turtle-ha-b.spiffe.grpc.ingress.host Hostname override for the SVID-served grpc ingress service
         host: "spire-identity-exchange-b-grpc-spiffe"
   auth:
-    spiffe:
-      ## @param spire-identity-exchange-bottom-turtle-ha-b.auth.spiffe.csiDriverName The csi driver to use
-      csiDriverName: csi.spiffe.io
     plugins:
       spiffe:
+        ## @param spire-identity-exchange-bottom-turtle-ha-b.auth.plugins.spiffe.csiDriverName The csi driver the spiffe plugin reads its trust bundle from. The shared ha-agent, since that is what mints the oidc discovery provider's serving svid.
+        csiDriverName: csi.spiffe.io
         config:
           ## @param spire-identity-exchange-bottom-turtle-ha-b.auth.plugins.spiffe.config.discoveryURL The OIDC discovery provider to fetch keys from. This chart gives it a fullnameOverride, so the keySource convention does not apply.
           discoveryURL: https://spiffe-oidc-discovery-provider
