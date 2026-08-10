@@ -41,12 +41,6 @@ spire-identity-exchange-bottom-turtle-ha-a:
         config:
           allowedServiceAccounts:
             - default/default
-#FIXME
-      spiffe:
-        enabled: true
-    stacks:
-      image_pull:
-        enabled: true
 
 spire-identity-exchange-bottom-turtle-ha-b:
   tls:
@@ -64,9 +58,3 @@ spire-identity-exchange-bottom-turtle-ha-b:
         config:
           allowedServiceAccounts:
             - default/default
-#FIXME
-      spiffe:
-        enabled: true
-    stacks:
-      image_pull:
-        enabled: true
