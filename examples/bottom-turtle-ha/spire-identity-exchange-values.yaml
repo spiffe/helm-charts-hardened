@@ -1,4 +1,4 @@
-internal-spire-server-bottom-turtle-ha-a:
+internal-spire-server-bottom-turtle-ha-a: &server
   controllerManager:
     identities:
       clusterStaticEntries:
@@ -11,38 +11,10 @@ internal-spire-server-bottom-turtle-ha-a:
   spireIdentityExchange:
     enabled: true
 
-internal-spire-server-bottom-turtle-ha-b:
-  controllerManager:
-    identities:
-      clusterStaticEntries:
-        test:
-          parentID: spiffe://production.other/spire-identity-exchange
-          spiffeID: spiffe://production.other/k8s-psat/test
-          selectors:
-            - k8s_psat:namespace:default
-            - k8s_psat:service_account_name:default
-  spireIdentityExchange:
-    enabled: true
+#Set the same settings on the B side
+internal-spire-server-bottom-turtle-ha-b: *server
 
-spire-identity-exchange-bottom-turtle-ha-a:
-  tls:
-    externalSecret:
-      enabled: true
-      secretName: spire-identity-exchange
-    rest:
-      enabled: true
-      ingress:
-        enabled: true
-  auth:
-#FIXME move these into the run script as they are not something the user will generally do?
-    passthroughPlugins: true
-    plugins:
-      k8s_psat:
-        config:
-          allowedServiceAccounts:
-            - default/default
-
-spire-identity-exchange-bottom-turtle-ha-b:
+spire-identity-exchange-bottom-turtle-ha-a: &six
   tls:
     externalSecret:
       enabled: true
@@ -58,3 +30,6 @@ spire-identity-exchange-bottom-turtle-ha-b:
         config:
           allowedServiceAccounts:
             - default/default
+
+#Set the same settings on the B side
+spire-identity-exchange-bottom-turtle-ha-b: *six
