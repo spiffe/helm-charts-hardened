@@ -333,6 +333,21 @@ spire-server:
 			Expect(objs[serverTmpl]).Should(ContainSubstring("name: my-ext-secret"))
 			Expect(objs[serverTmpl]).Should(ContainSubstring("path: clusterb"))
 		})
+		It("jwtSVIDExec entry generates the Secret and stages the exec plugin", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  jwtSVIDExecConfig:
+    spiffeID: spiffe://example.org/external-spire-server
+  kubeConfigs:
+    clusterd:
+      jwtSVIDExec:
+        server: https://clusterd-api.example.com:6443
+        certificateAuthorityData: TESTCADATAB64==
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[secretTmpl]).Should(ContainSubstring("kind: Secret"))
+			Expect(objs[serverTmpl]).Should(ContainSubstring("init-jwt-svid-exec"))
+		})
 	})
 	Describe("spire-server.externalServerSubject", func() {
 		It("binds the external server's downstream RBAC to a ServiceAccount subject", func() {
