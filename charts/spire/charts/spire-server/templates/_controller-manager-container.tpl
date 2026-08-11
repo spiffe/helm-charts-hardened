@@ -173,6 +173,14 @@ Auto-generation preserves trailing numbers from cluster names or uses hash for u
       subPath: {{ . }}
       readOnly: true
     {{- end }}
+    {{- if hasKey . "kubeConfig" }}
+    {{-   $entry := default dict (index .Values.kubeConfigs .kubeConfig) }}
+    {{-   if hasKey $entry "jwtSVIDExec" }}
+    - name: plugins
+      mountPath: /plugins
+      readOnly: true
+    {{-   end }}
+    {{- end }}
     - name: spire-controller-manager-tmp
       mountPath: /tmp
       subPath: {{ printf "spire-controller-manager%s" .suffix }}
