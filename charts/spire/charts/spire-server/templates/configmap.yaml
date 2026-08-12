@@ -656,6 +656,22 @@ plugins:
         {{- end }}
   {{- end }}
   {{- end }}
+
+  {{- with .Values.upstreamAuthority.gcpCAS }}
+  {{- if eq (.enabled | toString) "true" }}
+  {{- $upstreamAuthorityUsed = add1 $upstreamAuthorityUsed }}
+  UpstreamAuthority:
+    gcp_cas:
+      plugin_data:
+        root_cert_spec:
+          project_name: {{ .projectName | quote }}
+          region_name: {{ .regionName | quote }}
+          ca_pool: {{ .caPool | quote }}
+          label_key: {{ .labelKey | quote }}
+          label_value: {{ .labelValue | quote }}
+  {{- end }}
+  {{- end }}
+
 {{- if gt $upstreamAuthorityUsed 1 }}
 {{- fail "You can only enable a single Upstream Authority." }}
 {{- end }}
