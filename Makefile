@@ -15,6 +15,11 @@ lint-release: ## Lint the charts using chart-testing for release
 	@echo Linting charts…
 	@ct lint --config ct.yaml --target-branch $(TARGET_BRANCH)
 
+.PHONY: check-readme-versions
+check-readme-versions: ## Verify chart README version badges match Chart.yaml
+	@echo Checking README version badges…
+	@.github/scripts/check-readme-versions.sh
+
 ##@ Testing: (ensure to run on dedicated test cluster)
 
 .PHONY: clean-test-leftovers

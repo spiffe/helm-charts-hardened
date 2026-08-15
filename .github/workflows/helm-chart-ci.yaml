@@ -16,6 +16,7 @@ on:
       - '.github/tests/**/*.yaml'
       - '.github/tests/**/*.sh'
       - '.github/tests/**/*.json'
+      - '.github/scripts/check-readme-versions.sh'
       - 'examples/**/*.yaml'
       - 'examples/**/*.sh'
       - 'tests/**/*'
@@ -41,6 +42,22 @@ jobs:
 
       - name: Verify Docs updated
         run: ./helm-docs.sh
+
+      - name: Verify README version badges
+        run: |
+          set +e
+          .github/scripts/check-readme-versions.sh 2>/tmp/badge-findings
+          res=$?
+          if [ $res -ne 0 ]; then
+            {
+              echo "## README version badges"
+              echo
+              echo ":x: These chart READMEs have version badges that disagree with their Chart.yaml. Please fix."
+              echo
+              cat /tmp/badge-findings
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
 
       - name: Verify Spire appVersion
         run: |
