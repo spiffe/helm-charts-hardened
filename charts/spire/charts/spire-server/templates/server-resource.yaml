@@ -90,6 +90,14 @@ spec:
   {{- end }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
+  {{- with .Values.updateStrategy }}
+  {{- if eq $.Values.kind "statefulset" }}
+  updateStrategy:
+  {{- else }}
+  strategy:
+  {{- end }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   {{- if eq .Values.kind "statefulset" }}
   serviceName: {{ include "spire-server.fullname" . }}
   {{- end }}
