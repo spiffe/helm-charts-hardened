@@ -307,8 +307,15 @@ current-context: cluster
 {{- $ropw := "" }}
 {{- if eq .Values.dataStore.sql.databaseType "sqlite3" }}
   {{- $_ := set $config "database_type" "sqlite3" }}
+  {{- if .Values.dataStore.sql.inMemory }}
+  {{- /* cache=shared is not optional: without it every pooled connection opens its own
+         empty database, so the server silently loses every write it did not make itself. */}}
+  {{- $query := include "spire-server.config-sqlite-query" (concat (list (dict "mode" "memory") (dict "cache" "shared")) .Values.dataStore.sql.options) }}
+  {{- $_ := set $config "connection_string" (printf "memdb%s" $query) }}
+  {{- else }}
   {{- $query := include "spire-server.config-sqlite-query" .Values.dataStore.sql.options }}
   {{- $_ := set $config "connection_string" (printf "%s%s" .Values.dataStore.sql.file $query) }}
+  {{- end }}
 {{- else if or (eq .Values.dataStore.sql.databaseType "mysql") (eq .Values.dataStore.sql.databaseType "aws_mysql") (eq .Values.dataStore.sql.databaseType "gcp_mysql_sa_iam") }}
   {{- if eq .Values.dataStore.sql.databaseType "mysql" }}
   {{-   $_ := set $config "database_type" "mysql" }}

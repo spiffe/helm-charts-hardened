@@ -428,4 +428,62 @@ spire-server:
 			Expect(serverResource).ShouldNot(ContainSubstring("\n  updateStrategy:"))
 		})
 	})
+	Describe("spire-server.kind.deployment.sqlite3", func() {
+		deployment := func(sql string) string {
+			return `
+spire-server:
+  kind: deployment
+  persistence:
+    type: emptyDir
+  keyManager:
+    disk:
+      enabled: false
+    memory:
+      enabled: true
+  dataStore:
+    sql:
+` + sql
+		}
+
+		It("renders a Deployment when the sqlite3 datastore is in memory", func() {
+			objs, err := ValueStringRender(chart, deployment(`      inMemory: true
+`))
+			Expect(err).Should(Succeed())
+			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
+			Expect(serverResource).Should(ContainSubstring("kind: Deployment"))
+			Expect(serverResource).ShouldNot(ContainSubstring("kind: StatefulSet"))
+		})
+
+		It("rejects a file backed sqlite3 datastore", func() {
+			_, err := ValueStringRender(chart, deployment(`      inMemory: false
+`))
+			Expect(err).Should(MatchError(ContainSubstring("sqlite3 can only be used in memory")))
+		})
+	})
+	Describe("spire-server.dataStore.sql.inMemory", func() {
+		It("builds a shared cache connection string and ignores file", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  dataStore:
+    sql:
+      inMemory: true
+      file: /run/spire/data/datastore.sqlite3
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs["spire/charts/spire-server/templates/configmap.yaml"]).
+				Should(ContainSubstring(`"connection_string": "memdb?mode=memory\u0026cache=shared"`))
+		})
+
+		It("keeps the file connection string when left off", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  dataStore:
+    sql:
+      file: /run/spire/data/datastore.sqlite3
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs["spire/charts/spire-server/templates/configmap.yaml"]).
+				Should(ContainSubstring(`"connection_string": "/run/spire/data/datastore.sqlite3"`))
+		})
+	})
 })
