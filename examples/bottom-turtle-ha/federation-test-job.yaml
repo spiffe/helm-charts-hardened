@@ -36,10 +36,10 @@ spec:
           i=0
           while [ "$i" -lt 60 ]; do
             if XOUT=$(/opt/spire/bin/spire-agent api fetch x509 -socketPath "$SOCK" -write /data -timeout 5s 2>&1) &&
-               echo "$XOUT" | /data/busybox grep -q "for trust domain other.org" &&
+               echo "$XOUT" | /data/busybox grep -q "for trust domain other.invalid" &&
                JOUT=$(/opt/spire/bin/spire-agent api fetch jwt -audience test -socketPath "$SOCK" -timeout 5s 2>&1) &&
-               echo "$JOUT" | /data/busybox grep -q "bundle(other.org)"; then
-              # The other.org bundle was statically set to the same single CA on both sides,
+               echo "$JOUT" | /data/busybox grep -q "bundle(other.invalid)"; then
+              # Both sides were seeded with the same single-CA other.invalid bundle at install,
               # so every federated bundle delivered must contain exactly one certificate.
               for f in /data/federated_bundle.*.pem; do
                 COUNT=$(/data/busybox grep -c "BEGIN CERTIFICATE" "$f")

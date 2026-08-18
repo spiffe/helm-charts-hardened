@@ -10,7 +10,7 @@ solvers:
 - http01:
     ingress: {}
 {{- end }}
-{{- if and .Values.tls.certManager.enabled .Values.tls.certManager.issuer.create }}
+{{- if and .Values.tls.certManager.enabled .Values.tls.certManager.issuer.create (or .Values.tls.rest.enabled .Values.tls.grpc.enabled) }}
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:

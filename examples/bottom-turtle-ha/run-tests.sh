@@ -31,8 +31,13 @@ done
 
 # With -b, test the spire-ha-agent broker api instead of the delegated api.
 # Broker mode also supports federated trust bundles, so federate the ha-agent's own entry and a
-# dedicated federation-test workload entry with the other.org trust domain on both sides. Delegated
+# dedicated federation-test workload entry with the other.invalid trust domain on both sides. Delegated
 # mode only tolerates the local and spire-ha bundles, so none of this may apply without -b.
+
+# Placeholder bundle endpoint for other.invalid. Its ClusterFederatedTrustDomain carries the bundle
+# verbatim, but the CRD requires an endpoint alongside it. This name is never meant to answer, it
+# just has to be ours: .invalid can never be registered, and coredns pins it to 127.0.0.1 below.
+FEDERATION_ENDPOINT_HOST=spire-server-federation.other.invalid
 BROKER_MODE_ARGS=()
 BROKER_SOCKET_ARGS_A=()
 BROKER_SOCKET_ARGS_B=()
@@ -41,15 +46,15 @@ if [ "${BROKER}" -eq 1 ]; then
   BROKER_SOCKET_ARGS_A=(
     --set downstream-spire-agent-bottom-turtle-ha-a.sockets.broker.enabled=true
     --set downstream-spire-agent-bottom-turtle-ha-a.sockets.broker.mountOnHost=true
-    --set 'internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent.federatesWith={spire-ha,other.org}'
-    --set 'internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.clusterSPIFFEIDs.federation-test.federatesWith={other.org}'
+    --set 'internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent.federatesWith={spire-ha,other.invalid}'
+    --set 'internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.clusterSPIFFEIDs.federation-test.federatesWith={other.invalid}'
     --set 'internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.clusterSPIFFEIDs.federation-test.podSelector.matchLabels.app=federation-test'
   )
   BROKER_SOCKET_ARGS_B=(
     --set downstream-spire-agent-bottom-turtle-ha-b.sockets.broker.enabled=true
     --set downstream-spire-agent-bottom-turtle-ha-b.sockets.broker.mountOnHost=true
-    --set 'internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent.federatesWith={spire-ha,other.org}'
-    --set 'internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.clusterSPIFFEIDs.federation-test.federatesWith={other.org}'
+    --set 'internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent.federatesWith={spire-ha,other.invalid}'
+    --set 'internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.clusterSPIFFEIDs.federation-test.federatesWith={other.invalid}'
     --set 'internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.clusterSPIFFEIDs.federation-test.podSelector.matchLabels.app=federation-test'
   )
 fi
@@ -95,6 +100,7 @@ teardown() {
   kubectl describe daemonset pods -n spire-system || true
   kubectl get configmap -n spire-system || true
   kubectl get configmap -n spire-system spire-a-agent-downstream -o yaml || true
+  kubectl get endpoints -n spire-server -o yaml || true
 
   print_helm_releases
 
@@ -204,17 +210,38 @@ if [ "${BROKER}" -eq 1 ]; then
   BUSYBOX_IMAGE=$(helm template t charts/spire -s charts/spiffe-oidc-discovery-provider/templates/tests/test-keys.yaml --values "${COMMON_TEST_YOUR_VALUES}" --set spiffe-oidc-discovery-provider.enabled=true | yq e 'select(.kind=="Pod") | .spec.initContainers[] | select(.name=="static-busybox") | .image' -)
   echo "federation test job images: ${AGENT_IMAGE} ${BUSYBOX_IMAGE}"
 
-  # Mint a trust bundle for a foreign trust domain (other.org) to test federated trust bundle
+  # Mint a trust bundle for a foreign trust domain (other.invalid) to test federated trust bundle
   # support. A throwaway third spire-server instance produces a genuine spiffe format bundle
   # carrying both x509 and jwt authorities. The instance env file overrides the global trust
   # domain since systemd applies later EnvironmentFiles last.
-  sudo /bin/bash -c '(echo SPIFFE_TRUST_DOMAIN=other.org; echo SPIRE_BIND_PORT=8083) > /etc/spire/server/other.env'
+  sudo /bin/bash -c '(echo SPIFFE_TRUST_DOMAIN=other.invalid; echo SPIRE_BIND_PORT=8083) > /etc/spire/server/other.env'
   sudo systemctl start spire-server@other
   wait_for_healthcheck spire-server /run/spire/server/sockets/other/private/api.sock
-  sudo spire-server bundle show -format spiffe -socketPath /run/spire/server/sockets/other/private/api.sock | sudo tee /tmp/other-org-bundle.json > /dev/null
+  sudo spire-server bundle show -format spiffe -socketPath /run/spire/server/sockets/other/private/api.sock | sudo tee /tmp/other-invalid-bundle.json > /dev/null
   sudo systemctl stop spire-server@other
-  grep -q '"x509-svid"' /tmp/other-org-bundle.json
-  grep -q '"jwt-svid"' /tmp/other-org-bundle.json
+  grep -q '"x509-svid"' /tmp/other-invalid-bundle.json
+  grep -q '"jwt-svid"' /tmp/other-invalid-bundle.json
+
+  # Seed the bundle into each server's ClusterFederatedTrustDomain so the controller manager can
+  # create the entries that federate with other.invalid on its first reconcile. Loading it after
+  # the install instead leaves the ha-agent without an SVID for the whole helm --wait window.
+  # The CRD requires an endpoint even when the bundle is supplied verbatim; .invalid can never be
+  # registered and coredns pins the name locally, so the endpoint never answers. That is fine,
+  # spire keeps a federated bundle when a refresh fails.
+  FTD_A=internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.clusterFederatedTrustDomains.other
+  FTD_B=internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.clusterFederatedTrustDomains.other
+  BROKER_SOCKET_ARGS_A+=(
+    --set "${FTD_A}.trustDomain=other.invalid"
+    --set "${FTD_A}.bundleEndpointProfile.type=https_web"
+    --set "${FTD_A}.bundleEndpointURL=https://${FEDERATION_ENDPOINT_HOST}"
+    --set-file "${FTD_A}.trustDomainBundle=/tmp/other-invalid-bundle.json"
+  )
+  BROKER_SOCKET_ARGS_B+=(
+    --set "${FTD_B}.trustDomain=other.invalid"
+    --set "${FTD_B}.bundleEndpointProfile.type=https_web"
+    --set "${FTD_B}.bundleEndpointURL=https://${FEDERATION_ENDPOINT_HOST}"
+    --set-file "${FTD_B}.trustDomainBundle=/tmp/other-invalid-bundle.json"
+  )
 fi
 
 # register some workloads with the spire server using manifests
@@ -305,7 +332,7 @@ common_test_url "$IP"
 # Get the host IP And add spire-server-[ab].${trust_domain} records to it so the spire-servers can talk back to root servers running on the host
 HOSTIP=$(ip addr show docker0 | grep 'inet ' | awk '{print $2}' | cut -d/ -f1)
 kubectl get configmap -n kube-system coredns -o yaml | grep hosts || kubectl get configmap -n kube-system coredns -o yaml | sed "/ready/a\        hosts {\n           fallthrough\n        }" | kubectl apply -f -
-kubectl get configmap -n kube-system coredns -o yaml | grep production.other || kubectl get configmap -n kube-system coredns -o yaml | sed "/hosts/a\           $HOSTIP spire-server-a.production.other\n           $HOSTIP oidc-discovery.production.other\n           $HOSTIP spire-server-b.production.other\n" | kubectl apply -f -
+kubectl get configmap -n kube-system coredns -o yaml | grep production.other || kubectl get configmap -n kube-system coredns -o yaml | sed "/hosts/a\           $HOSTIP spire-server-a.production.other\n           $IP oidc-discovery.production.other\n           $HOSTIP spire-server-b.production.other\n           127.0.0.1 $FEDERATION_ENDPOINT_HOST\n" | kubectl apply -f -
 kubectl rollout restart -n kube-system deployment/coredns
 kubectl rollout status -n kube-system -w --timeout=1m deploy/coredns
 
@@ -330,18 +357,12 @@ kubectl create secret tls -n spire-server spire-identity-exchange --key=certs/se
 
 # Install server side a
 helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/spire-values.yaml" \
-  --wait spire-a charts/spire-nested \
+  --wait --timeout 7m spire-a charts/spire-nested \
   --set tags.bottomTurtleHAA=true \
   --values "${SCRIPTPATH}/spire-identity-exchange-values.yaml" \
   --set "spire-identity-exchange-bottom-turtle-ha-a.enabled=true" \
   --set "global.spire.ingressControllerType=ingress-nginx" \
   "${BROKER_SOCKET_ARGS_A[@]}"
-
-if [ "${BROKER}" -eq 1 ]; then
-  # Install the other.org bundle so the controller manager can create the entries that federate
-  # with it. It retries any entries that failed with "unable to find federated bundle".
-  kubectl exec -i -n spire-server spire-a-internal-server-0 -- spire-server bundle set -format spiffe -id spiffe://other.org < /tmp/other-org-bundle.json
-fi
 
 docker exec -i chart-testing-worker /bin/bash -c "more /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/disk-keymanager/keys.json /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir/spire-agent-persistence/agent-data.json | cat"
 
@@ -356,7 +377,7 @@ curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discov
 
 # Install server side b
 helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/spire-values.yaml" \
-  --wait spire-b charts/spire-nested \
+  --wait --timeout 7m spire-b charts/spire-nested \
   --set tags.bottomTurtleHAB=true \
   --set internal-spire-server-bottom-turtle-ha-b.upstreamAuthority.spire.server.port=8082 \
   --values "${SCRIPTPATH}/spire-identity-exchange-values.yaml" \
@@ -365,10 +386,10 @@ helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUE
   "${BROKER_SOCKET_ARGS_B[@]}"
 
 if [ "${BROKER}" -eq 1 ]; then
-  kubectl exec -i -n spire-server spire-b-internal-server-0 -- spire-server bundle set -format spiffe -id spiffe://other.org < /tmp/other-org-bundle.json
-  # Both sides' spire-ha-agent entries must federate with other.org before the workload test.
-  wait_for_entry_federation spire-a-internal-server-0 other.org
-  wait_for_entry_federation spire-b-internal-server-0 other.org
+  # Both sides' spire-ha-agent entries must federate with other.invalid before the workload test.
+  # The bundle came in with the install, so this should already be true rather than waited on.
+  wait_for_entry_federation spire-a-internal-server-0 other.invalid
+  wait_for_entry_federation spire-b-internal-server-0 other.invalid
 fi
 
 docker ps
@@ -398,11 +419,11 @@ curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discov
 kubectl apply -f "${SCRIPTPATH}/test-job.yaml"
 kubectl wait --for=condition=complete --timeout=60s job/test && \
 TOKEN=$(kubectl logs job/test)
-curl -f -H "Authorization: Bearer ${TOKEN}" -X POST --resolve "spire-identity-exchange-a-rest.production.other:443:$IP" "https://spire-identity-exchange-a-rest.production.other/api/v1/svid/k8s_psat/x509" -k -sS -q
-curl -f -H "Authorization: Bearer ${TOKEN}" -X POST --resolve "spire-identity-exchange-b-rest.production.other:443:$IP" "https://spire-identity-exchange-b-rest.production.other/api/v1/svid/k8s_psat/x509" -k -sS -q
+curl --fail-with-body -H "Authorization: Bearer ${TOKEN}" -X POST --resolve "spire-identity-exchange-a-rest.production.other:443:$IP" "https://spire-identity-exchange-a-rest.production.other/api/v1/svid/k8s_psat/x509" -k -sS -q
+curl --fail-with-body -H "Authorization: Bearer ${TOKEN}" -X POST --resolve "spire-identity-exchange-b-rest.production.other:443:$IP" "https://spire-identity-exchange-b-rest.production.other/api/v1/svid/k8s_psat/x509" -k -sS -q
 
 if [ "${BROKER}" -eq 1 ]; then
-  # Verify a workload on the ha-agent socket receives the other.org federated trust bundles,
+  # Verify a workload on the ha-agent socket receives the other.invalid federated trust bundles,
   # x509 and jwt, merged from both sides.
   run_federation_test_job
 fi
@@ -416,7 +437,7 @@ kubectl rollout status deployment -n spire-server spiffe-oidc-discovery-provider
 curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discovery.production.other/.well-known/openid-configuration" -s --fail
 
 if [ "${BROKER}" -eq 1 ]; then
-  # Verify the other.org federated trust bundles still serve with only side b running.
+  # Verify the other.invalid federated trust bundles still serve with only side b running.
   run_federation_test_job
 fi
 
