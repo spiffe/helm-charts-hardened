@@ -551,6 +551,19 @@ upstreamAuthority:
     bundleFileArn: ""
     ## @param upstreamAuthority.awsSecret.assumeRoleArn (Optional) ARN of an IAM role to assume
     assumeRoleArn: ""
+  gcpCAS:
+    ## @param upstreamAuthority.gcpCAS.enabled Flag to enable upstream authority plugin with GCP Certificate Authority Service
+    enabled: false
+    ## @param upstreamAuthority.gcpCAS.projectName GCP project containing the root CA certificate
+    projectName: ""
+    ## @param upstreamAuthority.gcpCAS.regionName GCP region name (e.g., us-central1)
+    regionName: ""
+    ## @param upstreamAuthority.gcpCAS.caPool Name of the CA Pool that has the root CA certificate
+    caPool: ""
+    ## @param upstreamAuthority.gcpCAS.labelKey Label key used to filter and select the relevant CA certificate
+    labelKey: ""
+    ## @param upstreamAuthority.gcpCAS.labelValue Label value used to filter and select the relevant CA certificate
+    labelValue: ""
   certManager:
     ## @param upstreamAuthority.certManager.enabled Flag to enable upstream authority plugin with cert manager
     enabled: false
