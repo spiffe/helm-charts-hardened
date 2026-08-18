@@ -380,4 +380,52 @@ spire-server:
 			Expect(roles).Should(ContainSubstring(`name: "spire-admins"`))
 		})
 	})
+	Describe("spire-server.updateStrategy", func() {
+		It("maps to spec.strategy when kind is deployment", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  kind: deployment
+  persistence:
+    type: emptyDir
+  keyManager:
+    disk:
+      enabled: false
+    memory:
+      enabled: true
+  dataStore:
+    sql:
+      databaseType: postgres
+      host: db.example.org
+  updateStrategy:
+    type: Recreate
+`)
+			Expect(err).Should(Succeed())
+			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
+			Expect(serverResource).Should(ContainSubstring("kind: Deployment"))
+			Expect(serverResource).Should(ContainSubstring("\n  strategy:\n    type: Recreate\n"))
+		})
+
+		It("maps to spec.updateStrategy when kind is statefulset", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  updateStrategy:
+    type: OnDelete
+`)
+			Expect(err).Should(Succeed())
+			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
+			Expect(serverResource).Should(ContainSubstring("kind: StatefulSet"))
+			Expect(serverResource).Should(ContainSubstring("\n  updateStrategy:\n    type: OnDelete\n"))
+		})
+
+		It("renders neither field when left unset", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  replicaCount: 1
+`)
+			Expect(err).Should(Succeed())
+			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
+			Expect(serverResource).ShouldNot(ContainSubstring("\n  strategy:"))
+			Expect(serverResource).ShouldNot(ContainSubstring("\n  updateStrategy:"))
+		})
+	})
 })
