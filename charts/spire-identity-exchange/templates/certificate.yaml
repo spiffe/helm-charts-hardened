@@ -4,12 +4,18 @@ dnsNames:
   {{- if ne (len .Values.tls.certManager.certificate.dnsNames) 0 }}
   {{-   toYaml .Values.tls.certManager.certificate.dnsNames | nindent 4 }}
   {{- else }}
-  {{-   if .Values.rest.enabled }}
-    - {{ include "spire-lib.ingress-calculated-name" (dict "ingress" .Values.rest.ingress "Values" .Values) }}
+  {{-   $hosts := list }}
+  {{-   range $l := list .Values.tls.rest .Values.tls.grpc }}
+  {{-     if $l.enabled }}
+  {{-       if $l.ingress.enabled }}
+  {{-         $hosts = append $hosts (include "spire-lib.ingress-calculated-name" (dict "ingress" $l.ingress "Values" $.Values) | trim) }}
+  {{-       end }}
+  {{-       if $l.gatewayAPI.enabled }}
+  {{-         $hosts = append $hosts (include "spire-lib.ingress-calculated-name" (dict "ingress" (dict "host" $l.gatewayAPI.host) "Values" $.Values) | trim) }}
+  {{-       end }}
+  {{-     end }}
   {{-   end }}
-  {{-   if .Values.grpc.enabled }}
-    - {{ include "spire-lib.ingress-calculated-name" (dict "ingress" .Values.grpc.ingress "Values" .Values) }}
-  {{-   end }}
+  {{-   toYaml (uniq $hosts) | nindent 4 }}
   {{- end }}
 issuerRef:
   {{- with .Values.tls.certManager.certificate.issuerRef.group }}
@@ -19,7 +25,7 @@ issuerRef:
   name: {{ default $fullName .Values.tls.certManager.certificate.issuerRef.name }}
 secretName: {{ $fullName }}-cert
 {{- end }}
-{{- if .Values.tls.certManager.enabled }}
+{{- if and .Values.tls.certManager.enabled (or .Values.tls.rest.enabled .Values.tls.grpc.enabled) }}
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate

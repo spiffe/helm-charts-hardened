@@ -1,0 +1,15 @@
+{{- if and .Values.tags.haAgentCommon .Values.spireIdentityExchange.spiffe.grpc.enabled .Values.spireIdentityExchange.spiffe.grpc.gatewayAPI.enabled -}}
+{{- $fullName := printf "%s-grpc-spiffe" (include "spire-nested.identity-exchange-name" .) -}}
+{{/* Passthrough only. These backends serve an X509-SVID, whose only SAN is a
+     spiffe:// URI, so a BackendTLSPolicy hostname check could never match. */}}
+{{- include "spire-lib.gateway-routes" (dict
+      "root" .
+      "gatewayAPI" .Values.spireIdentityExchange.spiffe.grpc.gatewayAPI
+      "name" $fullName
+      "namespace" (include "spire-nested.server-namespace" .)
+      "svcName" $fullName
+      "port" .Values.spireIdentityExchange.spiffe.grpc.service.port
+      "labels" (include "spire-nested.labels" .)
+      "routeKind" "TLSRoute"
+      "backendTLS" false) }}
+{{- end }}
