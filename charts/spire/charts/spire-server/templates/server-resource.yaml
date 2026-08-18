@@ -41,8 +41,14 @@
 {{-   if (has .Values.persistence.type (list "pvc" "hostPath")) }}
 {{-     fail "When running as deployment, persistence can't be set. 'persistence.type' must be [\"emptyDir\"]" }}
 {{-   end }}
-{{-   if (eq .Values.dataStore.sql.databaseType "sqlite3") }}
-{{-     fail "When running as deployment, sqlite3 can't be used." }}
+{{-   if and (eq .Values.dataStore.sql.databaseType "sqlite3") (not .Values.dataStore.sql.inMemory) }}
+{{-     fail "When running as deployment, sqlite3 can only be used in memory. Set 'dataStore.sql.inMemory' to true." }}
+{{-   end }}
+{{-   if and (eq .Values.dataStore.sql.databaseType "sqlite3") .Values.dataStore.sql.inMemory }}
+{{-     $surge := dig "rollingUpdate" "maxSurge" "" .Values.updateStrategy | toString }}
+{{-     if not (or (eq (dig "type" "" .Values.updateStrategy) "Recreate") (eq $surge "0") (eq $surge "0%")) }}
+{{-       fail "An in-memory datastore on a deployment must not surge, or two servers run with separate datastores. Set 'updateStrategy' to {type: Recreate} or {rollingUpdate: {maxSurge: 0}}." }}
+{{-     end }}
 {{-   end }}
 {{-   if (eq (.Values.keyManager.disk.enabled | toString) "true") }}
 {{-     fail "When running as deployment, disk keymanager can't be used. 'keyManager.disk.enabled' must be false." }}

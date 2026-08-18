@@ -196,8 +196,10 @@ dataStore:
     username: spire
     ## @param dataStore.sql.password Only used when type != "sqlite3"
     password: ""
-    ## @param dataStore.sql.file Data source file. Only used when type == "sqlite3"
+    ## @param dataStore.sql.file Data source file. Only used when type == "sqlite3" and inMemory is false
     file: "/run/spire/data/datastore.sqlite3"
+    ## @param dataStore.sql.inMemory Hold the sqlite3 datastore in memory instead of in a file, in which case `file` is unused. The datastore starts empty on every restart, so this only suits a single replica whose registration entries are recreated at startup, for example by the controller manager writing static entries. Required to run as a deployment on sqlite3, since a deployment has no durable per-pod storage.
+    inMemory: false
     ## @param dataStore.sql.options [array] takes an array of objects of form {<key>: <value>} to use when building the database connection string
     options: []
 
