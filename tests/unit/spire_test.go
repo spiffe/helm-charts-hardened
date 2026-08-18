@@ -440,6 +440,8 @@ spire-server:
       enabled: false
     memory:
       enabled: true
+  updateStrategy:
+    type: Recreate
   dataStore:
     sql:
 ` + sql
@@ -484,6 +486,144 @@ spire-server:
 			Expect(err).Should(Succeed())
 			Expect(objs["spire/charts/spire-server/templates/configmap.yaml"]).
 				Should(ContainSubstring(`"connection_string": "/run/spire/data/datastore.sqlite3"`))
+		})
+	})
+	Describe("spire-server.dataStore.sql.inMemory warnings", func() {
+		notes := func(values string) string {
+			objs, err := ValueStringRender(chart, values)
+			ExpectWithOffset(1, err).Should(Succeed())
+			return objs["spire/templates/NOTES.txt"]
+		}
+		safe := `
+spire-server:
+  dataStore:
+    sql:
+      inMemory: true
+  controllerManager:
+    enabled: true
+    reconcile:
+      clusterStaticEntries: true
+  upstreamAuthority:
+    vault:
+      enabled: true
+`
+
+		It("stays quiet on the default values", func() {
+			Expect(notes(`spire-server: {}`)).ShouldNot(ContainSubstring("Warning: dataStore.sql.inMemory"))
+		})
+
+		It("stays quiet when entries are reconciled and a CA is upstream", func() {
+			Expect(notes(safe)).ShouldNot(ContainSubstring("Warning: dataStore.sql.inMemory"))
+		})
+
+		It("warns when nothing recreates the registration entries", func() {
+			Expect(notes(`
+spire-server:
+  dataStore:
+    sql:
+      inMemory: true
+  controllerManager:
+    enabled: false
+`)).Should(ContainSubstring("nothing recreates them"))
+		})
+
+		It("warns when the CA is also in memory with no upstream authority", func() {
+			Expect(notes(`
+spire-server:
+  dataStore:
+    sql:
+      inMemory: true
+  controllerManager:
+    enabled: true
+    reconcile:
+      clusterStaticEntries: true
+  keyManager:
+    disk:
+      enabled: false
+    memory:
+      enabled: true
+`)).Should(ContainSubstring("mints a new CA on every restart"))
+		})
+
+		It("stays quiet on a deployment that cannot surge", func() {
+			Expect(notes(safe + `
+  kind: deployment
+  persistence:
+    type: emptyDir
+  keyManager:
+    disk:
+      enabled: false
+    memory:
+      enabled: true
+  updateStrategy:
+    type: Recreate
+`)).ShouldNot(ContainSubstring("Warning: dataStore.sql.inMemory"))
+		})
+	})
+	Describe("spire-server.updateStrategy surge guard", func() {
+		deployment := func(strategy string) string {
+			return `
+spire-server:
+  kind: deployment
+  persistence:
+    type: emptyDir
+  keyManager:
+    disk:
+      enabled: false
+    memory:
+      enabled: true
+  dataStore:
+    sql:
+      inMemory: true
+` + strategy
+		}
+
+		It("rejects an in-memory deployment that can surge", func() {
+			_, err := ValueStringRender(chart, deployment(``))
+			Expect(err).Should(MatchError(ContainSubstring("must not surge")))
+		})
+
+		It("rejects an explicit rolling update that can surge", func() {
+			_, err := ValueStringRender(chart, deployment(`  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+`))
+			Expect(err).Should(MatchError(ContainSubstring("must not surge")))
+		})
+
+		It("accepts Recreate", func() {
+			_, err := ValueStringRender(chart, deployment(`  updateStrategy:
+    type: Recreate
+`))
+			Expect(err).Should(Succeed())
+		})
+
+		It("accepts a rolling update pinned to maxSurge 0", func() {
+			_, err := ValueStringRender(chart, deployment(`  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+`))
+			Expect(err).Should(Succeed())
+		})
+
+		It("accepts maxSurge expressed as a percentage", func() {
+			_, err := ValueStringRender(chart, deployment(`  updateStrategy:
+    rollingUpdate:
+      maxSurge: 0%
+`))
+			Expect(err).Should(Succeed())
+		})
+
+		It("leaves a file backed statefulset alone", func() {
+			_, err := ValueStringRender(chart, `
+spire-server:
+  updateStrategy:
+    type: RollingUpdate
+`)
+			Expect(err).Should(Succeed())
 		})
 	})
 })
