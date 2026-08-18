@@ -473,7 +473,7 @@ spec:
       volumes:
         - name: spire-config
           configMap:
-            name: {{ include "spire-agent.fullname" . }}
+            name: {{ printf "%s%s" (include "spire-agent.fullname" .) $nameSuffix | quote }}
         {{- if .Values.keyManager.disk.enabled }}
         - name: spire-key-manager
           {{- if eq .Values.keyManager.disk.mode "hostPath" }}

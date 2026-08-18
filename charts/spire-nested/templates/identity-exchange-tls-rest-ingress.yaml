@@ -1,0 +1,39 @@
+{{- if and .Values.tags.haAgentCommon .Values.spireIdentityExchange.tls.rest.enabled .Values.spireIdentityExchange.tls.rest.ingress.enabled -}}
+{{- $port := .Values.spireIdentityExchange.tls.rest.service.port }}
+{{- $ingressControllerType := include "spire-lib.ingress-controller-type" (dict "global" .Values.global "ingress" .Values.spireIdentityExchange.tls.rest.ingress) }}
+{{- $fullName := printf "%s-rest" (include "spire-nested.identity-exchange-name" .) }}
+{{- $path := "/" }}
+{{- $pathType := "Prefix" }}
+{{- $tlsSection := true }}
+{{- $annotations := deepCopy .Values.spireIdentityExchange.tls.rest.ingress.annotations }}
+{{- if eq $ingressControllerType "ingress-nginx" }}
+{{-   $_ := set $annotations "nginx.ingress.kubernetes.io/ssl-redirect" "true" }}
+{{-   $_ := set $annotations "nginx.ingress.kubernetes.io/force-ssl-redirect" "true" }}
+{{-   $_ := set $annotations "nginx.ingress.kubernetes.io/backend-protocol" "HTTPS" }}
+{{-   if not .Values.spireIdentityExchange.tls.rest.ingress.tlsSecret }}
+{{-     $_ := set $annotations "nginx.ingress.kubernetes.io/ssl-passthrough" "true" }}
+{{-   end }}
+{{- else if eq $ingressControllerType "openshift" }}
+{{-   if .Values.spireIdentityExchange.tls.rest.ingress.tlsSecret }}
+{{-     $_ := set $annotations "route.openshift.io/termination" "reencrypt" }}
+{{-   else }}
+{{-     $_ := set $annotations "route.openshift.io/termination" "passthrough" }}
+{{-   end }}
+{{-   $path = "" }}
+{{-   $pathType = "ImplementationSpecific" }}
+{{-   $tlsSection = false }}
+{{- end }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ include "spire-nested.server-namespace" . }}
+  labels:
+    {{ include "spire-nested.labels" . | nindent 4 }}
+  {{- with $annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{ include "spire-lib.ingress-spec" (dict "ingress" .Values.spireIdentityExchange.tls.rest.ingress "svcName" $fullName "port" $port "path" $path "pathType" $pathType "tlsSection" $tlsSection "Values" .Values) | nindent 2 }}
+{{- end }}
