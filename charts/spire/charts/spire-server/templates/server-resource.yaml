@@ -59,16 +59,20 @@
 {{- if hasKey .Values.dataStore.sql "plugin_data" }}
 {{-   fail "The plugin_data setting to the sql data store is no longer supported." }}
 {{- end }}
-{{- if and (ne .Values.dataStore.sql.databaseType "mysql") (ne .Values.dataStore.sql.databaseType "aws_mysql") }}
+{{- $certPathDatabaseType := or (eq .Values.dataStore.sql.databaseType "mysql") (eq .Values.dataStore.sql.databaseType "aws_mysql") (eq .Values.dataStore.sql.databaseType "postgres") (eq .Values.dataStore.sql.databaseType "aws_postgres") }}
+{{- if not $certPathDatabaseType }}
 {{-   if ne .Values.dataStore.sql.rootCAPath "" }}
-{{-     fail "rootCAPath can only be set with database type mysql or aws_mysql." }}
+{{-     fail "rootCAPath can only be set with database type mysql, aws_mysql, postgres or aws_postgres." }}
 {{-   end }}
 {{-   if ne .Values.dataStore.sql.clientCertPath "" }}
-{{-     fail "clientCertPath can only be set with database type mysql or aws_mysql." }}
+{{-     fail "clientCertPath can only be set with database type mysql, aws_mysql, postgres or aws_postgres." }}
 {{-   end }}
 {{-   if ne .Values.dataStore.sql.clientKeyPath "" }}
-{{-     fail "clientKeyPath can only be set with database type mysql or aws_mysql." }}
+{{-     fail "clientKeyPath can only be set with database type mysql, aws_mysql, postgres or aws_postgres." }}
 {{-   end }}
+{{- end }}
+{{- if and (or (eq .Values.dataStore.sql.databaseType "postgres") (eq .Values.dataStore.sql.databaseType "aws_postgres")) (ne .Values.dataStore.sql.password "") (ne .Values.dataStore.sql.clientCertPath "") }}
+{{-   fail "dataStore.sql.password and dataStore.sql.clientCertPath are mutually exclusive for postgres; use one authentication method." }}
 {{- end }}
 {{- $pluginsToLoad := include "spire-lib.extract_custom_plugin_images" . | fromYamlArray }}
 {{- $jwtExecNeeded := false }}
@@ -316,7 +320,8 @@ spec:
           {{- with .Values.extraEnv }}
           {{- . | toYaml | nindent 10 }}
           {{- end }}
-          {{- if and (ne .Values.dataStore.sql.databaseType "sqlite3") (ne .Values.dataStore.sql.databaseType "gcp_mysql_sa_iam") }}
+          {{- $postgresPasswordless := and (or (eq .Values.dataStore.sql.databaseType "postgres") (eq .Values.dataStore.sql.databaseType "aws_postgres")) (eq .Values.dataStore.sql.password "") }}
+          {{- if and (ne .Values.dataStore.sql.databaseType "sqlite3") (ne .Values.dataStore.sql.databaseType "gcp_mysql_sa_iam") (not $postgresPasswordless) }}
           {{- if .Values.dataStore.sql.externalSecret.enabled }}
           - name: DBPW
             valueFrom:
