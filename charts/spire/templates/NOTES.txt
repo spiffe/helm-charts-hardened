@@ -22,6 +22,24 @@ Warning: You're using an unsupported plugin. Functionality of this release and f
 Warning: You're using an experimental config. Functionality of this release and future upgrades aren't guaranteed to work smoothly.
 {{- end }}
 {{- if (index .Values "spire-server").enabled }}
+{{-   $ss := index .Values "spire-server" }}
+{{-   if and (eq $ss.dataStore.sql.databaseType "sqlite3") $ss.dataStore.sql.inMemory }}
+{{-     $upstream := false }}
+{{-     range $name, $cfg := $ss.upstreamAuthority }}
+{{-       if kindIs "map" $cfg }}{{ if eq ($cfg.enabled | toString) "true" }}{{ $upstream = true }}{{ end }}{{ end }}
+{{-     end }}
+{{-     $reconciled := and $ss.controllerManager.enabled (or $ss.controllerManager.reconcile.clusterSPIFFEIDs $ss.controllerManager.reconcile.clusterStaticEntries) }}
+{{-     if not $reconciled }}
+
+Warning: dataStore.sql.inMemory is set, but no controller manager reconciler is enabled. Registration entries live only in memory and nothing recreates them, so every entry is lost when the server restarts. Enable controllerManager with reconcile.clusterSPIFFEIDs or reconcile.clusterStaticEntries.
+{{-     end }}
+{{-     if and $ss.keyManager.memory.enabled (not $upstream) }}
+
+Warning: dataStore.sql.inMemory is set with keyManager.memory and no upstreamAuthority. The server mints a new CA on every restart, so the whole trust domain has to re-attest and previously issued SVIDs stop verifying. Suitable for testing only; configure a KMS key manager or an upstream authority for anything else.
+{{-     end }}
+{{-   end }}
+{{- end }}
+{{- if (index .Values "spire-server").enabled }}
 {{-   $className := include "spire-server.controller-manager-class-name" (dict "Values" (index .Values "spire-server") "Release" .Release) }}
 {{-   if (index .Values "spire-server").controllerManager.enabled }}
 {{-     if (index .Values "spire-server").controllerManager.watchClassless }}

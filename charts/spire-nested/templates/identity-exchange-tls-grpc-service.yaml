@@ -1,0 +1,25 @@
+{{- if and .Values.tags.haAgentCommon .Values.spireIdentityExchange.tls.grpc.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "spire-nested.identity-exchange-name" . }}-grpc
+  namespace: {{ include "spire-nested.server-namespace" . }}
+  labels:
+    {{- include "spire-nested.labels" . | nindent 4 }}
+  {{- with .Values.spireIdentityExchange.tls.grpc.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.spireIdentityExchange.tls.grpc.service.type }}
+  {{- if and (eq .Values.spireIdentityExchange.tls.grpc.service.type "LoadBalancer") .Values.spireIdentityExchange.tls.grpc.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.spireIdentityExchange.tls.grpc.service.loadBalancerIP }}
+  {{- end }}
+  ports:
+    - name: https
+      port: {{ .Values.spireIdentityExchange.tls.grpc.service.port }}
+      targetPort: grpc
+      protocol: TCP
+  selector:
+    {{- toYaml .Values.spireIdentityExchange.podSelector | nindent 4 }}
+{{- end }}
