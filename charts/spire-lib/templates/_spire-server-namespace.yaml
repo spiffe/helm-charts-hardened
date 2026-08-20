@@ -10,9 +10,6 @@
 {{-     $labels = mergeOverwrite $labels (include "spire-lib.namespace.default_server_labels" . | fromYaml) }}
 {{-     if (dig "openshift" false .Values.global) }}
 {{-       $_ := set $labels "security.openshift.io/scc.podSecurityLabelSync" "false" }}
-{{-       if (index .Values "spiffe-oidc-discovery-provider").enabled }}
-{{-         $_ := set $labels "pod-security.kubernetes.io/enforce" "privileged" }}
-{{-       end }}
 {{-     end }}
 {{-   end }}
 {{-   $labels = mergeOverwrite $labels .Values.global.spire.namespaces.server.labels }}
