@@ -1,0 +1,15 @@
+{{- if and .Values.spiffe.rest.enabled .Values.spiffe.rest.gatewayAPI.enabled -}}
+{{- $fullName := printf "%s-rest-spiffe" (include "spire-identity-exchange.fullname" .) -}}
+{{/* Passthrough only. This backend serves an X509-SVID, whose only SAN is a
+     spiffe:// URI, so a BackendTLSPolicy hostname check could never match. */}}
+{{- include "spire-lib.gateway-routes" (dict
+      "root" .
+      "gatewayAPI" .Values.spiffe.rest.gatewayAPI
+      "name" $fullName
+      "namespace" (include "spire-identity-exchange.namespace" .)
+      "svcName" $fullName
+      "port" .Values.spiffe.rest.service.port
+      "labels" (include "spire-identity-exchange.labels" .)
+      "routeKind" "TLSRoute"
+      "backendTLS" false) }}
+{{- end }}

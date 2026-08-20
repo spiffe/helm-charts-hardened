@@ -1,0 +1,14 @@
+{{- if and .Values.tls.rest.enabled .Values.tls.rest.gatewayAPI.enabled -}}
+{{- $fullName := printf "%s-rest" (include "spire-identity-exchange.fullname" .) -}}
+{{- $routeKind := include "spire-lib.gateway-route-kind" (dict "gatewayAPI" .Values.tls.rest.gatewayAPI) -}}
+{{- include "spire-lib.gateway-routes" (dict
+      "root" .
+      "gatewayAPI" .Values.tls.rest.gatewayAPI
+      "name" $fullName
+      "namespace" (include "spire-identity-exchange.namespace" .)
+      "svcName" $fullName
+      "port" .Values.tls.rest.service.port
+      "labels" (include "spire-identity-exchange.labels" .)
+      "routeKind" $routeKind
+      "backendTLS" (eq $routeKind "HTTPRoute")) }}
+{{- end }}
