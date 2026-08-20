@@ -626,4 +626,81 @@ spire-server:
 			Expect(err).Should(Succeed())
 		})
 	})
+	Describe("spire-server.dataStore.sql.postgres passwordless", func() {
+		It("omits password and the -dbpw Secret for cert auth with an empty password", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  dataStore:
+    sql:
+      databaseType: postgres
+      host: db.example.org
+      username: spire
+      password: ""
+      rootCAPath: /run/spire/db-ca/ca.crt
+      clientCertPath: /run/spire/db-certs/tls.crt
+      clientKeyPath: /run/spire/db-certs/tls.key
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs["spire/charts/spire-server/templates/configmap.yaml"]).
+				ShouldNot(ContainSubstring("password=${DBPW}"))
+			Expect(objs["spire/charts/spire-server/templates/configmap.yaml"]).
+				Should(ContainSubstring("sslrootcert=/run/spire/db-ca/ca.crt"))
+			Expect(objs["spire/charts/spire-server/templates/secret.yaml"]).
+				ShouldNot(ContainSubstring("kind: Secret"))
+			Expect(objs["spire/charts/spire-server/templates/server-resource.yaml"]).
+				ShouldNot(ContainSubstring("name: DBPW"))
+		})
+
+		It("keeps the password token and DBPW env when an external secret provides the password", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  dataStore:
+    sql:
+      databaseType: postgres
+      host: db.example.org
+      username: spire
+      password: ""
+      externalSecret:
+        enabled: true
+        name: my-db-secret
+        key: password
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs["spire/charts/spire-server/templates/configmap.yaml"]).
+				Should(ContainSubstring("password=${DBPW}"))
+			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
+			Expect(serverResource).Should(ContainSubstring("name: DBPW"))
+			Expect(serverResource).Should(ContainSubstring("name: my-db-secret"))
+		})
+
+		It("keeps the RODBPW env when a read-only external secret provides the password", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  dataStore:
+    sql:
+      databaseType: postgres
+      host: db.example.org
+      username: spire
+      password: ""
+      rootCAPath: /run/spire/db-ca/ca.crt
+      clientCertPath: /run/spire/db-certs/tls.crt
+      clientKeyPath: /run/spire/db-certs/tls.key
+      readOnly:
+        enabled: true
+        host: ro.example.org
+        username: spire
+        password: ""
+        externalSecret:
+          enabled: true
+          name: my-ro-db-secret
+          key: password
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs["spire/charts/spire-server/templates/configmap.yaml"]).
+				Should(ContainSubstring("password=${RODBPW}"))
+			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
+			Expect(serverResource).Should(ContainSubstring("name: RODBPW"))
+			Expect(serverResource).Should(ContainSubstring("name: my-ro-db-secret"))
+		})
+	})
 })

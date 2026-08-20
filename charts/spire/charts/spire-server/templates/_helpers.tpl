@@ -301,6 +301,20 @@ current-context: cluster
 {{- end }}
 {{- end }}
 
+{{- define "spire-server.datastore-is-postgres" -}}
+{{- or (eq .Values.dataStore.sql.databaseType "postgres") (eq .Values.dataStore.sql.databaseType "aws_postgres") -}}
+{{- end }}
+
+{{- define "spire-server.datastore-postgres-passwordless" -}}
+{{- $isPostgres := eq (include "spire-server.datastore-is-postgres" .) "true" -}}
+{{- and $isPostgres (eq .Values.dataStore.sql.password "") (not .Values.dataStore.sql.externalSecret.enabled) -}}
+{{- end }}
+
+{{- define "spire-server.datastore-postgres-ro-passwordless" -}}
+{{- $isPostgres := eq (include "spire-server.datastore-is-postgres" .) "true" -}}
+{{- and $isPostgres (eq .Values.dataStore.sql.readOnly.password "") (not .Values.dataStore.sql.readOnly.externalSecret.enabled) -}}
+{{- end }}
+
 {{- define "spire-server.datastore-config" }}
 {{- $config := dict }}
 {{- $pw := "" }}
@@ -349,12 +363,14 @@ current-context: cluster
 {{- else if or (eq .Values.dataStore.sql.databaseType "postgres") (eq .Values.dataStore.sql.databaseType "aws_postgres") }}
   {{- if eq .Values.dataStore.sql.databaseType "postgres" }}
   {{-   $_ := set $config "database_type" "postgres" }}
-  {{-   if ne .Values.dataStore.sql.password "" }}
-  {{-     $pw = " password=${DBPW}" }}
-  {{-     $ropw = " password=${RODBPW}" }}
-  {{-   end }}
   {{- else }}
   {{-   $_ := set $config "database_type" (list (dict "aws_postgres" (dict "region" .Values.dataStore.sql.region))) }}
+  {{- end }}
+  {{- if ne (include "spire-server.datastore-postgres-passwordless" .) "true" }}
+  {{-   $pw = " password=${DBPW}" }}
+  {{- end }}
+  {{- if ne (include "spire-server.datastore-postgres-ro-passwordless" .) "true" }}
+  {{-   $ropw = " password=${RODBPW}" }}
   {{- end }}
   {{- $sslPaths := "" }}
   {{- if ne .Values.dataStore.sql.rootCAPath "" }}

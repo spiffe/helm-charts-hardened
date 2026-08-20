@@ -320,7 +320,8 @@ spec:
           {{- with .Values.extraEnv }}
           {{- . | toYaml | nindent 10 }}
           {{- end }}
-          {{- $postgresPasswordless := and (or (eq .Values.dataStore.sql.databaseType "postgres") (eq .Values.dataStore.sql.databaseType "aws_postgres")) (eq .Values.dataStore.sql.password "") }}
+          {{- $postgresPasswordless := eq (include "spire-server.datastore-postgres-passwordless" .) "true" }}
+          {{- $postgresRoPasswordless := eq (include "spire-server.datastore-postgres-ro-passwordless" .) "true" }}
           {{- if and (ne .Values.dataStore.sql.databaseType "sqlite3") (ne .Values.dataStore.sql.databaseType "gcp_mysql_sa_iam") (not $postgresPasswordless) }}
           {{- if .Values.dataStore.sql.externalSecret.enabled }}
           - name: DBPW
@@ -335,7 +336,8 @@ spec:
                 name: {{ $fullname }}-dbpw
                 key: DBPW
           {{- end }}
-          {{- if and .Values.dataStore.sql.readOnly.enabled (ne .Values.dataStore.sql.databaseType "gcp_mysql_sa_iam") }}
+          {{- end }}
+          {{- if and .Values.dataStore.sql.readOnly.enabled (ne .Values.dataStore.sql.databaseType "gcp_mysql_sa_iam") (not $postgresRoPasswordless) }}
           {{- if .Values.dataStore.sql.readOnly.externalSecret.enabled }}
           - name: RODBPW
             valueFrom:
@@ -348,7 +350,6 @@ spec:
               secretKeyRef:
                 name: {{ $fullname }}-dbpw
                 key: RODBPW
-          {{- end }}
           {{- end }}
           {{- end }}
           {{- if ne .Values.keyManager.awsKMS.accessKeyID "" }}
