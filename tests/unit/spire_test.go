@@ -1,6 +1,10 @@
 package unit_test
 
 import (
+	"encoding/json"
+	"io"
+	"strings"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -8,7 +12,70 @@ import (
 	helmloader "helm.sh/helm/v3/pkg/chart/loader"
 	helmutil "helm.sh/helm/v3/pkg/chartutil"
 	helmengine "helm.sh/helm/v3/pkg/engine"
+	yamlutil "k8s.io/apimachinery/pkg/util/yaml"
 )
+
+type renderedWebhook struct {
+	Name          string `json:"name"`
+	FailurePolicy string `json:"failurePolicy"`
+}
+
+type renderedDocument struct {
+	Kind     string `json:"kind"`
+	Metadata struct {
+		Annotations map[string]string `json:"annotations"`
+	} `json:"metadata"`
+	Spec struct {
+		Template struct {
+			Spec struct {
+				Containers []struct {
+					Args []string `json:"args"`
+				} `json:"containers"`
+			} `json:"spec"`
+		} `json:"template"`
+	} `json:"spec"`
+	Webhooks []renderedWebhook `json:"webhooks"`
+}
+
+func decodeRenderedDocuments(rendered string) ([]renderedDocument, error) {
+	decoder := yamlutil.NewYAMLOrJSONDecoder(strings.NewReader(rendered), 4096)
+	var documents []renderedDocument
+	for {
+		var document renderedDocument
+		err := decoder.Decode(&document)
+		if err == io.EOF {
+			return documents, nil
+		}
+		if err != nil {
+			return nil, err
+		}
+		if document.Kind != "" {
+			documents = append(documents, document)
+		}
+	}
+}
+
+func patchWebhookNames(job renderedDocument) ([]string, error) {
+	for _, container := range job.Spec.Template.Spec.Containers {
+		for index, arg := range container.Args {
+			if arg != "-p" || index+1 >= len(container.Args) {
+				continue
+			}
+			var patch struct {
+				Webhooks []renderedWebhook `json:"webhooks"`
+			}
+			if err := json.Unmarshal([]byte(container.Args[index+1]), &patch); err != nil {
+				return nil, err
+			}
+			names := make([]string, 0, len(patch.Webhooks))
+			for _, webhook := range patch.Webhooks {
+				names = append(names, webhook.Name)
+			}
+			return names, nil
+		}
+	}
+	return nil, nil
+}
 
 func ValueStringRender(chart *helmchart.Chart, values string) (map[string]string, error) {
 	v, err := helmutil.ReadValues([]byte(values))
@@ -349,6 +416,43 @@ spire-server:
 			Expect(objs[serverTmpl]).Should(ContainSubstring("init-jwt-svid-exec"))
 		})
 	})
+	Describe("spiffe-csi-driver.syncWave", func() {
+		csiTmpl := "spire/charts/spiffe-csi-driver/templates/spiffe-csi-driver.yaml"
+		It("renders the default sync-wave annotation on OpenShift", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[csiTmpl]).Should(ContainSubstring(`argocd.argoproj.io/sync-wave: "-1"`))
+		})
+		It("allows overriding the sync-wave number", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+spiffe-csi-driver:
+  syncWave: -2
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[csiTmpl]).Should(ContainSubstring(`argocd.argoproj.io/sync-wave: "-2"`))
+		})
+		It("allows overriding the annotation via csiDriverAnnotations", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+spiffe-csi-driver:
+  csiDriverAnnotations:
+    argocd.argoproj.io/sync-wave: "-5"
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[csiTmpl]).Should(ContainSubstring(`argocd.argoproj.io/sync-wave: "-5"`))
+		})
+		It("does not render the sync-wave annotation when not on OpenShift", func() {
+			objs, err := ValueStringRender(chart, ``)
+			Expect(err).Should(Succeed())
+			Expect(objs[csiTmpl]).ShouldNot(ContainSubstring("argocd.argoproj.io/sync-wave"))
+		})
+	})
 	Describe("spire-server.externalServerSubject", func() {
 		It("binds the external server's downstream RBAC to a ServiceAccount subject", func() {
 			objs, err := ValueStringRender(chart, `
@@ -624,6 +728,163 @@ spire-server:
     type: RollingUpdate
 `)
 			Expect(err).Should(Succeed())
+		})
+	})
+	Describe("spire-server webhook patch order", func() {
+		It("preserves the rendered webhook order in every strategic-merge hook", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  installAndUpgradeHooks:
+    enabled: true
+spire-server:
+  enabled: true
+  controllerManager:
+    enabled: true
+`)
+			Expect(err).Should(Succeed())
+
+			canonicalDocuments, err := decodeRenderedDocuments(objs["spire/charts/spire-server/templates/controller-manager-webhook.yaml"])
+			Expect(err).Should(Succeed())
+			Expect(canonicalDocuments).Should(HaveLen(1))
+			Expect(canonicalDocuments[0].Kind).Should(Equal("ValidatingWebhookConfiguration"))
+			canonicalNames := make([]string, 0, len(canonicalDocuments[0].Webhooks))
+			for _, webhook := range canonicalDocuments[0].Webhooks {
+				canonicalNames = append(canonicalNames, webhook.Name)
+			}
+
+			for _, hook := range []struct {
+				name     string
+				template string
+			}{
+				{name: "post-install", template: "spire/charts/spire-server/templates/post-install-hook.yaml"},
+				{name: "pre-upgrade", template: "spire/charts/spire-server/templates/pre-upgrade-hook.yaml"},
+				{name: "post-upgrade", template: "spire/charts/spire-server/templates/post-upgrade-hook.yaml"},
+			} {
+				documents, err := decodeRenderedDocuments(objs[hook.template])
+				Expect(err).Should(Succeed())
+				var jobs []renderedDocument
+				for _, document := range documents {
+					if document.Kind == "Job" && document.Metadata.Annotations["helm.sh/hook"] == hook.name {
+						jobs = append(jobs, document)
+					}
+				}
+				Expect(jobs).Should(HaveLen(1), hook.name)
+				actualNames, err := patchWebhookNames(jobs[0])
+				Expect(err).Should(Succeed())
+				Expect(actualNames).Should(Equal(canonicalNames), hook.name)
+			}
+		})
+	})
+	Describe("spire-server webhook hooks disabled", func() {
+		It("uses the configured failure policy and omits lifecycle Jobs", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  installAndUpgradeHooks:
+    enabled: false
+spire-server:
+  controllerManager:
+    enabled: true
+    validatingWebhookConfiguration:
+      failurePolicy: Fail
+`)
+			Expect(err).Should(Succeed())
+
+			canonicalDocuments, err := decodeRenderedDocuments(objs["spire/charts/spire-server/templates/controller-manager-webhook.yaml"])
+			Expect(err).Should(Succeed())
+			Expect(canonicalDocuments).Should(HaveLen(1))
+			Expect(canonicalDocuments[0].Webhooks).Should(HaveLen(2))
+			for _, webhook := range canonicalDocuments[0].Webhooks {
+				Expect(webhook.FailurePolicy).Should(Equal("Fail"))
+			}
+
+			for _, template := range []string{
+				"spire/charts/spire-server/templates/post-install-hook.yaml",
+				"spire/charts/spire-server/templates/pre-upgrade-hook.yaml",
+				"spire/charts/spire-server/templates/post-upgrade-hook.yaml",
+			} {
+				documents, err := decodeRenderedDocuments(objs[template])
+				Expect(err).Should(Succeed())
+				for _, document := range documents {
+					Expect(document.Kind).ShouldNot(Equal("Job"), template)
+				}
+			}
+		})
+	})
+	Describe("spire-server.dataStore.sql.postgres passwordless", func() {
+		It("omits password and the -dbpw Secret for cert auth with an empty password", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  dataStore:
+    sql:
+      databaseType: postgres
+      host: db.example.org
+      username: spire
+      password: ""
+      rootCAPath: /run/spire/db-ca/ca.crt
+      clientCertPath: /run/spire/db-certs/tls.crt
+      clientKeyPath: /run/spire/db-certs/tls.key
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs["spire/charts/spire-server/templates/configmap.yaml"]).
+				ShouldNot(ContainSubstring("password=${DBPW}"))
+			Expect(objs["spire/charts/spire-server/templates/configmap.yaml"]).
+				Should(ContainSubstring("sslrootcert=/run/spire/db-ca/ca.crt"))
+			Expect(objs["spire/charts/spire-server/templates/secret.yaml"]).
+				ShouldNot(ContainSubstring("kind: Secret"))
+			Expect(objs["spire/charts/spire-server/templates/server-resource.yaml"]).
+				ShouldNot(ContainSubstring("name: DBPW"))
+		})
+
+		It("keeps the password token and DBPW env when an external secret provides the password", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  dataStore:
+    sql:
+      databaseType: postgres
+      host: db.example.org
+      username: spire
+      password: ""
+      externalSecret:
+        enabled: true
+        name: my-db-secret
+        key: password
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs["spire/charts/spire-server/templates/configmap.yaml"]).
+				Should(ContainSubstring("password=${DBPW}"))
+			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
+			Expect(serverResource).Should(ContainSubstring("name: DBPW"))
+			Expect(serverResource).Should(ContainSubstring("name: my-db-secret"))
+		})
+
+		It("keeps the RODBPW env when a read-only external secret provides the password", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  dataStore:
+    sql:
+      databaseType: postgres
+      host: db.example.org
+      username: spire
+      password: ""
+      rootCAPath: /run/spire/db-ca/ca.crt
+      clientCertPath: /run/spire/db-certs/tls.crt
+      clientKeyPath: /run/spire/db-certs/tls.key
+      readOnly:
+        enabled: true
+        host: ro.example.org
+        username: spire
+        password: ""
+        externalSecret:
+          enabled: true
+          name: my-ro-db-secret
+          key: password
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs["spire/charts/spire-server/templates/configmap.yaml"]).
+				Should(ContainSubstring("password=${RODBPW}"))
+			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
+			Expect(serverResource).Should(ContainSubstring("name: RODBPW"))
+			Expect(serverResource).Should(ContainSubstring("name: my-ro-db-secret"))
 		})
 	})
 })

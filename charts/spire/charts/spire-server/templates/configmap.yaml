@@ -173,6 +173,7 @@ plugins:
     sql:
       plugin_data:
         {{ include "spire-server.datastore-config" . | nindent 8 }}
+        {{- if or (eq .Values.dataStore.sql.databaseType "mysql") (eq .Values.dataStore.sql.databaseType "aws_mysql") }}
         {{- if ne .Values.dataStore.sql.rootCAPath "" }}
         root_ca_path: {{ .Values.dataStore.sql.rootCAPath }}
         {{- end }}
@@ -180,7 +181,8 @@ plugins:
         client_cert_path: {{ .Values.dataStore.sql.clientCertPath }}
         {{- end }}
         {{- if ne .Values.dataStore.sql.clientKeyPath "" }}
-        client_key_path	: {{ .Values.dataStore.sql.clientKeyPath }}
+        client_key_path: {{ .Values.dataStore.sql.clientKeyPath }}
+        {{- end }}
         {{- end }}
         max_open_conns: {{ .Values.dataStore.sql.maxOpenConns }}
         max_idle_conns: {{ .Values.dataStore.sql.maxIdleConns }}
