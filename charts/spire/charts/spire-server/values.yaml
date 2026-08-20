@@ -194,7 +194,7 @@ dataStore:
     port: 0
     ## @param dataStore.sql.username Only used when type != "sqlite3"
     username: spire
-    ## @param dataStore.sql.password Only used when type != "sqlite3"
+    ## @param dataStore.sql.password Only used when type != "sqlite3". For postgres/aws_postgres, leave empty to omit the password from the connection string (e.g. TLS client-certificate or IAM authentication).
     password: ""
     ## @param dataStore.sql.file Data source file. Only used when type == "sqlite3" and inMemory is false
     file: "/run/spire/data/datastore.sqlite3"
@@ -203,11 +203,11 @@ dataStore:
     ## @param dataStore.sql.options [array] takes an array of objects of form {<key>: <value>} to use when building the database connection string
     options: []
 
-    ## @param dataStore.sql.rootCAPath Path to Root CA bundle (MySQL only)
+    ## @param dataStore.sql.rootCAPath Path to Root CA bundle. Supports MySQL and postgres.
     rootCAPath: ""
-    ## @param dataStore.sql.clientCertPath Path to client certificate (MySQL only)
+    ## @param dataStore.sql.clientCertPath Path to client certificate. Supports MySQL and postgres.
     clientCertPath: ""
-    ## @param dataStore.sql.clientKeyPath Path to private key for client certificate (MySQL only)
+    ## @param dataStore.sql.clientKeyPath Path to private key for client certificate. Supports MySQL and postgres.
     clientKeyPath: ""
 
     ## When an external source creates the secret. The secret should reside in the same namespace as the spire server

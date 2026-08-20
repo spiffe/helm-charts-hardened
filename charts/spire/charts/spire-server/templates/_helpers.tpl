@@ -301,6 +301,20 @@ current-context: cluster
 {{- end }}
 {{- end }}
 
+{{- define "spire-server.datastore-is-postgres" -}}
+{{- or (eq .Values.dataStore.sql.databaseType "postgres") (eq .Values.dataStore.sql.databaseType "aws_postgres") -}}
+{{- end }}
+
+{{- define "spire-server.datastore-postgres-passwordless" -}}
+{{- $isPostgres := eq (include "spire-server.datastore-is-postgres" .) "true" -}}
+{{- and $isPostgres (eq .Values.dataStore.sql.password "") (not .Values.dataStore.sql.externalSecret.enabled) -}}
+{{- end }}
+
+{{- define "spire-server.datastore-postgres-ro-passwordless" -}}
+{{- $isPostgres := eq (include "spire-server.datastore-is-postgres" .) "true" -}}
+{{- and $isPostgres (eq .Values.dataStore.sql.readOnly.password "") (not .Values.dataStore.sql.readOnly.externalSecret.enabled) -}}
+{{- end }}
+
 {{- define "spire-server.datastore-config" }}
 {{- $config := dict }}
 {{- $pw := "" }}
@@ -349,18 +363,32 @@ current-context: cluster
 {{- else if or (eq .Values.dataStore.sql.databaseType "postgres") (eq .Values.dataStore.sql.databaseType "aws_postgres") }}
   {{- if eq .Values.dataStore.sql.databaseType "postgres" }}
   {{-   $_ := set $config "database_type" "postgres" }}
-  {{-   $pw = " password=${DBPW}" }}
-  {{-   $ropw = " password=${RODBPW}" }}
   {{- else }}
   {{-   $_ := set $config "database_type" (list (dict "aws_postgres" (dict "region" .Values.dataStore.sql.region))) }}
   {{- end }}
+  {{- if ne (include "spire-server.datastore-postgres-passwordless" .) "true" }}
+  {{-   $pw = " password=${DBPW}" }}
+  {{- end }}
+  {{- if ne (include "spire-server.datastore-postgres-ro-passwordless" .) "true" }}
+  {{-   $ropw = " password=${RODBPW}" }}
+  {{- end }}
+  {{- $sslPaths := "" }}
+  {{- if ne .Values.dataStore.sql.rootCAPath "" }}
+  {{-   $sslPaths = printf "%s sslrootcert=%s" $sslPaths .Values.dataStore.sql.rootCAPath }}
+  {{- end }}
+  {{- if ne .Values.dataStore.sql.clientCertPath "" }}
+  {{-   $sslPaths = printf "%s sslcert=%s" $sslPaths .Values.dataStore.sql.clientCertPath }}
+  {{- end }}
+  {{- if ne .Values.dataStore.sql.clientKeyPath "" }}
+  {{-   $sslPaths = printf "%s sslkey=%s" $sslPaths .Values.dataStore.sql.clientKeyPath }}
+  {{- end }}
   {{- $port := int .Values.dataStore.sql.port | default 5432 }}
   {{- $options:= include "spire-server.config-postgresql-options" .Values.dataStore.sql.options }}
-  {{- $_ := set $config "connection_string" (printf "dbname=%s user=%s%s host=%s port=%d%s" .Values.dataStore.sql.databaseName .Values.dataStore.sql.username $pw .Values.dataStore.sql.host $port $options) }}
+  {{- $_ := set $config "connection_string" (printf "dbname=%s user=%s%s host=%s port=%d%s%s" .Values.dataStore.sql.databaseName .Values.dataStore.sql.username $pw .Values.dataStore.sql.host $port $options $sslPaths) }}
   {{- if .Values.dataStore.sql.readOnly.enabled }}
   {{-   $roPort := int .Values.dataStore.sql.readOnly.port | default 5432 }}
   {{-   $roOptions:= include "spire-server.config-postgresql-options" .Values.dataStore.sql.readOnly.options }}
-  {{-   $_ := set $config "ro_connection_string" (printf "dbname=%s user=%s%s host=%s port=%d%s" .Values.dataStore.sql.readOnly.databaseName .Values.dataStore.sql.readOnly.username $ropw .Values.dataStore.sql.readOnly.host $roPort $roOptions) }}
+  {{-   $_ := set $config "ro_connection_string" (printf "dbname=%s user=%s%s host=%s port=%d%s%s" .Values.dataStore.sql.readOnly.databaseName .Values.dataStore.sql.readOnly.username $ropw .Values.dataStore.sql.readOnly.host $roPort $roOptions $sslPaths) }}
   {{- end }}
 {{- else }}
   {{- fail "Unsupported database type" }}
