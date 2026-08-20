@@ -3,10 +3,19 @@
 {{- $_ := set $labels "security.openshift.io/csi-ephemeral-volume-profile" "restricted" }}
 {{- end }}
 {{- $labels = mergeOverwrite $labels .Values.csiDriverLabels }}
+{{- $annotations := dict }}
+{{- if (dig "openshift" false .Values.global) }}
+{{- $_ := set $annotations "argocd.argoproj.io/sync-wave" (toString .Values.syncWave) }}
+{{- end }}
+{{- $annotations = mergeOverwrite $annotations .Values.csiDriverAnnotations }}
 apiVersion: storage.k8s.io/v1
 kind: CSIDriver
 metadata:
   name: {{ .Values.pluginName | quote }}
+  {{- with $annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   {{- with $labels }}
   labels:
     {{- toYaml . | nindent 4 }}

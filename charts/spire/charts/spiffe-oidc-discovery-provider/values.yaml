@@ -267,6 +267,9 @@ tolerations: []
 ## @param affinity [object] Node affinity
 affinity: {}
 
+## @param topologySpreadConstraints [array] Topology spread constraints for resilience
+topologySpreadConstraints: []
+
 ## @param trustDomain Set the trust domain to be used for the SPIFFE identifiers
 trustDomain: example.org
 
