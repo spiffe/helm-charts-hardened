@@ -1,3 +1,4 @@
+{{- $installAndUpgradeHooksEnabled := dig "installAndUpgradeHooks" "enabled" .Values.controllerManager.installAndUpgradeHook.enabled .Values.global }}
 {{- if not .Values.externalServer }}
 {{- if eq .Values.controllerManager.staticManifestMode "off" }}
 {{- if and (eq (.Values.controllerManager.enabled | toString) "true") .Values.controllerManager.validatingWebhookConfiguration.enabled }}
@@ -12,7 +13,7 @@ webhooks:
         name: {{ include "spire-controller-manager.fullname" . }}-webhook
         namespace: {{ include "spire-server.namespace" . }}
         path: /validate-spire-spiffe-io-v1alpha1-clusterfederatedtrustdomain
-    {{- if eq (.Values.controllerManager.installAndUpgradeHook.enabled | toString) "true" }}
+    {{- if eq ($installAndUpgradeHooksEnabled | toString) "true" }}
     failurePolicy: Ignore # Actual value to be set by post install/upgrade hooks
     {{- else }}
     failurePolicy: {{ .Values.controllerManager.validatingWebhookConfiguration.failurePolicy }}
@@ -30,7 +31,11 @@ webhooks:
         name: {{ include "spire-controller-manager.fullname" . }}-webhook
         namespace: {{ include "spire-server.namespace" . }}
         path: /validate-spire-spiffe-io-v1alpha1-clusterspiffeid
+    {{- if eq ($installAndUpgradeHooksEnabled | toString) "true" }}
     failurePolicy: Ignore # Actual value to be set by post install/upgrade hooks
+    {{- else }}
+    failurePolicy: {{ .Values.controllerManager.validatingWebhookConfiguration.failurePolicy }}
+    {{- end }}
     name: vclusterspiffeid.kb.io
     rules:
       - apiGroups: ["spire.spiffe.io"]

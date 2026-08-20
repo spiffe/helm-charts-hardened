@@ -85,11 +85,11 @@ spec:
             {
               "webhooks":[
                 {
-                  "name":"vclusterspiffeid.kb.io",
+                  "name":"vclusterfederatedtrustdomain.kb.io",
                   "failurePolicy":"{{ .Values.controllerManager.validatingWebhookConfiguration.failurePolicy }}"
                 },
                 {
-                  "name":"vclusterfederatedtrustdomain.kb.io",
+                  "name":"vclusterspiffeid.kb.io",
                   "failurePolicy":"{{ .Values.controllerManager.validatingWebhookConfiguration.failurePolicy }}"
                 }
               ]

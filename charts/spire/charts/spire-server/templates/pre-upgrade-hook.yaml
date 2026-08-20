@@ -85,11 +85,11 @@ spec:
             {
               "webhooks":[
                 {
-                  "name":"vclusterspiffeid.kb.io",
+                  "name":"vclusterfederatedtrustdomain.kb.io",
                   "failurePolicy":"Ignore"
                 },
                 {
-                  "name":"vclusterfederatedtrustdomain.kb.io",
+                  "name":"vclusterspiffeid.kb.io",
                   "failurePolicy":"Ignore"
                 }
               ]
