@@ -808,6 +808,8 @@ spire-server:
 					Expect(document.Kind).ShouldNot(Equal("Job"), template)
 				}
 			}
+		})
+	})
 	Describe("spire-server.dataStore.sql.postgres passwordless", func() {
 		It("omits password and the -dbpw Secret for cert auth with an empty password", func() {
 			objs, err := ValueStringRender(chart, `
