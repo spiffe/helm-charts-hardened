@@ -1,6 +1,10 @@
 package unit_test
 
 import (
+	"encoding/json"
+	"io"
+	"strings"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -8,7 +12,69 @@ import (
 	helmloader "helm.sh/helm/v3/pkg/chart/loader"
 	helmutil "helm.sh/helm/v3/pkg/chartutil"
 	helmengine "helm.sh/helm/v3/pkg/engine"
+	yamlutil "k8s.io/apimachinery/pkg/util/yaml"
 )
+
+type renderedWebhook struct {
+	Name string `json:"name"`
+}
+
+type renderedDocument struct {
+	Kind     string `json:"kind"`
+	Metadata struct {
+		Annotations map[string]string `json:"annotations"`
+	} `json:"metadata"`
+	Spec struct {
+		Template struct {
+			Spec struct {
+				Containers []struct {
+					Args []string `json:"args"`
+				} `json:"containers"`
+			} `json:"spec"`
+		} `json:"template"`
+	} `json:"spec"`
+	Webhooks []renderedWebhook `json:"webhooks"`
+}
+
+func decodeRenderedDocuments(rendered string) ([]renderedDocument, error) {
+	decoder := yamlutil.NewYAMLOrJSONDecoder(strings.NewReader(rendered), 4096)
+	var documents []renderedDocument
+	for {
+		var document renderedDocument
+		err := decoder.Decode(&document)
+		if err == io.EOF {
+			return documents, nil
+		}
+		if err != nil {
+			return nil, err
+		}
+		if document.Kind != "" {
+			documents = append(documents, document)
+		}
+	}
+}
+
+func patchWebhookNames(job renderedDocument) ([]string, error) {
+	for _, container := range job.Spec.Template.Spec.Containers {
+		for index, arg := range container.Args {
+			if arg != "-p" || index+1 >= len(container.Args) {
+				continue
+			}
+			var patch struct {
+				Webhooks []renderedWebhook `json:"webhooks"`
+			}
+			if err := json.Unmarshal([]byte(container.Args[index+1]), &patch); err != nil {
+				return nil, err
+			}
+			names := make([]string, 0, len(patch.Webhooks))
+			for _, webhook := range patch.Webhooks {
+				names = append(names, webhook.Name)
+			}
+			return names, nil
+		}
+	}
+	return nil, nil
+}
 
 func ValueStringRender(chart *helmchart.Chart, values string) (map[string]string, error) {
 	v, err := helmutil.ReadValues([]byte(values))
@@ -624,6 +690,51 @@ spire-server:
     type: RollingUpdate
 `)
 			Expect(err).Should(Succeed())
+		})
+	})
+	Describe("spire-server webhook patch order", func() {
+		It("preserves the rendered webhook order in every strategic-merge hook", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  installAndUpgradeHooks:
+    enabled: true
+spire-server:
+  enabled: true
+  controllerManager:
+    enabled: true
+`)
+			Expect(err).Should(Succeed())
+
+			canonicalDocuments, err := decodeRenderedDocuments(objs["spire/charts/spire-server/templates/controller-manager-webhook.yaml"])
+			Expect(err).Should(Succeed())
+			Expect(canonicalDocuments).Should(HaveLen(1))
+			Expect(canonicalDocuments[0].Kind).Should(Equal("ValidatingWebhookConfiguration"))
+			canonicalNames := make([]string, 0, len(canonicalDocuments[0].Webhooks))
+			for _, webhook := range canonicalDocuments[0].Webhooks {
+				canonicalNames = append(canonicalNames, webhook.Name)
+			}
+
+			for _, hook := range []struct {
+				name     string
+				template string
+			}{
+				{name: "post-install", template: "spire/charts/spire-server/templates/post-install-hook.yaml"},
+				{name: "pre-upgrade", template: "spire/charts/spire-server/templates/pre-upgrade-hook.yaml"},
+				{name: "post-upgrade", template: "spire/charts/spire-server/templates/post-upgrade-hook.yaml"},
+			} {
+				documents, err := decodeRenderedDocuments(objs[hook.template])
+				Expect(err).Should(Succeed())
+				var jobs []renderedDocument
+				for _, document := range documents {
+					if document.Kind == "Job" && document.Metadata.Annotations["helm.sh/hook"] == hook.name {
+						jobs = append(jobs, document)
+					}
+				}
+				Expect(jobs).Should(HaveLen(1), hook.name)
+				actualNames, err := patchWebhookNames(jobs[0])
+				Expect(err).Should(Succeed())
+				Expect(actualNames).Should(Equal(canonicalNames), hook.name)
+			}
 		})
 	})
 })
