@@ -416,6 +416,43 @@ spire-server:
 			Expect(objs[serverTmpl]).Should(ContainSubstring("init-jwt-svid-exec"))
 		})
 	})
+	Describe("spiffe-csi-driver.syncWave", func() {
+		csiTmpl := "spire/charts/spiffe-csi-driver/templates/spiffe-csi-driver.yaml"
+		It("renders the default sync-wave annotation on OpenShift", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[csiTmpl]).Should(ContainSubstring(`argocd.argoproj.io/sync-wave: "-1"`))
+		})
+		It("allows overriding the sync-wave number", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+spiffe-csi-driver:
+  syncWave: -2
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[csiTmpl]).Should(ContainSubstring(`argocd.argoproj.io/sync-wave: "-2"`))
+		})
+		It("allows overriding the annotation via csiDriverAnnotations", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+spiffe-csi-driver:
+  csiDriverAnnotations:
+    argocd.argoproj.io/sync-wave: "-5"
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[csiTmpl]).Should(ContainSubstring(`argocd.argoproj.io/sync-wave: "-5"`))
+		})
+		It("does not render the sync-wave annotation when not on OpenShift", func() {
+			objs, err := ValueStringRender(chart, ``)
+			Expect(err).Should(Succeed())
+			Expect(objs[csiTmpl]).ShouldNot(ContainSubstring("argocd.argoproj.io/sync-wave"))
+		})
+	})
 	Describe("spire-server.externalServerSubject", func() {
 		It("binds the external server's downstream RBAC to a ServiceAccount subject", func() {
 			objs, err := ValueStringRender(chart, `
@@ -771,6 +808,81 @@ spire-server:
 					Expect(document.Kind).ShouldNot(Equal("Job"), template)
 				}
 			}
+	Describe("spire-server.dataStore.sql.postgres passwordless", func() {
+		It("omits password and the -dbpw Secret for cert auth with an empty password", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  dataStore:
+    sql:
+      databaseType: postgres
+      host: db.example.org
+      username: spire
+      password: ""
+      rootCAPath: /run/spire/db-ca/ca.crt
+      clientCertPath: /run/spire/db-certs/tls.crt
+      clientKeyPath: /run/spire/db-certs/tls.key
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs["spire/charts/spire-server/templates/configmap.yaml"]).
+				ShouldNot(ContainSubstring("password=${DBPW}"))
+			Expect(objs["spire/charts/spire-server/templates/configmap.yaml"]).
+				Should(ContainSubstring("sslrootcert=/run/spire/db-ca/ca.crt"))
+			Expect(objs["spire/charts/spire-server/templates/secret.yaml"]).
+				ShouldNot(ContainSubstring("kind: Secret"))
+			Expect(objs["spire/charts/spire-server/templates/server-resource.yaml"]).
+				ShouldNot(ContainSubstring("name: DBPW"))
+		})
+
+		It("keeps the password token and DBPW env when an external secret provides the password", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  dataStore:
+    sql:
+      databaseType: postgres
+      host: db.example.org
+      username: spire
+      password: ""
+      externalSecret:
+        enabled: true
+        name: my-db-secret
+        key: password
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs["spire/charts/spire-server/templates/configmap.yaml"]).
+				Should(ContainSubstring("password=${DBPW}"))
+			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
+			Expect(serverResource).Should(ContainSubstring("name: DBPW"))
+			Expect(serverResource).Should(ContainSubstring("name: my-db-secret"))
+		})
+
+		It("keeps the RODBPW env when a read-only external secret provides the password", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  dataStore:
+    sql:
+      databaseType: postgres
+      host: db.example.org
+      username: spire
+      password: ""
+      rootCAPath: /run/spire/db-ca/ca.crt
+      clientCertPath: /run/spire/db-certs/tls.crt
+      clientKeyPath: /run/spire/db-certs/tls.key
+      readOnly:
+        enabled: true
+        host: ro.example.org
+        username: spire
+        password: ""
+        externalSecret:
+          enabled: true
+          name: my-ro-db-secret
+          key: password
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs["spire/charts/spire-server/templates/configmap.yaml"]).
+				Should(ContainSubstring("password=${RODBPW}"))
+			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
+			Expect(serverResource).Should(ContainSubstring("name: RODBPW"))
+			Expect(serverResource).Should(ContainSubstring("name: my-ro-db-secret"))
 		})
 	})
 })
