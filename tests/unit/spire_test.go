@@ -16,7 +16,8 @@ import (
 )
 
 type renderedWebhook struct {
-	Name string `json:"name"`
+	Name          string `json:"name"`
+	FailurePolicy string `json:"failurePolicy"`
 }
 
 type renderedDocument struct {
@@ -734,6 +735,41 @@ spire-server:
 				actualNames, err := patchWebhookNames(jobs[0])
 				Expect(err).Should(Succeed())
 				Expect(actualNames).Should(Equal(canonicalNames), hook.name)
+			}
+		})
+	})
+	Describe("spire-server webhook hooks disabled", func() {
+		It("uses the configured failure policy and omits lifecycle Jobs", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  installAndUpgradeHooks:
+    enabled: false
+spire-server:
+  controllerManager:
+    enabled: true
+    validatingWebhookConfiguration:
+      failurePolicy: Fail
+`)
+			Expect(err).Should(Succeed())
+
+			canonicalDocuments, err := decodeRenderedDocuments(objs["spire/charts/spire-server/templates/controller-manager-webhook.yaml"])
+			Expect(err).Should(Succeed())
+			Expect(canonicalDocuments).Should(HaveLen(1))
+			Expect(canonicalDocuments[0].Webhooks).Should(HaveLen(2))
+			for _, webhook := range canonicalDocuments[0].Webhooks {
+				Expect(webhook.FailurePolicy).Should(Equal("Fail"))
+			}
+
+			for _, template := range []string{
+				"spire/charts/spire-server/templates/post-install-hook.yaml",
+				"spire/charts/spire-server/templates/pre-upgrade-hook.yaml",
+				"spire/charts/spire-server/templates/post-upgrade-hook.yaml",
+			} {
+				documents, err := decodeRenderedDocuments(objs[template])
+				Expect(err).Should(Succeed())
+				for _, document := range documents {
+					Expect(document.Kind).ShouldNot(Equal("Job"), template)
+				}
 			}
 		})
 	})
