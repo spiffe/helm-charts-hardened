@@ -349,6 +349,43 @@ spire-server:
 			Expect(objs[serverTmpl]).Should(ContainSubstring("init-jwt-svid-exec"))
 		})
 	})
+	Describe("spiffe-csi-driver.syncWave", func() {
+		csiTmpl := "spire/charts/spiffe-csi-driver/templates/spiffe-csi-driver.yaml"
+		It("renders the default sync-wave annotation on OpenShift", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[csiTmpl]).Should(ContainSubstring(`argocd.argoproj.io/sync-wave: "-1"`))
+		})
+		It("allows overriding the sync-wave number", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+spiffe-csi-driver:
+  syncWave: -2
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[csiTmpl]).Should(ContainSubstring(`argocd.argoproj.io/sync-wave: "-2"`))
+		})
+		It("allows overriding the annotation via csiDriverAnnotations", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+spiffe-csi-driver:
+  csiDriverAnnotations:
+    argocd.argoproj.io/sync-wave: "-5"
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[csiTmpl]).Should(ContainSubstring(`argocd.argoproj.io/sync-wave: "-5"`))
+		})
+		It("does not render the sync-wave annotation when not on OpenShift", func() {
+			objs, err := ValueStringRender(chart, ``)
+			Expect(err).Should(Succeed())
+			Expect(objs[csiTmpl]).ShouldNot(ContainSubstring("argocd.argoproj.io/sync-wave"))
+		})
+	})
 	Describe("spire-server.externalServerSubject", func() {
 		It("binds the external server's downstream RBAC to a ServiceAccount subject", func() {
 			objs, err := ValueStringRender(chart, `
