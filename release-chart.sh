@@ -156,6 +156,44 @@ function refresh_chart_docs {
   done
 }
 
+function update_readme_badge {
+  local readme=$1
+  local badge_name=$2
+  local badge_value=$3
+  # shields.io escapes a literal dash in a badge value as '--'
+  local url_value="${badge_value//-/--}"
+
+  "${SED}" -i \
+    -e "s#!\[${badge_name}: [^]]*\]#![${badge_name}: ${badge_value}]#g" \
+    -e "s#/badge/${badge_name}-[^)]*-informational#/badge/${badge_name}-${url_value}-informational#g" \
+    "${readme}"
+}
+
+# Nothing regenerates the shields.io badges in a chart README, so every chart
+# whose Chart.yaml this script rewrites needs its badges resynced or CI's
+# check-readme-versions.sh rejects the release. READMEs without badges are
+# left alone by the substitutions.
+function sync_readme_version_badges {
+  local chart_dir=$1
+  local chart_yaml="${chart_dir}/Chart.yaml"
+  local readme="${chart_dir}/README.md"
+  local chart_version chart_app_version
+
+  if [ ! -f "${chart_yaml}" ] || [ ! -f "${readme}" ] ; then
+    return 0
+  fi
+
+  chart_version="$(yq e '.version // ""' "${chart_yaml}")"
+  chart_app_version="$(yq e '.appVersion // ""' "${chart_yaml}")"
+
+  if [ -n "${chart_version}" ] ; then
+    update_readme_badge "${readme}" Version "${chart_version}"
+  fi
+  if [ -n "${chart_app_version}" ] ; then
+    update_readme_badge "${readme}" AppVersion "${chart_app_version}"
+  fi
+}
+
 function chart_has_remote_dependencies {
   local chart_yaml=$1
   local remote_count
@@ -347,6 +385,7 @@ else
 fi
 update_chart_version "${chart}" "${new_version}"
 "${SED}" -i "s/${current_version}/${new_version}/g" "charts/${chart}/README.md"
+sync_readme_version_badges "charts/${chart}"
 
 updated_dependency_charts=()
 updated_chart_versions=()
@@ -356,6 +395,7 @@ for dependent_chart in "${dependent_charts[@]}" ; do
   dependent_current_version="$(grep '^version:' "${chart_yaml}" | awk '{print $2}')"
   dependent_new_version="$(bump_version "${dependent_current_version}" "${bump_type}")"
   update_chart_version "${dependent_chart}" "${dependent_new_version}"
+  sync_readme_version_badges "charts/${dependent_chart}"
   update_dependency_version "${chart_yaml}" "${chart}" "${new_version}"
   updated_dependency_charts+=("charts/${dependent_chart}")
   updated_chart_versions+=("${dependent_chart}:${dependent_current_version}:${dependent_new_version}")
