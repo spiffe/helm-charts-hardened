@@ -45,38 +45,6 @@ spec:
       securityContext:
         {{- include "spire-identity-exchange.podSecurityContext" . | nindent 8 }}
       initContainers:
-        - name: spire-server-attestor
-          securityContext:
-            {{- include "spire-lib.securitycontext" . | nindent 12 }}
-          resources:
-            {{- toYaml .Values.spireServerAttestorSPIFFEWorkloadAPI.resources | nindent 12 }}
-          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.spireServerAttestorSPIFFEWorkloadAPI.image "global" .Values.global) }}
-          imagePullPolicy: {{ .Values.spireServerAttestorSPIFFEWorkloadAPI.image.pullPolicy }}
-          restartPolicy: Always
-          args:
-            - /trustbundle/socket
-          env:
-            - name: SPIFFE_ENDPOINT_SOCKET
-              value: "unix://{{ include "spire-identity-exchange.workload-api-socket-path" . }}"
-            - name: SPIFFE_TRUST_DOMAIN
-              value: {{ $trustDomain }}
-          readinessProbe:
-            exec:
-              command:
-                - /ko-app/spire-server-attestor-spiffe-workload-api
-                - --healthcheck
-                - /trustbundle/socket
-            initialDelaySeconds: 5
-            periodSeconds: 30
-            timeoutSeconds: 10
-            successThreshold: 1
-            failureThreshold: 3
-          volumeMounts:
-            - name: spiffe-workload-api
-              mountPath: /spiffe-workload-api
-              readOnly: true
-            - name: trustbundle
-              mountPath: /trustbundle
         - name: spire-agent
           securityContext:
             {{- include "spire-lib.securitycontext" . | nindent 12 }}
@@ -111,9 +79,6 @@ spec:
               readOnly: true
             - name: spire-agent-socket
               mountPath: /agent
-            - name: trustbundle
-              mountPath: /trustbundle
-              readOnly: true
             - name: spire-agent-data
               mountPath: /agent-data
       containers:
@@ -212,8 +177,6 @@ spec:
         - name: spire-agent-socket
           emptyDir: {}
         - name: spire-agent-data
-          emptyDir: {}
-        - name: trustbundle
           emptyDir: {}
         - name: spire-identity-exchange-config
           configMap:
