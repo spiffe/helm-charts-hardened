@@ -23,8 +23,9 @@
 ##   - GitHub CLI (gh)
 ##   - npm (if readme-generator is not already installed)
 ##   - yq
-##   - the Helm repositories required by chart dependencies (see chart-repos in
-##     ct.yaml); the script prints the needed 'helm repo add' lines if any are missing
+##   - the Helm repositories required by the chart being released and its dependent
+##     charts (see chart-repos in ct.yaml); the script prints the needed
+##     'helm repo add' lines if any are missing
 ##
 ## Commands
 ##
@@ -164,14 +165,14 @@ function chart_has_remote_dependencies {
 }
 
 function remote_chart_repositories {
-  local chart_yaml
+  local chart_dir
 
   {
-    while IFS= read -r chart_yaml ; do
-      if [ -n "${chart_yaml}" ] ; then
-        yq e -N '.dependencies[]? | select(((.repository // "") | test("^file://")) | not) | .repository' "${chart_yaml}"
+    for chart_dir in "$@" ; do
+      if [ -f "${chart_dir}/Chart.yaml" ] ; then
+        yq e -N '.dependencies[]? | select(((.repository // "") | test("^file://")) | not) | .repository' "${chart_dir}/Chart.yaml"
       fi
-    done < <(find charts -name Chart.yaml)
+    done
   } | "${SED}" -e 's#/*$##' | sort -u
 }
 
@@ -206,14 +207,19 @@ function require_helm_repositories {
     if ! printf '%s\n' "${configured}" | grep -qxF "${repo_url}" ; then
       missing="${missing}  helm repo add $(helm_repository_name "${repo_url}") ${repo_url}"$'\n'
     fi
-  done < <(remote_chart_repositories)
+  done < <(remote_chart_repositories "$@")
 
   if [ -n "${missing}" ] ; then
-    print_error 'chart dependencies require Helm repositories that are not configured locally.'
+    print_error 'the charts in this release require Helm repositories that are not configured locally.'
     echo >&2
     echo >&2 'Run the following, then rerun this script:'
     echo >&2
     printf '%s' "${missing}" >&2
+    echo >&2
+    echo >&2 'No chart files were modified.'
+    if [ -z "${from_current_branch}" ] ; then
+      echo >&2 "To discard the release branch: git checkout main && git branch -D ${branch_name}"
+    fi
     exit 1
   fi
 }
@@ -300,8 +306,6 @@ if [ ! -f "charts/${chart}/Chart.yaml" ] ; then
   print_error_and_exit "no chart named '${chart}' in charts folder"
 fi
 
-require_helm_repositories
-
 if [ -n "${from_current_branch}" ] ; then
   branch_name="$(git branch --show-current)"
   if [ -z "${branch_name}" ] ; then
@@ -315,6 +319,23 @@ else
   git pull
   git checkout --track -B "${branch_name}" main
 fi
+
+dependent_charts=()
+release_chart_dirs=("charts/${chart}")
+while IFS= read -r dependent_chart ; do
+  if [ -z "${dependent_chart}" ] ; then
+    continue
+  fi
+
+  if [ ! -f "charts/${dependent_chart}/Chart.yaml" ] ; then
+    print_error_and_exit "dependent chart '${dependent_chart}' does not have a Chart.yaml at charts/${dependent_chart}/Chart.yaml"
+  fi
+
+  dependent_charts+=("${dependent_chart}")
+  release_chart_dirs+=("charts/${dependent_chart}")
+done < <(collect_dependent_charts "${chart}")
+
+require_helm_repositories "${release_chart_dirs[@]}"
 
 current_version="$(grep '^version:' "charts/${chart}/Chart.yaml" | awk '{print $2}')"
 new_version="$(bump_version "${current_version}" "${bump_type}")"
@@ -330,16 +351,8 @@ update_chart_version "${chart}" "${new_version}"
 updated_dependency_charts=()
 updated_chart_versions=()
 release_charts=("${chart}")
-while IFS= read -r dependent_chart ; do
-  if [ -z "${dependent_chart}" ] ; then
-    continue
-  fi
-
+for dependent_chart in "${dependent_charts[@]}" ; do
   chart_yaml="charts/${dependent_chart}/Chart.yaml"
-  if [ ! -f "${chart_yaml}" ] ; then
-    print_error_and_exit "dependent chart '${dependent_chart}' does not have a Chart.yaml at ${chart_yaml}"
-  fi
-
   dependent_current_version="$(grep '^version:' "${chart_yaml}" | awk '{print $2}')"
   dependent_new_version="$(bump_version "${dependent_current_version}" "${bump_type}")"
   update_chart_version "${dependent_chart}" "${dependent_new_version}"
@@ -347,7 +360,7 @@ while IFS= read -r dependent_chart ; do
   updated_dependency_charts+=("charts/${dependent_chart}")
   updated_chart_versions+=("${dependent_chart}:${dependent_current_version}:${dependent_new_version}")
   release_charts+=("${dependent_chart}")
-done < <(collect_dependent_charts "${chart}")
+done
 
 unique_dependency_charts=()
 while IFS= read -r chart_dir ; do
