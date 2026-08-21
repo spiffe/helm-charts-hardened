@@ -206,8 +206,7 @@ data:
         trust_domain = {{ $trustDomain | quote }}
         server_address = {{ include "spire-identity-exchange.server-address" . | trim | quote }}
         server_port = {{ .Values.server.port }}
-        trust_bundle_url = "http://localhost/trustbundle"
-        trust_bundle_unix_socket = "/trustbundle/socket"
+        trust_bundle_spiffe_workload_api = "unix://{{ include "spire-identity-exchange.workload-api-socket-path" . }}"
         rebootstrap_mode = "always"
         rebootstrap_delay = "5m"
 
