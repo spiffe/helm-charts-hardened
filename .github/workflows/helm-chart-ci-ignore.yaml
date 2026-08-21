@@ -10,6 +10,7 @@ on:
       - '.github/tests/**/*.yaml'
       - '.github/tests/**/*.sh'
       - '.github/tests/**/*.json'
+      - '.github/scripts/check-readme-versions.sh'
       - 'examples/**/*.yaml'
       - 'helm-docs.sh'
 

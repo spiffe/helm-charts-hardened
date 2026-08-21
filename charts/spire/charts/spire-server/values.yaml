@@ -23,6 +23,9 @@ image:
 ## @param kind Define SPIRE server deployment type. Can be statefulset/deployment. Defaults to statefulset if not set. This feature is experimental.
 kind: statefulset
 
+## @param updateStrategy [object] Rollout strategy for the server, mapped to spec.updateStrategy when kind is "statefulset" and to spec.strategy when kind is "deployment". Left empty the Kubernetes default applies, which for a Deployment surges a second server before the old one goes away. Set `{type: Recreate}` to keep at most one server running, as a memory keyManager or an in-memory datastore requires.
+updateStrategy: {}
+
 ## @param externalServer Deploy only the bundle ConfigMap, RBAC rules, and identity documents but not the server. Use in a nested setup where the server is external.
 externalServer: false
 
@@ -124,6 +127,15 @@ autoscaling:
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
+## @param podDisruptionBudget.enabled Flag to enable a PodDisruptionBudget for the SPIRE server pods
+## @param podDisruptionBudget.minAvailable Minimum number/percentage of pods that must remain available (mutually exclusive with maxUnavailable)
+## @param podDisruptionBudget.maxUnavailable Maximum number/percentage of pods that can be unavailable (mutually exclusive with minAvailable)
+##
+podDisruptionBudget:
+  enabled: false
+  minAvailable: ""
+  maxUnavailable: ""
+
 ## @param nodeSelector [object] Select specific nodes to run on (currently only amd64 is supported by Tornjak)
 nodeSelector: {}
 
@@ -182,18 +194,20 @@ dataStore:
     port: 0
     ## @param dataStore.sql.username Only used when type != "sqlite3"
     username: spire
-    ## @param dataStore.sql.password Only used when type != "sqlite3"
+    ## @param dataStore.sql.password Only used when type != "sqlite3". For postgres/aws_postgres, leave empty to omit the password from the connection string (e.g. TLS client-certificate or IAM authentication).
     password: ""
-    ## @param dataStore.sql.file Data source file. Only used when type == "sqlite3"
+    ## @param dataStore.sql.file Data source file. Only used when type == "sqlite3" and inMemory is false
     file: "/run/spire/data/datastore.sqlite3"
+    ## @param dataStore.sql.inMemory Hold the sqlite3 datastore in memory instead of in a file, in which case `file` is unused. The datastore starts empty on every restart, so this only suits a single replica whose registration entries are recreated at startup, for example by the controller manager writing static entries. Required to run as a deployment on sqlite3, since a deployment has no durable per-pod storage.
+    inMemory: false
     ## @param dataStore.sql.options [array] takes an array of objects of form {<key>: <value>} to use when building the database connection string
     options: []
 
-    ## @param dataStore.sql.rootCAPath Path to Root CA bundle (MySQL only)
+    ## @param dataStore.sql.rootCAPath Path to Root CA bundle. Supports MySQL and postgres.
     rootCAPath: ""
-    ## @param dataStore.sql.clientCertPath Path to client certificate (MySQL only)
+    ## @param dataStore.sql.clientCertPath Path to client certificate. Supports MySQL and postgres.
     clientCertPath: ""
-    ## @param dataStore.sql.clientKeyPath Path to private key for client certificate (MySQL only)
+    ## @param dataStore.sql.clientKeyPath Path to private key for client certificate. Supports MySQL and postgres.
     clientKeyPath: ""
 
     ## When an external source creates the secret. The secret should reside in the same namespace as the spire server
@@ -537,6 +551,19 @@ upstreamAuthority:
     bundleFileArn: ""
     ## @param upstreamAuthority.awsSecret.assumeRoleArn (Optional) ARN of an IAM role to assume
     assumeRoleArn: ""
+  gcpCAS:
+    ## @param upstreamAuthority.gcpCAS.enabled Flag to enable upstream authority plugin with GCP Certificate Authority Service
+    enabled: false
+    ## @param upstreamAuthority.gcpCAS.projectName GCP project containing the root CA certificate
+    projectName: ""
+    ## @param upstreamAuthority.gcpCAS.regionName GCP region name (e.g., us-central1)
+    regionName: ""
+    ## @param upstreamAuthority.gcpCAS.caPool Name of the CA Pool that has the root CA certificate
+    caPool: ""
+    ## @param upstreamAuthority.gcpCAS.labelKey Label key used to filter and select the relevant CA certificate
+    labelKey: ""
+    ## @param upstreamAuthority.gcpCAS.labelValue Label value used to filter and select the relevant CA certificate
+    labelValue: ""
   certManager:
     ## @param upstreamAuthority.certManager.enabled Flag to enable upstream authority plugin with cert manager
     enabled: false
@@ -1613,9 +1640,11 @@ tests:
       tag: latest@sha256:90041f375e30f41aa7e0390075d8a69dc61900771d52fa98d63ee5d03d866a58
 
 ## @param kubeConfigs [object] Manage additional kubeconfig files to talk to external Kubernetes clusters
-## Each entry sets exactly one of kubeConfig, kubeConfigBase64, or externalSecret. Use externalSecret to
-## reference a kubeconfig from an externally-managed Secret instead of embedding it in values;
-## entries may reference different Secrets and mix with inline ones.
+## Each entry sets exactly one of kubeConfig, kubeConfigBase64, externalSecret, or jwtSVIDExec. Use externalSecret
+## to reference a kubeconfig from an externally-managed Secret instead of embedding it in values; entries may
+## reference different Secrets and mix with inline ones. Use jwtSVIDExec to have the chart generate an
+## exec-credential kubeconfig that authenticates to the target cluster with short-lived SPIFFE JWT-SVIDs fetched
+## at call time by the exec plugin (see jwtSVIDExecConfig).
 kubeConfigs: {}
 # clustera:
 #   kubeConfig: |
@@ -1627,6 +1656,29 @@ kubeConfigs: {}
 #   externalSecret:
 #     name: my-kubeconfigs-secret   # name of the externally-managed Secret to read from
 #     key: clusterc                 # optional, defaults to the entry name
+# clusterd:
+#   jwtSVIDExec:
+#     server: https://clusterd-api.example.com:6443    # target apiserver URL
+#     certificateAuthorityData: LS0tLS1CRUdJ...        # apiserver CA bundle, base64-encoded PEM (kubeconfig certificate-authority-data)
+#     audience: k8s                                    # optional, JWT-SVID audience the target expects (default k8s)
+
+## @param jwtSVIDExecConfig.image.registry The OCI registry to pull the exec credential plugin image from
+## @param jwtSVIDExecConfig.image.repository The repository within the registry
+## @param jwtSVIDExecConfig.image.pullPolicy The image pull policy
+## @param jwtSVIDExecConfig.image.tag Overrides the image tag
+## @param jwtSVIDExecConfig.pluginPath The path of the plugin binary inside the plugin image, staged for exec by the kubeConfigs consumers
+## @param jwtSVIDExecConfig.spiffeID The SPIFFE ID the plugin mints a JWT-SVID for; a full spiffe:// URI, or a "/"-prefixed path expanded with the chart trust domain (e.g. /spire-root); required when any kubeConfigs entry uses jwtSVIDExec
+## Global wiring shared by every kubeConfigs entry that uses jwtSVIDExec. The plugin binary is staged from this
+## image into the shared plugins volume, and every such entry mints a JWT-SVID for spiffeID from the SPIRE Server
+## admin API socket, which is already mounted into the kubeConfigs consumers, so no agent Workload API socket is required.
+jwtSVIDExecConfig:
+  image:
+    registry: ghcr.io
+    repository: spiffe/k8s-spiffe-workload-jwt-exec-auth
+    pullPolicy: IfNotPresent
+    tag: "0.2.0"
+  pluginPath: /ko-app/cmd
+  spiffeID: "/spire-root"
 
 spireIdentityExchange:
   ## @param spireIdentityExchange.enabled Enable the server side of the SPIRE Identity Exchange system

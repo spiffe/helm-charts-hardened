@@ -1,0 +1,25 @@
+{{- if and .Values.tags.haAgentCommon .Values.spireIdentityExchange.spiffe.rest.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "spire-nested.identity-exchange-name" . }}-rest-spiffe
+  namespace: {{ include "spire-nested.server-namespace" . }}
+  labels:
+    {{- include "spire-nested.labels" . | nindent 4 }}
+  {{- with .Values.spireIdentityExchange.spiffe.rest.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.spireIdentityExchange.spiffe.rest.service.type }}
+  {{- if and (eq .Values.spireIdentityExchange.spiffe.rest.service.type "LoadBalancer") .Values.spireIdentityExchange.spiffe.rest.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.spireIdentityExchange.spiffe.rest.service.loadBalancerIP }}
+  {{- end }}
+  ports:
+    - name: https
+      port: {{ .Values.spireIdentityExchange.spiffe.rest.service.port }}
+      targetPort: rest-spiffe
+      protocol: TCP
+  selector:
+    {{- toYaml .Values.spireIdentityExchange.podSelector | nindent 4 }}
+{{- end }}
