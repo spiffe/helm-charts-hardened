@@ -170,6 +170,20 @@ wait_for_trust_sync() {
   return 1
 }
 
+wait_for_socket() {
+  local socket="$1"
+  local timeout=30
+  local count=0
+  while [ "$count" -lt "$timeout" ]; do
+    if [ -S "$socket" ]; then
+      return 0
+    fi
+    sleep 1
+    ((count++)) || true
+  done
+  return 1
+}
+
 wait_for_jwt() {
   local socket="$1"
   local timeout=30
@@ -339,8 +353,11 @@ wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-agent-4-b/public/api.sock
 # on the main instance socket, and the packaged agent config already lists the ha-agent in its
 # authorized_delegates, so no configuration is needed.
 sudo systemctl start spire-ha-agent@main
-wait_for_healthcheck spire-agent /var/run/spire/agent/sockets/main/public/api.sock
-wait_for_jwt /var/run/spire/agent/sockets/main/public/api.sock
+# Not wait_for_healthcheck: that calls the grpc.health.v1 service, which the ha-agent does
+# not serve, so it always reports "unable to determine health". Not wait_for_jwt either:
+# the ha-agent attests callers by pid, and the cli invoking it is in no registered unit.
+# Readiness is proven through the bridges below, where the caller does have an entry.
+wait_for_socket /var/run/spire/agent/sockets/main/public/api.sock
 
 # Bridge the merged workload API into each virtual node for kubelet's image credential provider.
 # A real deployment runs one ha-agent per host and kubelet talks to it directly. Here a single VM
@@ -351,9 +368,9 @@ sudo /bin/bash -c "echo SPIFFE_INSTANCE=main > /etc/spiffe/socat/unix/k8s-kubele
 sudo /bin/bash -c "echo SPIFFE_INSTANCE=main > /etc/spiffe/socat/unix/k8s-kubelet-3.conf"
 sudo /bin/bash -c "echo SPIFFE_INSTANCE=main > /etc/spiffe/socat/unix/k8s-kubelet-4.conf"
 sudo systemctl start spiffe-socat-unix@k8s-kubelet-2 spiffe-socat-unix@k8s-kubelet-3 spiffe-socat-unix@k8s-kubelet-4
-wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-kubelet-2/public/api.sock
-wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-kubelet-3/public/api.sock
-wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-kubelet-4/public/api.sock
+# These front the ha-agent rather than a spire-agent, so healthcheck does not apply here
+# either. Fetching an svid is the real signal: it exercises the bridge, the ha-agent and
+# whichever root agent answered.
 wait_for_jwt /var/run/spiffe/socat/unix/k8s-kubelet-2/public/api.sock
 wait_for_jwt /var/run/spiffe/socat/unix/k8s-kubelet-3/public/api.sock
 wait_for_jwt /var/run/spiffe/socat/unix/k8s-kubelet-4/public/api.sock
