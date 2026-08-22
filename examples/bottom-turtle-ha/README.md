@@ -136,3 +136,74 @@ helm upgrade --install --namespace spire-mgmt --values "spire-values.yaml" \
   --set tags.bottomTurtleHAB=true \
   --set "global.spire.ingressControllerType=ingress-nginx"
 ```
+
+## Host services on the bottom turtle
+
+The diagrams above show a `spire-ha-agent` on each host, fed by `spire-agent@a` and
+`spire-agent@b`, serving host services such as sshd and kubelet. That is what makes a host
+service's identity survive one root server going away: the ha-agent merges both sides into
+a single Workload API and answers from whichever side is up.
+
+It attests every caller by pid, so one ha-agent can serve many callers with different
+identities. Register the caller against the root servers and it gets its own SVID:
+
+```
+apiVersion: spire.spiffe.io/v1alpha1
+kind: ClusterStaticEntry
+metadata:
+  name: node1-spire-ha-agent
+spec:
+  parentID: spiffe://${SPIFFE_TRUST_DOMAIN}/agent/node1
+  spiffeID: spiffe://${SPIFFE_TRUST_DOMAIN}/spire-ha-agent
+  selectors:
+  - systemd:id:spire-ha-agent@main.service
+  federatesWith:
+  - spire-ha
+```
+
+The packaged `spire-agent` config already names `spiffe://${SPIFFE_TRUST_DOMAIN}/spire-ha-agent`
+in its `authorized_delegates`, so no agent configuration is needed, only the entry.
+
+## Registry image pull
+
+Kubelet can use that host identity to pull images, without any pull secret. On seeing an
+image from the registry, kubelet runs an image credential provider on the node, which
+presents two credentials to the spire-identity-exchange: the pod's projected service
+account token and the node's own JWT-SVID from the ha-agent. The exchange mints a registry
+token, and the registry authorizes by SPIFFE ID.
+
+The registry in this example is zot, deployed with the upstream chart. Its serving
+certificate is a SPIRE SVID delivered by `spiffe-helper` as an init container plus a
+sidecar, so nothing carries a long lived key. The identity needs an explicit DNS name,
+because an X509-SVID has only a URI SAN by default and containerd validates the registry
+by hostname:
+
+```
+zot:
+  spiffeIDTemplate: spiffe://{{ .TrustDomain }}/zot
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: zot
+  dnsNameTemplates:
+    - zot.{{ .TrustDomain }}
+```
+
+Push and pull share one exchange stack. They are kept apart by their registration entries,
+whose selectors are disjoint, and by the registry's own access control, which grants the
+push identity write and the pull identity read only.
+
+### How the test deviates from the diagrams
+
+The test runs a single VM behind several virtual Kubernetes nodes, so a few things differ
+from what you would deploy. Worth knowing if you are using this as a reference:
+
+* One `spire-ha-agent` is shared by every virtual node, with a `spiffe-socat-unix` bridge
+  per node in front of it. On a real host kubelet talks to its local ha-agent directly.
+* Because of that bridge, the registration entries select on the socat unit rather than on
+  kubelet's own unit. On a real host that selector is the only line that changes.
+* One ha-agent behind every node means the test covers a root server failing, which is the
+  part that matters here, but not a single node's ha-agent failing.
+* The credential provider binary and its configuration are staged into every kind cluster
+  by `.github/scripts/install-image-cred-provider.sh` before the cluster is created.
+  Kubelet refuses to start when a provider named in its configuration is missing, so this
+  cannot be deferred to the test itself.

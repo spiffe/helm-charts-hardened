@@ -4,3 +4,6 @@ bin/
 *.swp
 charts/**/*.tgz
 .DS_Store
+
+# Staged by .github/scripts/install-image-cred-provider.sh
+.github/kind/conf/credential-providers/

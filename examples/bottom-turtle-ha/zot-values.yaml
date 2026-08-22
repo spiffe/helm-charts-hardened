@@ -1,0 +1,173 @@
+# zot registry with a SPIRE issued serving certificate.
+#
+# The upstream chart renders initContainers, extraContainers, extraVolumes and
+# extraVolumeMounts verbatim, so the spiffe-helper pattern used by the
+# spiffe-oidc-discovery-provider chart drops straight in: an init container fetches the
+# first SVID before zot starts, and a sidecar keeps it rotated. zot 2.1.15 and later
+# reload certificates from disk on their own, so no reload hook is needed.
+#
+# Note the chart does not run tpl over these fields, so everything here has to be a
+# literal. The release must be named "zot" for the zot-config ConfigMap reference below.
+
+# The SVID is delivered through the shared ha-agent CSI driver, so zot keeps a valid
+# certificate no matter which side issued it.
+initContainers:
+  - name: spiffe-helper-init
+    image: ghcr.io/spiffe/spiffe-helper:0.11.0
+    args: ["-config", "/etc/spiffe-helper.conf", "-daemon-mode=false"]
+    securityContext:
+      allowPrivilegeEscalation: false
+      runAsNonRoot: true
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop: [ALL]
+      seccompProfile:
+        type: RuntimeDefault
+    volumeMounts:
+      - name: spiffe-workload-api
+        mountPath: /spiffe-workload-api
+        readOnly: true
+      - name: zot-config
+        mountPath: /etc/spiffe-helper.conf
+        subPath: spiffe-helper.conf
+        readOnly: true
+      - name: spire-svid
+        mountPath: /svid
+
+extraContainers:
+  - name: spiffe-helper
+    image: ghcr.io/spiffe/spiffe-helper:0.11.0
+    args: ["-config", "/etc/spiffe-helper.conf"]
+    securityContext:
+      allowPrivilegeEscalation: false
+      runAsNonRoot: true
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop: [ALL]
+      seccompProfile:
+        type: RuntimeDefault
+    volumeMounts:
+      - name: spiffe-workload-api
+        mountPath: /spiffe-workload-api
+        readOnly: true
+      - name: zot-config
+        mountPath: /etc/spiffe-helper.conf
+        subPath: spiffe-helper.conf
+        readOnly: true
+      - name: spire-svid
+        mountPath: /svid
+
+# "data" is taken by the chart's own registry volume when persistence is off, and
+# "zot-config" is already declared by the chart for mountConfig, so the helper containers
+# above mount it without redeclaring it here.
+extraVolumes:
+  - name: spire-svid
+    emptyDir: {}
+  - name: spiffe-workload-api
+    csi:
+      driver: csi.spiffe.io
+      readOnly: true
+
+extraVolumeMounts:
+  - name: spire-svid
+    mountPath: /svid
+    readOnly: true
+
+# All three containers share a uid so zot can read the key spiffe-helper writes.
+podSecurityContext:
+  fsGroupChangePolicy: OnRootMismatch
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
+# readOnlyRootFilesystem is deliberately left off for zot itself; it writes outside the
+# registry volume during startup.
+securityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  capabilities:
+    drop: [ALL]
+  seccompProfile:
+    type: RuntimeDefault
+
+resources: {}
+
+# Probes must speak https once zot serves TLS. The kubelet does not verify the server
+# certificate on probes, so the SVID's lack of a matching DNS SAN for the pod IP is fine.
+httpGet:
+  scheme: HTTPS
+  port: 5000
+
+# The default budget is 35s, which is tight when an SVID has to be delivered first.
+startupProbe:
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  failureThreshold: 30
+
+mountConfig: true
+configFiles:
+  spiffe-helper.conf: |-
+    agent_address = "/spiffe-workload-api/spire-agent.sock"
+    cert_dir = "/svid"
+    svid_file_name = "tls.crt"
+    svid_key_file_name = "tls.key"
+    svid_bundle_file_name = "ca.pem"
+  config.json: |-
+    {
+      "storage": { "rootDirectory": "/var/lib/registry" },
+      "http": {
+        "address": "0.0.0.0",
+        "port": "5000",
+        "compat": ["docker2s2"],
+        "tls": { "cert": "/svid/tls.crt", "key": "/svid/tls.key" },
+        "realm": "zot",
+        "auth": {
+          "bearer": {
+            "realm": "https://zot.production.other/zot/auth/token",
+            "service": "https://zot.production.other",
+            "oidc": [
+              {
+                "issuer": "https://oidc-discovery.production.other",
+                "audiences": ["zot"],
+                "certificateAuthorityFile": "/svid/ca.pem",
+                "claimMapping": { "username": "claims.sub" }
+              }
+            ]
+          }
+        },
+        "accessControl": {
+          "repositories": {
+            "**": {
+              "policies": [
+                {
+                  "users": ["spiffe://production.other/image-push"],
+                  "actions": ["read", "create", "update", "delete"]
+                },
+                {
+                  "users": ["spiffe://production.other/image-pull"],
+                  "actions": ["read"]
+                }
+              ]
+            }
+          }
+        }
+      },
+      "log": { "level": "debug" }
+    }
+
+service:
+  type: ClusterIP
+
+ingress:
+  enabled: true
+  className: nginx
+  # The chart reads ingress.pathtype (lowercase t) and applies it to every path;
+  # hosts[].paths[].pathType is ignored.
+  pathtype: Prefix
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+  hosts:
+    - host: zot.production.other
+      paths:
+        - path: /

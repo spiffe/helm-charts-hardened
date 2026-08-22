@@ -17,6 +17,7 @@ on:
       - '.github/tests/**/*.sh'
       - '.github/tests/**/*.json'
       - '.github/scripts/check-readme-versions.sh'
+      - '.github/scripts/install-image-cred-provider.sh'
       - 'examples/**/*.yaml'
       - 'examples/**/*.sh'
       - 'tests/**/*'
@@ -31,6 +32,7 @@ env:
   PYTHON_VERSION: 3.11.3
   KIND_VERSION: v0.32.0
   CHART_TESTING_VERSION: v3.8.0
+  IMAGE_CRED_PROVIDER_VERSION: v0.5.0
 
 jobs:
   checks:
@@ -185,6 +187,11 @@ jobs:
         with:
           version: ${{ env.CHART_TESTING_VERSION }}
 
+      # Kubelet will not start if the provider binary named in
+      # credential-provider-config.yaml is absent, so every cluster needs this.
+      - name: Install image credential provider
+        run: ./.github/scripts/install-image-cred-provider.sh
+
       - name: Create kind ${{ matrix.k8s }} cluster
         uses: helm/kind-action@v1.14.0
         # Only build a kind cluster if there are chart changes to test.
@@ -271,6 +278,11 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
+      # Kubelet will not start if the provider binary named in
+      # credential-provider-config.yaml is absent, so every cluster needs this.
+      - name: Install image credential provider
+        run: ./.github/scripts/install-image-cred-provider.sh
+
       - name: Create kind cluster
         uses: helm/kind-action@v1.14.0
         # Only build a kind cluster if there are chart changes to test.
@@ -326,6 +338,11 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
+      # Kubelet will not start if the provider binary named in
+      # credential-provider-config.yaml is absent, so every cluster needs this.
+      - name: Install image credential provider
+        run: ./.github/scripts/install-image-cred-provider.sh
+
       - name: Create kind cluster
         uses: helm/kind-action@v1.14.0
         # Only build a kind cluster if there are chart changes to test.
@@ -371,6 +388,11 @@ jobs:
         uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+
+      # Kubelet will not start if the provider binary named in
+      # credential-provider-config.yaml is absent, so every cluster needs this.
+      - name: Install image credential provider
+        run: ./.github/scripts/install-image-cred-provider.sh
 
       - name: Create kind cluster
         uses: helm/kind-action@v1.14.0

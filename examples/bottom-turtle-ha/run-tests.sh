@@ -74,6 +74,19 @@ teardown() {
   sudo systemctl status spire-server@other || true
   kubectl describe job federation-test || true
   kubectl logs job/federation-test || true
+  for JOB in image-push image-pull image-push-denied; do
+    kubectl describe job "${JOB}" 2>/dev/null || true
+    kubectl logs "job/${JOB}" --all-containers 2>/dev/null || true
+  done
+  kubectl get pods -n zot -o wide || true
+  kubectl logs -n zot -l app.kubernetes.io/name=zot --all-containers --tail=100 || true
+  sudo systemctl status spire-ha-agent@main || true
+  sudo systemctl status spiffe-socat-unix@k8s-kubelet-2 || true
+  sudo systemctl status spiffe-socat-unix@k8s-kubelet-3 || true
+  sudo systemctl status spiffe-socat-unix@k8s-kubelet-4 || true
+  for NODE in $(kubectl get nodes -o name 2>/dev/null | cut -d/ -f2); do
+    docker exec -i "${NODE}" journalctl -u kubelet --no-pager 2>/dev/null | grep -i 'credential provider' || true
+  done
   sudo spire-server entry show -instance a || true
   sudo spire-server entry show -instance b || true
   sudo systemctl status spire-controller-manager@a || true
@@ -111,6 +124,9 @@ teardown() {
 
   if [ "${CLEANUP}" -eq 1 ]; then
     kubectl delete job federation-test 2>/dev/null || true
+    kubectl delete job image-push image-pull image-push-denied 2>/dev/null || true
+    helm uninstall --namespace zot zot 2>/dev/null || true
+    kubectl delete ns zot 2>/dev/null || true
     helm uninstall --namespace spire-mgmt spire-b 2>/dev/null || true
     helm uninstall --namespace spire-mgmt spire-a 2>/dev/null || true
     helm uninstall --namespace spire-mgmt spire 2>/dev/null || true
@@ -199,7 +215,7 @@ run_federation_test_job() {
 # Get the package repo and install the packages
 sudo curl -s -o /etc/apt/sources.list.d/spire-examples.list https://raw.githubusercontent.com/spiffe/spire-examples/refs/heads/main/examples/debs/amd64/spire-examples.list
 sudo apt-get update
-sudo apt-get install -y spire-common spire-agent spire-server spire-controller-manager spiffe-socat-unix socat spire-trust-sync spiffe-helper
+sudo apt-get install -y spire-common spire-agent spire-server spire-controller-manager spiffe-socat-unix socat spire-trust-sync spiffe-helper spire-ha-agent
 
 # Set our testing trust domain
 sudo sed -i 's/example.org/production.other/' /etc/spiffe/default-trust-domain.env
@@ -317,6 +333,31 @@ wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-agent-3-b/public/api.sock
 wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-agent-4-a/public/api.sock
 wait_for_jwt /var/run/spiffe/socat/unix/k8s-spire-agent-4-b/public/api.sock
 
+# Start the host spire-ha-agent. It merges the two root agents into one workload API, which is
+# what lets host services keep their identity when a single root server goes away. The compiled
+# in defaults already point at /var/run/spire/agent/sockets/{a,b}/private/admin.sock and listen
+# on the main instance socket, and the packaged agent config already lists the ha-agent in its
+# authorized_delegates, so no configuration is needed.
+sudo systemctl start spire-ha-agent@main
+wait_for_healthcheck spire-agent /var/run/spire/agent/sockets/main/public/api.sock
+wait_for_jwt /var/run/spire/agent/sockets/main/public/api.sock
+
+# Bridge the merged workload API into each virtual node for kubelet's image credential provider.
+# A real deployment runs one ha-agent per host and kubelet talks to it directly. Here a single VM
+# backs three virtual nodes, so we put one socat instance in front of the shared ha-agent per
+# node. The ha-agent attests each caller by pid, so every bridge resolves to its own entry and
+# each node still gets a distinct identity.
+sudo /bin/bash -c "echo SPIFFE_INSTANCE=main > /etc/spiffe/socat/unix/k8s-kubelet-2.conf"
+sudo /bin/bash -c "echo SPIFFE_INSTANCE=main > /etc/spiffe/socat/unix/k8s-kubelet-3.conf"
+sudo /bin/bash -c "echo SPIFFE_INSTANCE=main > /etc/spiffe/socat/unix/k8s-kubelet-4.conf"
+sudo systemctl start spiffe-socat-unix@k8s-kubelet-2 spiffe-socat-unix@k8s-kubelet-3 spiffe-socat-unix@k8s-kubelet-4
+wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-kubelet-2/public/api.sock
+wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-kubelet-3/public/api.sock
+wait_for_healthcheck spire-agent /var/run/spiffe/socat/unix/k8s-kubelet-4/public/api.sock
+wait_for_jwt /var/run/spiffe/socat/unix/k8s-kubelet-2/public/api.sock
+wait_for_jwt /var/run/spiffe/socat/unix/k8s-kubelet-3/public/api.sock
+wait_for_jwt /var/run/spiffe/socat/unix/k8s-kubelet-4/public/api.sock
+
 # Deploy an ingress controller
 IP=$(kubectl get nodes chart-testing-control-plane -o go-template='{{ range .status.addresses }}{{ if eq .type "InternalIP" }}{{ .address }}{{ end }}{{ end }}')
 helm upgrade --install ingress-nginx ingress-nginx --version "$VERSION_INGRESS_NGINX" --repo "$HELM_REPO_INGRESS_NGINX" \
@@ -332,7 +373,7 @@ common_test_url "$IP"
 # Get the host IP And add spire-server-[ab].${trust_domain} records to it so the spire-servers can talk back to root servers running on the host
 HOSTIP=$(ip addr show docker0 | grep 'inet ' | awk '{print $2}' | cut -d/ -f1)
 kubectl get configmap -n kube-system coredns -o yaml | grep hosts || kubectl get configmap -n kube-system coredns -o yaml | sed "/ready/a\        hosts {\n           fallthrough\n        }" | kubectl apply -f -
-kubectl get configmap -n kube-system coredns -o yaml | grep production.other || kubectl get configmap -n kube-system coredns -o yaml | sed "/hosts/a\           $HOSTIP spire-server-a.production.other\n           $IP oidc-discovery.production.other\n           $HOSTIP spire-server-b.production.other\n           127.0.0.1 $FEDERATION_ENDPOINT_HOST\n" | kubectl apply -f -
+kubectl get configmap -n kube-system coredns -o yaml | grep production.other || kubectl get configmap -n kube-system coredns -o yaml | sed "/hosts/a\           $HOSTIP spire-server-a.production.other\n           $IP oidc-discovery.production.other\n           $HOSTIP spire-server-b.production.other\n           $IP zot.production.other\n           $IP spire-identity-exchange-rest.production.other\n           127.0.0.1 $FEDERATION_ENDPOINT_HOST\n" | kubectl apply -f -
 kubectl rollout restart -n kube-system deployment/coredns
 kubectl rollout status -n kube-system -w --timeout=1m deploy/coredns
 
@@ -343,6 +384,10 @@ helm upgrade --install --create-namespace --namespace spire-mgmt --values "${COM
   --set "global.spire.namespaces.create=true" \
   --set "global.spire.ingressControllerType=ingress-nginx" \
   --set "spiffe-oidc-discovery-provider.ingress.enabled=true" \
+  --set "spireIdentityExchange.tls.rest.enabled=true" \
+  --set "spireIdentityExchange.tls.rest.ingress.enabled=true" \
+  --set "spireIdentityExchange.spiffe.rest.enabled=true" \
+  --set "spireIdentityExchange.spiffe.rest.ingress.enabled=true" \
   "${BROKER_MODE_ARGS[@]}"
 
 # Create spire-identity-exchange cert for testing.
@@ -422,6 +467,66 @@ TOKEN=$(kubectl logs job/test)
 curl --fail-with-body -H "Authorization: Bearer ${TOKEN}" -X POST --resolve "spire-identity-exchange-a-rest.production.other:443:$IP" "https://spire-identity-exchange-a-rest.production.other/api/v1/svid/k8s_psat/x509" -k -sS -q
 curl --fail-with-body -H "Authorization: Bearer ${TOKEN}" -X POST --resolve "spire-identity-exchange-b-rest.production.other:443:$IP" "https://spire-identity-exchange-b-rest.production.other/api/v1/svid/k8s_psat/x509" -k -sS -q
 
+# Registry image pull. zot serves a SPIRE issued certificate, an in cluster job pushes an
+# image with an identity minted by the exchange, and kubelet pulls it back through the
+# image credential provider staged on every node by .github/scripts.
+
+# Nodes are not cluster DNS clients, so coredns does nothing for containerd. Give each
+# node the name directly, and a hosts.toml so it trusts the registry's SPIRE certificate.
+# The bundle has to carry both roots: after a failover the certificate is issued by the
+# other side's chain.
+sudo spire-server bundle show -socketPath /run/spire/server/sockets/a/private/api.sock | sudo tee /tmp/zot-ca.pem > /dev/null
+sudo spire-server bundle show -socketPath /run/spire/server/sockets/b/private/api.sock | sudo tee -a /tmp/zot-ca.pem > /dev/null
+for NODE in $(kubectl get nodes -o name | cut -d/ -f2); do
+  # The credential provider runs on the node, not in a pod, so it resolves the registry
+  # and the exchange here rather than through coredns.
+  docker exec -i "${NODE}" /bin/bash -c "grep -q zot.production.other /etc/hosts || echo '$IP zot.production.other spire-identity-exchange-rest-spiffe.production.other' >> /etc/hosts"
+  docker exec -i "${NODE}" /bin/bash -c "mkdir -p /etc/containerd/certs.d/zot.production.other"
+  docker exec -i "${NODE}" /bin/bash -c "cat > /etc/containerd/certs.d/zot.production.other/zot-ca.pem" < /tmp/zot-ca.pem
+  docker exec -i "${NODE}" /bin/bash -c "cat > /etc/containerd/certs.d/zot.production.other/hosts.toml" <<EOF
+server = "https://zot.production.other"
+
+[host."https://zot.production.other"]
+  capabilities = ["pull", "resolve"]
+  ca = "/etc/containerd/certs.d/zot.production.other/zot-ca.pem"
+EOF
+done
+
+helm upgrade --install zot zot --version "$VERSION_ZOT" --repo "$HELM_REPO_ZOT" \
+  --namespace zot --create-namespace \
+  --values "${SCRIPTPATH}/zot-values.yaml" \
+  --wait --timeout 5m
+
+# Pull the job images out of the charts so they always sync up.
+BUSYBOX_IMAGE=$(helm template t charts/spire -s charts/spiffe-oidc-discovery-provider/templates/tests/test-keys.yaml --values "${COMMON_TEST_YOUR_VALUES}" --set spiffe-oidc-discovery-provider.enabled=true | yq e 'select(.kind=="Pod") | .spec.initContainers[] | select(.name=="static-busybox") | .image' -)
+AGENT_IMAGE=$(helm template t charts/spire -s charts/spire-agent/templates/daemonset.yaml --values "${COMMON_TEST_YOUR_VALUES}" --set spire-agent.enabled=true | yq e 'select(.kind=="DaemonSet") | .spec.template.spec.containers[] | select(.name=="spire-agent") | .image' -)
+TOOLKIT_IMAGE=$(helm template t charts/spire -s charts/spiffe-oidc-discovery-provider/templates/tests/test-keys.yaml --values "${COMMON_TEST_YOUR_VALUES}" --set spiffe-oidc-discovery-provider.enabled=true | yq e 'select(.kind=="Pod") | .spec.containers[] | select(.name=="verify-keys") | .image' -)
+echo "image pull job images: ${BUSYBOX_IMAGE} ${AGENT_IMAGE} ${TOOLKIT_IMAGE}"
+
+apply_registry_job() {
+  yq e "(.. | select(has(\"name\")) | select(.name == \"static-busybox\") | .image) = \"${BUSYBOX_IMAGE}\" | (.. | select(has(\"name\")) | select(.name == \"fetch-svid\") | .image) = \"${AGENT_IMAGE}\" | (.. | select(has(\"name\")) | select(.name == \"exchange\") | .image) = \"${TOOLKIT_IMAGE}\"" \
+    "$1" | kubectl apply -f -
+}
+
+# Push with the writer identity.
+apply_registry_job "${SCRIPTPATH}/image-push-job.yaml"
+kubectl wait --for=condition=complete --timeout=300s job/image-push
+
+# Pull it back. Nothing in the job fetches a credential; kubelet runs the plugin, which is
+# the whole point of the test.
+kubectl apply -f "${SCRIPTPATH}/image-pull-job.yaml"
+kubectl wait --for=condition=complete --timeout=300s job/image-pull
+# Completing at all is the assertion: zot grants no anonymous access, so the image only
+# comes down if kubelet ran the plugin and the exchange minted a token zot accepted. The
+# kubelet log line naming the plugin needs -v=4, which is not worth turning on for every
+# example, so teardown prints it as a diagnostic rather than asserting on it.
+kubectl logs job/image-pull | grep IMAGE-PULL-OK
+
+# The pull identity is read only. This job completes only when zot refuses the write.
+apply_registry_job "${SCRIPTPATH}/image-push-denied-job.yaml"
+kubectl wait --for=condition=complete --timeout=300s job/image-push-denied
+kubectl logs job/image-push-denied | grep PUSH-DENIED-OK
+
 if [ "${BROKER}" -eq 1 ]; then
   # Verify a workload on the ha-agent socket receives the other.invalid federated trust bundles,
   # x509 and jwt, merged from both sides.
@@ -440,4 +545,13 @@ if [ "${BROKER}" -eq 1 ]; then
   # Verify the other.invalid federated trust bundles still serve with only side b running.
   run_federation_test_job
 fi
+
+# The image pull path has to survive losing a side too. Everything it depends on is HA:
+# the node's identity comes from the host spire-ha-agent, and the credential provider
+# talks to the combined exchange endpoint rather than either side directly. Delete the
+# job first so this is a genuine second pull rather than a cached result.
+kubectl delete job image-pull
+kubectl apply -f "${SCRIPTPATH}/image-pull-job.yaml"
+kubectl wait --for=condition=complete --timeout=300s job/image-pull
+kubectl logs job/image-pull | grep IMAGE-PULL-OK
 

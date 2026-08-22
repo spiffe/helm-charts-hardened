@@ -30,6 +30,24 @@ nodes:
         containerPath: /var/run/spiffe/socat/unix/k8s-spire-agent-a/public
       - hostPath: /var/run/spiffe/socat/unix/k8s-spire-agent-2-b/public
         containerPath: /var/run/spiffe/socat/unix/k8s-spire-agent-b/public
+      # The host spire-ha-agent's merged workload API. One bridge per virtual node, so
+      # each node's kubelet resolves to its own identity even though they share an agent.
+      - hostPath: /var/run/spiffe/socat/unix/k8s-kubelet-2/public
+        containerPath: /var/run/spiffe/socat/unix/k8s-kubelet/public
+      - hostPath: ./.github/kind/conf/credential-providers
+        containerPath: /credential-plugins
+      - hostPath: ./.github/kind/conf/credential-provider-config.yaml
+        containerPath: /etc/kubernetes/credential-provider-config.yaml
+    kubeadmConfigPatches:
+      # No apiVersion, so this matches whichever kubeadm version kind generates.
+      # NOTE: kubeletExtraArgs is a map in v1beta3 (k8s < 1.36) and a list of
+      # {name, value} in v1beta4. Convert this when the matrix reaches 1.36.
+      - |
+        kind: JoinConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            image-credential-provider-config: /etc/kubernetes/credential-provider-config.yaml
+            image-credential-provider-bin-dir: /credential-plugins
   - role: worker
     extraMounts:
       - hostPath: /var/run/spiffe/socat/unix/k8s-spire-server-a/public
@@ -40,6 +58,22 @@ nodes:
         containerPath: /var/run/spiffe/socat/unix/k8s-spire-agent-a/public
       - hostPath: /var/run/spiffe/socat/unix/k8s-spire-agent-3-b/public
         containerPath: /var/run/spiffe/socat/unix/k8s-spire-agent-b/public
+      - hostPath: /var/run/spiffe/socat/unix/k8s-kubelet-3/public
+        containerPath: /var/run/spiffe/socat/unix/k8s-kubelet/public
+      - hostPath: ./.github/kind/conf/credential-providers
+        containerPath: /credential-plugins
+      - hostPath: ./.github/kind/conf/credential-provider-config.yaml
+        containerPath: /etc/kubernetes/credential-provider-config.yaml
+    kubeadmConfigPatches:
+      # No apiVersion, so this matches whichever kubeadm version kind generates.
+      # NOTE: kubeletExtraArgs is a map in v1beta3 (k8s < 1.36) and a list of
+      # {name, value} in v1beta4. Convert this when the matrix reaches 1.36.
+      - |
+        kind: JoinConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            image-credential-provider-config: /etc/kubernetes/credential-provider-config.yaml
+            image-credential-provider-bin-dir: /credential-plugins
   - role: worker
     extraMounts:
       - hostPath: /var/run/spiffe/socat/unix/k8s-spire-server-a/public
@@ -50,3 +84,19 @@ nodes:
         containerPath: /var/run/spiffe/socat/unix/k8s-spire-agent-a/public
       - hostPath: /var/run/spiffe/socat/unix/k8s-spire-agent-4-b/public
         containerPath: /var/run/spiffe/socat/unix/k8s-spire-agent-b/public
+      - hostPath: /var/run/spiffe/socat/unix/k8s-kubelet-4/public
+        containerPath: /var/run/spiffe/socat/unix/k8s-kubelet/public
+      - hostPath: ./.github/kind/conf/credential-providers
+        containerPath: /credential-plugins
+      - hostPath: ./.github/kind/conf/credential-provider-config.yaml
+        containerPath: /etc/kubernetes/credential-provider-config.yaml
+    kubeadmConfigPatches:
+      # No apiVersion, so this matches whichever kubeadm version kind generates.
+      # NOTE: kubeletExtraArgs is a map in v1beta3 (k8s < 1.36) and a list of
+      # {name, value} in v1beta4. Convert this when the matrix reaches 1.36.
+      - |
+        kind: JoinConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            image-credential-provider-config: /etc/kubernetes/credential-provider-config.yaml
+            image-credential-provider-bin-dir: /credential-plugins

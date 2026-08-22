@@ -1,0 +1,121 @@
+# Pushes an image into zot using an identity minted by the spire-identity-exchange.
+#
+# The job presents two credentials: its own pod SVID, fetched over the shared ha-agent
+# CSI socket, and a projected service account token. The exchange's image_pull stack
+# requires both, and the registration entry keyed on that pair mints
+# spiffe://<td>/image-push, which is the only identity zot lets write.
+#
+# Images other than crane are spliced in from the charts by run-tests.sh so they cannot
+# drift from what the rest of the example runs.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: zot-push
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: image-push
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: image-push
+    spec:
+      serviceAccountName: zot-push
+      restartPolicy: Never
+      initContainers:
+      - name: static-busybox
+        # Replaced by run-tests.sh with the image from the spiffe-oidc-discovery-provider chart
+        image: replaced-by-run-tests.sh
+        command: ["sh", "-c", "cp /bin/busybox /data/busybox && chmod +x /data/busybox"]
+        volumeMounts:
+        - name: data-volume
+          mountPath: /data
+      - name: fetch-svid
+        # Replaced by run-tests.sh with the image from the spire-agent chart
+        image: replaced-by-run-tests.sh
+        command:
+        - /data/busybox
+        - sh
+        - -xec
+        - |
+          SOCK=/spire-agent/spire-agent.sock
+          # The bundle doubles as the trust root for both the exchange and zot.
+          /opt/spire/bin/spire-agent api fetch x509 -socketPath "$SOCK" -write /data -timeout 30s
+          /opt/spire/bin/spire-agent api fetch jwt -audience spire-identity-exchange \
+            -socketPath "$SOCK" -timeout 30s \
+            | /data/busybox grep -A1 'token(' | /data/busybox tail -1 | /data/busybox tr -d '[:space:]' > /data/svid.jwt
+          test -s /data/svid.jwt
+        volumeMounts:
+        - name: data-volume
+          mountPath: /data
+        - name: spire-api
+          mountPath: /spire-agent
+          readOnly: true
+      - name: exchange
+        # Replaced by run-tests.sh with the toolkit image from the spiffe-oidc-discovery-provider chart
+        image: replaced-by-run-tests.sh
+        command:
+        - sh
+        - -xec
+        - |
+          # crane talks to both docker.io and zot, so it needs the public roots and the
+          # SPIRE bundle in one file.
+          cat /etc/ssl/certs/ca-certificates.crt /data/bundle.0.pem > /data/ca-bundle.pem
+
+          PSAT="$(cat /var/run/secrets/tokens/token)"
+          SVID="$(cat /data/svid.jwt)"
+          TOKEN="$(curl -k -sS --fail-with-body -X POST \
+            -H "Authorization: Bearer k8s_psat=${PSAT}:spiffe=${SVID}" \
+            -H "Content-Type: application/json" \
+            -d '{"audiences": ["zot"]}' \
+            "https://spire-identity-exchange-rest.production.other/api/v1/svid/image_pull/jwt" \
+            | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')"
+          test -n "${TOKEN}"
+
+          # zot takes the minted SVID as a bearer token behind a basic auth header.
+          AUTH="$(printf 'zot:%s' "${TOKEN}" | base64 | tr -d '\n')"
+          printf '{"auths":{"zot.production.other":{"auth":"%s"}}}' "${AUTH}" > /docker-config/config.json
+        volumeMounts:
+        - name: data-volume
+          mountPath: /data
+        - name: docker-config
+          mountPath: /docker-config
+        - name: psat
+          mountPath: /var/run/secrets/tokens
+          readOnly: true
+      containers:
+      - name: push
+        image: gcr.io/go-containerregistry/crane:v0.20.6
+        env:
+        - name: DOCKER_CONFIG
+          value: /docker-config
+        - name: SSL_CERT_FILE
+          value: /data/ca-bundle.pem
+        args:
+        - copy
+        - docker.io/library/busybox:latest
+        - zot.production.other/test/busybox:latest
+        volumeMounts:
+        - name: data-volume
+          mountPath: /data
+        - name: docker-config
+          mountPath: /docker-config
+      volumes:
+      - name: data-volume
+        emptyDir: {}
+      - name: docker-config
+        emptyDir: {}
+      - name: spire-api
+        csi:
+          driver: csi.spiffe.io
+          readOnly: true
+      - name: psat
+        projected:
+          sources:
+          - serviceAccountToken:
+              path: token
+              audience: spire-identity-exchange
+              expirationSeconds: 3600
