@@ -1,6 +1,17 @@
 internal-spire-server-bottom-turtle-ha-a: &server
   controllerManager:
     identities:
+      clusterSPIFFEIDs:
+        # zot's serving certificate. The DNS name has to be here explicitly: an X509-SVID
+        # carries only a URI SAN by default, and containerd validates the registry by
+        # hostname. Both sides define it so either can issue it after a failover.
+        zot:
+          spiffeIDTemplate: spiffe://{{ .TrustDomain }}/zot
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: zot
+          dnsNameTemplates:
+            - zot.{{ .TrustDomain }}
       clusterStaticEntries:
         test:
           parentID: spiffe://production.other/spire-identity-exchange
@@ -8,6 +19,32 @@ internal-spire-server-bottom-turtle-ha-a: &server
           selectors:
             - k8s_psat:namespace:default
             - k8s_psat:service_account_name:default
+
+        # What the exchange mints for each side of the image pull test. The two selector
+        # sets are disjoint on spiffe:source_path, so neither caller can obtain the
+        # other's identity even though both go through the image_pull stack. These minted
+        # IDs, not the identities the callers present, are what zot's access control
+        # matches on.
+        image-push:
+          parentID: spiffe://production.other/spire-identity-exchange
+          spiffeID: spiffe://production.other/image-push
+          selectors:
+            - k8s_psat:namespace:default
+            - k8s_psat:service_account_name:zot-push
+            - spiffe:source_path:/ns/default/sa/zot-push
+            - spire_identity_exchange:stack:name:image_pull
+
+        # The pull side. kubelet presents the pulling pod's service account token
+        # alongside the node's own SVID, so the psat selectors name the pod being pulled
+        # for, not the plugin.
+        image-pull:
+          parentID: spiffe://production.other/spire-identity-exchange
+          spiffeID: spiffe://production.other/image-pull
+          selectors:
+            - k8s_psat:namespace:default
+            - k8s_psat:service_account_name:zot-pull
+            - spiffe:source_path:/kubelet
+            - spire_identity_exchange:stack:name:image_pull
   spireIdentityExchange:
     enabled: true
 
@@ -30,6 +67,17 @@ spire-identity-exchange-bottom-turtle-ha-a: &six
         config:
           allowedServiceAccounts:
             - default/default
+            - default/zot-push
+            - default/zot-pull
+      spiffe:
+        config:
+          # An admission filter over which source identities may present a token at all.
+          # Authorization is the registration entries above plus zot's access control, so
+          # push and pull can share the image_pull stack. /kubelet is the node identity
+          # the credential provider presents; the other is the push job's pod identity.
+          pathPatterns:
+            - "^/kubelet$"
+            - "^/ns/default/sa/zot-push$"
 
 #Set the same settings on the B side
 spire-identity-exchange-bottom-turtle-ha-b: *six

@@ -1,0 +1,13 @@
+# The identity the image credential provider presents to the exchange. Deliberately the
+# same on every node, with no hostname, so the registry can grant pull access to one
+# SPIFFE ID rather than one per node.
+apiVersion: spire.spiffe.io/v1alpha1
+kind: ClusterStaticEntry
+metadata:
+  name: node4-image-pull
+spec:
+  parentID: spiffe://${SPIFFE_TRUST_DOMAIN}/agent/node1
+  spiffeID: spiffe://${SPIFFE_TRUST_DOMAIN}/kubelet
+  hint: image-pull
+  selectors:
+  - systemd:id:spiffe-socat-unix@k8s-kubelet-4.service

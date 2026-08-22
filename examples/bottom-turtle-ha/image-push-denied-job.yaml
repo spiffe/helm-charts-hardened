@@ -1,0 +1,116 @@
+# Negative control: the pull identity must not be able to write.
+#
+# Identical to image-push-job.yaml except the service account, which makes the exchange
+# mint spiffe://<td>/image-pull instead of /image-push. zot grants that identity read
+# only, so the push must fail. The job inverts the exit code, so it completes only when
+# crane is refused.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: image-push-denied
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: image-push-denied
+    spec:
+      serviceAccountName: zot-pull
+      restartPolicy: Never
+      initContainers:
+      - name: static-busybox
+        # Replaced by run-tests.sh with the image from the spiffe-oidc-discovery-provider chart
+        image: replaced-by-run-tests.sh
+        command: ["sh", "-c", "cp /bin/busybox /data/busybox && chmod +x /data/busybox"]
+        volumeMounts:
+        - name: data-volume
+          mountPath: /data
+      - name: fetch-svid
+        # Replaced by run-tests.sh with the image from the spire-agent chart
+        image: replaced-by-run-tests.sh
+        command:
+        - /data/busybox
+        - sh
+        - -xec
+        - |
+          SOCK=/spire-agent/spire-agent.sock
+          /opt/spire/bin/spire-agent api fetch x509 -socketPath "$SOCK" -write /data -timeout 30s
+          /opt/spire/bin/spire-agent api fetch jwt -audience spire-identity-exchange \
+            -socketPath "$SOCK" -timeout 30s \
+            | /data/busybox grep -A1 'token(' | /data/busybox tail -1 | /data/busybox tr -d '[:space:]' > /data/svid.jwt
+          test -s /data/svid.jwt
+        volumeMounts:
+        - name: data-volume
+          mountPath: /data
+        - name: spire-api
+          mountPath: /spire-agent
+          readOnly: true
+      - name: exchange
+        # Replaced by run-tests.sh with the toolkit image from the spiffe-oidc-discovery-provider chart
+        image: replaced-by-run-tests.sh
+        command:
+        - sh
+        - -xec
+        - |
+          cat /etc/ssl/certs/ca-certificates.crt /data/bundle.0.pem > /data/ca-bundle.pem
+
+          PSAT="$(cat /var/run/secrets/tokens/token)"
+          SVID="$(cat /data/svid.jwt)"
+          # This must still succeed. The exchange is willing to mint for this pod, it
+          # just mints the read only identity.
+          TOKEN="$(curl -k -sS --fail-with-body -X POST \
+            -H "Authorization: Bearer k8s_psat=${PSAT}:spiffe=${SVID}" \
+            -H "Content-Type: application/json" \
+            -d '{"audiences": ["zot"]}' \
+            "https://spire-identity-exchange-rest.production.other/api/v1/svid/image_pull/jwt" \
+            | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')"
+          test -n "${TOKEN}"
+
+          AUTH="$(printf 'zot:%s' "${TOKEN}" | base64 | tr -d '\n')"
+          printf '{"auths":{"zot.production.other":{"auth":"%s"}}}' "${AUTH}" > /docker-config/config.json
+        volumeMounts:
+        - name: data-volume
+          mountPath: /data
+        - name: docker-config
+          mountPath: /docker-config
+        - name: psat
+          mountPath: /var/run/secrets/tokens
+          readOnly: true
+      containers:
+      - name: push
+        image: gcr.io/go-containerregistry/crane:v0.20.6
+        env:
+        - name: DOCKER_CONFIG
+          value: /docker-config
+        - name: SSL_CERT_FILE
+          value: /data/ca-bundle.pem
+        # The crane image is distroless, so borrow the static busybox copied out earlier.
+        command: ["/data/busybox", "sh", "-c"]
+        args:
+        - |
+          if /ko-app/crane copy docker.io/library/busybox:latest zot.production.other/test/denied:latest; then
+            echo "PUSH-SHOULD-HAVE-BEEN-DENIED"
+            exit 1
+          fi
+          echo PUSH-DENIED-OK
+        volumeMounts:
+        - name: data-volume
+          mountPath: /data
+        - name: docker-config
+          mountPath: /docker-config
+      volumes:
+      - name: data-volume
+        emptyDir: {}
+      - name: docker-config
+        emptyDir: {}
+      - name: spire-api
+        csi:
+          driver: csi.spiffe.io
+          readOnly: true
+      - name: psat
+        projected:
+          sources:
+          - serviceAccountToken:
+              path: token
+              audience: spire-identity-exchange
+              expirationSeconds: 3600
