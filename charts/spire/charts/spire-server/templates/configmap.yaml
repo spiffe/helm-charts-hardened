@@ -173,6 +173,7 @@ plugins:
     sql:
       plugin_data:
         {{ include "spire-server.datastore-config" . | nindent 8 }}
+        {{- if or (eq .Values.dataStore.sql.databaseType "mysql") (eq .Values.dataStore.sql.databaseType "aws_mysql") }}
         {{- if ne .Values.dataStore.sql.rootCAPath "" }}
         root_ca_path: {{ .Values.dataStore.sql.rootCAPath }}
         {{- end }}
@@ -180,7 +181,8 @@ plugins:
         client_cert_path: {{ .Values.dataStore.sql.clientCertPath }}
         {{- end }}
         {{- if ne .Values.dataStore.sql.clientKeyPath "" }}
-        client_key_path	: {{ .Values.dataStore.sql.clientKeyPath }}
+        client_key_path: {{ .Values.dataStore.sql.clientKeyPath }}
+        {{- end }}
         {{- end }}
         max_open_conns: {{ .Values.dataStore.sql.maxOpenConns }}
         max_idle_conns: {{ .Values.dataStore.sql.maxIdleConns }}
@@ -281,6 +283,12 @@ plugins:
   {{- if or (eq (.enabled | toString) "true") $root.Values.spireIdentityExchange.enabled }}
     x509pop:
       plugin_data:
+        {{- if eq .mode "externalPKI" }}
+        mode: external_pki
+        ca_bundle_path: "/run/spire/data/x509pop-ca-bundle.pem"
+        max_intermediates: {{ .maxIntermediates }}
+        max_rsa_key_size: {{ .maxRSAKeySize }}
+        {{- else }}
         mode: {{ .mode }}
         spiffe_prefix: {{ include "spire-server.identity-exchange-spiffe-prefix" $root | quote }}
         max_intermediates: {{ .maxIntermediates }}
@@ -298,6 +306,7 @@ plugins:
         {{-   $cn = printf "/%s" (include "spire-lib.cluster-name" $root) }}
         {{- end }}
         agent_path_template: {{ replace "${HELM_ADD_CLUSTER_NAME}" $cn $agentPathTemplate | quote }}
+        {{- end }}
   {{- end }}
   {{- end }}
   {{- with .Values.nodeAttestor.awsIID }}
@@ -649,6 +658,22 @@ plugins:
         {{- end }}
   {{- end }}
   {{- end }}
+
+  {{- with .Values.upstreamAuthority.gcpCAS }}
+  {{- if eq (.enabled | toString) "true" }}
+  {{- $upstreamAuthorityUsed = add1 $upstreamAuthorityUsed }}
+  UpstreamAuthority:
+    gcp_cas:
+      plugin_data:
+        root_cert_spec:
+          project_name: {{ .projectName | quote }}
+          region_name: {{ .regionName | quote }}
+          ca_pool: {{ .caPool | quote }}
+          label_key: {{ .labelKey | quote }}
+          label_value: {{ .labelValue | quote }}
+  {{- end }}
+  {{- end }}
+
 {{- if gt $upstreamAuthorityUsed 1 }}
 {{- fail "You can only enable a single Upstream Authority." }}
 {{- end }}

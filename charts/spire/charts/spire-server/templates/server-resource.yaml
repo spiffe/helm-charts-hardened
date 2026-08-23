@@ -41,8 +41,14 @@
 {{-   if (has .Values.persistence.type (list "pvc" "hostPath")) }}
 {{-     fail "When running as deployment, persistence can't be set. 'persistence.type' must be [\"emptyDir\"]" }}
 {{-   end }}
-{{-   if (eq .Values.dataStore.sql.databaseType "sqlite3") }}
-{{-     fail "When running as deployment, sqlite3 can't be used." }}
+{{-   if and (eq .Values.dataStore.sql.databaseType "sqlite3") (not .Values.dataStore.sql.inMemory) }}
+{{-     fail "When running as deployment, sqlite3 can only be used in memory. Set 'dataStore.sql.inMemory' to true." }}
+{{-   end }}
+{{-   if and (eq .Values.dataStore.sql.databaseType "sqlite3") .Values.dataStore.sql.inMemory }}
+{{-     $surge := dig "rollingUpdate" "maxSurge" "" .Values.updateStrategy | toString }}
+{{-     if not (or (eq (dig "type" "" .Values.updateStrategy) "Recreate") (eq $surge "0") (eq $surge "0%")) }}
+{{-       fail "An in-memory datastore on a deployment must not surge, or two servers run with separate datastores. Set 'updateStrategy' to {type: Recreate} or {rollingUpdate: {maxSurge: 0}}." }}
+{{-     end }}
 {{-   end }}
 {{-   if (eq (.Values.keyManager.disk.enabled | toString) "true") }}
 {{-     fail "When running as deployment, disk keymanager can't be used. 'keyManager.disk.enabled' must be false." }}
@@ -53,19 +59,27 @@
 {{- if hasKey .Values.dataStore.sql "plugin_data" }}
 {{-   fail "The plugin_data setting to the sql data store is no longer supported." }}
 {{- end }}
-{{- if and (ne .Values.dataStore.sql.databaseType "mysql") (ne .Values.dataStore.sql.databaseType "aws_mysql") }}
+{{- $certPathDatabaseType := or (eq .Values.dataStore.sql.databaseType "mysql") (eq .Values.dataStore.sql.databaseType "aws_mysql") (eq .Values.dataStore.sql.databaseType "postgres") (eq .Values.dataStore.sql.databaseType "aws_postgres") }}
+{{- if not $certPathDatabaseType }}
 {{-   if ne .Values.dataStore.sql.rootCAPath "" }}
-{{-     fail "rootCAPath can only be set with database type mysql or aws_mysql." }}
+{{-     fail "rootCAPath can only be set with database type mysql, aws_mysql, postgres or aws_postgres." }}
 {{-   end }}
 {{-   if ne .Values.dataStore.sql.clientCertPath "" }}
-{{-     fail "clientCertPath can only be set with database type mysql or aws_mysql." }}
+{{-     fail "clientCertPath can only be set with database type mysql, aws_mysql, postgres or aws_postgres." }}
 {{-   end }}
 {{-   if ne .Values.dataStore.sql.clientKeyPath "" }}
-{{-     fail "clientKeyPath can only be set with database type mysql or aws_mysql." }}
+{{-     fail "clientKeyPath can only be set with database type mysql, aws_mysql, postgres or aws_postgres." }}
 {{-   end }}
 {{- end }}
+{{- if and (or (eq .Values.dataStore.sql.databaseType "postgres") (eq .Values.dataStore.sql.databaseType "aws_postgres")) (ne .Values.dataStore.sql.password "") (ne .Values.dataStore.sql.clientCertPath "") }}
+{{-   fail "dataStore.sql.password and dataStore.sql.clientCertPath are mutually exclusive for postgres; use one authentication method." }}
+{{- end }}
 {{- $pluginsToLoad := include "spire-lib.extract_custom_plugin_images" . | fromYamlArray }}
-{{- $pluginLoaderNeeded := or .Values.credentialComposer.cel.enabled .Values.spireIdentityExchange.enabled (gt (len $pluginsToLoad) 0) }}
+{{- $jwtExecNeeded := false }}
+{{- range $name, $value := .Values.kubeConfigs }}
+{{-   if hasKey $value "jwtSVIDExec" }}{{ $jwtExecNeeded = true }}{{- end }}
+{{- end }}
+{{- $pluginLoaderNeeded := or .Values.credentialComposer.cel.enabled .Values.spireIdentityExchange.enabled (gt (len $pluginsToLoad) 0) $jwtExecNeeded }}
 {{- if not .Values.externalServer }}
 apiVersion: apps/v1
 {{- if eq .Values.kind "statefulset" }}
@@ -85,6 +99,14 @@ spec:
   {{- fail "When running with sqlite3 database, you can't scale up to more then one instance. 'replicaCount' MUST be 1" }}
   {{- end }}
   replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  {{- with .Values.updateStrategy }}
+  {{- if eq $.Values.kind "statefulset" }}
+  updateStrategy:
+  {{- else }}
+  strategy:
+  {{- end }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
   {{- if eq .Values.kind "statefulset" }}
   serviceName: {{ include "spire-server.fullname" . }}
@@ -175,6 +197,23 @@ spec:
             - name: plugins
               mountPath: /plugins
           imagePullPolicy: {{ .Values.credentialComposer.spireIdentityExchange.image.pullPolicy }}
+        {{- end }}
+        {{- if $jwtExecNeeded }}
+        - name: init-jwt-svid-exec
+          securityContext:
+            {{- include "spire-lib.securitycontext" . | nindent 12 }}
+          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.jwtSVIDExecConfig.image "global" .Values.global) }}
+          # Use the previously copied busybox to stage the exec credential plugin binary where the kubeConfigs consumers can fork it.
+          command:
+            - /plugins/busybox
+            - sh
+            - -ec
+            - |
+              /plugins/busybox cp -a {{ .Values.jwtSVIDExecConfig.pluginPath }} {{ include "spire-server.jwt-svid-exec-binary-path" . }}
+          volumeMounts:
+            - name: plugins
+              mountPath: /plugins
+          imagePullPolicy: {{ .Values.jwtSVIDExecConfig.image.pullPolicy }}
         {{- end }}
         {{- range $idx, $plugin := $pluginsToLoad }}
         - name: {{ printf "init-plugin-%d" $idx }}
@@ -281,7 +320,9 @@ spec:
           {{- with .Values.extraEnv }}
           {{- . | toYaml | nindent 10 }}
           {{- end }}
-          {{- if and (ne .Values.dataStore.sql.databaseType "sqlite3") (ne .Values.dataStore.sql.databaseType "gcp_mysql_sa_iam") }}
+          {{- $postgresPasswordless := eq (include "spire-server.datastore-postgres-passwordless" .) "true" }}
+          {{- $postgresRoPasswordless := eq (include "spire-server.datastore-postgres-ro-passwordless" .) "true" }}
+          {{- if and (ne .Values.dataStore.sql.databaseType "sqlite3") (ne .Values.dataStore.sql.databaseType "gcp_mysql_sa_iam") (not $postgresPasswordless) }}
           {{- if .Values.dataStore.sql.externalSecret.enabled }}
           - name: DBPW
             valueFrom:
@@ -295,7 +336,8 @@ spec:
                 name: {{ $fullname }}-dbpw
                 key: DBPW
           {{- end }}
-          {{- if and .Values.dataStore.sql.readOnly.enabled (ne .Values.dataStore.sql.databaseType "gcp_mysql_sa_iam") }}
+          {{- end }}
+          {{- if and .Values.dataStore.sql.readOnly.enabled (ne .Values.dataStore.sql.databaseType "gcp_mysql_sa_iam") (not $postgresRoPasswordless) }}
           {{- if .Values.dataStore.sql.readOnly.externalSecret.enabled }}
           - name: RODBPW
             valueFrom:
@@ -308,7 +350,6 @@ spec:
               secretKeyRef:
                 name: {{ $fullname }}-dbpw
                 key: RODBPW
-          {{- end }}
           {{- end }}
           {{- end }}
           {{- if ne .Values.keyManager.awsKMS.accessKeyID "" }}
@@ -406,6 +447,14 @@ spec:
             {{- if ne (len .Values.nodeAttestor.tpmDirect.hashes) 0 }}
             - name: tpm-direct-hashes
               mountPath: /tmp-direct-hashes
+            {{- end }}
+            {{- end }}
+            {{- if and .Values.nodeAttestor.x509POP.enabled (eq .Values.nodeAttestor.x509POP.mode "externalPKI") }}
+            {{- with .Values.nodeAttestor.x509POP }}
+            - name: x509pop-ca-bundle
+              mountPath: /run/spire/data/x509pop-ca-bundle.pem
+              subPath: ca-bundle.pem
+              readOnly: true
             {{- end }}
             {{- end }}
             {{- if or .Values.federation.tls.certManager.enabled .Values.federation.tls.externalSecret.enabled }}
@@ -644,6 +693,17 @@ spec:
         - name: tpm-direct-hashes
           configMap:
             name: {{ include "spire-server.fullname" . }}-tpm-direct-hash
+        {{- end }}
+        {{- end }}
+        {{- if and .Values.nodeAttestor.x509POP.enabled (eq .Values.nodeAttestor.x509POP.mode "externalPKI") }}
+        {{- with .Values.nodeAttestor.x509POP }}
+        - name: x509pop-ca-bundle
+          configMap:
+            {{- if .caBundle.bundle }}
+            name: {{ $fullname }}-x509pop-ca
+            {{- else if .caBundle.existingConfigMap }}
+            name: {{ .caBundle.existingConfigMap }}
+            {{- end }}
         {{- end }}
         {{- end }}
         {{- if .Values.federation.tls.certManager.enabled }}

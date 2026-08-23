@@ -1,0 +1,14 @@
+{{- if and .Values.tls.grpc.enabled .Values.tls.grpc.gatewayAPI.enabled -}}
+{{- $fullName := printf "%s-grpc" (include "spire-identity-exchange.fullname" .) -}}
+{{- $routeKind := include "spire-lib.gateway-route-kind" (dict "gatewayAPI" .Values.tls.grpc.gatewayAPI) -}}
+{{- include "spire-lib.gateway-routes" (dict
+      "root" .
+      "gatewayAPI" .Values.tls.grpc.gatewayAPI
+      "name" $fullName
+      "namespace" (include "spire-identity-exchange.namespace" .)
+      "svcName" $fullName
+      "port" .Values.tls.grpc.service.port
+      "labels" (include "spire-identity-exchange.labels" .)
+      "routeKind" $routeKind
+      "backendTLS" (eq $routeKind "HTTPRoute")) }}
+{{- end }}

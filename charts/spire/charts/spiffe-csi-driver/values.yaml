@@ -76,6 +76,12 @@ fullnameOverride: ""
 ## @param csiDriverLabels Labels to apply to the CSIDriver
 csiDriverLabels: {}
 
+## @param csiDriverAnnotations Annotations to apply to the CSIDriver
+csiDriverAnnotations: {}
+
+## @param syncWave The argocd.argoproj.io/sync-wave value applied to the CSIDriver on OpenShift, ensuring the CSI driver reconciles before workloads that depend on its csi-ephemeral-volume-profile label
+syncWave: -1
+
 ## @param initContainers Init Containers to apply to the CSI Driver DaemonSet
 initContainers: []
 

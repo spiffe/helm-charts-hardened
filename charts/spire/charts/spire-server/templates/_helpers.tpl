@@ -186,6 +186,63 @@ Name of the chart-generated Secret holding the inline kubeConfigs entries.
 {{ include "spire-server.fullname" . }}-kubeconfigs
 {{- end }}
 
+{{/*
+Path of the staged jwt-svid exec plugin binary inside the shared plugins volume. Used both as the
+init-container copy target and as the exec kubeconfig command, so the two must stay in sync.
+*/}}
+{{- define "spire-server.jwt-svid-exec-binary-path" -}}
+/plugins/jwt-svid-exec
+{{- end }}
+
+{{- define "spire-server.jwt-svid-exec-kubeconfig" -}}
+{{- $jwtSVIDExec := .jwtSVIDExec -}}
+{{- $root := .root -}}
+{{- $spiffeID := $root.Values.jwtSVIDExecConfig.spiffeID -}}
+{{- if not $spiffeID -}}
+{{- fail "jwtSVIDExecConfig.spiffeID is required when a kubeConfigs entry uses jwtSVIDExec" -}}
+{{- end -}}
+{{- $chartTD := include "spire-lib.trust-domain" $root -}}
+{{- if hasPrefix "/" $spiffeID -}}
+{{- $spiffeID = printf "spiffe://%s%s" $chartTD $spiffeID -}}
+{{- else if hasPrefix "spiffe://" $spiffeID -}}
+{{- $idTD := $spiffeID | trimPrefix "spiffe://" | splitList "/" | first -}}
+{{- if ne $idTD $chartTD -}}
+{{- fail (printf "jwtSVIDExecConfig.spiffeID trust domain %q must match the chart trust domain %q" $idTD $chartTD) -}}
+{{- end -}}
+{{- else -}}
+{{- fail (printf "jwtSVIDExecConfig.spiffeID %q must be a spiffe:// URI or a path starting with \"/\"" $spiffeID) -}}
+{{- end -}}
+apiVersion: v1
+kind: Config
+clusters:
+- name: cluster
+  cluster:
+    server: {{ $jwtSVIDExec.server | quote }}
+    certificate-authority-data: {{ $jwtSVIDExec.certificateAuthorityData | quote }}
+users:
+- name: spiffe
+  user:
+    exec:
+      apiVersion: client.authentication.k8s.io/v1
+      command: {{ include "spire-server.jwt-svid-exec-binary-path" $root }}
+      interactiveMode: Never
+      env:
+      - name: SPIFFE_JWT_SOURCE
+        value: "server-admin-api"
+      - name: SPIRE_SERVER_SOCKET
+        value: "unix:///tmp/spire-server/private/api.sock"
+      - name: SPIFFE_ID
+        value: {{ $spiffeID | quote }}
+      - name: SPIFFE_JWT_AUDIENCE
+        value: {{ $jwtSVIDExec.audience | default "k8s" | quote }}
+contexts:
+- name: cluster
+  context:
+    cluster: cluster
+    user: spiffe
+current-context: cluster
+{{- end }}
+
 {{- define "spire-server.serviceAccountAllowedList" }}
 {{- $releaseNamespace := include "spire-server.agent-namespace" . }}
 {{- if ne (len .Values.nodeAttestor.k8sPSAT.serviceAccountAllowList) 0 }}
@@ -244,14 +301,35 @@ Name of the chart-generated Secret holding the inline kubeConfigs entries.
 {{- end }}
 {{- end }}
 
+{{- define "spire-server.datastore-is-postgres" -}}
+{{- or (eq .Values.dataStore.sql.databaseType "postgres") (eq .Values.dataStore.sql.databaseType "aws_postgres") -}}
+{{- end }}
+
+{{- define "spire-server.datastore-postgres-passwordless" -}}
+{{- $isPostgres := eq (include "spire-server.datastore-is-postgres" .) "true" -}}
+{{- and $isPostgres (eq .Values.dataStore.sql.password "") (not .Values.dataStore.sql.externalSecret.enabled) -}}
+{{- end }}
+
+{{- define "spire-server.datastore-postgres-ro-passwordless" -}}
+{{- $isPostgres := eq (include "spire-server.datastore-is-postgres" .) "true" -}}
+{{- and $isPostgres (eq .Values.dataStore.sql.readOnly.password "") (not .Values.dataStore.sql.readOnly.externalSecret.enabled) -}}
+{{- end }}
+
 {{- define "spire-server.datastore-config" }}
 {{- $config := dict }}
 {{- $pw := "" }}
 {{- $ropw := "" }}
 {{- if eq .Values.dataStore.sql.databaseType "sqlite3" }}
   {{- $_ := set $config "database_type" "sqlite3" }}
+  {{- if .Values.dataStore.sql.inMemory }}
+  {{- /* cache=shared is not optional: without it every pooled connection opens its own
+         empty database, so the server silently loses every write it did not make itself. */}}
+  {{- $query := include "spire-server.config-sqlite-query" (concat (list (dict "mode" "memory") (dict "cache" "shared")) .Values.dataStore.sql.options) }}
+  {{- $_ := set $config "connection_string" (printf "memdb%s" $query) }}
+  {{- else }}
   {{- $query := include "spire-server.config-sqlite-query" .Values.dataStore.sql.options }}
   {{- $_ := set $config "connection_string" (printf "%s%s" .Values.dataStore.sql.file $query) }}
+  {{- end }}
 {{- else if or (eq .Values.dataStore.sql.databaseType "mysql") (eq .Values.dataStore.sql.databaseType "aws_mysql") (eq .Values.dataStore.sql.databaseType "gcp_mysql_sa_iam") }}
   {{- if eq .Values.dataStore.sql.databaseType "mysql" }}
   {{-   $_ := set $config "database_type" "mysql" }}
@@ -285,18 +363,32 @@ Name of the chart-generated Secret holding the inline kubeConfigs entries.
 {{- else if or (eq .Values.dataStore.sql.databaseType "postgres") (eq .Values.dataStore.sql.databaseType "aws_postgres") }}
   {{- if eq .Values.dataStore.sql.databaseType "postgres" }}
   {{-   $_ := set $config "database_type" "postgres" }}
-  {{-   $pw = " password=${DBPW}" }}
-  {{-   $ropw = " password=${RODBPW}" }}
   {{- else }}
   {{-   $_ := set $config "database_type" (list (dict "aws_postgres" (dict "region" .Values.dataStore.sql.region))) }}
   {{- end }}
+  {{- if ne (include "spire-server.datastore-postgres-passwordless" .) "true" }}
+  {{-   $pw = " password=${DBPW}" }}
+  {{- end }}
+  {{- if ne (include "spire-server.datastore-postgres-ro-passwordless" .) "true" }}
+  {{-   $ropw = " password=${RODBPW}" }}
+  {{- end }}
+  {{- $sslPaths := "" }}
+  {{- if ne .Values.dataStore.sql.rootCAPath "" }}
+  {{-   $sslPaths = printf "%s sslrootcert=%s" $sslPaths .Values.dataStore.sql.rootCAPath }}
+  {{- end }}
+  {{- if ne .Values.dataStore.sql.clientCertPath "" }}
+  {{-   $sslPaths = printf "%s sslcert=%s" $sslPaths .Values.dataStore.sql.clientCertPath }}
+  {{- end }}
+  {{- if ne .Values.dataStore.sql.clientKeyPath "" }}
+  {{-   $sslPaths = printf "%s sslkey=%s" $sslPaths .Values.dataStore.sql.clientKeyPath }}
+  {{- end }}
   {{- $port := int .Values.dataStore.sql.port | default 5432 }}
   {{- $options:= include "spire-server.config-postgresql-options" .Values.dataStore.sql.options }}
-  {{- $_ := set $config "connection_string" (printf "dbname=%s user=%s%s host=%s port=%d%s" .Values.dataStore.sql.databaseName .Values.dataStore.sql.username $pw .Values.dataStore.sql.host $port $options) }}
+  {{- $_ := set $config "connection_string" (printf "dbname=%s user=%s%s host=%s port=%d%s%s" .Values.dataStore.sql.databaseName .Values.dataStore.sql.username $pw .Values.dataStore.sql.host $port $options $sslPaths) }}
   {{- if .Values.dataStore.sql.readOnly.enabled }}
   {{-   $roPort := int .Values.dataStore.sql.readOnly.port | default 5432 }}
   {{-   $roOptions:= include "spire-server.config-postgresql-options" .Values.dataStore.sql.readOnly.options }}
-  {{-   $_ := set $config "ro_connection_string" (printf "dbname=%s user=%s%s host=%s port=%d%s" .Values.dataStore.sql.readOnly.databaseName .Values.dataStore.sql.readOnly.username $ropw .Values.dataStore.sql.readOnly.host $roPort $roOptions) }}
+  {{-   $_ := set $config "ro_connection_string" (printf "dbname=%s user=%s%s host=%s port=%d%s%s" .Values.dataStore.sql.readOnly.databaseName .Values.dataStore.sql.readOnly.username $ropw .Values.dataStore.sql.readOnly.host $roPort $roOptions $sslPaths) }}
   {{- end }}
 {{- else }}
   {{- fail "Unsupported database type" }}
@@ -412,12 +504,27 @@ The code below determines what connection type should be used.
 {{-   default .Values.caSubject.commonName $g }}
 {{- end }}
 
+{{- define "spire-server.external-server-subject-kind" -}}
+{{-   $kind := .Values.externalServerSubject.kind | default "User" }}
+{{-   if not (has $kind (list "User" "Group" "ServiceAccount")) }}
+{{-     fail (printf "Unknown externalServerSubject.kind: %s (must be \"User\", \"Group\", or \"ServiceAccount\")" $kind) }}
+{{-   end }}
+{{-   $kind }}
+{{- end }}
+
 {{- define "spire-server.subject" }}
 subjects:
 {{-   if .Values.externalServer }}
+{{-     $kind := include "spire-server.external-server-subject-kind" . }}
+{{-     if eq $kind "ServiceAccount" }}
+- kind: ServiceAccount
+  name: {{ .Values.externalServerSubject.name | quote }}
+  namespace: {{ .Values.externalServerSubject.namespace | default (include "spire-server.namespace" .) | quote }}
+{{-     else }}
 - apiGroup: rbac.authorization.k8s.io
-  kind: User
-  name: spire-root
+  kind: {{ $kind }}
+  name: {{ .Values.externalServerSubject.name | quote }}
+{{-     end }}
 {{-   else }}
 - kind: ServiceAccount
   name: {{ include "spire-server.serviceAccountName" . }}

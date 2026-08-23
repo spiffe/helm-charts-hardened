@@ -1,5 +1,7 @@
 {{- $configSum := (include (print $.Template.BasePath "/configmap.yaml") . | sha256sum) }}
 {{- $trustDomain := include "spire-lib.trust-domain" . }}
+{{- $fileTLS := or .Values.tls.rest.enabled .Values.tls.grpc.enabled }}
+{{- $extraCSIDrivers := include "spire-identity-exchange.extra-csi-drivers" . | fromJson }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -43,38 +45,6 @@ spec:
       securityContext:
         {{- include "spire-identity-exchange.podSecurityContext" . | nindent 8 }}
       initContainers:
-        - name: spire-server-attestor
-          securityContext:
-            {{- include "spire-lib.securitycontext" . | nindent 12 }}
-          resources:
-            {{- toYaml .Values.spireServerAttestorSPIFFEWorkloadAPI.resources | nindent 12 }}
-          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.spireServerAttestorSPIFFEWorkloadAPI.image "global" .Values.global) }}
-          imagePullPolicy: {{ .Values.spireServerAttestorSPIFFEWorkloadAPI.image.pullPolicy }}
-          restartPolicy: Always
-          args:
-            - /trustbundle/socket
-          env:
-            - name: SPIFFE_ENDPOINT_SOCKET
-              value: "unix:///spiffe-workload-api/spire-agent.sock"
-            - name: SPIFFE_TRUST_DOMAIN
-              value: {{ $trustDomain }}
-          readinessProbe:
-            exec:
-              command:
-                - /ko-app/spire-server-attestor-spiffe-workload-api
-                - --healthcheck
-                - /trustbundle/socket
-            initialDelaySeconds: 5
-            periodSeconds: 30
-            timeoutSeconds: 10
-            successThreshold: 1
-            failureThreshold: 3
-          volumeMounts:
-            - name: spiffe-workload-api
-              mountPath: /spiffe-workload-api
-              readOnly: true
-            - name: trustbundle
-              mountPath: /trustbundle
         - name: spire-agent
           securityContext:
             {{- include "spire-lib.securitycontext" . | nindent 12 }}
@@ -109,9 +79,6 @@ spec:
               readOnly: true
             - name: spire-agent-socket
               mountPath: /agent
-            - name: trustbundle
-              mountPath: /trustbundle
-              readOnly: true
             - name: spire-agent-data
               mountPath: /agent-data
       containers:
@@ -124,26 +91,49 @@ spec:
             - -config
             - /etc/spire/identity-exchange/six.conf
             - -expand-env
-          {{- with .Values.extraEnv }}
           env:
+            - name: SPIFFE_TRUST_DOMAIN
+              value: {{ $trustDomain | quote }}
+            - name: K8S_CLUSTER_NAME
+              value: {{ include "spire-lib.cluster-name" . | trim | quote }}
+            - name: SPIFFE_JWT_ISSUER
+              value: {{ include "spire-lib.jwt-issuer" . | trim | quote }}
+          {{- with .Values.extraEnv }}
           {{- . | toYaml | nindent 12 }}
           {{- end }}
           ports:
-          {{- if .Values.rest.enabled }}
-            - containerPort: 8444
+          {{- if .Values.tls.rest.enabled }}
+            - containerPort: {{ .Values.tls.rest.port }}
               name: rest
           {{- end }}
-          {{- if .Values.grpc.enabled }}
-            - containerPort: 8443
+          {{- if .Values.tls.grpc.enabled }}
+            - containerPort: {{ .Values.tls.grpc.port }}
               name: grpc
           {{- end }}
+          {{- if .Values.spiffe.rest.enabled }}
+            - containerPort: {{ .Values.spiffe.rest.port }}
+              name: rest-spiffe
+          {{- end }}
+          {{- if .Values.spiffe.grpc.enabled }}
+            - containerPort: {{ .Values.spiffe.grpc.port }}
+              name: grpc-spiffe
+          {{- end }}
+            - containerPort: {{ .Values.telemetry.prometheus.port }}
+              name: prom
           volumeMounts:
             - name: spiffe-workload-api
               mountPath: {{ include "spire-identity-exchange.workload-api-socket-path" . | dir }}
               readOnly: true
+            {{- range $driver, $volumeName := $extraCSIDrivers }}
+            - name: {{ $volumeName }}
+              mountPath: /spiffe-workload-apis/{{ $driver }}
+              readOnly: true
+            {{- end }}
+            {{- if $fileTLS }}
             - name: certdir
               mountPath: /secret
               readOnly: true
+            {{- end }}
             - name: spire-identity-exchange-config
               mountPath: /etc/spire/identity-exchange/six.conf
               subPath: six.conf
@@ -168,6 +158,13 @@ spec:
           csi:
             driver: "{{ .Values.csiDriverName }}"
             readOnly: true
+        {{- range $driver, $volumeName := $extraCSIDrivers }}
+        - name: {{ $volumeName }}
+          csi:
+            driver: "{{ $driver }}"
+            readOnly: true
+        {{- end }}
+        {{- if $fileTLS }}
         - name: certdir
           {{- if .Values.tls.externalSecret.enabled }}
           secret:
@@ -176,11 +173,10 @@ spec:
           secret:
             secretName: {{ include "spire-identity-exchange.fullname" . }}-cert
           {{- end }}
+        {{- end }}
         - name: spire-agent-socket
           emptyDir: {}
         - name: spire-agent-data
-          emptyDir: {}
-        - name: trustbundle
           emptyDir: {}
         - name: spire-identity-exchange-config
           configMap:
