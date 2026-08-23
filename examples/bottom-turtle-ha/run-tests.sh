@@ -74,15 +74,10 @@ teardown() {
   sudo systemctl status spire-server@other || true
   kubectl describe job federation-test || true
   kubectl logs job/federation-test || true
-  for JOB in image-push image-pull image-push-denied; do
-    dump_job "${JOB}"
-  done
-  dump_zot
   sudo systemctl status spire-ha-agent@main || true
   sudo systemctl status spiffe-socat-unix@k8s-kubelet-2 || true
   sudo systemctl status spiffe-socat-unix@k8s-kubelet-3 || true
   sudo systemctl status spiffe-socat-unix@k8s-kubelet-4 || true
-  dump_kubelet_all
   sudo spire-server entry show -instance a || true
   sudo spire-server entry show -instance b || true
   sudo systemctl status spire-controller-manager@a || true
@@ -116,6 +111,13 @@ teardown() {
   if [[ "$1" -ne 0 ]]; then
     get_namespace_details spire-server spire-system
     kubectl describe pod -n spire-system
+    # Only on failure: these are verbose, and the kubelet journal in particular is what
+    # tells you why an image pull came back anonymous rather than using the plugin.
+    for JOB in image-push image-pull image-push-denied; do
+      dump_job "${JOB}"
+    done
+    dump_zot
+    dump_kubelet_all
   fi
 
   if [ "${CLEANUP}" -eq 1 ]; then
@@ -233,37 +235,6 @@ dump_kubelet() {
   docker exec -i "${node}" journalctl -u kubelet --no-pager 2>&1 \
     | grep -E 'zot\.production\.other' -A3 | tail -60 || true
   echo "===== END kubelet ${node} ====="
-  set -x
-}
-
-# Run the credential provider by hand with the same arguments, environment and request
-# shape kubelet uses. An image pull that comes back anonymous tells us nothing about why;
-# this prints the plugin's own stdout and stderr.
-probe_credential_provider() {
-  local node="$1"
-  local token args env_kv
-  set +x
-  echo "===== BEGIN credential-provider probe ${node} ====="
-  # The pull job's service account is created with the job, which has not been applied
-  # yet; create it up front so the probe can mint the same token kubelet would.
-  kubectl create serviceaccount zot-pull --dry-run=client -o yaml | kubectl apply -f - >/dev/null 2>&1 || true
-  # kubelet looks credentials up by the tagless repository and passes that same string
-  # to the plugin, so send the repo rather than a tagged reference.
-  # Same audience the kubelet config requests via tokenAttributes.
-  if ! token="$(kubectl create token zot-pull --audience=spire-identity-exchange 2>&1)"; then
-    echo "could not mint a service account token: ${token}"
-    echo "===== END credential-provider probe ${node} ====="
-    set -x
-    return 0
-  fi
-  args="$(yq e '.providers[0].args | join(" ")' "${SCRIPTPATH}/../../.github/kind/conf/credential-provider-config.yaml")"
-  env_kv="$(yq e '.providers[0].env[] | .name + "=" + .value' "${SCRIPTPATH}/../../.github/kind/conf/credential-provider-config.yaml" | tr '\n' ' ')"
-  # Word splitting on args and env_kv is intended here.
-  # shellcheck disable=SC2086
-  docker exec -i "${node}" env ${env_kv} /credential-plugins/k8s-image-cred-spire-identity-exchange ${args} <<EOF 2>&1 || true
-{"apiVersion":"credentialprovider.kubelet.k8s.io/v1","kind":"CredentialProviderRequest","image":"zot.production.other/test/busybox","serviceAccountToken":"${token}"}
-EOF
-  echo "===== END credential-provider probe ${node} ====="
   set -x
 }
 
@@ -677,14 +648,6 @@ apply_registry_job() {
 # Push with the writer identity.
 apply_registry_job "${SCRIPTPATH}/image-push-job.yaml"
 wait_for_job image-push
-
-# Pull it back. Nothing in the job fetches a credential; kubelet runs the plugin, which is
-# the whole point of the test. Show what kubelet was actually configured with first: an
-# anonymous pull looks identical whether the plugin is absent or merely failing.
-dump_kubelet_all
-for NODE in $(kubectl get nodes -o name 2>/dev/null | cut -d/ -f2 | grep -v control-plane); do
-  probe_credential_provider "${NODE}"
-done
 
 # Pull it back. Nothing in the job fetches a credential; kubelet runs the plugin, which is
 # the whole point of the test.
