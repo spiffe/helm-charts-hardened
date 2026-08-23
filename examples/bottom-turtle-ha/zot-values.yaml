@@ -11,6 +11,13 @@
 
 # The SVID is delivered through the shared ha-agent CSI driver, so zot keeps a valid
 # certificate no matter which side issued it.
+# The chart's appVersion is v2.1.18, which predates project-zot/zot#4171. That PR adds the
+# /zot/auth/token endpoint, which is what lets a client present an OIDC token as the password
+# in basic auth. Without it zot only accepts "Authorization: Bearer <jwt>" presented directly,
+# so both crane and the kubelet credential provider are rejected with a 401.
+image:
+  tag: v2.1.20
+
 initContainers:
   - name: spiffe-helper-init
     image: ghcr.io/spiffe/spiffe-helper:0.11.0

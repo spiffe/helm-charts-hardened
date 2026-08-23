@@ -77,8 +77,7 @@ teardown() {
   for JOB in image-push image-pull image-push-denied; do
     dump_job "${JOB}"
   done
-  kubectl get pods -n zot -o wide || true
-  kubectl logs -n zot -l app.kubernetes.io/name=zot --all-containers --tail=100 || true
+  dump_zot
   sudo systemctl status spire-ha-agent@main || true
   sudo systemctl status spiffe-socat-unix@k8s-kubelet-2 || true
   sudo systemctl status spiffe-socat-unix@k8s-kubelet-3 || true
@@ -185,6 +184,18 @@ dump_job() {
   # the interesting output is rarely the last one.
   kubectl logs "job/${job}" --all-containers --prefix 2>&1 || true
   echo "===== END ${job} ====="
+  set -x
+}
+
+# Same treatment as dump_job. zot logs at debug, and its rejection reason for a bearer
+# token only appears there, so take the whole log rather than a tail.
+dump_zot() {
+  set +x
+  echo "===== BEGIN zot ====="
+  kubectl get pods -n zot -o wide 2>&1 || true
+  kubectl describe pod -n zot -l app.kubernetes.io/name=zot 2>&1 || true
+  kubectl logs -n zot -l app.kubernetes.io/name=zot --all-containers --prefix 2>&1 || true
+  echo "===== END zot ====="
   set -x
 }
 
