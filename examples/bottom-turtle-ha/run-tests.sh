@@ -82,9 +82,7 @@ teardown() {
   sudo systemctl status spiffe-socat-unix@k8s-kubelet-2 || true
   sudo systemctl status spiffe-socat-unix@k8s-kubelet-3 || true
   sudo systemctl status spiffe-socat-unix@k8s-kubelet-4 || true
-  for NODE in $(kubectl get nodes -o name 2>/dev/null | cut -d/ -f2); do
-    docker exec -i "${NODE}" journalctl -u kubelet --no-pager 2>/dev/null | grep -i 'credential provider' || true
-  done
+  dump_kubelet_all
   sudo spire-server entry show -instance a || true
   sudo spire-server entry show -instance b || true
   sudo systemctl status spire-controller-manager@a || true
@@ -197,6 +195,28 @@ dump_zot() {
   kubectl logs -n zot -l app.kubernetes.io/name=zot --all-containers --prefix 2>&1 || true
   echo "===== END zot ====="
   set -x
+}
+
+# Whether kubelet was configured with the image credential provider at all, and whether it
+# ran it. The kubeadm patch landing is the whole question when a pull comes back anonymous.
+dump_kubelet() {
+  local node="$1"
+  set +x
+  echo "===== BEGIN kubelet ${node} ====="
+  docker exec -i "${node}" cat /var/lib/kubelet/kubeadm-flags.env 2>&1 || true
+  docker exec -i "${node}" ps ax 2>&1 | grep '[k]ubelet' || true
+  docker exec -i "${node}" ls -l /credential-plugins /etc/kubernetes/credential-provider-config.yaml 2>&1 || true
+  # Wider than "credential provider": kubelet's error paths often omit that exact phrase.
+  docker exec -i "${node}" journalctl -u kubelet --no-pager 2>&1 \
+    | grep -iE 'credential|imagepull|zot\.production\.other' | tail -50 || true
+  echo "===== END kubelet ${node} ====="
+  set -x
+}
+
+dump_kubelet_all() {
+  for NODE in $(kubectl get nodes -o name 2>/dev/null | cut -d/ -f2); do
+    dump_kubelet "${NODE}"
+  done
 }
 
 # kubectl wait --for=condition=complete blocks the full timeout when a job has already
@@ -595,6 +615,11 @@ apply_registry_job() {
 # Push with the writer identity.
 apply_registry_job "${SCRIPTPATH}/image-push-job.yaml"
 wait_for_job image-push
+
+# Pull it back. Nothing in the job fetches a credential; kubelet runs the plugin, which is
+# the whole point of the test. Show what kubelet was actually configured with first: an
+# anonymous pull looks identical whether the plugin is absent or merely failing.
+dump_kubelet_all
 
 # Pull it back. Nothing in the job fetches a credential; kubelet runs the plugin, which is
 # the whole point of the test.

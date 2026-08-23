@@ -49,6 +49,9 @@ nodes:
           kubeletExtraArgs:
             image-credential-provider-config: /etc/kubernetes/credential-provider-config.yaml
             image-credential-provider-bin-dir: /credential-plugins
+            # Debugging aid: kubelet only logs the plugin invocation at v=4. Drop once the
+            # image pull leg is green.
+            v: "4"
     # v1beta4 needs append operations. Merge patches are applied as RFC 7386, which
     # replaces a list wholesale, and that would discard the node-ip, provider-id and
     # node-labels entries kind puts in kubeletExtraArgs.
@@ -67,6 +70,11 @@ nodes:
             value:
               name: image-credential-provider-bin-dir
               value: /credential-plugins
+          - op: add
+            path: /nodeRegistration/kubeletExtraArgs/-
+            value:
+              name: v
+              value: "4"
   - role: worker
     extraMounts:
       - hostPath: /var/run/spiffe/socat/unix/k8s-spire-server-a/public
@@ -94,6 +102,9 @@ nodes:
           kubeletExtraArgs:
             image-credential-provider-config: /etc/kubernetes/credential-provider-config.yaml
             image-credential-provider-bin-dir: /credential-plugins
+            # Debugging aid: kubelet only logs the plugin invocation at v=4. Drop once the
+            # image pull leg is green.
+            v: "4"
     # v1beta4 needs append operations. Merge patches are applied as RFC 7386, which
     # replaces a list wholesale, and that would discard the node-ip, provider-id and
     # node-labels entries kind puts in kubeletExtraArgs.
@@ -112,6 +123,11 @@ nodes:
             value:
               name: image-credential-provider-bin-dir
               value: /credential-plugins
+          - op: add
+            path: /nodeRegistration/kubeletExtraArgs/-
+            value:
+              name: v
+              value: "4"
   - role: worker
     extraMounts:
       - hostPath: /var/run/spiffe/socat/unix/k8s-spire-server-a/public
@@ -139,6 +155,9 @@ nodes:
           kubeletExtraArgs:
             image-credential-provider-config: /etc/kubernetes/credential-provider-config.yaml
             image-credential-provider-bin-dir: /credential-plugins
+            # Debugging aid: kubelet only logs the plugin invocation at v=4. Drop once the
+            # image pull leg is green.
+            v: "4"
     # v1beta4 needs append operations. Merge patches are applied as RFC 7386, which
     # replaces a list wholesale, and that would discard the node-ip, provider-id and
     # node-labels entries kind puts in kubeletExtraArgs.
@@ -157,3 +176,8 @@ nodes:
             value:
               name: image-credential-provider-bin-dir
               value: /credential-plugins
+          - op: add
+            path: /nodeRegistration/kubeletExtraArgs/-
+            value:
+              name: v
+              value: "4"
