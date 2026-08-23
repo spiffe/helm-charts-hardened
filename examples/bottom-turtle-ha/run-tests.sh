@@ -206,10 +206,40 @@ dump_kubelet() {
   docker exec -i "${node}" cat /var/lib/kubelet/kubeadm-flags.env 2>&1 || true
   docker exec -i "${node}" ps ax 2>&1 | grep '[k]ubelet' || true
   docker exec -i "${node}" ls -l /credential-plugins /etc/kubernetes/credential-provider-config.yaml 2>&1 || true
-  # Wider than "credential provider": kubelet's error paths often omit that exact phrase.
+  # Only the registry we care about. A broad credential grep is pure noise at v=4, which
+  # logs a provider line for every image pull on the node.
   docker exec -i "${node}" journalctl -u kubelet --no-pager 2>&1 \
-    | grep -iE 'credential|imagepull|zot\.production\.other' | tail -50 || true
+    | grep -E 'zot\.production\.other' -A3 | tail -60 || true
   echo "===== END kubelet ${node} ====="
+  set -x
+}
+
+# Run the credential provider by hand with the same arguments, environment and request
+# shape kubelet uses. An image pull that comes back anonymous tells us nothing about why;
+# this prints the plugin's own stdout and stderr.
+probe_credential_provider() {
+  local node="$1"
+  local token args env_kv
+  set +x
+  echo "===== BEGIN credential-provider probe ${node} ====="
+  # The pull job's service account is created with the job, which has not been applied
+  # yet; create it up front so the probe can mint the same token kubelet would.
+  kubectl create serviceaccount zot-pull --dry-run=client -o yaml | kubectl apply -f - >/dev/null 2>&1 || true
+  # Same audience the kubelet config requests via tokenAttributes.
+  if ! token="$(kubectl create token zot-pull --audience=spire-identity-exchange 2>&1)"; then
+    echo "could not mint a service account token: ${token}"
+    echo "===== END credential-provider probe ${node} ====="
+    set -x
+    return 0
+  fi
+  args="$(yq e '.providers[0].args | join(" ")' "${SCRIPTPATH}/../../.github/kind/conf/credential-provider-config.yaml")"
+  env_kv="$(yq e '.providers[0].env[] | .name + "=" + .value' "${SCRIPTPATH}/../../.github/kind/conf/credential-provider-config.yaml" | tr '\n' ' ')"
+  # Word splitting on args and env_kv is intended here.
+  # shellcheck disable=SC2086
+  docker exec -i "${node}" env ${env_kv} /credential-plugins/k8s-image-cred-spire-identity-exchange ${args} <<EOF 2>&1 || true
+{"apiVersion":"credentialprovider.kubelet.k8s.io/v1","kind":"CredentialProviderRequest","image":"zot.production.other/test/busybox:latest","serviceAccountToken":"${token}"}
+EOF
+  echo "===== END credential-provider probe ${node} ====="
   set -x
 }
 
@@ -620,6 +650,9 @@ wait_for_job image-push
 # the whole point of the test. Show what kubelet was actually configured with first: an
 # anonymous pull looks identical whether the plugin is absent or merely failing.
 dump_kubelet_all
+for NODE in $(kubectl get nodes -o name 2>/dev/null | cut -d/ -f2 | grep -v control-plane); do
+  probe_credential_provider "${NODE}"
+done
 
 # Pull it back. Nothing in the job fetches a credential; kubelet runs the plugin, which is
 # the whole point of the test.
