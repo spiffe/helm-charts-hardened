@@ -45,6 +45,19 @@ internal-spire-server-bottom-turtle-ha-a: &server
             - k8s_psat:service_account_name:zot-pull
             - spiffe:source_path:/kubelet
             - spire_identity_exchange:stack:name:image_pull
+
+        # The negative control job runs as zot-pull but presents its own pod SVID rather
+        # than the node's, so it matches none of the above. Give it the same read only
+        # identity: the point of that test is that zot refuses the write, not that the
+        # exchange refuses to mint.
+        image-pull-from-pod:
+          parentID: spiffe://production.other/spire-identity-exchange
+          spiffeID: spiffe://production.other/image-pull
+          selectors:
+            - k8s_psat:namespace:default
+            - k8s_psat:service_account_name:zot-pull
+            - spiffe:source_path:/ns/default/sa/zot-pull
+            - spire_identity_exchange:stack:name:image_pull
   spireIdentityExchange:
     enabled: true
 
@@ -78,6 +91,7 @@ spire-identity-exchange-bottom-turtle-ha-a: &six
           pathPatterns:
             - "^/kubelet$"
             - "^/ns/default/sa/zot-push$"
+            - "^/ns/default/sa/zot-pull$"
 
 #Set the same settings on the B side
 spire-identity-exchange-bottom-turtle-ha-b: *six

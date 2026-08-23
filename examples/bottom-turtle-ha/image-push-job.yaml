@@ -42,11 +42,25 @@ spec:
         - -xec
         - |
           SOCK=/spire-agent/spire-agent.sock
-          # The bundle doubles as the trust root for both the exchange and zot.
-          /opt/spire/bin/spire-agent api fetch x509 -socketPath "$SOCK" -write /data -timeout 30s
-          /opt/spire/bin/spire-agent api fetch jwt -audience spire-identity-exchange \
-            -socketPath "$SOCK" -timeout 30s \
-            | /data/busybox grep -A1 'token(' | /data/busybox tail -1 | /data/busybox tr -d '[:space:]' > /data/svid.jwt
+          # The controller manager creates this pod's entry only once the pod exists, and
+          # until that propagates the Workload API answers immediately with an empty set
+          # rather than blocking. Poll instead of taking the first answer, the same way
+          # federation-test-job.yaml does.
+          i=0
+          while [ "$i" -lt 60 ]; do
+            if /opt/spire/bin/spire-agent api fetch x509 -socketPath "$SOCK" -write /data -timeout 5s &&
+               /opt/spire/bin/spire-agent api fetch jwt -audience spire-identity-exchange -socketPath "$SOCK" -timeout 5s > /data/jwt.txt; then
+              break
+            fi
+            i=$((i+1))
+            /data/busybox sleep 2
+          done
+          if [ ! -s /data/jwt.txt ]; then
+            echo "no SVID for this pod after ${i} attempts"
+            exit 1
+          fi
+          # The bundle written above doubles as the trust root for both the exchange and zot.
+          /data/busybox grep -A1 'token(' /data/jwt.txt | /data/busybox tail -1 | /data/busybox tr -d '[:space:]' > /data/svid.jwt
           test -s /data/svid.jwt
         volumeMounts:
         - name: data-volume
