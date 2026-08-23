@@ -38,16 +38,35 @@ nodes:
         containerPath: /credential-plugins
       - hostPath: ./.github/kind/conf/credential-provider-config.yaml
         containerPath: /etc/kubernetes/credential-provider-config.yaml
+    # kind emits kubeadm v1beta3 below k8s 1.36 and v1beta4 from 1.36 on, and
+    # kubeletExtraArgs changed shape between them. Each patch is pinned to its own
+    # apiVersion; the one that does not match the generated config is skipped.
     kubeadmConfigPatches:
-      # No apiVersion, so this matches whichever kubeadm version kind generates.
-      # NOTE: kubeletExtraArgs is a map in v1beta3 (k8s < 1.36) and a list of
-      # {name, value} in v1beta4. Convert this when the matrix reaches 1.36.
       - |
+        apiVersion: kubeadm.k8s.io/v1beta3
         kind: JoinConfiguration
         nodeRegistration:
           kubeletExtraArgs:
             image-credential-provider-config: /etc/kubernetes/credential-provider-config.yaml
             image-credential-provider-bin-dir: /credential-plugins
+    # v1beta4 needs append operations. Merge patches are applied as RFC 7386, which
+    # replaces a list wholesale, and that would discard the node-ip, provider-id and
+    # node-labels entries kind puts in kubeletExtraArgs.
+    kubeadmConfigPatchesJSON6902:
+      - group: kubeadm.k8s.io
+        version: v1beta4
+        kind: JoinConfiguration
+        patch: |
+          - op: add
+            path: /nodeRegistration/kubeletExtraArgs/-
+            value:
+              name: image-credential-provider-config
+              value: /etc/kubernetes/credential-provider-config.yaml
+          - op: add
+            path: /nodeRegistration/kubeletExtraArgs/-
+            value:
+              name: image-credential-provider-bin-dir
+              value: /credential-plugins
   - role: worker
     extraMounts:
       - hostPath: /var/run/spiffe/socat/unix/k8s-spire-server-a/public
@@ -64,16 +83,35 @@ nodes:
         containerPath: /credential-plugins
       - hostPath: ./.github/kind/conf/credential-provider-config.yaml
         containerPath: /etc/kubernetes/credential-provider-config.yaml
+    # kind emits kubeadm v1beta3 below k8s 1.36 and v1beta4 from 1.36 on, and
+    # kubeletExtraArgs changed shape between them. Each patch is pinned to its own
+    # apiVersion; the one that does not match the generated config is skipped.
     kubeadmConfigPatches:
-      # No apiVersion, so this matches whichever kubeadm version kind generates.
-      # NOTE: kubeletExtraArgs is a map in v1beta3 (k8s < 1.36) and a list of
-      # {name, value} in v1beta4. Convert this when the matrix reaches 1.36.
       - |
+        apiVersion: kubeadm.k8s.io/v1beta3
         kind: JoinConfiguration
         nodeRegistration:
           kubeletExtraArgs:
             image-credential-provider-config: /etc/kubernetes/credential-provider-config.yaml
             image-credential-provider-bin-dir: /credential-plugins
+    # v1beta4 needs append operations. Merge patches are applied as RFC 7386, which
+    # replaces a list wholesale, and that would discard the node-ip, provider-id and
+    # node-labels entries kind puts in kubeletExtraArgs.
+    kubeadmConfigPatchesJSON6902:
+      - group: kubeadm.k8s.io
+        version: v1beta4
+        kind: JoinConfiguration
+        patch: |
+          - op: add
+            path: /nodeRegistration/kubeletExtraArgs/-
+            value:
+              name: image-credential-provider-config
+              value: /etc/kubernetes/credential-provider-config.yaml
+          - op: add
+            path: /nodeRegistration/kubeletExtraArgs/-
+            value:
+              name: image-credential-provider-bin-dir
+              value: /credential-plugins
   - role: worker
     extraMounts:
       - hostPath: /var/run/spiffe/socat/unix/k8s-spire-server-a/public
@@ -90,13 +128,32 @@ nodes:
         containerPath: /credential-plugins
       - hostPath: ./.github/kind/conf/credential-provider-config.yaml
         containerPath: /etc/kubernetes/credential-provider-config.yaml
+    # kind emits kubeadm v1beta3 below k8s 1.36 and v1beta4 from 1.36 on, and
+    # kubeletExtraArgs changed shape between them. Each patch is pinned to its own
+    # apiVersion; the one that does not match the generated config is skipped.
     kubeadmConfigPatches:
-      # No apiVersion, so this matches whichever kubeadm version kind generates.
-      # NOTE: kubeletExtraArgs is a map in v1beta3 (k8s < 1.36) and a list of
-      # {name, value} in v1beta4. Convert this when the matrix reaches 1.36.
       - |
+        apiVersion: kubeadm.k8s.io/v1beta3
         kind: JoinConfiguration
         nodeRegistration:
           kubeletExtraArgs:
             image-credential-provider-config: /etc/kubernetes/credential-provider-config.yaml
             image-credential-provider-bin-dir: /credential-plugins
+    # v1beta4 needs append operations. Merge patches are applied as RFC 7386, which
+    # replaces a list wholesale, and that would discard the node-ip, provider-id and
+    # node-labels entries kind puts in kubeletExtraArgs.
+    kubeadmConfigPatchesJSON6902:
+      - group: kubeadm.k8s.io
+        version: v1beta4
+        kind: JoinConfiguration
+        patch: |
+          - op: add
+            path: /nodeRegistration/kubeletExtraArgs/-
+            value:
+              name: image-credential-provider-config
+              value: /etc/kubernetes/credential-provider-config.yaml
+          - op: add
+            path: /nodeRegistration/kubeletExtraArgs/-
+            value:
+              name: image-credential-provider-bin-dir
+              value: /credential-plugins
