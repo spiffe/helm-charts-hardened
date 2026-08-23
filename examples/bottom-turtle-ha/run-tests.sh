@@ -193,6 +193,12 @@ dump_job() {
     # window fills long before the pull happens.
     docker exec -i "${node}" journalctl -u kubelet --no-pager 2>&1 \
       | grep -F "${pod}" | head -60 || true
+    # The plugin exec is logged against the image and plugin name, not the pod, so a pod
+    # filter hides exactly the line that says whether it ran and what it returned.
+    echo "----- kubelet ${node} credential provider decisions -----"
+    docker exec -i "${node}" journalctl -u kubelet --no-pager 2>&1 \
+      | grep -E 'exec plugin|image credentials|k8s-image-cred|without credentials|zot\.production\.other' \
+      | tail -40 || true
   done
   echo "===== END ${job} ====="
   set -x
