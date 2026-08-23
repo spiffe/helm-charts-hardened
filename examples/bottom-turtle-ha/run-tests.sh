@@ -189,9 +189,10 @@ dump_job() {
     node="$(kubectl get pod "${pod}" -o jsonpath='{.spec.nodeName}' 2>/dev/null)"
     [ -n "${node}" ] || continue
     echo "----- kubelet ${node} for pod ${pod} -----"
+    # Only this pod. A broader filter matches every provider line since boot and the
+    # window fills long before the pull happens.
     docker exec -i "${node}" journalctl -u kubelet --no-pager 2>&1 \
-      | grep -E "${pod}|credential|CredentialProvider|serviceaccount|ServiceAccount" \
-      | head -80 || true
+      | grep -F "${pod}" | head -60 || true
   done
   echo "===== END ${job} ====="
   set -x
