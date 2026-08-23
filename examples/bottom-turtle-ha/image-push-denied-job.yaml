@@ -20,14 +20,14 @@ spec:
       initContainers:
       - name: static-busybox
         # Replaced by run-tests.sh with the image from the spiffe-oidc-discovery-provider chart
-        image: replaced-by-run-tests.sh
+        image: IMAGE_BUSYBOX
         command: ["sh", "-c", "cp /bin/busybox /data/busybox && chmod +x /data/busybox"]
         volumeMounts:
         - name: data-volume
           mountPath: /data
       - name: fetch-svid
         # Replaced by run-tests.sh with the image from the spire-agent chart
-        image: replaced-by-run-tests.sh
+        image: IMAGE_SPIRE_AGENT
         command:
         - /data/busybox
         - sh
@@ -47,7 +47,7 @@ spec:
           readOnly: true
       - name: exchange
         # Replaced by run-tests.sh with the toolkit image from the spiffe-oidc-discovery-provider chart
-        image: replaced-by-run-tests.sh
+        image: IMAGE_TOOLKIT
         command:
         - sh
         - -xec
@@ -58,7 +58,7 @@ spec:
           SVID="$(cat /data/svid.jwt)"
           # This must still succeed. The exchange is willing to mint for this pod, it
           # just mints the read only identity.
-          TOKEN="$(curl -k -sS --fail-with-body -X POST \
+          TOKEN="$(curl -k -sS --fail-with-body --max-time 60 --connect-timeout 10 -X POST \
             -H "Authorization: Bearer k8s_psat=${PSAT}:spiffe=${SVID}" \
             -H "Content-Type: application/json" \
             -d '{"audiences": ["zot"]}' \

@@ -75,8 +75,7 @@ teardown() {
   kubectl describe job federation-test || true
   kubectl logs job/federation-test || true
   for JOB in image-push image-pull image-push-denied; do
-    kubectl describe job "${JOB}" 2>/dev/null || true
-    kubectl logs "job/${JOB}" --all-containers 2>/dev/null || true
+    dump_job "${JOB}"
   done
   kubectl get pods -n zot -o wide || true
   kubectl logs -n zot -l app.kubernetes.io/name=zot --all-containers --tail=100 || true
@@ -167,6 +166,49 @@ wait_for_trust_sync() {
     sleep 1
     ((count++)) || true
   done
+  return 1
+}
+
+# Dump everything useful about a job in one block. The trace goes to stderr while command
+# output goes to stdout, and the two are separate streams in the CI log, so anything printed
+# here can interleave or drop. Suspend the trace, merge each command's streams, and bracket
+# the whole thing so it stays readable.
+dump_job() {
+  local job="$1"
+  set +x
+  echo "===== BEGIN ${job} ====="
+  kubectl get pods -l "job-name=${job}" -o wide 2>&1 || true
+  kubectl describe job "${job}" 2>&1 || true
+  # Pod events are where image pull and volume failures show up; the job has none of this.
+  kubectl describe pod -l "job-name=${job}" 2>&1 || true
+  # --prefix labels each line with its container. These jobs have three init containers and
+  # the interesting output is rarely the last one.
+  kubectl logs "job/${job}" --all-containers --prefix 2>&1 || true
+  echo "===== END ${job} ====="
+  set -x
+}
+
+# kubectl wait --for=condition=complete blocks the full timeout when a job has already
+# failed, which makes every failure look like a hang and delays the dump by minutes. Poll
+# both terminal conditions instead.
+wait_for_job() {
+  local job="$1"
+  local timeout="${2:-300}"
+  local count=0
+  while [ "$count" -lt "$timeout" ]; do
+    if kubectl get job "$job" -o jsonpath='{.status.conditions[?(@.type=="Complete")].status}' 2>/dev/null | grep -q True; then
+      return 0
+    fi
+    if kubectl get job "$job" -o jsonpath='{.status.conditions[?(@.type=="Failed")].status}' 2>/dev/null | grep -q True; then
+      echo "job/$job failed"
+      dump_job "$job"
+      return 1
+    fi
+    sleep 1
+    ((count++)) || true
+  done
+  echo "job/$job did not finish within ${timeout}s"
+  dump_job "$job"
   return 1
 }
 
@@ -520,19 +562,33 @@ AGENT_IMAGE=$(helm template t charts/spire -s charts/spire-agent/templates/daemo
 TOOLKIT_IMAGE=$(helm template t charts/spire -s charts/spiffe-oidc-discovery-provider/templates/tests/test-keys.yaml --values "${COMMON_TEST_YOUR_VALUES}" --set spiffe-oidc-discovery-provider.enabled=true | yq e 'select(.kind=="Pod") | .spec.containers[] | select(.name=="verify-keys") | .image' -)
 echo "image pull job images: ${BUSYBOX_IMAGE} ${AGENT_IMAGE} ${TOOLKIT_IMAGE}"
 
+# Substitute rather than rewrite. yq edits the document structure, which is version
+# dependent and on a multi document file can graft fields onto the wrong document; sed
+# cannot restructure anything. Writing to a file first also keeps the applied manifest
+# inspectable and avoids the pipeline trap, since this script sets -e but not -o pipefail.
 apply_registry_job() {
-  yq e "(.. | select(has(\"name\")) | select(.name == \"static-busybox\") | .image) = \"${BUSYBOX_IMAGE}\" | (.. | select(has(\"name\")) | select(.name == \"fetch-svid\") | .image) = \"${AGENT_IMAGE}\" | (.. | select(has(\"name\")) | select(.name == \"exchange\") | .image) = \"${TOOLKIT_IMAGE}\"" \
-    "$1" | kubectl apply -f -
+  local rendered
+  rendered="/tmp/$(basename "$1")"
+  sed -e "s|IMAGE_BUSYBOX|${BUSYBOX_IMAGE}|g" \
+      -e "s|IMAGE_SPIRE_AGENT|${AGENT_IMAGE}|g" \
+      -e "s|IMAGE_TOOLKIT|${TOOLKIT_IMAGE}|g" \
+      "$1" > "${rendered}"
+  # Fail loudly rather than applying a half substituted manifest.
+  if grep -q 'IMAGE_BUSYBOX\|IMAGE_SPIRE_AGENT\|IMAGE_TOOLKIT' "${rendered}"; then
+    echo "unsubstituted image placeholder left in ${rendered}"
+    exit 1
+  fi
+  kubectl apply -f "${rendered}"
 }
 
 # Push with the writer identity.
 apply_registry_job "${SCRIPTPATH}/image-push-job.yaml"
-kubectl wait --for=condition=complete --timeout=300s job/image-push
+wait_for_job image-push
 
 # Pull it back. Nothing in the job fetches a credential; kubelet runs the plugin, which is
 # the whole point of the test.
 kubectl apply -f "${SCRIPTPATH}/image-pull-job.yaml"
-kubectl wait --for=condition=complete --timeout=300s job/image-pull
+wait_for_job image-pull
 # Completing at all is the assertion: zot grants no anonymous access, so the image only
 # comes down if kubelet ran the plugin and the exchange minted a token zot accepted. The
 # kubelet log line naming the plugin needs -v=4, which is not worth turning on for every
@@ -541,7 +597,7 @@ kubectl logs job/image-pull | grep IMAGE-PULL-OK
 
 # The pull identity is read only. This job completes only when zot refuses the write.
 apply_registry_job "${SCRIPTPATH}/image-push-denied-job.yaml"
-kubectl wait --for=condition=complete --timeout=300s job/image-push-denied
+wait_for_job image-push-denied
 kubectl logs job/image-push-denied | grep PUSH-DENIED-OK
 
 if [ "${BROKER}" -eq 1 ]; then
@@ -569,6 +625,6 @@ fi
 # job first so this is a genuine second pull rather than a cached result.
 kubectl delete job image-pull
 kubectl apply -f "${SCRIPTPATH}/image-pull-job.yaml"
-kubectl wait --for=condition=complete --timeout=300s job/image-pull
+wait_for_job image-pull
 kubectl logs job/image-pull | grep IMAGE-PULL-OK
 
