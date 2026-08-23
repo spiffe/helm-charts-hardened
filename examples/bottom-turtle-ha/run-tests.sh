@@ -241,6 +241,8 @@ probe_credential_provider() {
   # The pull job's service account is created with the job, which has not been applied
   # yet; create it up front so the probe can mint the same token kubelet would.
   kubectl create serviceaccount zot-pull --dry-run=client -o yaml | kubectl apply -f - >/dev/null 2>&1 || true
+  # kubelet looks credentials up by the tagless repository and passes that same string
+  # to the plugin, so send the repo rather than a tagged reference.
   # Same audience the kubelet config requests via tokenAttributes.
   if ! token="$(kubectl create token zot-pull --audience=spire-identity-exchange 2>&1)"; then
     echo "could not mint a service account token: ${token}"
@@ -253,7 +255,7 @@ probe_credential_provider() {
   # Word splitting on args and env_kv is intended here.
   # shellcheck disable=SC2086
   docker exec -i "${node}" env ${env_kv} /credential-plugins/k8s-image-cred-spire-identity-exchange ${args} <<EOF 2>&1 || true
-{"apiVersion":"credentialprovider.kubelet.k8s.io/v1","kind":"CredentialProviderRequest","image":"zot.production.other/test/busybox:latest","serviceAccountToken":"${token}"}
+{"apiVersion":"credentialprovider.kubelet.k8s.io/v1","kind":"CredentialProviderRequest","image":"zot.production.other/test/busybox","serviceAccountToken":"${token}"}
 EOF
   echo "===== END credential-provider probe ${node} ====="
   set -x
