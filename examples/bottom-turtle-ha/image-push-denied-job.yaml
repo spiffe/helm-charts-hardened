@@ -1,9 +1,4 @@
-# Negative control: the pull identity must not be able to write.
-#
-# Identical to image-push-job.yaml except the service account, which makes the exchange
-# mint spiffe://<td>/image-pull instead of /image-push. zot grants that identity read
-# only, so the push must fail. The job inverts the exit code, so it completes only when
-# crane is refused.
+# Negative control: the pull identity must not be able to write. Identical to image-push-job.yaml except the service account
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -34,10 +29,6 @@ spec:
         - -xec
         - |
           SOCK=/spire-agent/spire-agent.sock
-          # The controller manager creates this pod's entry only once the pod exists, and
-          # until that propagates the Workload API answers immediately with an empty set
-          # rather than blocking. Poll instead of taking the first answer, the same way
-          # federation-test-job.yaml does.
           i=0
           while [ "$i" -lt 30 ]; do
             if /opt/spire/bin/spire-agent api fetch x509 -socketPath "$SOCK" -write /data -timeout 5s &&

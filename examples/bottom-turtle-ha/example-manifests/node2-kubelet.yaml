@@ -1,6 +1,3 @@
-# Per node identity for kubelet itself. Nothing consumes this yet; it is here so kubelet
-# can be given its own identity later without disturbing the image pull one. The plugin
-# selects between the two entries on this bridge by hint.
 apiVersion: spire.spiffe.io/v1alpha1
 kind: ClusterStaticEntry
 metadata:

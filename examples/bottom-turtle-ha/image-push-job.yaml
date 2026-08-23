@@ -1,12 +1,4 @@
 # Pushes an image into zot using an identity minted by the spire-identity-exchange.
-#
-# The job presents two credentials: its own pod SVID, fetched over the shared ha-agent
-# CSI socket, and a projected service account token. The exchange's image_pull stack
-# requires both, and the registration entry keyed on that pair mints
-# spiffe://<td>/image-push, which is the only identity zot lets write.
-#
-# Images other than crane are spliced in from the charts by run-tests.sh so they cannot
-# drift from what the rest of the example runs.
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -42,10 +34,6 @@ spec:
         - -xec
         - |
           SOCK=/spire-agent/spire-agent.sock
-          # The controller manager creates this pod's entry only once the pod exists, and
-          # until that propagates the Workload API answers immediately with an empty set
-          # rather than blocking. Poll instead of taking the first answer, the same way
-          # federation-test-job.yaml does.
           i=0
           while [ "$i" -lt 30 ]; do
             if /opt/spire/bin/spire-agent api fetch x509 -socketPath "$SOCK" -write /data -timeout 5s &&
@@ -59,7 +47,6 @@ spec:
             echo "no SVID for this pod after ${i} attempts"
             exit 1
           fi
-          # The bundle written above doubles as the trust root for both the exchange and zot.
           /data/busybox grep -A1 'token(' /data/jwt.txt | /data/busybox tail -1 | /data/busybox tr -d '[:space:]' > /data/svid.jwt
           test -s /data/svid.jwt
         volumeMounts:
@@ -89,7 +76,6 @@ spec:
             | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')"
           test -n "${TOKEN}"
 
-          # zot takes the minted SVID as a bearer token behind a basic auth header.
           AUTH="$(printf 'zot:%s' "${TOKEN}" | base64 | tr -d '\n')"
           printf '{"auths":{"zot.production.other":{"auth":"%s"}}}' "${AUTH}" > /docker-config/config.json
         volumeMounts:

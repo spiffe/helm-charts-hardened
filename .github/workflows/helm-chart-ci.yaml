@@ -187,8 +187,6 @@ jobs:
         with:
           version: ${{ env.CHART_TESTING_VERSION }}
 
-      # Kubelet will not start if the provider binary named in
-      # credential-provider-config.yaml is absent, so every cluster needs this.
       - name: Install image credential provider
         run: ./.github/scripts/install-image-cred-provider.sh
 
@@ -278,8 +276,6 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      # Kubelet will not start if the provider binary named in
-      # credential-provider-config.yaml is absent, so every cluster needs this.
       - name: Install image credential provider
         run: ./.github/scripts/install-image-cred-provider.sh
 
@@ -338,8 +334,6 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      # Kubelet will not start if the provider binary named in
-      # credential-provider-config.yaml is absent, so every cluster needs this.
       - name: Install image credential provider
         run: ./.github/scripts/install-image-cred-provider.sh
 
@@ -389,8 +383,6 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      # Kubelet will not start if the provider binary named in
-      # credential-provider-config.yaml is absent, so every cluster needs this.
       - name: Install image credential provider
         run: ./.github/scripts/install-image-cred-provider.sh
 

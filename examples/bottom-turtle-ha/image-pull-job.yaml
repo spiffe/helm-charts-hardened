@@ -1,10 +1,4 @@
 # Pulls the image zot only serves to an exchange-minted identity.
-#
-# Nothing here fetches a credential. kubelet does it: on seeing an image matching
-# zot.production.other it runs the image credential provider on the node, which combines
-# this pod's service account token with the node's own SVID from the host spire-ha-agent
-# and trades them at the exchange for a registry token. Completing at all is the
-# assertion, since zot rejects anything else.
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -26,14 +20,10 @@ spec:
       containers:
       - name: main
         image: zot.production.other/test/busybox:latest
-        # Force the credential provider to run again on the failover re-pull rather than
-        # letting kubelet serve the image from the node's cache.
         imagePullPolicy: Always
         command: ["sh", "-c", "echo IMAGE-PULL-OK"]
-      # Nothing reads this volume. It is here because the node authorizer only lets kubelet
-      # mint a service account token for an audience that appears in the pod spec, so
-      # without it kubelet is refused with "audience ... not found in pod spec volume",
-      # silently falls back to an anonymous pull, and the registry rejects it.
+      # The node authorizer only lets kubelet mint a service account token for an audience
+      # that appears in the pod spec. This must be here to work, even if it looks unused.
       volumes:
       - name: spire-token-gate
         projected:

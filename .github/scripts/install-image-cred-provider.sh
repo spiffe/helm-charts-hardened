@@ -1,12 +1,4 @@
 #!/usr/bin/env bash
-# Stage the SPIRE Identity Exchange kubelet image credential provider for kind.
-#
-# .github/kind/conf/kind-config.yaml points kubelet at this binary with
-# --image-credential-provider-bin-dir and --image-credential-provider-config. Kubelet
-# refuses to start when the bin dir, or any provider binary named in the config, is
-# missing. That makes this a prerequisite for EVERY cluster built from that config, not
-# just the ones that pull from the bottom-turtle-ha test registry, so run it before
-# `kind create cluster`.
 
 set -euo pipefail
 
@@ -29,7 +21,6 @@ fi
 
 BASE_URL="https://github.com/spiffe/spire-identity-exchange/releases/download/${VERSION}"
 ARCHIVE="${BIN_NAME}_Linux_${ARCH}.tar.gz"
-# goreleaser drops the leading v from the checksums file name
 CHECKSUMS="spire-identity-exchange_${VERSION#v}_checksums.txt"
 
 WORKDIR="$(mktemp -d)"
