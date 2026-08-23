@@ -206,6 +206,9 @@ dump_kubelet() {
   docker exec -i "${node}" cat /var/lib/kubelet/kubeadm-flags.env 2>&1 || true
   docker exec -i "${node}" ps ax 2>&1 | grep '[k]ubelet' || true
   docker exec -i "${node}" ls -l /credential-plugins /etc/kubernetes/credential-provider-config.yaml 2>&1 || true
+  # The plugin reaches the workload API through this bridge. If the socket is absent the
+  # plugin fails immediately, kubelet falls back to anonymous, and the pull 401s.
+  docker exec -i "${node}" ls -l /var/run/spiffe/socat/unix/k8s-kubelet/public/ 2>&1 || true
   # Only the registry we care about. A broad credential grep is pure noise at v=4, which
   # logs a provider line for every image pull on the node.
   docker exec -i "${node}" journalctl -u kubelet --no-pager 2>&1 \
@@ -336,6 +339,14 @@ sudo apt-get install -y spire-common spire-agent spire-server spire-controller-m
 
 # Set our testing trust domain
 sudo sed -i 's/example.org/production.other/' /etc/spiffe/default-trust-domain.env
+
+# A trust domain has one OIDC discovery endpoint, but the packaged root server config
+# advertises oidc-discovery-provider.<trust domain> while the charts advertise
+# oidc-discovery.<trust domain>. The identity exchange checks the iss claim by exact string,
+# so a JWT-SVID minted by a root server, which is what kubelet's credential provider
+# presents, is rejected unless the two agree. Align the roots with the charts.
+sudo sed -i 's|jwt_issuer = "https://oidc-discovery-provider\.|jwt_issuer = "https://oidc-discovery.|' /etc/spire/server/default.conf
+grep jwt_issuer /etc/spire/server/default.conf
 
 if [ "${BROKER}" -eq 1 ]; then
   # Pull the federation test job images out of the charts so they always sync up.
