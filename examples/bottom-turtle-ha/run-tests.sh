@@ -197,7 +197,7 @@ dump_job() {
     # filter hides exactly the line that says whether it ran and what it returned.
     echo "----- kubelet ${node} credential provider decisions -----"
     docker exec -i "${node}" journalctl -u kubelet --no-pager 2>&1 \
-      | grep -E 'exec plugin|image credentials|k8s-image-cred|without credentials|zot\.production\.other' \
+      | grep -E 'exec plugin|image credentials|k8s-image-cred|without credentials|zot\.production\.other|[Ss]ervice account' \
       | tail -40 || true
   done
   echo "===== END ${job} ====="
