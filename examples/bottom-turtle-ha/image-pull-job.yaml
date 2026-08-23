@@ -30,3 +30,15 @@ spec:
         # letting kubelet serve the image from the node's cache.
         imagePullPolicy: Always
         command: ["sh", "-c", "echo IMAGE-PULL-OK"]
+      # Nothing reads this volume. It is here because the node authorizer only lets kubelet
+      # mint a service account token for an audience that appears in the pod spec, so
+      # without it kubelet is refused with "audience ... not found in pod spec volume",
+      # silently falls back to an anonymous pull, and the registry rejects it.
+      volumes:
+      - name: spire-token-gate
+        projected:
+          sources:
+          - serviceAccountToken:
+              path: token
+              audience: spire-identity-exchange
+              expirationSeconds: 3600
