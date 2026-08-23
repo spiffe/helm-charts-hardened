@@ -193,7 +193,7 @@ dump_job() {
 # both terminal conditions instead.
 wait_for_job() {
   local job="$1"
-  local timeout="${2:-300}"
+  local timeout="${2:-120}"
   local count=0
   while [ "$count" -lt "$timeout" ]; do
     if kubectl get job "$job" -o jsonpath='{.status.conditions[?(@.type=="Complete")].status}' 2>/dev/null | grep -q True; then

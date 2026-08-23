@@ -47,7 +47,7 @@ spec:
           # rather than blocking. Poll instead of taking the first answer, the same way
           # federation-test-job.yaml does.
           i=0
-          while [ "$i" -lt 60 ]; do
+          while [ "$i" -lt 30 ]; do
             if /opt/spire/bin/spire-agent api fetch x509 -socketPath "$SOCK" -write /data -timeout 5s &&
                /opt/spire/bin/spire-agent api fetch jwt -audience spire-identity-exchange -socketPath "$SOCK" -timeout 5s > /data/jwt.txt; then
               break
@@ -102,7 +102,7 @@ spec:
           readOnly: true
       containers:
       - name: push
-        image: gcr.io/go-containerregistry/crane:v0.20.6
+        image: gcr.io/go-containerregistry/crane:v0.21.9
         env:
         - name: DOCKER_CONFIG
           value: /docker-config
