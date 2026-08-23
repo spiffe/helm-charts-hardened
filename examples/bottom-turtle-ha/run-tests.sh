@@ -181,6 +181,18 @@ dump_job() {
   # --prefix labels each line with its container. These jobs have three init containers and
   # the interesting output is rarely the last one.
   kubectl logs "job/${job}" --all-containers --prefix 2>&1 || true
+  # Everything kubelet said about this pod on the node that ran it. Filtering on the image
+  # misses the credential provider path, which names the pod and service account instead,
+  # and only the first pull attempt carries the real error; the retries are all backoff.
+  local pod node
+  for pod in $(kubectl get pods -l "job-name=${job}" -o name 2>/dev/null | cut -d/ -f2); do
+    node="$(kubectl get pod "${pod}" -o jsonpath='{.spec.nodeName}' 2>/dev/null)"
+    [ -n "${node}" ] || continue
+    echo "----- kubelet ${node} for pod ${pod} -----"
+    docker exec -i "${node}" journalctl -u kubelet --no-pager 2>&1 \
+      | grep -E "${pod}|credential|CredentialProvider|serviceaccount|ServiceAccount" \
+      | head -80 || true
+  done
   echo "===== END ${job} ====="
   set -x
 }
