@@ -21,7 +21,9 @@ spec:
       {{- include "spire-server.selectorLabels" . | nindent 6 }}
   podMetricsEndpoints:
     - port: prom
-    - port: prom-cm
+    {{- range (include "spire-controller-manager.prometheus-port-names" . | fromYamlArray) }}
+    - port: {{ . }}
+    {{- end }}
   {{- if ne $namespace $podNamespace }}
   namespaceSelector:
     kubernetes.io/metadata.name: {{ $podNamespace }}

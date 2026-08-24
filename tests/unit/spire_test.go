@@ -90,12 +90,12 @@ func ValueStringRender(chart *helmchart.Chart, values string) (map[string]string
 	testChart.Values = merged
 
 	var activeDeps []*helmchart.Chart
-        for _, dep := range testChart.Dependencies() {
-                if dep.Name() != "spire-identity-exchange" {
-                        activeDeps = append(activeDeps, dep)
-                }
-        }
-        testChart.SetDependencies(activeDeps...)
+	for _, dep := range testChart.Dependencies() {
+		if dep.Name() != "spire-identity-exchange" {
+			activeDeps = append(activeDeps, dep)
+		}
+	}
+	testChart.SetDependencies(activeDeps...)
 
 	ro := helmutil.ReleaseOptions{Name: "spire", Namespace: "spire-server", Revision: 1, IsUpgrade: false, IsInstall: true}
 	v, err = helmutil.ToRenderValues(&testChart, merged, ro, helmutil.DefaultCapabilities)
@@ -885,6 +885,68 @@ spire-server:
 			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
 			Expect(serverResource).Should(ContainSubstring("name: RODBPW"))
 			Expect(serverResource).Should(ContainSubstring("name: my-ro-db-secret"))
+		})
+	})
+	Describe("spire-server.podMonitor.controllerManagerPorts", func() {
+		It("scrapes the controller-manager pm-cm port, not prom-cm", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  telemetry:
+    prometheus:
+      enabled: true
+      podMonitor:
+        enabled: true
+  controllerManager:
+    enabled: true
+`)
+			Expect(err).Should(Succeed())
+			pm := objs["spire/charts/spire-server/templates/podmonitor.yaml"]
+			Expect(pm).Should(ContainSubstring("- port: prom"))
+			Expect(pm).Should(ContainSubstring("- port: pm-cm"))
+			Expect(pm).ShouldNot(ContainSubstring("prom-cm"))
+		})
+		It("scrapes each external controller-manager's suffixed pm-cm port", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  telemetry:
+    prometheus:
+      enabled: true
+      podMonitor:
+        enabled: true
+  controllerManager:
+    enabled: true
+  externalControllerManagers:
+    enabled: true
+  kubeConfigs:
+    microserv:
+      externalSecret:
+        name: leaf-kc
+        key: kubeconfig
+`)
+			Expect(err).Should(Succeed())
+			pm := objs["spire/charts/spire-server/templates/podmonitor.yaml"]
+			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
+			// The suffixed CM container port must exist and the PodMonitor must scrape it.
+			Expect(serverResource).Should(ContainSubstring("name: pm-cm-microserv"))
+			Expect(pm).Should(ContainSubstring("- port: pm-cm"))
+			Expect(pm).Should(ContainSubstring("- port: pm-cm-microserv"))
+		})
+		It("only scrapes the server port when the controller-manager is disabled", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  telemetry:
+    prometheus:
+      enabled: true
+      podMonitor:
+        enabled: true
+  controllerManager:
+    enabled: false
+`)
+			Expect(err).Should(Succeed())
+			pm := objs["spire/charts/spire-server/templates/podmonitor.yaml"]
+			Expect(pm).Should(ContainSubstring("- port: prom"))
+			Expect(pm).ShouldNot(ContainSubstring("pm-cm"))
+			Expect(pm).ShouldNot(ContainSubstring("prom-cm"))
 		})
 	})
 })

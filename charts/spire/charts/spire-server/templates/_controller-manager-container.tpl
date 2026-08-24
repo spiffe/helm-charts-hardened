@@ -189,3 +189,60 @@ Auto-generation preserves trailing numbers from cluster names or uses hash for u
     {{- toYaml .Values.extraVolumeMounts | nindent 4 }}
     {{- end }}
 {{- end }}
+{{/*
+Returns the list of controller-manager prometheus port names (one per line), matching the
+port names emitted by "spire-controller-manager.container" above. Used by the PodMonitor so
+its scrape endpoints stay in sync with the actual container ports. The suffix logic here MUST
+mirror the "spire-controller-manager.containers" iteration and its portSuffix computation.
+Emits nothing when the controller manager is disabled or prometheus telemetry is off.
+*/}}
+{{- define "spire-controller-manager.prometheus-port-names" }}
+{{-   if or (dig "telemetry" "prometheus" "enabled" .Values.telemetry.prometheus.enabled .Values.global) (and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "prometheus" true .Values.global)) }}
+{{-     if eq (.Values.controllerManager.enabled | toString) "true" }}
+{{-       $pmName := "" }}
+{{-       if hasKey .Values.controllerManager "prometheusPortName" }}
+{{-         $pmName = .Values.controllerManager.prometheusPortName }}
+{{-       end }}
+{{-       if eq $pmName "" }}
+{{-         $pmName = "pm-cm" }}
+{{-       end }}
+- {{ $pmName }}
+{{-     end }}
+{{-     if .Values.externalControllerManagers.enabled }}
+{{-       $clusters := default .Values.kubeConfigs .Values.externalControllerManagers.clusters }}
+{{-       range $name, $_ := $clusters }}
+{{-         $root := $ }}
+{{-         $clusterSettings := dict }}
+{{-         if hasKey $root.Values.externalControllerManagers.clusters $name }}
+{{-           $clusterSettings = index $root.Values.externalControllerManagers.clusters $name }}
+{{-         end }}
+{{-         $portSuffix := printf "-%s" $name }}
+{{-         $prometheusPortName := "" }}
+{{-         if hasKey $clusterSettings "prometheusPortName" }}
+{{-           $prometheusPortName = $clusterSettings.prometheusPortName }}
+{{-         end }}
+{{-         if eq $prometheusPortName "" }}
+{{-           if gt (len $name) 9 }}
+{{-             $numberMatch := regexFind "[-]?[0-9]{1,2}$" $name }}
+{{-             if $numberMatch }}
+{{-               $numLen := len $numberMatch }}
+{{-               $baseLen := sub (len $name) $numLen | int }}
+{{-               $baseName := substr 0 $baseLen $name }}
+{{-               if not (hasPrefix "-" $numberMatch) }}
+{{-                 $numberMatch = printf "-%s" $numberMatch }}
+{{-               end }}
+{{-               $maxBase := sub 9 (len $numberMatch) | int }}
+{{-               $baseName = $baseName | trunc $maxBase | trimSuffix "-" }}
+{{-               $portSuffix = printf "-%s%s" $baseName $numberMatch }}
+{{-             else }}
+{{-               $hash := sha256sum $name | trunc 3 }}
+{{-               $portSuffix = printf "-%s-%s" ($name | trunc 5 | trimSuffix "-") $hash }}
+{{-             end }}
+{{-           end }}
+{{-           $prometheusPortName = printf "pm-cm%s" $portSuffix }}
+{{-         end }}
+- {{ $prometheusPortName }}
+{{-       end }}
+{{-     end }}
+{{-   end }}
+{{- end }}
