@@ -19,11 +19,6 @@ spec:
           # HostToContainer asks for. Without it the pod keeps a stale mount
           # and every read fails.
           mountPropagation: HostToContainer
-      readinessProbe:
-        exec:
-          command: ["/bin/sh", "-c", "test -s /spiffe/hints.json"]
-        initialDelaySeconds: 2
-        periodSeconds: 2
   volumes:
     - name: spiffefs
       csi:

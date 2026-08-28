@@ -32,8 +32,11 @@ teardown() {
     get_namespace_details spire-server
     get_namespace_details spire-system
     kubectl describe pod spiffefs-test || true
-    kubectl logs daemonset/spire-spiffefs -n spire-system --prefix --all-containers=true || true
-    kubectl logs daemonset/spire-spiffefs-csi-driver -n spire-system --prefix --all-containers=true || true
+    kubectl describe daemonset/spire-spiffefs -n spire-system || true
+    # Keep these bounded. An unbounded dump here overflowed the 1024k step
+    # summary limit on a previous run and GitHub discarded the entire log.
+    kubectl logs daemonset/spire-spiffefs -n spire-system --prefix --all-containers=true --tail=100 || true
+    kubectl logs daemonset/spire-spiffefs-csi-driver -n spire-system --prefix --all-containers=true --tail=30 || true
   fi
 
   if [ "${CLEANUP}" -eq 1 ]; then
@@ -77,8 +80,39 @@ helm upgrade --install --namespace spire-server \
 
 kubectl get pods -A
 
+# Hop 1: spiffefs has actually mounted its filesystem inside its own container.
+# If this fails, nothing downstream can work and the problem is spiffefs itself
+# (its agent socket, /dev/fuse, or the mount call) rather than propagation.
+SPIFFEFS_POD="$(kubectl get pod -n spire-system -l app.kubernetes.io/name=spiffefs -o name | head -n 1)"
+if [ -z "${SPIFFEFS_POD}" ]; then
+  echo "No spiffefs pod found in spire-system."
+  exit 1
+fi
+kubectl logs -n spire-system "${SPIFFEFS_POD}" --tail=50
+# Whether the mount table shows a fuse entry here separates "spiffefs never
+# mounted" from "it mounted but the filesystem is erroring".
+kubectl exec -n spire-system "${SPIFFEFS_POD}" -- sh -c 'grep spiffefs /proc/self/mounts || echo "no spiffefs mount in this container"'
+if ! kubectl exec -n spire-system "${SPIFFEFS_POD}" -- ls -la /run/spire/k8s/spiffefs; then
+  echo "spiffefs has not mounted its filesystem; the failure is in spiffefs itself, not mount propagation."
+  exit 1
+fi
+if ! kubectl exec -n spire-system "${SPIFFEFS_POD}" -- cat /run/spire/k8s/spiffefs/hints.json; then
+  echo "spiffefs mounted but is not serving hints.json."
+  exit 1
+fi
+
 kubectl apply -f "${SCRIPTPATH}/test-pod.yaml"
-kubectl wait --for=condition=Ready pod/spiffefs-test --timeout 5m
+kubectl wait --for=condition=Ready pod/spiffefs-test --timeout 2m
+
+# Hop 2: the mount reached the workload through the CSI driver. Reaching here
+# with hop 1 passing means any failure below is a propagation problem. An empty
+# listing means the pod holds a bind mount of the bare directory rather than the
+# filesystem; a permission error instead means spiffefs is refusing the caller.
+kubectl exec spiffefs-test -- sh -c 'grep spiffe /proc/self/mounts || echo "no spiffe mount visible to the workload"'
+kubectl exec spiffefs-test -- ls -la /spiffe/ || {
+  echo "spiffefs mounted on the host but the workload cannot read it: mount propagation is not reaching the pod."
+  exit 1
+}
 
 # The mount works to begin with.
 check_mount
@@ -91,7 +125,7 @@ RESTARTS_BEFORE="$(kubectl get pod spiffefs-test -o go-template='{{ (index .stat
 # Restart spiffefs. Its FUSE filesystem is torn down and remounted underneath
 # the still-running test pod.
 kubectl rollout restart daemonset/spire-spiffefs -n spire-system
-kubectl rollout status daemonset/spire-spiffefs -n spire-system --timeout 5m
+kubectl rollout status daemonset/spire-spiffefs -n spire-system --timeout 2m
 
 # Let the remount propagate host -> csi driver -> pod before asserting on it.
 sleep 15
