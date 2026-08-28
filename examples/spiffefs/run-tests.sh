@@ -48,6 +48,26 @@ teardown() {
 
 trap 'EC=$? && trap - SIGTERM && teardown $EC' SIGINT SIGTERM EXIT
 
+# An svid reaches the mount only once the controller manager has created the
+# entry, the server has propagated it and the agent has it cached. Poll for it
+# rather than racing that pipeline.
+wait_for_svid() {
+  local timeout=120
+  local count=0
+  while [ "${count}" -lt "${timeout}" ]; do
+    if kubectl exec spiffefs-test -- test -f /spiffe/credential-bundle.private-key.x509.pem 2>/dev/null; then
+      return 0
+    fi
+    sleep 3
+    count=$((count + 3))
+  done
+  echo "No svid appeared in the mount within ${timeout}s."
+  kubectl exec spiffefs-test -- ls -la /spiffe/ || true
+  kubectl exec spiffefs-test -- cat /spiffe/hints.json || true
+  kubectl logs -n spire-system "${SPIFFEFS_POD_FOR_TEST:-${SPIFFEFS_POD}}" --tail=50 || true
+  return 1
+}
+
 # Must hold both before and after spiffefs is restarted under the pod.
 check_mount() {
   kubectl exec spiffefs-test -- ls -l /spiffe/
@@ -111,7 +131,15 @@ kubectl exec spiffefs-test -- ls -la /spiffe/ || {
   exit 1
 }
 
+# The cluster has a spiffefs pod per node. Diagnostics have to come from the one
+# on the test pod's node, not whichever was listed first.
+TEST_NODE="$(kubectl get pod spiffefs-test -o go-template='{{ .spec.nodeName }}')"
+SPIFFEFS_POD_FOR_TEST="$(kubectl get pod -n spire-system -l app.kubernetes.io/name=spiffefs \
+  --field-selector "spec.nodeName=${TEST_NODE}" -o name | head -n 1)"
+echo "test pod is on ${TEST_NODE}, served by ${SPIFFEFS_POD_FOR_TEST}"
+
 # The mount works to begin with.
+wait_for_svid
 check_mount
 
 # Recorded so a silent restart cannot be mistaken for a surviving mount.
@@ -126,6 +154,8 @@ kubectl rollout status daemonset/spire-spiffefs -n spire-system --timeout 2m
 sleep 15
 
 kubectl get pods -A
+
+wait_for_svid
 
 # Still works, with the test pod untouched. Wrong propagation would leave it
 # holding a stale mount and these reads would fail.
