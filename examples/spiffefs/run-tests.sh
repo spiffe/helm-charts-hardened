@@ -49,7 +49,8 @@ teardown() {
   if [ "${CLEANUP}" -eq 1 ]; then
     # Bounded so a wedged unmount cannot hang the job. A namespace left
     # Terminating goes away with the cluster.
-    kubectl delete pod spiffefs-test spiffefs-test-late --ignore-not-found --timeout=2m 2>/dev/null || true
+    kubectl delete pod spiffefs-test --ignore-not-found --timeout=2m 2>/dev/null || true
+    kubectl delete -f "${SCRIPTPATH}/test-pod-late.yaml" --ignore-not-found --timeout=2m 2>/dev/null || true
     helm uninstall --namespace spire-server spire --timeout 2m 2>/dev/null || true
     kubectl delete ns spire-server --timeout=2m 2>/dev/null || true
     kubectl delete ns spire-system --timeout=2m 2>/dev/null || true
@@ -113,6 +114,54 @@ wait_for_svid() {
   kubectl exec "${pod}" -- cat /spiffe/private/hints.json || true
   kubectl logs -n spire-system "$(node_spiffefs_pod "$(pod_node "${pod}")")" --tail=50 || true
   return 1
+}
+
+# spiffefs resolves credentials per calling pid, so a mix-up would hand one
+# workload another's private key. hints.json is the only thing that says which
+# file holds which identity: the order the agent returns svids in is not
+# guaranteed, so look the svid up by hint rather than assuming an index.
+check_svid() {
+  local pod="$1"
+  local hint="$2"
+  local expected="$3"
+  local hints id file bundle want got
+
+  hints="$(kubectl exec "${pod}" -- cat /spiffe/private/hints.json)"
+  id="$(printf '%s' "${hints}" | jq -r --arg h "${hint}" '.hints[] | select(.hint == $h) | .id')"
+  if [ -z "${id}" ] || [ "${id}" = "null" ]; then
+    echo "${pod}: no svid with hint \"${hint}\" in hints.json:"
+    printf '%s\n' "${hints}"
+    return 1
+  fi
+
+  # The first svid is delivered under the unindexed name; the rest carry theirs.
+  if [ "${id}" -eq 0 ]; then
+    file=/spiffe/private/credential-bundle.private-key.x509.pem
+  else
+    file="/spiffe/private/${id}.credential-bundle.private-key.x509.pem"
+  fi
+
+  bundle="/tmp/${pod}.${hint:-none}.pem"
+  kubectl exec "${pod}" -- cat "${file}" > "${bundle}"
+
+  if ! openssl x509 -in "${bundle}" -noout -text | grep -q "URI:${expected}"; then
+    echo "${pod}: ${file} carries the wrong identity, expected ${expected}"
+    openssl x509 -in "${bundle}" -noout -text | grep -A1 "Subject Alternative Name" || true
+    return 1
+  fi
+
+  # The fingerprint is a hash of the whole bundle file, so a reader can tell
+  # whether the bundle rotated out from under hints.json.
+  want="sha256:$(sha256sum "${bundle}" | cut -d' ' -f1)"
+  got="$(printf '%s' "${hints}" | jq -r --arg h "${hint}" '.hints[] | select(.hint == $h) | .fingerprint')"
+  if [ "${want}" != "${got}" ]; then
+    echo "${pod}: hints.json fingerprint ${got} does not describe ${file} (${want})"
+    return 1
+  fi
+}
+
+svid_count() {
+  kubectl exec "$1" -- cat /spiffe/private/hints.json | jq '.hints | length'
 }
 
 check_mount() {
@@ -214,7 +263,7 @@ echo "ordering 1 ok: a workload published after spiffefs was already mounted see
 # back. Here nothing exists to carry across at bind time and the mount has to
 # arrive by propagation afterwards.
 spiffefs_down
-sed 's/name: spiffefs-test$/name: spiffefs-test-late/' "${SCRIPTPATH}/test-pod.yaml" | kubectl apply -f -
+kubectl apply -f "${SCRIPTPATH}/test-pod-late.yaml"
 kubectl wait --for=condition=Ready pod/spiffefs-test-late --timeout 2m
 
 # Nothing should be there yet; if it is, the ordering under test never happened.
@@ -233,6 +282,33 @@ echo "ordering 2 ok: a workload published before spiffefs picks the filesystem u
 # own schedule.
 wait_for_svid spiffefs-test "after spiffefs cycled under it"
 check_mount spiffefs-test
+
+# Each workload gets its own identity. The two pods run under different service
+# accounts, so the controller manager issues them different SPIFFE IDs.
+check_svid spiffefs-test      "" "spiffe://production.other/ns/default/sa/default"
+check_svid spiffefs-test-late "" "spiffe://production.other/ns/default/sa/spiffefs-late"
+
+if [ "$(sha256sum /tmp/spiffefs-test.none.pem | cut -d' ' -f1)" = \
+     "$(sha256sum /tmp/spiffefs-test-late.none.pem | cut -d' ' -f1)" ]; then
+  echo "Both workloads were handed the same credential bundle; spiffefs is not scoping by caller."
+  exit 1
+fi
+
+# The late pod matches a second, hinted ClusterSPIFFEID, so it should be handed
+# two svids: the extra one under an indexed file name, named by hints.json.
+if [ "$(svid_count spiffefs-test)" -ne 1 ]; then
+  echo "spiffefs-test should have exactly one svid, has $(svid_count spiffefs-test)"
+  exit 1
+fi
+if [ "$(svid_count spiffefs-test-late)" -ne 2 ]; then
+  echo "spiffefs-test-late should have two svids, has $(svid_count spiffefs-test-late):"
+  kubectl exec spiffefs-test-late -- cat /spiffe/private/hints.json
+  exit 1
+fi
+kubectl exec spiffefs-test-late -- ls -l /spiffe/private/
+check_svid spiffefs-test-late "extra" "spiffe://production.other/spiffefs-test/extra"
+
+echo "identity ok: each workload gets its own svid, and a second hinted svid lands under its indexed name."
 
 # Recorded so a silent restart cannot be mistaken for a surviving mount.
 POD_UID="$(kubectl get pod spiffefs-test -o go-template='{{ .metadata.uid }}')"
@@ -268,6 +344,7 @@ if [ "${RESTARTS_BEFORE}" != "${RESTARTS_AFTER}" ]; then
   exit 1
 fi
 
+check_svid spiffefs-test "" "spiffe://production.other/ns/default/sa/default"
 echo "spiffefs mount survived a daemonset restart with the workload pod untouched."
 
 # A rollout replaces the pod. A crash does not: kubelet restarts the container in
@@ -307,4 +384,5 @@ if [ "${POD_UID}" != "${POD_UID_FINAL}" ] || [ "${RESTARTS_BEFORE}" != "${RESTAR
   exit 1
 fi
 
+check_svid spiffefs-test "" "spiffe://production.other/ns/default/sa/default"
 echo "spiffefs mount survived an in place container restart with the workload pod untouched."

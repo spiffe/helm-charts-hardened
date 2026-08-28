@@ -1,6 +1,21 @@
 spiffefs:
   enabled: true
 
+spire-server:
+  controllerManager:
+    identities:
+      clusterSPIFFEIDs:
+        # A second identity for the late test pod, carrying a hint. Two svids on
+        # one workload is what exercises the indexed file names and the hint
+        # mapping in hints.json.
+        spiffefs-extra:
+          enabled: true
+          spiffeIDTemplate: spiffe://{{ .TrustDomain }}/spiffefs-test/extra
+          hint: extra
+          podSelector:
+            matchLabels:
+              spiffefs.test/extra: "true"
+
 spire-agent:
   sockets:
     admin:
