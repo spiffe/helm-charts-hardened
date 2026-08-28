@@ -26,8 +26,7 @@ done
 
 teardown() {
   print_helm_releases
-  print_spire_workload_status spire-server
-  print_spire_workload_status spire-system
+  print_spire_workload_status spire-server spire-system
 
   if [[ "$1" -ne 0 ]]; then
     get_namespace_details spire-server
@@ -39,11 +38,9 @@ teardown() {
 
   if [ "${CLEANUP}" -eq 1 ]; then
     kubectl delete -f "${SCRIPTPATH}/test-pod.yaml" --ignore-not-found 2>/dev/null || true
-    helm uninstall --namespace spire-mgmt spire 2>/dev/null || true
-    helm uninstall --namespace spire-mgmt spire-crds 2>/dev/null || true
+    helm uninstall --namespace spire-server spire 2>/dev/null || true
     kubectl delete ns spire-server 2>/dev/null || true
     kubectl delete ns spire-system 2>/dev/null || true
-    kubectl delete ns spire-mgmt 2>/dev/null || true
   fi
 }
 
@@ -63,11 +60,19 @@ check_mount() {
   kubectl exec spiffefs-test -- grep -q '"fingerprint"' /spiffe/hints.json
 }
 
-helm upgrade --install --create-namespace --namespace spire-mgmt spire-crds charts/spire-crds
+# The CI harness has already installed spire-crds into the spire-server
+# namespace for us. Installing it again from here would collide: the CRDs are
+# cluster scoped, so a second release cannot take ownership of them.
 
-helm upgrade --install --create-namespace --namespace spire-mgmt \
+kubectl create namespace spire-system --dry-run=client -o yaml | kubectl apply -f -
+# spiffefs mounts a FUSE filesystem and runs privileged, so the namespace it
+# lands in cannot be at the restricted pod security level.
+kubectl label namespace spire-system pod-security.kubernetes.io/enforce=privileged || true
+kubectl create namespace spire-server --dry-run=client -o yaml | kubectl apply -f -
+kubectl label namespace spire-server pod-security.kubernetes.io/enforce=restricted || true
+
+helm upgrade --install --namespace spire-server \
   --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/values.yaml" \
-  --set "global.spire.namespaces.create=true" \
   --wait spire charts/spire
 
 kubectl get pods -A
