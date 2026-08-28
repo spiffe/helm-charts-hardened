@@ -12,12 +12,8 @@ spec:
         - name: spiffefs
           mountPath: /spiffe
           readOnly: true
-          # This is what the test is really exercising. spiffefs tears down and
-          # remounts its filesystem when it restarts, and this pod has to pick
-          # the new mount up without being restarted itself. That only happens
-          # if the mount is a slave of the host's, which is what
-          # HostToContainer asks for. Without it the pod keeps a stale mount
-          # and every read fails.
+          # Required so the pod picks up spiffefs remounting on restart
+          # instead of holding a stale mount.
           mountPropagation: HostToContainer
   volumes:
     - name: spiffefs

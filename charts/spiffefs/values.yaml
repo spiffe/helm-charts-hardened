@@ -18,10 +18,10 @@ image:
   pullPolicy: IfNotPresent
   tag: spiffefs
 
-## @param mountPath Host directory spiffefs mounts its filesystem on. A spiffe-csi-driver instance bind mounts this directory into workloads, so it must match that instance's agentSocketPath directory.
+## @param mountPath Host directory spiffefs mounts its filesystem on. Must match the agentSocketPath directory of the spiffe-csi-driver instance publishing it.
 mountPath: /run/spire/k8s/spiffefs
 
-## @param agentSocketPath Host path to the spire-agent admin socket spiffefs talks the Delegated Identity API to. The default is where the spire chart's agent publishes it. That agent must be run with sockets.admin.enabled and sockets.admin.mountOnHost set to true, or nothing will be listening here.
+## @param agentSocketPath Host path to the spire-agent admin socket used for the Delegated Identity API. Requires the agent to set sockets.admin.enabled and sockets.admin.mountOnHost.
 agentSocketPath: /run/spire/agent/sockets/csi.spiffe.io/admin/admin.sock
 
 ## @param updateStrategy.type The update strategy to use to replace existing DaemonSet pods with new pods. Can be RollingUpdate or OnDelete.
@@ -76,7 +76,7 @@ podAnnotations: {}
 ## @param podLabels [object] Labels to add to pods
 podLabels: {}
 
-## @param securityContext [object] Security context for the spiffefs container. spiffefs mounts a FUSE filesystem and reads the pid of every caller, so it needs to be privileged and run as root.
+## @param securityContext [object] Security context for the spiffefs container. Mounting FUSE and reading caller pids requires privileged and root.
 securityContext:
   privileged: true
   runAsUser: 0

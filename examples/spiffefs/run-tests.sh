@@ -33,8 +33,7 @@ teardown() {
     get_namespace_details spire-system
     kubectl describe pod spiffefs-test || true
     kubectl describe daemonset/spire-spiffefs -n spire-system || true
-    # Keep these bounded. An unbounded dump here overflowed the 1024k step
-    # summary limit on a previous run and GitHub discarded the entire log.
+    # Bounded: an unbounded dump overflows the step summary size limit.
     kubectl logs daemonset/spire-spiffefs -n spire-system --prefix --all-containers=true --tail=100 || true
     kubectl logs daemonset/spire-spiffefs-csi-driver -n spire-system --prefix --all-containers=true --tail=30 || true
   fi
@@ -49,27 +48,24 @@ teardown() {
 
 trap 'EC=$? && trap - SIGTERM && teardown $EC' SIGINT SIGTERM EXIT
 
-# Read the filesystem from inside the running test pod. Every assertion here has
-# to hold both before and after spiffefs is restarted underneath the pod.
+# Must hold both before and after spiffefs is restarted under the pod.
 check_mount() {
   kubectl exec spiffefs-test -- ls -l /spiffe/
   kubectl exec spiffefs-test -- cat /spiffe/hints.json
-  # An SVID is delivered as one file holding the key and its chain.
+  # An SVID is one file holding the key and its chain.
   kubectl exec spiffefs-test -- grep -q "BEGIN PRIVATE KEY" /spiffe/credential-bundle.private-key.x509.pem
   kubectl exec spiffefs-test -- grep -q "BEGIN CERTIFICATE" /spiffe/credential-bundle.private-key.x509.pem
-  # The trust bundle is named for the trust domain, set in common_test_your_values.
+  # Trust bundle is named for the trust domain from common_test_your_values.
   kubectl exec spiffefs-test -- grep -q "BEGIN CERTIFICATE" /spiffe/production.other.spiffe-trust-bundle.x509.pem
-  # hints.json always exists and always describes the SVIDs actually present.
+  # hints.json describes the SVIDs present.
   kubectl exec spiffefs-test -- grep -q '"fingerprint"' /spiffe/hints.json
 }
 
-# The CI harness has already installed spire-crds into the spire-server
-# namespace for us. Installing it again from here would collide: the CRDs are
-# cluster scoped, so a second release cannot take ownership of them.
+# CI already installed spire-crds into spire-server. The CRDs are cluster
+# scoped, so installing a second release of them here would collide.
 
 kubectl create namespace spire-system --dry-run=client -o yaml | kubectl apply -f -
-# spiffefs mounts a FUSE filesystem and runs privileged, so the namespace it
-# lands in cannot be at the restricted pod security level.
+# spiffefs runs privileged, so this namespace cannot be restricted.
 kubectl label namespace spire-system pod-security.kubernetes.io/enforce=privileged || true
 kubectl create namespace spire-server --dry-run=client -o yaml | kubectl apply -f -
 kubectl label namespace spire-server pod-security.kubernetes.io/enforce=restricted || true
@@ -80,17 +76,15 @@ helm upgrade --install --namespace spire-server \
 
 kubectl get pods -A
 
-# Hop 1: spiffefs has actually mounted its filesystem inside its own container.
-# If this fails, nothing downstream can work and the problem is spiffefs itself
-# (its agent socket, /dev/fuse, or the mount call) rather than propagation.
+# Hop 1: spiffefs mounted its filesystem in its own container. A failure here
+# is spiffefs itself (agent socket, /dev/fuse, mount) rather than propagation.
 SPIFFEFS_POD="$(kubectl get pod -n spire-system -l app.kubernetes.io/name=spiffefs -o name | head -n 1)"
 if [ -z "${SPIFFEFS_POD}" ]; then
   echo "No spiffefs pod found in spire-system."
   exit 1
 fi
 kubectl logs -n spire-system "${SPIFFEFS_POD}" --tail=50
-# Whether the mount table shows a fuse entry here separates "spiffefs never
-# mounted" from "it mounted but the filesystem is erroring".
+# A fuse entry here separates "never mounted" from "mounted but erroring".
 kubectl exec -n spire-system "${SPIFFEFS_POD}" -- sh -c 'grep spiffefs /proc/self/mounts || echo "no spiffefs mount in this container"'
 if ! kubectl exec -n spire-system "${SPIFFEFS_POD}" -- ls -la /run/spire/k8s/spiffefs; then
   echo "spiffefs has not mounted its filesystem; the failure is in spiffefs itself, not mount propagation."
@@ -104,10 +98,9 @@ fi
 kubectl apply -f "${SCRIPTPATH}/test-pod.yaml"
 kubectl wait --for=condition=Ready pod/spiffefs-test --timeout 2m
 
-# Hop 2: the mount reached the workload through the CSI driver. Reaching here
-# with hop 1 passing means any failure below is a propagation problem. An empty
-# listing means the pod holds a bind mount of the bare directory rather than the
-# filesystem; a permission error instead means spiffefs is refusing the caller.
+# Hop 2: the mount reached the workload through the CSI driver. An empty
+# listing means a bind mount of the bare directory; a permission error means
+# spiffefs is refusing the caller.
 kubectl exec spiffefs-test -- sh -c 'grep spiffe /proc/self/mounts || echo "no spiffe mount visible to the workload"'
 kubectl exec spiffefs-test -- ls -la /spiffe/ || {
   echo "spiffefs mounted on the host but the workload cannot read it: mount propagation is not reaching the pod."
@@ -117,13 +110,11 @@ kubectl exec spiffefs-test -- ls -la /spiffe/ || {
 # The mount works to begin with.
 check_mount
 
-# Remember exactly which pod and which container instance we are talking to, so
-# that a silent restart cannot be mistaken for a surviving mount.
+# Recorded so a silent restart cannot be mistaken for a surviving mount.
 POD_UID="$(kubectl get pod spiffefs-test -o go-template='{{ .metadata.uid }}')"
 RESTARTS_BEFORE="$(kubectl get pod spiffefs-test -o go-template='{{ (index .status.containerStatuses 0).restartCount }}')"
 
-# Restart spiffefs. Its FUSE filesystem is torn down and remounted underneath
-# the still-running test pod.
+# Restart spiffefs, remounting its filesystem under the running test pod.
 kubectl rollout restart daemonset/spire-spiffefs -n spire-system
 kubectl rollout status daemonset/spire-spiffefs -n spire-system --timeout 2m
 
@@ -132,9 +123,8 @@ sleep 15
 
 kubectl get pods -A
 
-# The mount still works, without the test pod having been restarted. If mount
-# propagation were wrong, the pod would be holding a stale mount and these reads
-# would fail.
+# Still works, with the test pod untouched. Wrong propagation would leave it
+# holding a stale mount and these reads would fail.
 check_mount
 
 POD_UID_AFTER="$(kubectl get pod spiffefs-test -o go-template='{{ .metadata.uid }}')"

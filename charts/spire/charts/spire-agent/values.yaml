@@ -84,7 +84,8 @@ tolerations: []
 affinity: {}
 
 ## @param authorizedDelegates A list of the authorized delegates SPIFFE IDs. See Delegated Identity API for more information.
-authorizedDelegates: []
+authorizedDelegates:
+  - /spiffefs
 ## @param logLevel The log level, valid values are "debug", "info", "warn", and "error"
 logLevel: info
 ## @param logFormat The log format, valid values are "text" and "json"

@@ -288,14 +288,8 @@ spire-identity-exchange:
   nameOverride: identity-exchange
 
 ## @section spiffefs parameters
-## Parameter values for spiffefs, which delivers SPIFFE X.509 credentials to workloads as files.
-## Enabling this also deploys the spiffefs-csi-driver instance below, which publishes the
-## filesystem to workloads.
-##
-## spiffefs reads the spire-agent admin socket off the host, so the agent has to be told to put it
-## there. That is not something this chart can switch on for you, so set both of these as well:
-##   --set spire-agent.sockets.admin.enabled=true
-##   --set spire-agent.sockets.admin.mountOnHost=true
+## Parameter values for spiffefs. Also deploys the spiffefs-csi-driver instance below.
+## Requires spire-agent.sockets.admin.enabled and spire-agent.sockets.admin.mountOnHost.
 ##
 spiffefs:
   ## @param spiffefs.enabled Enables deployment of spiffefs and its spiffe-csi-driver instance

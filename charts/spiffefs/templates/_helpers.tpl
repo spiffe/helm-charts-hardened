@@ -75,17 +75,14 @@ Create the name of the service account to use
 {{- end }}
 
 {{/*
-The host path spiffefs mounts its filesystem on. This is the directory a
-spiffe-csi-driver instance bind mounts into workloads.
+The host path spiffefs mounts its filesystem on.
 */}}
 {{- define "spiffefs.mount-path" -}}
 {{- print .Values.mountPath }}
 {{- end }}
 
 {{/*
-The spire-agent admin socket spiffefs talks the Delegated Identity API to.
-Defaults to where the spire chart's agent publishes it when
-spire-agent.sockets.admin.mountOnHost is enabled.
+The spire-agent admin socket used for the Delegated Identity API.
 */}}
 {{- define "spiffefs.agent-socket-path" -}}
 {{- print .Values.agentSocketPath }}

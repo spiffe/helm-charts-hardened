@@ -885,6 +885,14 @@ controllerManager:
         ## @param controllerManager.identities.clusterSPIFFEIDs.spike-pilot.spiffeIDTemplate The template to use for this rule.
         spiffeIDTemplate: spiffe://{{ .TrustDomain }}/spike/pilot/role/superuser
 
+      spiffefs:
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spiffefs.enabled Enable this identity for controller manager
+        enabled: true
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spiffefs.type The type of rule this is.
+        type: spiffefs
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spiffefs.spiffeIDTemplate The template to use for this rule.
+        spiffeIDTemplate: spiffe://{{ .TrustDomain }}/spiffefs
+
       spire-ha-agent:
         ## @param controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent.enabled Enable this identity for controller manager
         enabled: false

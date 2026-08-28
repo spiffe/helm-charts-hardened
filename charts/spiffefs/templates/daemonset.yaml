@@ -42,7 +42,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- /* spiffefs identifies its callers by pid, so it has to share the host pid namespace. */}}
+      {{- /* spiffefs identifies callers by pid. */}}
       hostPID: true
       serviceAccountName: {{ include "spiffefs.serviceAccountName" . | quote }}
       {{- include "spire-lib.default_node_priority_class_name" . | nindent 6 }}
@@ -66,8 +66,7 @@ spec:
         - name: spiffefs
           image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
-          {{- /* -umount clears a mount left behind by a previous instance so a
-                 restarted pod can remount in place. */}}
+          {{- /* -umount clears a mount left by a previous instance. */}}
           args:
             - "-umount"
             - {{ $mountPath | quote }}
@@ -80,9 +79,8 @@ spec:
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           volumeMounts:
-            {{- /* Bidirectional so the FUSE mount spiffefs makes inside this
-                   container propagates back out to the host, and on to the
-                   spiffe-csi-driver instance publishing it to workloads. */}}
+            {{- /* Bidirectional so the FUSE mount made in this container
+                   propagates out to the host and on to the csi driver. */}}
             - name: spiffefs-mount-dir
               mountPath: {{ $mountPath | quote }}
               mountPropagation: Bidirectional
