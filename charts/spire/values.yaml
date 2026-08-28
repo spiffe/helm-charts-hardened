@@ -286,3 +286,31 @@ spire-identity-exchange:
   enabled: false
   ## @param spire-identity-exchange.nameOverride Overrides the name of the SPIRE Identity Exchnage
   nameOverride: identity-exchange
+
+## @section spiffefs parameters
+## Parameter values for spiffefs, which delivers SPIFFE X.509 credentials to workloads as files.
+## Enabling this also deploys the spiffefs-csi-driver instance below, which publishes the
+## filesystem to workloads.
+##
+## spiffefs reads the spire-agent admin socket off the host, so the agent has to be told to put it
+## there. That is not something this chart can switch on for you, so set both of these as well:
+##   --set spire-agent.sockets.admin.enabled=true
+##   --set spire-agent.sockets.admin.mountOnHost=true
+##
+spiffefs:
+  ## @param spiffefs.enabled Enables deployment of spiffefs and its spiffe-csi-driver instance
+  enabled: false
+
+## @section spiffefs SPIFFE CSI Driver parameters
+## Parameter values for the spiffe-csi-driver instance that publishes the spiffefs filesystem
+##
+spiffefs-csi-driver:
+  ## @param spiffefs-csi-driver.pluginName The plugin name for the spiffefs CSI driver instance
+  pluginName: spiffefs.csi.spiffe.io
+  ## @param spiffefs-csi-driver.agentSocketPath A file inside the spiffefs mount. Only its directory is used, and it has to match spiffefs.mountPath.
+  agentSocketPath: /run/spire/k8s/spiffefs/hints.json
+  ## @param spiffefs-csi-driver.agentSocketMountPropagation spiffefs remounts its filesystem when it restarts, so this instance has to see mounts propagate rather than hold a stale bind mount.
+  agentSocketMountPropagation: Bidirectional
+  healthChecks:
+    ## @param spiffefs-csi-driver.healthChecks.port The port where the spiffefs CSI driver health checks are exposed
+    port: 9811

@@ -48,6 +48,11 @@ dependencies:
     condition: upstream.enabled
     repository: file://./charts/spiffe-csi-driver
     version: 0.1.0
+  - name: spiffe-csi-driver
+    alias: spiffefs-csi-driver
+    condition: spiffefs.enabled
+    repository: file://./charts/spiffe-csi-driver
+    version: 0.1.0
   - name: spiffe-oidc-discovery-provider
     condition: spiffe-oidc-discovery-provider.enabled
     repository: file://./charts/spiffe-oidc-discovery-provider
@@ -72,6 +77,10 @@ dependencies:
     condition: spire-identity-exchange.enabled
     repository: file://../spire-identity-exchange
     version: 0.2.1
+  - name: spiffefs
+    condition: spiffefs.enabled
+    repository: file://../spiffefs
+    version: 0.1.0
 annotations:
   org.opencontainers.image.source: https://github.com/spiffe/helm-charts-hardened
   artifacthub.io/category: security

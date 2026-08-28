@@ -1,0 +1,117 @@
+{{- $mountPath := include "spiffefs.mount-path" . }}
+{{- $agentSocketPath := include "spiffefs.agent-socket-path" . }}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "spiffefs.fullname" . | quote }}
+  namespace: {{ include "spiffefs.namespace" . | quote }}
+  labels:
+    {{- include "spiffefs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: spiffefs
+spec:
+  selector:
+    matchLabels:
+      {{- include "spiffefs.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: spiffefs
+  {{- with .Values.updateStrategy }}
+  updateStrategy:
+    {{- if not (has .type (list "RollingUpdate" "OnDelete")) }}
+    {{- fail "updateStrategy.type can only be RollingUpdate or OnDelete"}}
+    {{- end }}
+    type: {{ .type }}
+    {{- if eq .type "RollingUpdate" }}
+    rollingUpdate:
+      maxUnavailable: {{ .rollingUpdate.maxUnavailable }}
+    {{- end }}
+  {{- end }}
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: spiffefs
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "spiffefs.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: spiffefs
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with (coalesce .Values.imagePullSecrets (dig "imagePullSecrets" list .Values.global)) }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- /* spiffefs identifies its callers by pid, so it has to share the host pid namespace. */}}
+      hostPID: true
+      serviceAccountName: {{ include "spiffefs.serviceAccountName" . | quote }}
+      {{- include "spire-lib.default_node_priority_class_name" . | nindent 6 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if gt (len .Values.initContainers) 0 }}
+      initContainers:
+        {{- toYaml .Values.initContainers | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: spiffefs
+          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          {{- /* -umount clears a mount left behind by a previous instance so a
+                 restarted pod can remount in place. */}}
+          args:
+            - "-umount"
+            - {{ $mountPath | quote }}
+          env:
+            - name: SPIFFE_ENDPOINT_SOCKET
+              value: {{ $agentSocketPath | quote }}
+          {{- with .Values.extraEnvVars }}
+          {{- toYaml . | nindent 12 }}
+          {{- end }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          volumeMounts:
+            {{- /* Bidirectional so the FUSE mount spiffefs makes inside this
+                   container propagates back out to the host, and on to the
+                   spiffe-csi-driver instance publishing it to workloads. */}}
+            - name: spiffefs-mount-dir
+              mountPath: {{ $mountPath | quote }}
+              mountPropagation: Bidirectional
+            - name: spire-agent-admin-socket-dir
+              mountPath: {{ $agentSocketPath | dir | quote }}
+              readOnly: true
+            - name: dev-fuse
+              mountPath: /dev/fuse
+            {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+        {{- with .Values.extraContainers }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: spiffefs-mount-dir
+          hostPath:
+            path: {{ $mountPath | quote }}
+            type: DirectoryOrCreate
+        - name: spire-agent-admin-socket-dir
+          hostPath:
+            path: {{ $agentSocketPath | dir | quote }}
+            type: DirectoryOrCreate
+        - name: dev-fuse
+          hostPath:
+            path: /dev/fuse
+            type: CharDevice
+        {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}

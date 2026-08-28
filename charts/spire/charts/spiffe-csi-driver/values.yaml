@@ -147,6 +147,9 @@ nodeDriverRegistrar:
 ## @param agentSocketPath The unix socket path to the spire-agent
 agentSocketPath: /run/spire/agent-sockets/spire-agent.sock
 
+## @param agentSocketMountPropagation Mount propagation for the directory holding agentSocketPath. Empty leaves it at the Kubernetes default (None). Set to Bidirectional when the source is itself a mount point that can be remounted underneath the driver, such as a spiffefs filesystem, so workloads keep working across a remount. Valid options are [None, HostToContainer, Bidirectional].
+agentSocketMountPropagation: ""
+
 ## @param kubeletPath Path to kubelet file
 kubeletPath: /var/lib/kubelet
 

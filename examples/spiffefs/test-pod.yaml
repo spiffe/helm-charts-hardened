@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: spiffefs-test
+spec:
+  terminationGracePeriodSeconds: 1
+  containers:
+    - name: main
+      image: busybox
+      command: ["/bin/sh", "-c", "sleep infinity"]
+      volumeMounts:
+        - name: spiffefs
+          mountPath: /spiffe
+          readOnly: true
+          # This is what the test is really exercising. spiffefs tears down and
+          # remounts its filesystem when it restarts, and this pod has to pick
+          # the new mount up without being restarted itself. That only happens
+          # if the mount is a slave of the host's, which is what
+          # HostToContainer asks for. Without it the pod keeps a stale mount
+          # and every read fails.
+          mountPropagation: HostToContainer
+      readinessProbe:
+        exec:
+          command: ["/bin/sh", "-c", "test -s /spiffe/hints.json"]
+        initialDelaySeconds: 2
+        periodSeconds: 2
+  volumes:
+    - name: spiffefs
+      csi:
+        driver: spiffefs.csi.spiffe.io
+        readOnly: true

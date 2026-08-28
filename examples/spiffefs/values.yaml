@@ -1,0 +1,10 @@
+spiffefs:
+  enabled: true
+
+spire-agent:
+  sockets:
+    admin:
+      # spiffefs talks the Delegated Identity API to the agent's admin socket,
+      # and reaches it through the host, so the agent has to publish it there.
+      enabled: true
+      mountOnHost: true

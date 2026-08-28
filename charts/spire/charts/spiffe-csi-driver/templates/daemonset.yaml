@@ -109,6 +109,12 @@ spec:
             - mountPath: /spire-agent-socket
               name: spire-agent-socket-dir
               readOnly: true
+              {{- with .Values.agentSocketMountPropagation }}
+              {{- if not (has . (list "None" "HostToContainer" "Bidirectional")) }}
+              {{- fail "agentSocketMountPropagation can only be None, HostToContainer or Bidirectional" }}
+              {{- end }}
+              mountPropagation: {{ . }}
+              {{- end }}
             # The volume that will contain the CSI driver socket shared
             # with the kubelet and the driver registrar.
             - mountPath: /spiffe-csi
