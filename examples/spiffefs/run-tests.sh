@@ -111,9 +111,25 @@ wait_for_svid() {
   echo "No svid appeared in ${pod}'s mount within ${timeout}s."
   dump_mount_topology "${pod}" "${when:-at failure}"
   kubectl exec "${pod}" -- ls -la /spiffe/ /spiffe/private/ || true
-  kubectl exec "${pod}" -- cat /spiffe/private/hints.json || true
+  pod_read "${pod}" /spiffe/private/hints.json || true
   kubectl logs -n spire-system "$(node_spiffefs_pod "$(pod_node "${pod}")")" --tail=50 || true
   return 1
+}
+
+# Pull a file out of a workload. busybox cat splices to stdout, and that has
+# come back empty through kubectl exec; dd does a plain read/write.
+pod_read() {
+  kubectl exec "$1" -- dd "if=$2" bs=64k 2>/dev/null
+}
+
+# Which read paths actually return the file. If cat comes back short while dd
+# does not, splice against the fuse filesystem is broken, which is a spiffefs
+# bug rather than a test one.
+report_read_paths() {
+  local pod="$1" file="$2"
+  echo "read paths for ${file} in ${pod}: stat / cat-to-pipe / dd (bytes)"
+  kubectl exec "${pod}" -- sh -c "wc -c < ${file}; cat ${file} | wc -c; dd if=${file} bs=64k 2>/dev/null | wc -c" || true
+  echo "  through kubectl exec: cat=$(kubectl exec "${pod}" -- cat "${file}" | wc -c) dd=$(pod_read "${pod}" "${file}" | wc -c)"
 }
 
 # spiffefs resolves credentials per calling pid, so a mix-up would hand one
@@ -126,7 +142,7 @@ check_svid() {
   local expected="$3"
   local hints id file bundle want got
 
-  hints="$(kubectl exec "${pod}" -- cat /spiffe/private/hints.json)"
+  hints="$(pod_read "${pod}" /spiffe/private/hints.json)"
   id="$(printf '%s' "${hints}" | jq -r --arg h "${hint}" '.hints[] | select(.hint == $h) | .id')"
   if [ -z "${id}" ] || [ "${id}" = "null" ]; then
     echo "${pod}: no svid with hint \"${hint}\" in hints.json:"
@@ -142,7 +158,7 @@ check_svid() {
   fi
 
   bundle="/tmp/${pod}.${hint:-none}.pem"
-  kubectl exec "${pod}" -- cat "${file}" > "${bundle}"
+  pod_read "${pod}" "${file}" > "${bundle}"
 
   if ! openssl x509 -in "${bundle}" -noout -text | grep -q "URI:${expected}"; then
     echo "${pod}: ${file} carries the wrong identity, expected ${expected}"
@@ -161,13 +177,13 @@ check_svid() {
 }
 
 svid_count() {
-  kubectl exec "$1" -- cat /spiffe/private/hints.json | jq '.hints | length'
+  pod_read "$1" /spiffe/private/hints.json | jq '.hints | length'
 }
 
 check_mount() {
   local pod="$1"
   kubectl exec "${pod}" -- ls -l /spiffe/ /spiffe/private/
-  kubectl exec "${pod}" -- cat /spiffe/private/hints.json
+  pod_read "${pod}" /spiffe/private/hints.json
   # An SVID is one file holding the key and its chain.
   kubectl exec "${pod}" -- grep -q "BEGIN PRIVATE KEY" /spiffe/private/credential-bundle.private-key.x509.pem
   kubectl exec "${pod}" -- grep -q "BEGIN CERTIFICATE" /spiffe/private/credential-bundle.private-key.x509.pem
@@ -257,6 +273,7 @@ echo "spiffefs-test is on $(pod_node spiffefs-test), served by $(node_spiffefs_p
 # bind drops it; only a recursive one picks it up.
 wait_for_svid spiffefs-test "on first publish, spiffefs already up"
 check_mount spiffefs-test
+report_read_paths spiffefs-test /spiffe/private/hints.json
 echo "ordering 1 ok: a workload published after spiffefs was already mounted sees the filesystem."
 
 # Ordering 2: publish a workload while spiffefs is absent, then bring spiffefs
@@ -302,7 +319,7 @@ if [ "$(svid_count spiffefs-test)" -ne 1 ]; then
 fi
 if [ "$(svid_count spiffefs-test-late)" -ne 2 ]; then
   echo "spiffefs-test-late should have two svids, has $(svid_count spiffefs-test-late):"
-  kubectl exec spiffefs-test-late -- cat /spiffe/private/hints.json
+  pod_read spiffefs-test-late /spiffe/private/hints.json
   exit 1
 fi
 kubectl exec spiffefs-test-late -- ls -l /spiffe/private/
