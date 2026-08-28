@@ -66,9 +66,10 @@ spec:
         - name: spiffefs
           image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
-          {{- /* -umount clears a mount left by a previous instance. */}}
+          {{- /* No -umount: each pod gets a fresh mount namespace, so the only
+                 thing at this path is kubelet's bind mount, and detaching that
+                 severs the propagation the csi driver depends on. */}}
           args:
-            - "-umount"
             - {{ $mountPath | quote }}
           env:
             - name: SPIFFE_ENDPOINT_SOCKET
