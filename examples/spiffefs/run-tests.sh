@@ -25,13 +25,18 @@ for i in "$@"; do
 done
 
 teardown() {
+  # Undo the selector that ordering 2 uses to take spiffefs down, so a failure
+  # mid-phase does not leave the daemonset scaled away.
+  kubectl patch daemonset spire-spiffefs -n spire-system --type=strategic \
+    -p '{"spec":{"template":{"spec":{"nodeSelector":null}}}}' 2>/dev/null || true
+
   print_helm_releases
   print_spire_workload_status spire-server spire-system
 
   if [[ "$1" -ne 0 ]]; then
     get_namespace_details spire-server
     get_namespace_details spire-system
-    kubectl describe pod spiffefs-test || true
+    kubectl describe pod spiffefs-test spiffefs-test-late || true
     kubectl describe daemonset/spire-spiffefs -n spire-system || true
     # Bounded: an unbounded dump overflows the step summary size limit.
     for p in $(kubectl get pod -n spire-system -l app.kubernetes.io/name=spiffefs -o name 2>/dev/null); do
@@ -42,7 +47,7 @@ teardown() {
   fi
 
   if [ "${CLEANUP}" -eq 1 ]; then
-    kubectl delete -f "${SCRIPTPATH}/test-pod.yaml" --ignore-not-found 2>/dev/null || true
+    kubectl delete pod spiffefs-test spiffefs-test-late --ignore-not-found 2>/dev/null || true
     helm uninstall --namespace spire-server spire 2>/dev/null || true
     kubectl delete ns spire-server 2>/dev/null || true
     kubectl delete ns spire-system 2>/dev/null || true
@@ -54,27 +59,34 @@ trap 'EC=$? && trap - SIGTERM && teardown $EC' SIGINT SIGTERM EXIT
 # The peer group ids are the point here. If the workload's mount shares a peer
 # group with the node's, a remount at the source should reach it; if it does not,
 # the workload is holding a detached copy of the old filesystem.
-# The spiffefs pod serving the test pod's node. Resolved on each call because a
-# rollout replaces it, and a name captured earlier goes stale exactly when the
+
+pod_node() {
+  kubectl get pod "$1" -o go-template='{{ .spec.nodeName }}' 2>/dev/null
+}
+
+# The spiffefs pod on a given node. Resolved on each call because a rollout
+# replaces it, and a name captured earlier goes stale exactly when the
 # post-restart evidence is needed.
 node_spiffefs_pod() {
   kubectl get pod -n spire-system -l app.kubernetes.io/name=spiffefs \
-    --field-selector "spec.nodeName=${TEST_NODE}" -o name 2>/dev/null | head -n 1
+    --field-selector "spec.nodeName=$1" -o name 2>/dev/null | head -n 1
 }
 
 dump_mount_topology() {
-  local pod
-  pod="$(node_spiffefs_pod)"
-  echo "=== mount topology ${1} ==="
-  echo "--- node ${TEST_NODE:-unknown} via ${pod:-none} ---"
-  if [ -n "${pod}" ]; then
-    kubectl exec -n spire-system "${pod}" -- \
+  local pod node sfs
+  pod="$1"
+  node="$(pod_node "${pod}")"
+  sfs="$(node_spiffefs_pod "${node}")"
+  echo "=== mount topology for ${pod} ${2} ==="
+  echo "--- node ${node:-unknown} via ${sfs:-none} ---"
+  if [ -n "${sfs}" ]; then
+    kubectl exec -n spire-system "${sfs}" -- \
       sh -c 'grep spiffefs /proc/1/mountinfo || echo "the node has no spiffefs mount"' || true
   else
-    echo "no spiffefs pod found on ${TEST_NODE:-unknown}"
+    echo "no spiffefs pod on ${node:-unknown}"
   fi
   echo "--- workload ---"
-  kubectl exec spiffefs-test -- \
+  kubectl exec "${pod}" -- \
     sh -c 'grep spiffe /proc/self/mountinfo || echo "the workload has no spiffe mount"' || true
 }
 
@@ -82,34 +94,59 @@ dump_mount_topology() {
 # entry, the server has propagated it and the agent has it cached. Poll for it
 # rather than racing that pipeline.
 wait_for_svid() {
+  local pod="$1"
+  local when="${2:-}"
   local timeout=120
   local count=0
   while [ "${count}" -lt "${timeout}" ]; do
-    if kubectl exec spiffefs-test -- test -f /spiffe/private/credential-bundle.private-key.x509.pem 2>/dev/null; then
+    if kubectl exec "${pod}" -- test -f /spiffe/private/credential-bundle.private-key.x509.pem 2>/dev/null; then
       return 0
     fi
     sleep 3
     count=$((count + 3))
   done
-  echo "No svid appeared in the mount within ${timeout}s."
-  dump_mount_topology "after the restart"
-  kubectl exec spiffefs-test -- ls -la /spiffe/ /spiffe/private/ || true
-  kubectl exec spiffefs-test -- cat /spiffe/private/hints.json || true
-  kubectl logs -n spire-system "$(node_spiffefs_pod)" --tail=50 || true
+  echo "No svid appeared in ${pod}'s mount within ${timeout}s."
+  dump_mount_topology "${pod}" "${when:-at failure}"
+  kubectl exec "${pod}" -- ls -la /spiffe/ /spiffe/private/ || true
+  kubectl exec "${pod}" -- cat /spiffe/private/hints.json || true
+  kubectl logs -n spire-system "$(node_spiffefs_pod "$(pod_node "${pod}")")" --tail=50 || true
   return 1
 }
 
-# Must hold both before and after spiffefs is restarted under the pod.
 check_mount() {
-  kubectl exec spiffefs-test -- ls -l /spiffe/ /spiffe/private/
-  kubectl exec spiffefs-test -- cat /spiffe/private/hints.json
+  local pod="$1"
+  kubectl exec "${pod}" -- ls -l /spiffe/ /spiffe/private/
+  kubectl exec "${pod}" -- cat /spiffe/private/hints.json
   # An SVID is one file holding the key and its chain.
-  kubectl exec spiffefs-test -- grep -q "BEGIN PRIVATE KEY" /spiffe/private/credential-bundle.private-key.x509.pem
-  kubectl exec spiffefs-test -- grep -q "BEGIN CERTIFICATE" /spiffe/private/credential-bundle.private-key.x509.pem
+  kubectl exec "${pod}" -- grep -q "BEGIN PRIVATE KEY" /spiffe/private/credential-bundle.private-key.x509.pem
+  kubectl exec "${pod}" -- grep -q "BEGIN CERTIFICATE" /spiffe/private/credential-bundle.private-key.x509.pem
   # Trust bundle is named for the trust domain from common_test_your_values.
-  kubectl exec spiffefs-test -- grep -q "BEGIN CERTIFICATE" /spiffe/private/production.other.spiffe-trust-bundle.x509.pem
+  kubectl exec "${pod}" -- grep -q "BEGIN CERTIFICATE" /spiffe/private/production.other.spiffe-trust-bundle.x509.pem
   # hints.json describes the SVIDs present.
-  kubectl exec spiffefs-test -- grep -q '"fingerprint"' /spiffe/private/hints.json
+  kubectl exec "${pod}" -- grep -q '"fingerprint"' /spiffe/private/hints.json
+}
+
+# Take spiffefs off every node by giving it a nodeSelector nothing matches, and
+# put it back by removing that selector.
+spiffefs_down() {
+  kubectl patch daemonset spire-spiffefs -n spire-system --type=strategic \
+    -p '{"spec":{"template":{"spec":{"nodeSelector":{"spiffefs.test/absent":"true"}}}}}'
+  local count=0
+  while [ "${count}" -lt 120 ]; do
+    if [ -z "$(kubectl get pod -n spire-system -l app.kubernetes.io/name=spiffefs -o name)" ]; then
+      return 0
+    fi
+    sleep 3
+    count=$((count + 3))
+  done
+  echo "spiffefs pods did not go away"
+  return 1
+}
+
+spiffefs_up() {
+  kubectl patch daemonset spire-spiffefs -n spire-system --type=strategic \
+    -p '{"spec":{"template":{"spec":{"nodeSelector":null}}}}'
+  kubectl rollout status daemonset/spire-spiffefs -n spire-system --timeout 3m
 }
 
 # CI already installed spire-crds into spire-server. The CRDs are cluster
@@ -162,20 +199,41 @@ kubectl exec spiffefs-test -- ls -la /spiffe/ /spiffe/private/ || {
   exit 1
 }
 
-# The cluster has a spiffefs pod per node. Diagnostics have to come from the one
-# on the test pod's node, not whichever was listed first.
-TEST_NODE="$(kubectl get pod spiffefs-test -o go-template='{{ .spec.nodeName }}')"
-echo "test pod is on ${TEST_NODE}, served by $(node_spiffefs_pod)"
+echo "spiffefs-test is on $(pod_node spiffefs-test), served by $(node_spiffefs_pod "$(pod_node spiffefs-test)")"
 
-# The mount works to begin with.
-wait_for_svid
-check_mount
+# Ordering 1: spiffefs was already mounted when this workload was published, so
+# the csi driver had to carry an existing mount across at bind time. A plain
+# bind drops it; only a recursive one picks it up.
+wait_for_svid spiffefs-test "on first publish, spiffefs already up"
+check_mount spiffefs-test
+echo "ordering 1 ok: a workload published after spiffefs was already mounted sees the filesystem."
+
+# Ordering 2: publish a workload while spiffefs is absent, then bring spiffefs
+# back. Here nothing exists to carry across at bind time and the mount has to
+# arrive by propagation afterwards.
+spiffefs_down
+sed 's/name: spiffefs-test$/name: spiffefs-test-late/' "${SCRIPTPATH}/test-pod.yaml" | kubectl apply -f -
+kubectl wait --for=condition=Ready pod/spiffefs-test-late --timeout 2m
+
+# Nothing should be there yet; if it is, the ordering under test never happened.
+if kubectl exec spiffefs-test-late -- test -f /spiffe/private/credential-bundle.private-key.x509.pem 2>/dev/null; then
+  echo "spiffefs was supposed to be down, but the workload already has credentials; ordering 2 is not being exercised."
+  exit 1
+fi
+
+spiffefs_up
+wait_for_svid spiffefs-test-late "after spiffefs came up under an existing workload"
+check_mount spiffefs-test-late
+echo "ordering 2 ok: a workload published before spiffefs picks the filesystem up when it arrives."
+
+# The first workload must still be fine after all that.
+check_mount spiffefs-test
 
 # Recorded so a silent restart cannot be mistaken for a surviving mount.
 POD_UID="$(kubectl get pod spiffefs-test -o go-template='{{ .metadata.uid }}')"
 RESTARTS_BEFORE="$(kubectl get pod spiffefs-test -o go-template='{{ (index .status.containerStatuses 0).restartCount }}')"
 
-dump_mount_topology "before the restart"
+dump_mount_topology spiffefs-test "before the restart"
 
 # Restart spiffefs, remounting its filesystem under the running test pod.
 kubectl rollout restart daemonset/spire-spiffefs -n spire-system
@@ -186,11 +244,11 @@ sleep 15
 
 kubectl get pods -A
 
-wait_for_svid
+wait_for_svid spiffefs-test "after the rollout restart"
 
 # Still works, with the test pod untouched. Wrong propagation would leave it
 # holding a stale mount and these reads would fail.
-check_mount
+check_mount spiffefs-test
 
 POD_UID_AFTER="$(kubectl get pod spiffefs-test -o go-template='{{ .metadata.uid }}')"
 RESTARTS_AFTER="$(kubectl get pod spiffefs-test -o go-template='{{ (index .status.containerStatuses 0).restartCount }}')"
@@ -233,8 +291,8 @@ if [ "${SPIFFEFS_RESTARTS_BEFORE}" = "${SPIFFEFS_RESTARTS_AFTER}" ]; then
   exit 1
 fi
 
-wait_for_svid
-check_mount
+wait_for_svid spiffefs-test "after the in place restart"
+check_mount spiffefs-test
 
 POD_UID_FINAL="$(kubectl get pod spiffefs-test -o go-template='{{ .metadata.uid }}')"
 RESTARTS_FINAL="$(kubectl get pod spiffefs-test -o go-template='{{ (index .status.containerStatuses 0).restartCount }}')"

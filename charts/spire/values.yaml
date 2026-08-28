@@ -314,7 +314,7 @@ spiffefs-csi-driver:
   image:
     registry: docker.io
     repository: kfox1111/misc2
-    tag: csi
+    tag: csi2
   healthChecks:
     ## @param spiffefs-csi-driver.healthChecks.port The port where the spiffefs CSI driver health checks are exposed
     port: 9811
