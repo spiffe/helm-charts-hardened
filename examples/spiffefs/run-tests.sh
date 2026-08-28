@@ -54,11 +54,25 @@ trap 'EC=$? && trap - SIGTERM && teardown $EC' SIGINT SIGTERM EXIT
 # The peer group ids are the point here. If the workload's mount shares a peer
 # group with the node's, a remount at the source should reach it; if it does not,
 # the workload is holding a detached copy of the old filesystem.
+# The spiffefs pod serving the test pod's node. Resolved on each call because a
+# rollout replaces it, and a name captured earlier goes stale exactly when the
+# post-restart evidence is needed.
+node_spiffefs_pod() {
+  kubectl get pod -n spire-system -l app.kubernetes.io/name=spiffefs \
+    --field-selector "spec.nodeName=${TEST_NODE}" -o name 2>/dev/null | head -n 1
+}
+
 dump_mount_topology() {
+  local pod
+  pod="$(node_spiffefs_pod)"
   echo "=== mount topology ${1} ==="
-  echo "--- node (${TEST_NODE:-unknown}) ---"
-  kubectl exec -n spire-system "${SPIFFEFS_POD_FOR_TEST:-${SPIFFEFS_POD}}" -- \
-    sh -c 'grep spiffefs /proc/1/mountinfo || echo "the node has no spiffefs mount"' || true
+  echo "--- node ${TEST_NODE:-unknown} via ${pod:-none} ---"
+  if [ -n "${pod}" ]; then
+    kubectl exec -n spire-system "${pod}" -- \
+      sh -c 'grep spiffefs /proc/1/mountinfo || echo "the node has no spiffefs mount"' || true
+  else
+    echo "no spiffefs pod found on ${TEST_NODE:-unknown}"
+  fi
   echo "--- workload ---"
   kubectl exec spiffefs-test -- \
     sh -c 'grep spiffe /proc/self/mountinfo || echo "the workload has no spiffe mount"' || true
@@ -81,7 +95,7 @@ wait_for_svid() {
   dump_mount_topology "after the restart"
   kubectl exec spiffefs-test -- ls -la /spiffe/ || true
   kubectl exec spiffefs-test -- cat /spiffe/hints.json || true
-  kubectl logs -n spire-system "${SPIFFEFS_POD_FOR_TEST:-${SPIFFEFS_POD}}" --tail=50 || true
+  kubectl logs -n spire-system "$(node_spiffefs_pod)" --tail=50 || true
   return 1
 }
 
@@ -151,9 +165,7 @@ kubectl exec spiffefs-test -- ls -la /spiffe/ || {
 # The cluster has a spiffefs pod per node. Diagnostics have to come from the one
 # on the test pod's node, not whichever was listed first.
 TEST_NODE="$(kubectl get pod spiffefs-test -o go-template='{{ .spec.nodeName }}')"
-SPIFFEFS_POD_FOR_TEST="$(kubectl get pod -n spire-system -l app.kubernetes.io/name=spiffefs \
-  --field-selector "spec.nodeName=${TEST_NODE}" -o name | head -n 1)"
-echo "test pod is on ${TEST_NODE}, served by ${SPIFFEFS_POD_FOR_TEST}"
+echo "test pod is on ${TEST_NODE}, served by $(node_spiffefs_pod)"
 
 # The mount works to begin with.
 wait_for_svid
@@ -195,9 +207,8 @@ fi
 
 echo "spiffefs mount survived a daemonset restart with the workload pod untouched."
 
-# A rollout replaces the pod, so the init container that clears a stale mount
-# gets to run. A crash does not: kubelet restarts the container in place and
-# init containers are not re-run. Kill the process on every node to cover that.
+# A rollout replaces the pod. A crash does not: kubelet restarts the container in
+# place. Kill the process on every node to cover that path too.
 SPIFFEFS_RESTARTS_BEFORE="$(kubectl get pod -n spire-system -l app.kubernetes.io/name=spiffefs \
   -o go-template='{{ range .items }}{{ .metadata.name }}={{ (index .status.containerStatuses 0).restartCount }} {{ end }}')"
 echo "spiffefs restart counts before: ${SPIFFEFS_RESTARTS_BEFORE}"

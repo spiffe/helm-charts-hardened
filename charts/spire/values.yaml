@@ -305,6 +305,16 @@ spiffefs-csi-driver:
   agentSocketPath: /run/spire/k8s/spiffefs/hints.json
   ## @param spiffefs-csi-driver.agentSocketMountPropagation spiffefs remounts its filesystem when it restarts, so this instance has to see mounts propagate rather than hold a stale bind mount.
   agentSocketMountPropagation: Bidirectional
+  ## @param spiffefs-csi-driver.image.registry The OCI registry to pull the image from
+  ## @param spiffefs-csi-driver.image.repository The repository within the registry
+  ## @param spiffefs-csi-driver.image.tag Overrides the image tag whose default is the chart appVersion
+  ## Temporary: the released driver publishes the volume as a plain bind, which pins it to
+  ## whichever filesystem was mounted at publish time. This build marks the published mount
+  ## slave to the source, so a spiffefs restart reaches workloads instead of stranding them.
+  image:
+    registry: docker.io
+    repository: kfox1111/misc2
+    tag: csi
   healthChecks:
     ## @param spiffefs-csi-driver.healthChecks.port The port where the spiffefs CSI driver health checks are exposed
     port: 9811
