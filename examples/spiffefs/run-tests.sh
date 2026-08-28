@@ -85,7 +85,7 @@ wait_for_svid() {
   local timeout=120
   local count=0
   while [ "${count}" -lt "${timeout}" ]; do
-    if kubectl exec spiffefs-test -- test -f /spiffe/credential-bundle.private-key.x509.pem 2>/dev/null; then
+    if kubectl exec spiffefs-test -- test -f /spiffe/private/credential-bundle.private-key.x509.pem 2>/dev/null; then
       return 0
     fi
     sleep 3
@@ -93,23 +93,23 @@ wait_for_svid() {
   done
   echo "No svid appeared in the mount within ${timeout}s."
   dump_mount_topology "after the restart"
-  kubectl exec spiffefs-test -- ls -la /spiffe/ || true
-  kubectl exec spiffefs-test -- cat /spiffe/hints.json || true
+  kubectl exec spiffefs-test -- ls -la /spiffe/ /spiffe/private/ || true
+  kubectl exec spiffefs-test -- cat /spiffe/private/hints.json || true
   kubectl logs -n spire-system "$(node_spiffefs_pod)" --tail=50 || true
   return 1
 }
 
 # Must hold both before and after spiffefs is restarted under the pod.
 check_mount() {
-  kubectl exec spiffefs-test -- ls -l /spiffe/
-  kubectl exec spiffefs-test -- cat /spiffe/hints.json
+  kubectl exec spiffefs-test -- ls -l /spiffe/ /spiffe/private/
+  kubectl exec spiffefs-test -- cat /spiffe/private/hints.json
   # An SVID is one file holding the key and its chain.
-  kubectl exec spiffefs-test -- grep -q "BEGIN PRIVATE KEY" /spiffe/credential-bundle.private-key.x509.pem
-  kubectl exec spiffefs-test -- grep -q "BEGIN CERTIFICATE" /spiffe/credential-bundle.private-key.x509.pem
+  kubectl exec spiffefs-test -- grep -q "BEGIN PRIVATE KEY" /spiffe/private/credential-bundle.private-key.x509.pem
+  kubectl exec spiffefs-test -- grep -q "BEGIN CERTIFICATE" /spiffe/private/credential-bundle.private-key.x509.pem
   # Trust bundle is named for the trust domain from common_test_your_values.
-  kubectl exec spiffefs-test -- grep -q "BEGIN CERTIFICATE" /spiffe/production.other.spiffe-trust-bundle.x509.pem
+  kubectl exec spiffefs-test -- grep -q "BEGIN CERTIFICATE" /spiffe/private/production.other.spiffe-trust-bundle.x509.pem
   # hints.json describes the SVIDs present.
-  kubectl exec spiffefs-test -- grep -q '"fingerprint"' /spiffe/hints.json
+  kubectl exec spiffefs-test -- grep -q '"fingerprint"' /spiffe/private/hints.json
 }
 
 # CI already installed spire-crds into spire-server. The CRDs are cluster
@@ -141,11 +141,11 @@ kubectl exec -n spire-system "${SPIFFEFS_POD}" -- sh -c 'grep spiffefs /proc/sel
 # mount is absent here it never propagated out of the spiffefs container, so
 # nothing downstream can see it either.
 kubectl exec -n spire-system "${SPIFFEFS_POD}" -- sh -c 'grep spiffefs /proc/1/mountinfo || echo "the node does not see the spiffefs mount"'
-if ! kubectl exec -n spire-system "${SPIFFEFS_POD}" -- ls -la /run/spire/k8s/spiffefs; then
+if ! kubectl exec -n spire-system "${SPIFFEFS_POD}" -- ls -la /run/spire/k8s/spiffefs/private; then
   echo "spiffefs has not mounted its filesystem; the failure is in spiffefs itself, not mount propagation."
   exit 1
 fi
-if ! kubectl exec -n spire-system "${SPIFFEFS_POD}" -- cat /run/spire/k8s/spiffefs/hints.json; then
+if ! kubectl exec -n spire-system "${SPIFFEFS_POD}" -- cat /run/spire/k8s/spiffefs/private/hints.json; then
   echo "spiffefs mounted but is not serving hints.json."
   exit 1
 fi
@@ -157,7 +157,7 @@ kubectl wait --for=condition=Ready pod/spiffefs-test --timeout 2m
 # listing means a bind mount of the bare directory; a permission error means
 # spiffefs is refusing the caller.
 kubectl exec spiffefs-test -- sh -c 'grep spiffe /proc/self/mounts || echo "no spiffe mount visible to the workload"'
-kubectl exec spiffefs-test -- ls -la /spiffe/ || {
+kubectl exec spiffefs-test -- ls -la /spiffe/ /spiffe/private/ || {
   echo "spiffefs mounted on the host but the workload cannot read it: mount propagation is not reaching the pod."
   exit 1
 }

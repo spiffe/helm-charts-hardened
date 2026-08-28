@@ -18,8 +18,8 @@ image:
   pullPolicy: IfNotPresent
   tag: spiffefs2
 
-## @param mountPath Host directory spiffefs mounts its filesystem on. Must match the agentSocketPath directory of the spiffe-csi-driver instance publishing it.
-mountPath: /run/spire/k8s/spiffefs
+## @param mountPath Host directory spiffefs mounts its filesystem on. Its parent is what the spiffe-csi-driver instance publishes, so workloads read the files one level down. The parent must match that instance's agentSocketPath directory.
+mountPath: /run/spire/k8s/spiffefs/private
 
 ## @param agentSocketPath Host path to the spire-agent admin socket used for the Delegated Identity API. Requires the agent to set sockets.admin.enabled and sockets.admin.mountOnHost.
 agentSocketPath: /run/spire/agent/sockets/csi.spiffe.io/admin/admin.sock

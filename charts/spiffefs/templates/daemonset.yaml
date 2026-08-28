@@ -1,4 +1,8 @@
 {{- $mountPath := include "spiffefs.mount-path" . }}
+{{- $parentPath := $mountPath | dir }}
+{{- if eq $parentPath "/" }}
+{{- fail "spiffefs.mountPath must be at least one directory deep: the csi driver publishes its parent" }}
+{{- end }}
 {{- $agentSocketPath := include "spiffefs.agent-socket-path" . }}
 apiVersion: apps/v1
 kind: DaemonSet
@@ -58,10 +62,36 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if gt (len .Values.initContainers) 0 }}
       initContainers:
+        {{- /* The mount point lives inside the published parent, so it has to
+               exist before spiffefs can mount on it. Clearing a leftover fuse
+               mount here is what recovers from an instance that died without
+               unmounting; binding the parent rather than the mount point is what
+               makes that possible at all. */}}
+        - name: prepare-mount-point
+          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              mkdir -p {{ $mountPath | quote }}
+              if awk -v mp={{ $mountPath | quote }} '$2 == mp && $3 ~ /^fuse/ { found = 1 } END { exit !found }' /proc/self/mounts; then
+                echo "clearing stale spiffefs mount at {{ $mountPath }}"
+                umount -l {{ $mountPath | quote }}
+              else
+                echo "no stale spiffefs mount at {{ $mountPath }}"
+              fi
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          volumeMounts:
+            - name: spiffefs-mount-dir
+              mountPath: {{ $parentPath | quote }}
+              mountPropagation: Bidirectional
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+        {{- if gt (len .Values.initContainers) 0 }}
         {{- toYaml .Values.initContainers | nindent 8 }}
-      {{- end }}
+        {{- end }}
       containers:
         - name: spiffefs
           image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.image "global" .Values.global) }}
@@ -83,10 +113,13 @@ spec:
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           volumeMounts:
-            {{- /* Bidirectional so the FUSE mount made in this container
-                   propagates out to the host and on to the csi driver. */}}
+            {{- /* The parent, not the mount point: a mount made underneath a
+                   bind of the parent propagates out to the host and on to the
+                   csi driver, and survives being replaced. Binding the mount
+                   point itself ties the csi driver to one filesystem instance,
+                   which is orphaned the moment spiffefs restarts. */}}
             - name: spiffefs-mount-dir
-              mountPath: {{ $mountPath | quote }}
+              mountPath: {{ $parentPath | quote }}
               mountPropagation: Bidirectional
             - name: spire-agent-admin-socket-dir
               mountPath: {{ $agentSocketPath | dir | quote }}
@@ -104,7 +137,7 @@ spec:
       volumes:
         - name: spiffefs-mount-dir
           hostPath:
-            path: {{ $mountPath | quote }}
+            path: {{ $parentPath | quote }}
             type: DirectoryOrCreate
         - name: spire-agent-admin-socket-dir
           hostPath:

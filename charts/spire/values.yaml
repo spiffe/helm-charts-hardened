@@ -301,8 +301,8 @@ spiffefs:
 spiffefs-csi-driver:
   ## @param spiffefs-csi-driver.pluginName The plugin name for the spiffefs CSI driver instance
   pluginName: spiffefs.csi.spiffe.io
-  ## @param spiffefs-csi-driver.agentSocketPath A file inside the spiffefs mount. Only its directory is used, and it has to match spiffefs.mountPath.
-  agentSocketPath: /run/spire/k8s/spiffefs/hints.json
+  ## @param spiffefs-csi-driver.agentSocketPath Only its directory is used. That directory is published to workloads and must be the parent of spiffefs.mountPath, never the mount point itself: publishing the mount point ties workloads to one filesystem instance, which is orphaned when spiffefs restarts.
+  agentSocketPath: /run/spire/k8s/spiffefs/private
   ## @param spiffefs-csi-driver.agentSocketMountPropagation spiffefs remounts its filesystem when it restarts, so this instance has to see mounts propagate rather than hold a stale bind mount.
   agentSocketMountPropagation: Bidirectional
   ## @param spiffefs-csi-driver.image.registry The OCI registry to pull the image from
