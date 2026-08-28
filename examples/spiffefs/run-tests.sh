@@ -51,6 +51,19 @@ teardown() {
 
 trap 'EC=$? && trap - SIGTERM && teardown $EC' SIGINT SIGTERM EXIT
 
+# The peer group ids are the point here. If the workload's mount shares a peer
+# group with the node's, a remount at the source should reach it; if it does not,
+# the workload is holding a detached copy of the old filesystem.
+dump_mount_topology() {
+  echo "=== mount topology ${1} ==="
+  echo "--- node (${TEST_NODE:-unknown}) ---"
+  kubectl exec -n spire-system "${SPIFFEFS_POD_FOR_TEST:-${SPIFFEFS_POD}}" -- \
+    sh -c 'grep spiffefs /proc/1/mountinfo || echo "the node has no spiffefs mount"' || true
+  echo "--- workload ---"
+  kubectl exec spiffefs-test -- \
+    sh -c 'grep spiffe /proc/self/mountinfo || echo "the workload has no spiffe mount"' || true
+}
+
 # An svid reaches the mount only once the controller manager has created the
 # entry, the server has propagated it and the agent has it cached. Poll for it
 # rather than racing that pipeline.
@@ -65,10 +78,7 @@ wait_for_svid() {
     count=$((count + 3))
   done
   echo "No svid appeared in the mount within ${timeout}s."
-  # Whether the workload still holds the old mount, or none at all, says which
-  # half of the restart went wrong.
-  kubectl exec spiffefs-test -- sh -c 'cat /proc/self/mounts' || true
-  kubectl exec -n spire-system "${SPIFFEFS_POD_FOR_TEST:-${SPIFFEFS_POD}}" -- sh -c 'grep spiffefs /proc/1/mountinfo || echo "the node has no spiffefs mount"' || true
+  dump_mount_topology "after the restart"
   kubectl exec spiffefs-test -- ls -la /spiffe/ || true
   kubectl exec spiffefs-test -- cat /spiffe/hints.json || true
   kubectl logs -n spire-system "${SPIFFEFS_POD_FOR_TEST:-${SPIFFEFS_POD}}" --tail=50 || true
@@ -152,6 +162,8 @@ check_mount
 # Recorded so a silent restart cannot be mistaken for a surviving mount.
 POD_UID="$(kubectl get pod spiffefs-test -o go-template='{{ .metadata.uid }}')"
 RESTARTS_BEFORE="$(kubectl get pod spiffefs-test -o go-template='{{ (index .status.containerStatuses 0).restartCount }}')"
+
+dump_mount_topology "before the restart"
 
 # Restart spiffefs, remounting its filesystem under the running test pod.
 kubectl rollout restart daemonset/spire-spiffefs -n spire-system
