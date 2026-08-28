@@ -108,7 +108,8 @@ spec:
             # driver will mount this directory into containers.
             - mountPath: /spire-agent-socket
               name: spire-agent-socket-dir
-              readOnly: true
+              {{- /* Bidirectional propagation needs a read-write mount. */}}
+              readOnly: {{ ne .Values.agentSocketMountPropagation "Bidirectional" }}
               {{- with .Values.agentSocketMountPropagation }}
               {{- if not (has . (list "None" "HostToContainer" "Bidirectional")) }}
               {{- fail "agentSocketMountPropagation can only be None, HostToContainer or Bidirectional" }}

@@ -86,6 +86,10 @@ fi
 kubectl logs -n spire-system "${SPIFFEFS_POD}" --tail=50
 # A fuse entry here separates "never mounted" from "mounted but erroring".
 kubectl exec -n spire-system "${SPIFFEFS_POD}" -- sh -c 'grep spiffefs /proc/self/mounts || echo "no spiffefs mount in this container"'
+# hostPID lets us read the node's own mount table through pid 1. If the fuse
+# mount is absent here it never propagated out of the spiffefs container, so
+# nothing downstream can see it either.
+kubectl exec -n spire-system "${SPIFFEFS_POD}" -- sh -c 'grep spiffefs /proc/1/mountinfo || echo "the node does not see the spiffefs mount"'
 if ! kubectl exec -n spire-system "${SPIFFEFS_POD}" -- ls -la /run/spire/k8s/spiffefs; then
   echo "spiffefs has not mounted its filesystem; the failure is in spiffefs itself, not mount propagation."
   exit 1
