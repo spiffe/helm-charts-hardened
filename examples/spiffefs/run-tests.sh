@@ -325,7 +325,8 @@ check_mount spiffefs-test
 # Each workload gets its own identity. The two pods run under different service
 # accounts, so the controller manager issues them different SPIFFE IDs. An
 # identity with no explicit hint is named after its ClusterSPIFFEID key, so the
-# chart's stock identity arrives as hint "default".
+# chart's stock fallback identity arrives as hint "default", while the late pod
+# carries the two explicit identities from values.yaml instead.
 # The late pod matches a second, hinted ClusterSPIFFEID, so it should end up with
 # two svids: the extra one under an indexed file name, named by hints.json.
 wait_for_svid_count spiffefs-test 1
@@ -333,11 +334,11 @@ wait_for_svid_count spiffefs-test-late 2
 kubectl exec spiffefs-test-late -- ls -l /spiffe/private/
 
 check_svid spiffefs-test      "default" "spiffe://production.other/ns/default/sa/default"
-check_svid spiffefs-test-late "default" "spiffe://production.other/ns/default/sa/spiffefs-late"
+check_svid spiffefs-test-late "multi-main" "spiffe://production.other/ns/default/sa/spiffefs-late"
 check_svid spiffefs-test-late "extra"   "spiffe://production.other/spiffefs-test/extra"
 
 if [ "$(sha256sum /tmp/spiffefs-test.default.pem | cut -d' ' -f1)" = \
-     "$(sha256sum /tmp/spiffefs-test-late.default.pem | cut -d' ' -f1)" ]; then
+     "$(sha256sum /tmp/spiffefs-test-late.multi-main.pem | cut -d' ' -f1)" ]; then
   echo "Both workloads were handed the same credential bundle; spiffefs is not scoping by caller."
   exit 1
 fi

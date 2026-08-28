@@ -12,9 +12,9 @@ kind: Pod
 metadata:
   name: spiffefs-test-late
   labels:
-    # selected by the extra ClusterSPIFFEID in values.yaml, so this pod gets a
-    # second, hinted svid on top of the one its service account earns it
-    spiffefs.test/extra: "true"
+    # selected by both ClusterSPIFFEIDs in values.yaml, so this pod is issued
+    # two svids rather than the single fallback identity
+    spiffefs.test/multi-svid: "true"
 spec:
   serviceAccountName: spiffefs-late
   terminationGracePeriodSeconds: 1
