@@ -65,6 +65,10 @@ wait_for_svid() {
     count=$((count + 3))
   done
   echo "No svid appeared in the mount within ${timeout}s."
+  # Whether the workload still holds the old mount, or none at all, says which
+  # half of the restart went wrong.
+  kubectl exec spiffefs-test -- sh -c 'cat /proc/self/mounts' || true
+  kubectl exec -n spire-system "${SPIFFEFS_POD_FOR_TEST:-${SPIFFEFS_POD}}" -- sh -c 'grep spiffefs /proc/1/mountinfo || echo "the node has no spiffefs mount"' || true
   kubectl exec spiffefs-test -- ls -la /spiffe/ || true
   kubectl exec spiffefs-test -- cat /spiffe/hints.json || true
   kubectl logs -n spire-system "${SPIFFEFS_POD_FOR_TEST:-${SPIFFEFS_POD}}" --tail=50 || true
