@@ -31,6 +31,15 @@ updateStrategy:
   rollingUpdate:
     maxUnavailable: 1
 
+## @param readinessProbe.initialDelaySeconds Initial delay seconds for the readiness probe
+## @param readinessProbe.periodSeconds How often to check that the filesystem is still mounted
+## @param readinessProbe.timeoutSeconds Timeout value in seconds for the readiness probe
+## The probe checks that the filesystem is actually mounted, so that a Ready pod means a usable mount.
+readinessProbe:
+  initialDelaySeconds: 2
+  periodSeconds: 5
+  timeoutSeconds: 2
+
 ## @param resources [object] Resource requests and limits for spiffefs
 resources: {}
 

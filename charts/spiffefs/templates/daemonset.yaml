@@ -110,6 +110,16 @@ spec:
           {{- with .Values.extraEnvVars }}
           {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- /* Without this the pod is Ready as soon as the process starts,
+                 which is before the filesystem is mounted. That makes rollout
+                 status return too early and anything sequencing on it race. */}}
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - grep -q " {{ $mountPath }} fuse" /proc/self/mounts
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           volumeMounts:

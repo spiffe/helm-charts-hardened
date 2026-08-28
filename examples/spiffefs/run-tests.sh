@@ -228,7 +228,10 @@ wait_for_svid spiffefs-test-late "after spiffefs came up under an existing workl
 check_mount spiffefs-test-late
 echo "ordering 2 ok: a workload published before spiffefs picks the filesystem up when it arrives."
 
-# The first workload must still be fine after all that.
+# The first workload must still be fine after all that. Poll rather than assert:
+# its node may not be the one the late pod is on, and each node remounts on its
+# own schedule.
+wait_for_svid spiffefs-test "after spiffefs cycled under it"
 check_mount spiffefs-test
 
 # Recorded so a silent restart cannot be mistaken for a surviving mount.
