@@ -96,19 +96,25 @@ dump_mount_topology() {
 # An svid reaches the mount only once the controller manager has created the
 # entry, the server has propagated it and the agent has it cached. Poll for it
 # rather than racing that pipeline.
+#
+# Wait for the trust bundle as well as the credential bundle. They arrive by
+# different routes: svids come from a per-pid subscription made on demand, while
+# trust bundles come from a stream that backs off and retries, so after a restart
+# the credentials can land first and the trust bundle follow.
 wait_for_svid() {
   local pod="$1"
   local when="${2:-}"
   local timeout=120
   local count=0
   while [ "${count}" -lt "${timeout}" ]; do
-    if kubectl exec "${pod}" -- test -f /spiffe/private/credential-bundle.private-key.x509.pem 2>/dev/null; then
+    if kubectl exec "${pod}" -- sh -c 'test -f /spiffe/private/credential-bundle.private-key.x509.pem &&
+                                       test -f /spiffe/private/production.other.spiffe-trust-bundle.x509.pem' 2>/dev/null; then
       return 0
     fi
     sleep 3
     count=$((count + 3))
   done
-  echo "No svid appeared in ${pod}'s mount within ${timeout}s."
+  echo "${pod} did not get both a credential bundle and a trust bundle within ${timeout}s."
   dump_mount_topology "${pod}" "${when:-at failure}"
   kubectl exec "${pod}" -- ls -la /spiffe/ /spiffe/private/ || true
   pod_read "${pod}" /spiffe/private/hints.json || true
@@ -307,6 +313,7 @@ kubectl wait --for=condition=Ready pod/spiffefs-test-late --timeout 2m
 
 # Nothing should be there yet; if it is, the ordering under test never happened.
 if kubectl exec spiffefs-test-late -- test -f /spiffe/private/credential-bundle.private-key.x509.pem 2>/dev/null; then
+  # spiffefs is down, so nothing should have been delivered at all
   echo "spiffefs was supposed to be down, but the workload already has credentials; ordering 2 is not being exercised."
   exit 1
 fi
