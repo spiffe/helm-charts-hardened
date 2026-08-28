@@ -301,12 +301,14 @@ wait_for_svid spiffefs-test "after spiffefs cycled under it"
 check_mount spiffefs-test
 
 # Each workload gets its own identity. The two pods run under different service
-# accounts, so the controller manager issues them different SPIFFE IDs.
-check_svid spiffefs-test      "" "spiffe://production.other/ns/default/sa/default"
-check_svid spiffefs-test-late "" "spiffe://production.other/ns/default/sa/spiffefs-late"
+# accounts, so the controller manager issues them different SPIFFE IDs. An
+# identity with no explicit hint is named after its ClusterSPIFFEID key, so the
+# chart's stock identity arrives as hint "default".
+check_svid spiffefs-test      "default" "spiffe://production.other/ns/default/sa/default"
+check_svid spiffefs-test-late "default" "spiffe://production.other/ns/default/sa/spiffefs-late"
 
-if [ "$(sha256sum /tmp/spiffefs-test.none.pem | cut -d' ' -f1)" = \
-     "$(sha256sum /tmp/spiffefs-test-late.none.pem | cut -d' ' -f1)" ]; then
+if [ "$(sha256sum /tmp/spiffefs-test.default.pem | cut -d' ' -f1)" = \
+     "$(sha256sum /tmp/spiffefs-test-late.default.pem | cut -d' ' -f1)" ]; then
   echo "Both workloads were handed the same credential bundle; spiffefs is not scoping by caller."
   exit 1
 fi
@@ -361,7 +363,7 @@ if [ "${RESTARTS_BEFORE}" != "${RESTARTS_AFTER}" ]; then
   exit 1
 fi
 
-check_svid spiffefs-test "" "spiffe://production.other/ns/default/sa/default"
+check_svid spiffefs-test "default" "spiffe://production.other/ns/default/sa/default"
 echo "spiffefs mount survived a daemonset restart with the workload pod untouched."
 
 # A rollout replaces the pod. A crash does not: kubelet restarts the container in
@@ -401,5 +403,5 @@ if [ "${POD_UID}" != "${POD_UID_FINAL}" ] || [ "${RESTARTS_BEFORE}" != "${RESTAR
   exit 1
 fi
 
-check_svid spiffefs-test "" "spiffe://production.other/ns/default/sa/default"
+check_svid spiffefs-test "default" "spiffe://production.other/ns/default/sa/default"
 echo "spiffefs mount survived an in place container restart with the workload pod untouched."
