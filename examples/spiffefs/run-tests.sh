@@ -47,10 +47,12 @@ teardown() {
   fi
 
   if [ "${CLEANUP}" -eq 1 ]; then
-    kubectl delete pod spiffefs-test spiffefs-test-late --ignore-not-found 2>/dev/null || true
-    helm uninstall --namespace spire-server spire 2>/dev/null || true
-    kubectl delete ns spire-server 2>/dev/null || true
-    kubectl delete ns spire-system 2>/dev/null || true
+    # Bounded so a wedged unmount cannot hang the job. A namespace left
+    # Terminating goes away with the cluster.
+    kubectl delete pod spiffefs-test spiffefs-test-late --ignore-not-found --timeout=2m 2>/dev/null || true
+    helm uninstall --namespace spire-server spire --timeout 2m 2>/dev/null || true
+    kubectl delete ns spire-server --timeout=2m 2>/dev/null || true
+    kubectl delete ns spire-system --timeout=2m 2>/dev/null || true
   fi
 }
 
