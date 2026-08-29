@@ -128,14 +128,37 @@ pod_read() {
   kubectl exec "$1" -- dd "if=$2" bs=64k 2>/dev/null
 }
 
-# Which read paths actually return the file. If cat comes back short while dd
-# does not, splice against the fuse filesystem is broken, which is a spiffefs
-# bug rather than a test one.
-report_read_paths() {
-  local pod="$1" file="$2"
-  echo "read paths for ${file} in ${pod}: stat / cat-to-pipe / dd (bytes)"
-  kubectl exec "${pod}" -- sh -c "wc -c < ${file}; cat ${file} | wc -c; dd if=${file} bs=64k 2>/dev/null | wc -c" || true
-  echo "  through kubectl exec: cat=$(kubectl exec "${pod}" -- cat "${file}" | wc -c) dd=$(pod_read "${pod}" "${file}" | wc -c)"
+# Every read path has to return the whole file. Piping goes through
+# sendfile/splice rather than read, and used to come back empty: the kernel took
+# the file to be zero length and the reader saw a clean end of file. The test pod
+# runs busybox, whose cat splices, so this is the reader most workloads on an
+# alpine base image will use.
+check_read_paths() {
+  local pod="$1"
+  local file="$2"
+  local sizes
+  # stat, coreutils cat piped, busybox cat piped, dd piped -- all inside the pod
+  sizes="$(kubectl exec "${pod}" -- sh -c "
+    wc -c < ${file}
+    cat ${file} | wc -c
+    busybox cat ${file} 2>/dev/null | wc -c || echo skipped
+    dd if=${file} bs=64k 2>/dev/null | wc -c")"
+  echo "read paths for ${file} in ${pod} (stat/cat|/bbcat|/dd|): $(echo "${sizes}" | tr '\n' ' ')"
+
+  local want
+  want="$(echo "${sizes}" | head -1)"
+  if [ -z "${want}" ] || [ "${want}" -le 0 ] 2>/dev/null; then
+    echo "${pod}: ${file} reports a size of '${want}'"
+    return 1
+  fi
+  local n
+  for n in $(echo "${sizes}" | tail -n +2); do
+    [ "${n}" = "skipped" ] && continue
+    if [ "${n}" != "${want}" ]; then
+      echo "${pod}: a read path returned ${n} bytes of ${file}, expected ${want}. Piping is broken."
+      return 1
+    fi
+  done
 }
 
 # spiffefs resolves credentials per calling pid, so a mix-up would hand one
@@ -301,7 +324,8 @@ echo "spiffefs-test is on $(pod_node spiffefs-test), served by $(node_spiffefs_p
 # bind drops it; only a recursive one picks it up.
 wait_for_svid spiffefs-test "on first publish, spiffefs already up"
 check_mount spiffefs-test
-report_read_paths spiffefs-test /spiffe/private/hints.json
+check_read_paths spiffefs-test /spiffe/private/hints.json
+check_read_paths spiffefs-test /spiffe/private/credential-bundle.private-key.x509.pem
 echo "ordering 1 ok: a workload published after spiffefs was already mounted sees the filesystem."
 
 # Ordering 2: publish a workload while spiffefs is absent, then bring spiffefs

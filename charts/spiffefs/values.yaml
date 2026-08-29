@@ -16,7 +16,7 @@ image:
   registry: docker.io
   repository: kfox1111/misc2
   pullPolicy: IfNotPresent
-  tag: spiffefs2
+  tag: spiffefs3
 
 ## @param mountPath Host directory spiffefs mounts its filesystem on. Its parent is what the spiffe-csi-driver instance publishes, so workloads read the files one level down. The parent must match that instance's agentSocketPath directory.
 mountPath: /run/spire/k8s/spiffefs/private
