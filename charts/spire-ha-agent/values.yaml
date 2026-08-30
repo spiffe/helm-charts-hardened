@@ -20,6 +20,9 @@ image:
 ## @param mode If the spire-ha-agent will run in delegated or broker mode
 mode: delegated
 
+## @param trustDomain The trust domain to be used for the SPIFFE identifiers
+trustDomain: example.org
+
 ## @param singleSocket If in singleSocket mode, only one driver is used
 singleSocket: false
 
@@ -60,6 +63,58 @@ vsock: false
 
 ## @param port Port number to listen on
 port: 999
+
+brokerAPI:
+  ## @param brokerAPI.enabled Serve the SPIFFE Broker API to downstream consumers. Only supported when mode is broker.
+  enabled: false
+  socket:
+    ## @param brokerAPI.socket.enabled Serve the broker api on a unix socket
+    enabled: true
+    ## @param brokerAPI.socket.mountOnHost Make the served broker socket visible on the host, so consumers running in other pods on the node can reach it. When false the socket stays in an emptyDir, reachable only from this pod.
+    mountOnHost: true
+    ## @param brokerAPI.socket.hostPath Where the served broker socket is made available on the host when mountOnHost is true
+    hostPath: /var/run/spire/agent/sockets/main/csi.spiffe.io/broker
+  tcp:
+    ## @param brokerAPI.tcp.enabled Serve the broker api over tcp
+    enabled: false
+    ## @param brokerAPI.tcp.bindAddress The tcp address to bind to
+    bindAddress: 0.0.0.0:8788
+  ## Brokers allowed to use the served broker api, keyed by name. At least one
+  ## must be enabled when brokerAPI.enabled is true. Add your own alongside
+  ## these following the same shape.
+  brokers:
+    spiffefs:
+      ## @param brokerAPI.brokers.spiffefs.enabled Enable spiffefs as a broker
+      enabled: false
+      ## @param brokerAPI.brokers.spiffefs.idTemplate The default id template
+      idTemplate: spiffe://{{ .TrustDomain }}/spiffefs
+      allowedReferenceTypes:
+        ## @param brokerAPI.brokers.spiffefs.allowedReferenceTypes[0].typeURL The type of reference allowed
+        ## @param brokerAPI.brokers.spiffefs.allowedReferenceTypes[0].allowOverTCP Allow access over TCP
+        - typeURL: "type.googleapis.com/spiffe.broker.WorkloadPIDReference"
+          allowOverTCP: false
+
+upstreamKeepalive:
+  ## @param upstreamKeepalive.time How often to ping an upstream broker to notice a connection that died silently. 0 disables. Do not lower below 5m: a spire-agent that does not configure a keepalive enforcement policy answers more frequent pings with GOAWAY too_many_pings and drops the connection.
+  time: 5m
+  ## @param upstreamKeepalive.timeout How long to wait for a keepalive ping response before considering the connection dead
+  timeout: 20s
+
+telemetry:
+  prometheus:
+    ## @param telemetry.prometheus.enabled Flag to enable prometheus monitoring
+    enabled: false
+    ## @param telemetry.prometheus.port Port for prometheus metrics
+    port: 9988
+    ## @param telemetry.prometheus.host Host for prometheus metrics
+    host: "0.0.0.0"
+    podMonitor:
+      ## @param telemetry.prometheus.podMonitor.enabled Enable podMonitor for prometheus
+      enabled: false
+      ## @param telemetry.prometheus.podMonitor.namespace Override where to install the podMonitor, if not set will use the same namespace as the spire-ha-agent
+      namespace: ""
+      ## @param telemetry.prometheus.podMonitor.labels [object] Pod labels to filter for prometheus monitoring
+      labels: {}
 
 ## @param imagePullSecrets [array] Pull secrets for images
 imagePullSecrets: []
