@@ -15,7 +15,7 @@ image:
   registry: docker.io
   repository: kfox1111/misc2
   pullPolicy: IfNotPresent
-  tag: "spire-ha-agent"
+  tag: "spire-ha-agent2"
 
 ## @param mode If the spire-ha-agent will run in delegated or broker mode
 mode: delegated
