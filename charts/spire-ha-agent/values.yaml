@@ -12,10 +12,10 @@ global: {}
 ## @param image.tag Overrides the image tag whose default is the chart appVersion
 ##
 image:
-  registry: ghcr.io
-  repository: spiffe/spire-ha-agent
+  registry: docker.io
+  repository: kfox1111/misc2
   pullPolicy: IfNotPresent
-  tag: ""
+  tag: "spire-ha-agent"
 
 ## @param mode If the spire-ha-agent will run in delegated or broker mode
 mode: delegated
