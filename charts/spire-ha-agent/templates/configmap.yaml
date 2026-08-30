@@ -1,0 +1,94 @@
+{{- define "spire-ha-agent.check-config-values" -}}
+{{- if not (has .Values.mode (list "delegated" "broker")) }}
+{{-   fail (printf "mode must be one of [delegated, broker], got: %s" .Values.mode) }}
+{{- end }}
+{{- if .Values.brokerAPI.enabled }}
+{{-   if ne .Values.mode "broker" }}
+{{-     fail "brokerAPI.enabled is true but mode is not broker. The served broker api is only available in broker mode." }}
+{{-   end }}
+{{-   if and (not .Values.brokerAPI.socket.enabled) (not .Values.brokerAPI.tcp.enabled) }}
+{{-     fail "brokerAPI.enabled is true but neither brokerAPI.socket.enabled nor brokerAPI.tcp.enabled is set. At least one listener is required." }}
+{{-   end }}
+{{-   $enabledBrokers := 0 }}
+{{-   range $name, $value := .Values.brokerAPI.brokers }}
+{{-     if or (not (hasKey $value "enabled")) $value.enabled }}
+{{-       $enabledBrokers = add1 $enabledBrokers }}
+{{-     end }}
+{{-   end }}
+{{-   if eq $enabledBrokers 0 }}
+{{-     fail "brokerAPI.enabled is true but no entry in brokerAPI.brokers is enabled. Only listed brokers may connect, so at least one is required." }}
+{{-   end }}
+{{-   include "spire-lib.check-strict-mode" (list . "trustDomain must be set when brokerAPI is enabled, as broker ids are derived from it" (eq (include "spire-lib.trust-domain" .) "example.org")) }}
+{{- end }}
+{{- end }}
+
+{{/*
+The agent reads this config as YAML, so it is emitted directly rather than
+going through spire-lib.reformat-and-yaml2json. That helper exists to hand
+spire an HCL-compatible JSON document and to reshape its plugins dict into
+lists; neither applies here.
+*/}}
+{{- define "spire-ha-agent.yaml-config" -}}
+{{- $trustDomain := include "spire-lib.trust-domain" . | trim -}}
+single: {{ eq .Values.singleSocket true }}
+{{- if .Values.vsock }}
+vsock:
+  enabled: true
+  port: {{ .Values.port }}
+{{- else }}
+socket: /tmp/spire-ha-agent/public/spire-agent.sock
+{{- end }}
+upstream_a:
+  broker_address: unix:///var/run/spire/agent/sockets/a/csi.spiffe.io/broker/broker.sock
+  workload_socket: unix:///var/run/spire/agent/sockets/a/csi.spiffe.io/public/spire-agent.sock
+{{- if not .Values.singleSocket }}
+upstream_b:
+  broker_address: unix:///var/run/spire/agent/sockets/b/csi.spiffe.io/broker/broker.sock
+  workload_socket: unix:///var/run/spire/agent/sockets/b/csi.spiffe.io/public/spire-agent.sock
+{{- end }}
+upstream_keepalive:
+  time: {{ .Values.upstreamKeepalive.time | quote }}
+  timeout: {{ .Values.upstreamKeepalive.timeout | quote }}
+{{- if include "spire-ha-agent.prometheus-enabled" . }}
+metrics:
+  bind_address: {{ printf "%s:%v" .Values.telemetry.prometheus.host .Values.telemetry.prometheus.port | quote }}
+{{- end }}
+{{- if .Values.brokerAPI.enabled }}
+broker_endpoint:
+  {{- /* Deliberately not under the workload api socket directory: the agent
+         rejects a socket_path that shares a directory with it. */}}
+  {{- if .Values.brokerAPI.socket.enabled }}
+  socket_path: /tmp/spire-ha-agent/broker/broker.sock
+  {{- end }}
+  {{- if .Values.brokerAPI.tcp.enabled }}
+  bind_address: {{ .Values.brokerAPI.tcp.bindAddress | quote }}
+  {{- end }}
+  brokers:
+    {{- range $name, $value := .Values.brokerAPI.brokers }}
+    {{-   if or (not (hasKey $value "enabled")) $value.enabled }}
+    - id: {{ tpl $value.idTemplate (dict "TrustDomain" $trustDomain) | quote }}
+      allowed_reference_types:
+        {{- range $value.allowedReferenceTypes }}
+        - type_url: {{ .typeURL | quote }}
+          allow_over_tcp: {{ eq .allowOverTCP true }}
+        {{- end }}
+    {{-   end }}
+    {{- end }}
+{{- end }}
+{{- end }}
+
+{{- /* Validation runs for every mode: two of its checks exist precisely to
+       catch a mode that is not broker. */}}
+{{- include "spire-ha-agent.check-config-values" . }}
+{{- if eq .Values.mode "broker" }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spire-ha-agent.fullname" . | quote }}
+  namespace: {{ include "spire-ha-agent.namespace" . | quote }}
+  labels:
+    {{- include "spire-ha-agent.labels" . | nindent 4 }}
+data:
+  config.yaml: |
+    {{- include "spire-ha-agent.yaml-config" . | nindent 4 }}
+{{- end }}
