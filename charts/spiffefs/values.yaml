@@ -13,10 +13,10 @@ global: {}
 ## @param image.tag Overrides the image tag whose default is the chart appVersion
 ##
 image:
-  registry: docker.io
-  repository: kfox1111/misc2
+  registry: ghcr.io
+  repository: spiffe/spiffefs
   pullPolicy: IfNotPresent
-  tag: spiffefs5
+  tag: ""
 
 ## @param mountPath Host directory spiffefs mounts its filesystem on. Its parent is what the spiffe-csi-driver instance publishes, so workloads read the files one level down. The parent must match that instance's agentSocketPath directory.
 mountPath: /run/spire/k8s/spiffefs/private
