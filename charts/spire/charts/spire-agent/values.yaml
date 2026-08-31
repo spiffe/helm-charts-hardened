@@ -84,8 +84,7 @@ tolerations: []
 affinity: {}
 
 ## @param authorizedDelegates A list of the authorized delegates SPIFFE IDs. See Delegated Identity API for more information.
-authorizedDelegates:
-  - /spiffefs
+authorizedDelegates: []
 ## @param logLevel The log level, valid values are "debug", "info", "warn", and "error"
 logLevel: info
 ## @param logFormat The log format, valid values are "text" and "json"
@@ -257,6 +256,11 @@ workloadAttestors:
       ## @param workloadAttestors.k8s.brokerAPI.accessPolicy Which access policy to use. Supported values: enforced, permissive
       accessPolicy: enforced
       brokers:
+        spiffefs:
+          ## @param workloadAttestors.k8s.brokerAPI.brokers.spiffefs.enabled Enables the broker api
+          enabled: false
+          # idTemplate: spiffe://{{ .TrustDomain }}/spiffefs
+          # podReferenceScope: agent_node
         spire-ha-agent:
           ## @param workloadAttestors.k8s.brokerAPI.brokers.spire-ha-agent.enabled Enables the broker api
           enabled: false
@@ -497,6 +501,16 @@ brokerAPI:
     ## @param brokerAPI.tcp.bindAddress The tcp address to bind to
     bindAddress: 0.0.0.0:8788
   brokers:
+    spiffefs:
+      ## @param brokerAPI.brokers.spiffefs.enabled Enable spiffefs
+      enabled: false
+      ## @param brokerAPI.brokers.spiffefs.idTemplate The default id template
+      idTemplate: spiffe://{{ .TrustDomain }}/spiffefs
+      allowedReferenceTypes:
+        ## @param brokerAPI.brokers.spiffefs.allowedReferenceTypes[0].typeURL The type of reference allowed
+        ## @param brokerAPI.brokers.spiffefs.allowedReferenceTypes[0].allowOverTCP Allow access over TCP
+        - typeURL: "type.googleapis.com/spiffe.broker.WorkloadPIDReference"
+          allowOverTCP: false
     spire-ha-agent:
       ## @param brokerAPI.brokers.spire-ha-agent.enabled Enable the spire-ha-agent
       enabled: false

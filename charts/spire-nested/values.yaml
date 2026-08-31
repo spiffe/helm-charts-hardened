@@ -924,7 +924,6 @@ downstream-spire-agent-bottom-turtle-ha-a:
       mountOnHost: true
   ## @param downstream-spire-agent-bottom-turtle-ha-a.authorizedDelegates List of workloads able to use the delegation api
   authorizedDelegates:
-  - /spiffefs
   - /spire-ha-agent
   brokerAPI:
     brokers:
@@ -996,7 +995,6 @@ downstream-spire-agent-bottom-turtle-ha-b:
       mountOnHost: true
   ## @param downstream-spire-agent-bottom-turtle-ha-b.authorizedDelegates List of workloads able to use the delegation api
   authorizedDelegates:
-  - /spiffefs
   - /spire-ha-agent
   brokerAPI:
     brokers:

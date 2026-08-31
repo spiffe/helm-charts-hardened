@@ -30,8 +30,22 @@ spire-server:
 
 spire-agent:
   sockets:
-    admin:
-      # spiffefs talks the Delegated Identity API to the agent's admin socket,
-      # and reaches it through the host, so the agent has to publish it there.
+    broker:
+      # spiffefs talks the Broker API to the agent, and reaches it through the
+      # host, so the agent has to publish the socket there.
       enabled: true
       mountOnHost: true
+  brokerAPI:
+    brokers:
+      # Only listed brokers may connect to the endpoint. spiffefs authenticates
+      # with the svid its own registration entry mints.
+      spiffefs:
+        enabled: true
+  workloadAttestors:
+    k8s:
+      brokerAPI:
+        brokers:
+          # Lets the k8s attestor resolve the pids spiffefs names, so a reader
+          # gets what its own entry entitles it to.
+          spiffefs:
+            enabled: true

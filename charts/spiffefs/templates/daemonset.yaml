@@ -3,7 +3,11 @@
 {{- if eq $parentPath "/" }}
 {{- fail "spiffefs.mountPath must be at least one directory deep: the csi driver publishes its parent" }}
 {{- end }}
-{{- $agentSocketPath := include "spiffefs.agent-socket-path" . }}
+{{- $brokerSocketPath := include "spiffefs.broker-socket-path" . }}
+{{- $workloadSocketPath := include "spiffefs.workload-socket-path" . }}
+{{- if eq ($brokerSocketPath | dir) ($workloadSocketPath | dir) }}
+{{- fail "spiffefs.brokerSocketPath and spiffefs.workloadSocketPath must live in different directories: spire rejects a broker socket sharing a directory with the workload api socket" }}
+{{- end }}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -102,11 +106,18 @@ spec:
                  It only ever unmounts a fuse mount, so kubelet's bind mount
                  underneath is left alone. */}}
           args:
+            - "-mode=broker"
             - "-umount"
             - {{ $mountPath | quote }}
           env:
+            {{- /* The broker endpoint is mTLS, and the client certificate is an
+                   svid spiffefs fetches for itself from the workload api. That
+                   needs its own registration entry, matched on the
+                   app.kubernetes.io/name: spiffefs label. */}}
+            - name: SPIFFE_BROKER_ADDRESS
+              value: {{ printf "unix://%s" $brokerSocketPath | quote }}
             - name: SPIFFE_ENDPOINT_SOCKET
-              value: {{ $agentSocketPath | quote }}
+              value: {{ printf "unix://%s" $workloadSocketPath | quote }}
           {{- with .Values.extraEnvVars }}
           {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -131,8 +142,11 @@ spec:
             - name: spiffefs-mount-dir
               mountPath: {{ $parentPath | quote }}
               mountPropagation: Bidirectional
-            - name: spire-agent-admin-socket-dir
-              mountPath: {{ $agentSocketPath | dir | quote }}
+            - name: spire-agent-broker-socket-dir
+              mountPath: {{ $brokerSocketPath | dir | quote }}
+              readOnly: true
+            - name: spire-agent-workload-socket-dir
+              mountPath: {{ $workloadSocketPath | dir | quote }}
               readOnly: true
             - name: dev-fuse
               mountPath: /dev/fuse
@@ -149,9 +163,13 @@ spec:
           hostPath:
             path: {{ $parentPath | quote }}
             type: DirectoryOrCreate
-        - name: spire-agent-admin-socket-dir
+        - name: spire-agent-broker-socket-dir
           hostPath:
-            path: {{ $agentSocketPath | dir | quote }}
+            path: {{ $brokerSocketPath | dir | quote }}
+            type: DirectoryOrCreate
+        - name: spire-agent-workload-socket-dir
+          hostPath:
+            path: {{ $workloadSocketPath | dir | quote }}
             type: DirectoryOrCreate
         - name: dev-fuse
           hostPath:

@@ -82,8 +82,16 @@ The host path spiffefs mounts its filesystem on.
 {{- end }}
 
 {{/*
-The spire-agent admin socket used for the Delegated Identity API.
+The broker api socket spiffefs gets workload credentials from.
 */}}
-{{- define "spiffefs.agent-socket-path" -}}
-{{- print .Values.agentSocketPath }}
+{{- define "spiffefs.broker-socket-path" -}}
+{{- print .Values.brokerSocketPath }}
+{{- end }}
+
+{{/*
+The workload api socket spiffefs gets its own svid from, for the client
+certificate the broker endpoint requires.
+*/}}
+{{- define "spiffefs.workload-socket-path" -}}
+{{- print .Values.workloadSocketPath }}
 {{- end }}
