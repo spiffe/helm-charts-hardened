@@ -25,6 +25,11 @@ roleRef:
   kind: Role
   name: {{ include "spire-controller-manager.fullname" . }}-leader-election
 {{ include "spire-server.subject" . }}
+{{- if eq .Values.controllerManager.deploymentMode "standalone" }}
+- kind: ServiceAccount
+  name: {{ include "spire-controller-manager.standalone-serviceAccountName" . }}
+  namespace: {{ include "spire-server.namespace" . }}
+{{- end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -85,4 +90,9 @@ roleRef:
   kind: ClusterRole
   name: {{ .Release.Namespace}}-{{ include "spire-controller-manager.fullname" . }}
 {{ include "spire-server.subject" . }}
+{{- if eq .Values.controllerManager.deploymentMode "standalone" }}
+- kind: ServiceAccount
+  name: {{ include "spire-controller-manager.standalone-serviceAccountName" . }}
+  namespace: {{ include "spire-server.namespace" . }}
+{{- end }}
 {{- end }}

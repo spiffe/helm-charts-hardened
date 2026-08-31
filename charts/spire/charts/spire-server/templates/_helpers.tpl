@@ -179,6 +179,57 @@ Create the name of the service account to use
 {{ include "spire-server.fullname" . | trimSuffix "-server" }}-controller-manager
 {{- end }}
 
+{{- define "spire-controller-manager.standalone-fullname" -}}
+{{ include "spire-controller-manager.fullname" . }}-standalone
+{{- end }}
+
+{{- define "spire-controller-manager.standalone-serviceAccountName" -}}
+{{ include "spire-controller-manager.standalone-fullname" . }}
+{{- end }}
+
+{{- define "spire-controller-manager.standalone-selectorLabels" -}}
+app.kubernetes.io/name: {{ include "spire-controller-manager.standalone-fullname" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{- define "spire-controller-manager.standalone-labels" -}}
+helm.sh/chart: {{ include "spire-server.chart" . }}
+{{ include "spire-controller-manager.standalone-selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{/*
+Dedicated class name used for the in-pod bootstrap identity when the
+controller manager runs in "standalone" deploymentMode. This MUST differ
+from the "real" controller-manager class name (returned by
+"spire-server.controller-manager-class-name") so the standalone Deployment
+does not also try to reconcile the bootstrap ClusterSPIFFEID.
+*/}}
+{{- define "spire-controller-manager.bootstrap-class-name" -}}
+{{- if .Values.controllerManager.standalone.bootstrap.className }}
+{{-   .Values.controllerManager.standalone.bootstrap.className }}
+{{- else }}
+{{-   printf "%s-bootstrap" (include "spire-server.controller-manager-class-name" .) }}
+{{- end -}}
+{{- end }}
+
+{{/*
+The host:port of the spire-server Service, used by the standalone
+controller manager Deployment to dial the SPIRE Server API over TCP. Falls
+back to the Service's own name/namespace/port when
+controllerManager.standalone.spireServerAddress is unset.
+*/}}
+{{- define "spire-controller-manager.standalone-spire-server-address" -}}
+{{- if .Values.controllerManager.standalone.spireServerAddress }}
+{{-   .Values.controllerManager.standalone.spireServerAddress }}
+{{- else }}
+{{-   printf "%s.%s.svc:%v" (include "spire-server.fullname" .) (include "spire-server.namespace" .) .Values.service.port }}
+{{- end -}}
+{{- end }}
+
 {{/*
 Name of the chart-generated Secret holding the inline kubeConfigs entries.
 */}}

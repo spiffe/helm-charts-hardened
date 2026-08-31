@@ -1,0 +1,8 @@
+spire-server:
+  controllerManager:
+    enabled: true
+    # Run the "real" controller manager as its own Deployment, connecting to
+    # the SPIRE Server over TCP (SPIFFE mTLS) instead of as a sidecar
+    # container sharing the spire-server Pod's local admin socket. See
+    # https://github.com/spiffe/helm-charts-hardened/issues/341.
+    deploymentMode: standalone

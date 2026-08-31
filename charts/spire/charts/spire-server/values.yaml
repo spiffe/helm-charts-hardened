@@ -671,6 +671,41 @@ controllerManager:
   ## @param controllerManager.staticManifestMode Flag to configure static mode. Valid options off, internal, and external. If internal, the identities config options will be rendered to an included configmap
   staticManifestMode: "off"
 
+  ## @param controllerManager.deploymentMode Whether the controller manager runs as a container in the spire-server Pod ("sidecar", default) or as its own Deployment ("standalone"). Standalone mode requires the spiffe-csi-driver to be deployed and a spire-controller-manager image that supports connecting to the SPIRE Server over TCP (spireServerAddress). In standalone mode, a minimal bootstrap container is still deployed alongside spire-server (without a readinessProbe, so it never affects the spire-server Pod's readiness) whose only job is to grant the standalone Deployment its own SPIFFE identity; all other reconciliation (and the validating webhooks) is handled by the standalone Deployment. Requires staticManifestMode to be "off". See https://github.com/spiffe/helm-charts-hardened/issues/341.
+  deploymentMode: sidecar
+
+  standalone:
+    ## @param controllerManager.standalone.replicaCount Replica count for the standalone controller manager Deployment
+    replicaCount: 1
+    ## @param controllerManager.standalone.agentSocketName The name of the spire-agent unix socket, mounted via the spiffe-csi-driver
+    agentSocketName: spire-agent.sock
+    ## @param controllerManager.standalone.csiDriverName The csi driver used to mount the SPIFFE Workload API socket into the standalone controller manager Pod
+    csiDriverName: csi.spiffe.io
+    ## @param controllerManager.standalone.spireServerAddress The host:port of the SPIRE Server API the standalone controller manager dials over TCP. If empty, defaults to the spire-server Service address and port.
+    spireServerAddress: ""
+    ## @param controllerManager.standalone.resources [object] Resource requests and limits for the standalone controller manager
+    resources: {}
+    ## @param controllerManager.standalone.securityContext [object] Security context for the standalone controller manager container
+    securityContext: {}
+    ## @param controllerManager.standalone.podSecurityContext [object] Pod security context for the standalone controller manager Pod
+    podSecurityContext: {}
+    ## @param controllerManager.standalone.podAnnotations [object] Annotations for the standalone controller manager Pod
+    podAnnotations: {}
+    ## @param controllerManager.standalone.podLabels [object] Labels for the standalone controller manager Pod
+    podLabels: {}
+    ## @param controllerManager.standalone.nodeSelector [object] Node selector for the standalone controller manager Pod
+    nodeSelector: {}
+    ## @param controllerManager.standalone.affinity [object] Affinity for the standalone controller manager Pod
+    affinity: {}
+    ## @param controllerManager.standalone.tolerations [array] Tolerations for the standalone controller manager Pod
+    tolerations: []
+    serviceAccount:
+      ## @param controllerManager.standalone.serviceAccount.annotations [object] Annotations for the standalone controller manager ServiceAccount
+      annotations: {}
+    bootstrap:
+      ## @param controllerManager.standalone.bootstrap.className Dedicated class name used to isolate the in-pod bootstrap identity from the standalone controller manager's own reconciliation. If empty, defaults to "<controller-manager class name>-bootstrap".
+      className: ""
+
   ## @param controllerManager.className specify to use an explicit class name. If empty, it will be automatically set to Release.Namespace-Release.Name to not conflict with other installs, enabling parallel installs.
   className: ""
   ## @param controllerManager.watchClassless specify to process custom resources without class name specified. Useful to slowly migrate to class names from classless installs. Do not have two installs on the same k8s cluster both set to true.

@@ -1,0 +1,173 @@
+{{- if not .Values.externalServer }}
+{{- if and (eq (.Values.controllerManager.enabled | toString) "true") (eq .Values.controllerManager.deploymentMode "standalone") }}
+{{- $webhooksEnabled := .Values.controllerManager.validatingWebhookConfiguration.enabled }}
+{{- $workloadAPISocketPath := printf "/spiffe-workload-api/%s" .Values.controllerManager.standalone.agentSocketName }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "spire-controller-manager.standalone-serviceAccountName" . }}
+  namespace: {{ include "spire-server.namespace" . }}
+  labels:
+    {{- include "spire-controller-manager.standalone-labels" . | nindent 4 }}
+  {{- with .Values.controllerManager.standalone.serviceAccount.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "spire-controller-manager.standalone-fullname" . }}
+  namespace: {{ include "spire-server.namespace" . }}
+  labels:
+    {{- include "spire-controller-manager.standalone-labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.controllerManager.standalone.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "spire-controller-manager.standalone-selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ (include (print $.Template.BasePath "/controller-manager-configmap.yaml") .) | sha256sum }}
+        {{- with .Values.controllerManager.standalone.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "spire-controller-manager.standalone-selectorLabels" . | nindent 8 }}
+        release: {{ .Release.Name }}
+        release-namespace: {{ .Release.Namespace }}
+        {{- with .Values.controllerManager.standalone.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with (coalesce .Values.imagePullSecrets .Values.global.imagePullSecrets) }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "spire-controller-manager.standalone-serviceAccountName" . }}
+      {{- with .Values.controllerManager.standalone.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.controllerManager.standalone.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.controllerManager.standalone.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.controllerManager.standalone.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: spire-controller-manager
+          securityContext:
+            {{- include "spire-lib.securitycontext-extended" (dict "root" . "securityContext" .Values.controllerManager.standalone.securityContext) | nindent 12 }}
+          image: {{ template "spire-lib.image" (dict "appVersion" .Chart.AppVersion "image" .Values.controllerManager.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.controllerManager.image.pullPolicy }}
+          args:
+            - --config=controller-manager-config.yaml
+            {{- if .Values.controllerManager.expandEnv }}
+            - --expand-env
+            {{- end }}
+          env:
+            - name: ENABLE_WEBHOOKS
+              value: {{ $webhooksEnabled | toString | quote }}
+            {{- if gt (len .Values.controllerManager.extraEnv) 0 }}
+            {{- .Values.controllerManager.extraEnv | toYaml | nindent 12 }}
+            {{- end }}
+          ports:
+            {{- if $webhooksEnabled }}
+            - name: https
+              containerPort: 9443
+              protocol: TCP
+            {{- end }}
+            - containerPort: 8083
+              name: hp-cm
+            {{- if or (dig "telemetry" "prometheus" "enabled" .Values.telemetry.prometheus.enabled .Values.global) (and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "prometheus" true .Values.global)) }}
+            - containerPort: 8082
+              name: pm-cm
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: hp-cm
+            {{- toYaml .Values.controllerManager.livenessProbe | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: hp-cm
+            {{- toYaml .Values.controllerManager.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.controllerManager.standalone.resources | nindent 12 }}
+          volumeMounts:
+            - name: spiffe-workload-api
+              mountPath: {{ dir $workloadAPISocketPath }}
+              readOnly: true
+            - name: controller-manager-config
+              mountPath: /controller-manager-config.yaml
+              subPath: controller-manager-config.yaml
+              readOnly: true
+            - name: controller-manager-standalone-tmp
+              mountPath: /tmp
+              readOnly: false
+      volumes:
+        - name: spiffe-workload-api
+          csi:
+            driver: {{ .Values.controllerManager.standalone.csiDriverName | quote }}
+            readOnly: true
+        - name: controller-manager-config
+          configMap:
+            name: {{ include "spire-controller-manager.fullname" . }}
+        - name: controller-manager-standalone-tmp
+          emptyDir: {}
+---
+# Bootstrap identity: grants the standalone controller manager Deployment
+# its own SPIFFE ID (with admin rights on the SPIRE Server) so it can dial
+# the Server over TCP. This entry is reconciled by the minimal bootstrap
+# container still running alongside spire-server (see
+# _controller-manager-container.tpl), using a dedicated className so the
+# standalone Deployment's own reconciliation loop ignores this CR.
+apiVersion: spire.spiffe.io/v1alpha1
+kind: ClusterSPIFFEID
+metadata:
+  name: {{ .Release.Namespace }}-{{ default .Release.Name .Values.crNameOverride }}-controller-manager-standalone-bootstrap
+  labels:
+    {{- include "spire-controller-manager.standalone-labels" . | nindent 4 }}
+    spire.spiffe.io/class-name: {{ include "spire-controller-manager.bootstrap-class-name" . | quote }}
+spec:
+  className: {{ include "spire-controller-manager.bootstrap-class-name" . | quote }}
+  spiffeIDTemplate: {{ .Values.controllerManager.identities.clusterSPIFFEIDs.default.spiffeIDTemplate | quote }}
+  podSelector:
+    matchLabels:
+      {{- include "spire-controller-manager.standalone-selectorLabels" . | nindent 6 }}
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: {{ include "spire-server.namespace" . }}
+  admin: true
+  fallback: false
+{{- if (dig "telemetry" "prometheus" "podMonitor" "enabled" .Values.telemetry.prometheus.podMonitor.enabled .Values.global) }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: {{ include "spire-controller-manager.standalone-fullname" . }}
+  namespace: {{ include "spire-server.podMonitor.namespace" . }}
+  labels:
+    {{- include "spire-controller-manager.standalone-labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "spire-controller-manager.standalone-selectorLabels" . | nindent 6 }}
+  podMetricsEndpoints:
+    - port: pm-cm
+  {{- if ne (include "spire-server.podMonitor.namespace" .) (include "spire-server.namespace" .) }}
+  namespaceSelector:
+    kubernetes.io/metadata.name: {{ include "spire-server.namespace" . }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
