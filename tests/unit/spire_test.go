@@ -985,4 +985,117 @@ spire-server:
 			Expect(serverResource).Should(ContainSubstring("name: my-ro-db-secret"))
 		})
 	})
+	Describe("spire-server.controllerManager.deploymentMode standalone", func() {
+		standalone := `
+spire-server:
+  controllerManager:
+    enabled: true
+    deploymentMode: standalone
+`
+		It("renders the standalone Deployment, ServiceAccount and bootstrap ClusterSPIFFEID", func() {
+			objs, err := ValueStringRender(chart, standalone)
+			Expect(err).Should(Succeed())
+			standaloneManifest := objs["spire/charts/spire-server/templates/controller-manager-standalone.yaml"]
+			Expect(standaloneManifest).Should(ContainSubstring("kind: ServiceAccount"))
+			Expect(standaloneManifest).Should(ContainSubstring("kind: Deployment"))
+			Expect(standaloneManifest).Should(ContainSubstring("kind: ClusterSPIFFEID"))
+			Expect(standaloneManifest).Should(ContainSubstring("admin: true"))
+			Expect(standaloneManifest).Should(ContainSubstring("className: \"spire-server-spire-bootstrap\""))
+			Expect(standaloneManifest).Should(ContainSubstring("driver: \"csi.spiffe.io\""))
+		})
+
+		It("labels the bootstrap ClusterSPIFFEID so it is visible to the bootstrap container's filterByClassName cache", func() {
+			// Regression test: the bootstrap controller-manager container sets
+			// filterByClassName: true, which restricts its informer cache to
+			// ClusterSPIFFEIDs carrying the well-known
+			// "spire.spiffe.io/class-name" label. Without this label, the
+			// bootstrap container's cache never sees this CR and never
+			// reconciles it, so the standalone Deployment can never obtain an
+			// SVID.
+			objs, err := ValueStringRender(chart, standalone)
+			Expect(err).Should(Succeed())
+			standaloneManifest := objs["spire/charts/spire-server/templates/controller-manager-standalone.yaml"]
+			Expect(standaloneManifest).Should(ContainSubstring("spire.spiffe.io/class-name: \"spire-server-spire-bootstrap\""))
+		})
+
+		It("gives the bootstrap container a distinct entryIDPrefix from the standalone Deployment", func() {
+			// Regression test: without distinct entryIDPrefixes, both the
+			// bootstrap container and the standalone Deployment treat every
+			// registration entry in the datastore as their own to garbage
+			// collect, and each deletes the other's entries as "unmanaged".
+			objs, err := ValueStringRender(chart, standalone)
+			Expect(err).Should(Succeed())
+			cm := objs["spire/charts/spire-server/templates/controller-manager-configmap.yaml"]
+			Expect(cm).Should(ContainSubstring("entryIDPrefix: \"example-cluster-bootstrap\""))
+			Expect(cm).Should(ContainSubstring("entryIDPrefix: example-cluster\n"))
+		})
+
+		It("does not add a readinessProbe to the in-pod bootstrap container", func() {
+			objs, err := ValueStringRender(chart, standalone)
+			Expect(err).Should(Succeed())
+			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
+			Expect(serverResource).Should(ContainSubstring("spire-controller-manager-bootstrap"))
+			Expect(serverResource).ShouldNot(ContainSubstring("/readyz"))
+		})
+
+		It("renders both the main (TCP) and bootstrap (socket) ControllerManagerConfigs", func() {
+			objs, err := ValueStringRender(chart, standalone)
+			Expect(err).Should(Succeed())
+			cm := objs["spire/charts/spire-server/templates/controller-manager-configmap.yaml"]
+			Expect(cm).Should(ContainSubstring("controller-manager-config.yaml"))
+			Expect(cm).Should(ContainSubstring("controller-manager-config-bootstrap.yaml"))
+			Expect(cm).Should(ContainSubstring("spireServerAddress:"))
+			Expect(cm).Should(ContainSubstring("workloadAPIAddr:"))
+			Expect(cm).Should(ContainSubstring("spireServerSocketPath: \"/tmp/spire-server/private/api.sock\""))
+			Expect(cm).Should(ContainSubstring("className: \"spire-server-spire-bootstrap\""))
+		})
+
+		It("grants the standalone ServiceAccount the leader-election and CRD RBAC", func() {
+			objs, err := ValueStringRender(chart, standalone)
+			Expect(err).Should(Succeed())
+			roles := objs["spire/charts/spire-server/templates/controller-manager-roles.yaml"]
+			Expect(roles).Should(ContainSubstring("name: spire-controller-manager-standalone"))
+		})
+
+		It("points the webhook Service at the standalone Deployment's pods", func() {
+			objs, err := ValueStringRender(chart, standalone)
+			Expect(err).Should(Succeed())
+			svc := objs["spire/charts/spire-server/templates/controller-manager-service.yaml"]
+			Expect(svc).Should(ContainSubstring("app.kubernetes.io/name: spire-controller-manager-standalone"))
+		})
+
+		It("fails when combined with a non-off staticManifestMode", func() {
+			_, err := ValueStringRender(chart, `
+spire-server:
+  controllerManager:
+    enabled: true
+    deploymentMode: standalone
+    staticManifestMode: internal
+`)
+			Expect(err).Should(MatchError(ContainSubstring("staticManifestMode to be \"off\"")))
+		})
+
+		It("fails on an unsupported deploymentMode", func() {
+			_, err := ValueStringRender(chart, `
+spire-server:
+  controllerManager:
+    enabled: true
+    deploymentMode: bogus
+`)
+			Expect(err).Should(MatchError(ContainSubstring("deploymentMode must be one of")))
+		})
+	})
+	Describe("spire-server.controllerManager.deploymentMode sidecar (default)", func() {
+		It("does not render the standalone Deployment and keeps the readinessProbe on the in-pod container", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  controllerManager:
+    enabled: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(strings.TrimSpace(objs["spire/charts/spire-server/templates/controller-manager-standalone.yaml"])).Should(BeEmpty())
+			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
+			Expect(serverResource).Should(ContainSubstring("/readyz"))
+		})
+	})
 })

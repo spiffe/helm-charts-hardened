@@ -48,7 +48,11 @@
 {{- $root := . -}}
 {{- $names := list -}}
 {{- if eq (.Values.controllerManager.enabled | toString) "true" -}}
-{{-   $names = append $names (include "spire-controller-manager.promPortName" (dict "name" "" "settings" .Values.controllerManager)) -}}
+{{-   if eq .Values.controllerManager.deploymentMode "standalone" -}}
+{{-     $names = append $names "pm-cm-bootstrap" -}}
+{{-   else -}}
+{{-     $names = append $names (include "spire-controller-manager.promPortName" (dict "name" "" "settings" .Values.controllerManager)) -}}
+{{-   end -}}
 {{- end -}}
 {{- if .Values.externalControllerManagers.enabled -}}
 {{-   $clusters := default .Values.kubeConfigs .Values.externalControllerManagers.clusters -}}
@@ -67,6 +71,24 @@
 {{- $names | toYaml -}}
 {{- end -}}
 
+{{/*
+Settings dict (as YAML, to be piped through fromYaml) for the minimal
+in-pod bootstrap controller-manager rendered when
+controllerManager.deploymentMode is "standalone". Shared by
+_controller-manager-container.tpl and controller-manager-configmap.yaml so
+the container and its ControllerManagerConfig never drift.
+*/}}
+{{- define "spire-controller-manager.bootstrap-settings" -}}
+className: {{ include "spire-controller-manager.bootstrap-class-name" . | quote }}
+watchClassless: false
+filterByClassName: true
+entryIDPrefix: {{ printf "%s-bootstrap" (include "spire-lib.cluster-name" .) | quote }}
+reconcile:
+  clusterSPIFFEIDs: true
+  clusterStaticEntries: false
+  clusterFederatedTrustDomains: false
+{{- end -}}
+
 {{- define "spire-controller-manager.containers" }}
 {{-   $root := . }}
 {{-   $settings := dict }}
@@ -76,13 +98,39 @@
 {{-   $reconcileFederation := 0 }}
 {{-   $reconcileEntries := 0 }}
 {{-   if eq (.Values.controllerManager.enabled | toString) "true" }}
-{{-     if .Values.controllerManager.reconcile.clusterFederatedTrustDomains }}
-{{-       $reconcileFederation = add $reconcileFederation 1 }}
+{{-     if not (has .Values.controllerManager.deploymentMode (list "sidecar" "standalone")) }}
+{{-       fail "controllerManager.deploymentMode must be one of \"sidecar\" or \"standalone\"" }}
 {{-     end }}
-{{-     if or .Values.controllerManager.reconcile.clusterSPIFFEIDs .Values.controllerManager.reconcile.clusterStaticEntries }}
+{{-     if eq .Values.controllerManager.deploymentMode "standalone" }}
+{{-       if ne .Values.controllerManager.staticManifestMode "off" }}
+{{-         fail "controllerManager.deploymentMode \"standalone\" requires controllerManager.staticManifestMode to be \"off\"" }}
+{{-       end }}
+{{/*
+In standalone mode, the "real" controller manager runs in its own
+Deployment (see controller-manager-standalone.yaml) and connects to the
+SPIRE Server over TCP. The only thing rendered here, in the spire-server
+Pod, is a minimal bootstrap container whose sole job is to reconcile the
+one ClusterSPIFFEID that grants the standalone Deployment its own SPIFFE
+identity (see the ClusterSPIFFEID rendered in controller-manager-standalone.yaml).
+It uses a dedicated className (so the standalone Deployment's own
+reconciliation loop ignores this CR) and a dedicated entryIDPrefix (so
+neither instance's full-reconciliation GC pass deletes the other's
+registration entries as "unmanaged" - both instances otherwise poll the
+same SPIRE Server datastore). It has no readinessProbe so its health
+never affects the spire-server Pod's readiness (see issue #341).
+*/}}
 {{-       $reconcileEntries = add $reconcileEntries 1 }}
+{{-       $bootstrapSettings := include "spire-controller-manager.bootstrap-settings" . | fromYaml }}
+{{-       include "spire-controller-manager.container" (dict "Values" .Values "Chart" .Chart "startPort" $startPort "suffix" "-bootstrap" "portSuffix" "-bootstrap" "healthPortName" "" "prometheusPortName" "" "settings" $bootstrapSettings "defaults" $defaults "webhooksEnabled" false "noReadinessProbe" true) }}
+{{-     else }}
+{{-       if .Values.controllerManager.reconcile.clusterFederatedTrustDomains }}
+{{-         $reconcileFederation = add $reconcileFederation 1 }}
+{{-       end }}
+{{-       if or .Values.controllerManager.reconcile.clusterSPIFFEIDs .Values.controllerManager.reconcile.clusterStaticEntries }}
+{{-         $reconcileEntries = add $reconcileEntries 1 }}
+{{-       end }}
+{{-       include "spire-controller-manager.container" (dict "Values" .Values "Chart" .Chart "startPort" $startPort "suffix" "" "portSuffix" "" "healthPortName" "" "prometheusPortName" "" "settings" $settings "defaults" $defaults "webhooksEnabled" $webhooksEnabled) }}
 {{-     end }}
-{{-     include "spire-controller-manager.container" (dict "Values" .Values "Chart" .Chart "startPort" $startPort "suffix" "" "portSuffix" "" "healthPortName" "" "prometheusPortName" "" "settings" $settings "defaults" $defaults "webhooksEnabled" $webhooksEnabled) }}
 {{-   end }}
 {{-   if .Values.externalControllerManagers.enabled }}
 {{-     $clusters := default .Values.kubeConfigs .Values.externalControllerManagers.clusters }}
@@ -194,11 +242,13 @@ Auto-generation preserves trailing numbers from cluster names or uses hash for u
       path: /healthz
       port: {{ $hpName }}
     {{- toYaml .Values.controllerManager.livenessProbe | nindent 4 }}
+  {{- if not (.noReadinessProbe | default false) }}
   readinessProbe:
     httpGet:
       path: /readyz
       port: {{ $hpName }}
     {{- toYaml .Values.controllerManager.readinessProbe | nindent 4 }}
+  {{- end }}
 {{- end }}
   resources:
     {{- toYaml .Values.controllerManager.resources | nindent 4 }}

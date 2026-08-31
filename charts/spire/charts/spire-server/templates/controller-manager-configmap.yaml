@@ -16,8 +16,16 @@ metadata:
 data:
 {{- if eq (.Values.controllerManager.enabled | toString) "true" }}
 {{- $clusterName := include "spire-lib.cluster-name" . }}
+{{- if eq .Values.controllerManager.deploymentMode "standalone" }}
   controller-manager-config.yaml: |
-    {{- include "spire-controller-manager.config" (dict "Values" .Values "Chart" .Chart "Release" .Release "startPort" $startPort "suffix" "" "settings" (dict) "defaults" .Values.controllerManager "webhookEnabled" .Values.controllerManager.validatingWebhookConfiguration.enabled "clusterName" $clusterName) | nindent 4 }}
+    {{- include "spire-controller-manager.config" (dict "Values" .Values "Chart" .Chart "Release" .Release "startPort" $startPort "suffix" "" "settings" (dict) "defaults" .Values.controllerManager "webhookEnabled" .Values.controllerManager.validatingWebhookConfiguration.enabled "clusterName" $clusterName "standalone" true) | nindent 4 }}
+  controller-manager-config-bootstrap.yaml: |
+    {{- $bootstrapSettings := include "spire-controller-manager.bootstrap-settings" . | fromYaml }}
+    {{- include "spire-controller-manager.config" (dict "Values" .Values "Chart" .Chart "Release" .Release "startPort" $startPort "suffix" "-bootstrap" "settings" $bootstrapSettings "defaults" .Values.controllerManager "webhookEnabled" false "clusterName" $clusterName "standalone" false) | nindent 4 }}
+{{- else }}
+  controller-manager-config.yaml: |
+    {{- include "spire-controller-manager.config" (dict "Values" .Values "Chart" .Chart "Release" .Release "startPort" $startPort "suffix" "" "settings" (dict) "defaults" .Values.controllerManager "webhookEnabled" .Values.controllerManager.validatingWebhookConfiguration.enabled "clusterName" $clusterName "standalone" false) | nindent 4 }}
+{{- end }}
 {{- end }}
 {{- if .Values.externalControllerManagers.enabled }}
 {{- range $name, $_ := $clusters }}
@@ -75,7 +83,9 @@ validatingWebhookConfigurationName: {{ .Release.Namespace }}-{{ include "spire-c
 {{- if typeIs "string" $entryIDPrefixCleanup }}
 entryIDPrefixCleanup: {{ $entryIDPrefixCleanup | quote }}
 {{- end }}
-{{- if  .Values.controllerManager.addEntryIDPrefix }}
+{{- if hasKey .settings "entryIDPrefix" }}
+entryIDPrefix: {{ .settings.entryIDPrefix | quote }}
+{{- else if  .Values.controllerManager.addEntryIDPrefix }}
 entryIDPrefix: {{ .clusterName }}
 {{- end }}
 clusterName: {{ .clusterName }}
@@ -88,7 +98,12 @@ trustDomain: {{ include "spire-lib.trust-domain" . }}
 ignoreNamespaces:
   {{- toYaml . | nindent 2 }}
 {{- end }}
+{{- if .standalone }}
+spireServerAddress: {{ include "spire-controller-manager.standalone-spire-server-address" . | quote }}
+workloadAPIAddr: {{ printf "unix:///spiffe-workload-api/%s" .Values.controllerManager.standalone.agentSocketName | quote }}
+{{- else }}
 spireServerSocketPath: "/tmp/spire-server/private/api.sock"
+{{- end }}
 className: {{ include "spire-server.controller-manager-class-name" . | quote}}
 watchClassless: {{ if hasKey .settings "watchClassless" }}{{ .settings.watchClassless | toYaml }}{{ else }}{{ .defaults.watchClassless | toYaml }}{{ end }}
 filterByClassName: {{ if hasKey .settings "filterByClassName" }}{{ .settings.filterByClassName | toYaml }}{{ else }}{{ .defaults.filterByClassName | toYaml }}{{ end }}

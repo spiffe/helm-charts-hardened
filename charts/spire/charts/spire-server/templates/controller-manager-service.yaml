@@ -20,7 +20,11 @@ spec:
       targetPort: https
       protocol: TCP
   selector:
+    {{- if eq .Values.controllerManager.deploymentMode "standalone" }}
+    {{- include "spire-controller-manager.standalone-selectorLabels" . | nindent 4 }}
+    {{- else }}
     {{- include "spire-server.selectorLabels" . | nindent 4 }}
+    {{- end }}
 {{- end }}
 {{- end }}
 {{- end }}
