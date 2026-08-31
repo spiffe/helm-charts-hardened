@@ -1030,6 +1030,26 @@ spire-server:
 			Expect(cm).Should(ContainSubstring("entryIDPrefix: example-cluster\n"))
 		})
 
+		It("disables leader election on the bootstrap container", func() {
+			// Regression test: controller-runtime EXITS THE PROCESS when it
+			// loses a leader election lease - this is the exact failure mode
+			// reported in issue #341's own repro log ("error received after
+			// stop sequence was engaged: leader election lost"). A container
+			// exiting flips this Pod's readiness regardless of whether it has
+			// a readinessProbe, so leaving leader election enabled on the
+			// bootstrap container (which never has more than one replica)
+			// would silently reintroduce the exact bug this design exists to
+			// fix. The main (non-bootstrap) instance must keep leader
+			// election enabled, since it CAN be horizontally scaled.
+			objs, err := ValueStringRender(chart, standalone)
+			Expect(err).Should(Succeed())
+			cm := objs["spire/charts/spire-server/templates/controller-manager-configmap.yaml"]
+			bootstrapSection := cm[strings.Index(cm, "controller-manager-config-bootstrap.yaml"):]
+			Expect(bootstrapSection).Should(ContainSubstring("leaderElect: false"))
+			mainSection := cm[:strings.Index(cm, "controller-manager-config-bootstrap.yaml")]
+			Expect(mainSection).Should(ContainSubstring("leaderElect: true"))
+		})
+
 		It("does not add a readinessProbe to the in-pod bootstrap container", func() {
 			objs, err := ValueStringRender(chart, standalone)
 			Expect(err).Should(Succeed())

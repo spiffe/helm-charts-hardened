@@ -61,8 +61,14 @@ logLevel: {{ .Values.controllerManager.logLevel }}
 logEncoding: {{ . }}
 {{- end }}
 {{- if eq .Values.controllerManager.staticManifestMode "off" }}
+{{- $leaderElect := true }}
+{{- if hasKey .settings "leaderElection" }}
+{{-   if hasKey .settings.leaderElection "leaderElect" }}
+{{-     $leaderElect = .settings.leaderElection.leaderElect }}
+{{-   end }}
+{{- end }}
 leaderElection:
-  leaderElect: true
+  leaderElect: {{ $leaderElect }}
   resourceName: {{ printf "%s-%s%s" .Release.Namespace (default .Release.Name .Values.crNameOverride) .suffix | sha256sum | trunc 8 }}.spiffe.io
   resourceNamespace: {{ include "spire-server.namespace" . }}
   leaseDuration: {{ .defaults.leaderElection.leaseDuration }}

@@ -87,6 +87,22 @@ reconcile:
   clusterSPIFFEIDs: true
   clusterStaticEntries: false
   clusterFederatedTrustDomains: false
+leaderElection:
+  # Leader election exists to coordinate multiple replicas of the SAME
+  # controller so only one acts at a time. This bootstrap instance is a
+  # per-Pod sidecar (one per spire-server StatefulSet replica, reconciling
+  # the same small, fully-static ClusterSPIFFEID independently and
+  # idempotently in each), never itself horizontally scaled, so leader
+  # election serves no purpose here. Crucially, controller-runtime EXITS
+  # THE PROCESS when it loses a leader election lease (this is the exact
+  # failure mode reported in issue #341's own repro log: "error received
+  # after stop sequence was engaged: leader election lost"). Since this
+  # container has no readinessProbe specifically so its own health can
+  # never affect the spire-server Pod's readiness, but a container exiting
+  # DOES flip Pod readiness regardless of readinessProbe (confirmed via
+  # testing), leaving leader election enabled here would silently
+  # reintroduce the exact bug this design exists to fix.
+  leaderElect: false
 {{- end -}}
 
 {{- define "spire-controller-manager.containers" }}
