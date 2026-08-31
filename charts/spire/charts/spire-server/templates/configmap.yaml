@@ -239,6 +239,22 @@ plugins:
               {{ if hasKey $clusterSettings "allowedPodLabelKeys" }}{{ toYaml $clusterSettings.allowedPodLabelKeys | nindent 14 }}{{ else }}{{ toYaml $clusterDefaults.allowedPodLabelKeys | nindent 14 }}{{ end }}
           {{- end }}
           {{- end }}
+          {{- if and (eq ($root.Values.controllerManager.enabled | toString) "true") (eq $root.Values.controllerManager.deploymentMode "standalone") }}
+          {{/*
+          Dedicated k8s_psat cluster profile for the standalone controller
+          manager's own in-pod spire-agent sidecar. Scoped via
+          service_account_allow_list to only the standalone Deployment's own
+          ServiceAccount, and uses use_pod_uid_for_agent_id so this agent's
+          identity is tied to its own Pod rather than the underlying k8s
+          Node. See controller-manager-standalone.yaml for the node-alias
+          registration entry that makes this agent's identity useful despite
+          the concrete pod-UID not being predictable ahead of time.
+          */}}
+        - {{ include "spire-controller-manager.standalone-attestor-cluster-name" $root }}:
+            service_account_allow_list: [{{ printf "%s:%s" (include "spire-server.namespace" $root) (include "spire-controller-manager.standalone-serviceAccountName" $root) | quote }}]
+            audience: {{ $root.Values.nodeAttestor.k8sPSAT.audience }}
+            use_pod_uid_for_agent_id: true
+          {{- end }}
   {{- end }}
   {{- with .Values.nodeAttestor.joinToken }}
   {{- if eq (.enabled | toString) "true" }}

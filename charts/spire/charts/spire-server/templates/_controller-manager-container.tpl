@@ -48,9 +48,7 @@
 {{- $root := . -}}
 {{- $names := list -}}
 {{- if eq (.Values.controllerManager.enabled | toString) "true" -}}
-{{-   if eq .Values.controllerManager.deploymentMode "standalone" -}}
-{{-     $names = append $names "pm-cm-bootstrap" -}}
-{{-   else -}}
+{{-   if ne .Values.controllerManager.deploymentMode "standalone" -}}
 {{-     $names = append $names (include "spire-controller-manager.promPortName" (dict "name" "" "settings" .Values.controllerManager)) -}}
 {{-   end -}}
 {{- end -}}
@@ -71,40 +69,6 @@
 {{- $names | toYaml -}}
 {{- end -}}
 
-{{/*
-Settings dict (as YAML, to be piped through fromYaml) for the minimal
-in-pod bootstrap controller-manager rendered when
-controllerManager.deploymentMode is "standalone". Shared by
-_controller-manager-container.tpl and controller-manager-configmap.yaml so
-the container and its ControllerManagerConfig never drift.
-*/}}
-{{- define "spire-controller-manager.bootstrap-settings" -}}
-className: {{ include "spire-controller-manager.bootstrap-class-name" . | quote }}
-watchClassless: false
-filterByClassName: true
-entryIDPrefix: {{ printf "%s-bootstrap" (include "spire-lib.cluster-name" .) | quote }}
-reconcile:
-  clusterSPIFFEIDs: true
-  clusterStaticEntries: false
-  clusterFederatedTrustDomains: false
-leaderElection:
-  # Leader election exists to coordinate multiple replicas of the SAME
-  # controller so only one acts at a time. This bootstrap instance is a
-  # per-Pod sidecar (one per spire-server StatefulSet replica, reconciling
-  # the same small, fully-static ClusterSPIFFEID independently and
-  # idempotently in each), never itself horizontally scaled, so leader
-  # election serves no purpose here. Crucially, controller-runtime EXITS
-  # THE PROCESS when it loses a leader election lease (this is the exact
-  # failure mode reported in issue #341's own repro log: "error received
-  # after stop sequence was engaged: leader election lost"). Since this
-  # container has no readinessProbe specifically so its own health can
-  # never affect the spire-server Pod's readiness, but a container exiting
-  # DOES flip Pod readiness regardless of readinessProbe (confirmed via
-  # testing), leaving leader election enabled here would silently
-  # reintroduce the exact bug this design exists to fix.
-  leaderElect: false
-{{- end -}}
-
 {{- define "spire-controller-manager.containers" }}
 {{-   $root := . }}
 {{-   $settings := dict }}
@@ -118,26 +82,19 @@ leaderElection:
 {{-       fail "controllerManager.deploymentMode must be one of \"sidecar\" or \"standalone\"" }}
 {{-     end }}
 {{-     if eq .Values.controllerManager.deploymentMode "standalone" }}
-{{-       if ne .Values.controllerManager.staticManifestMode "off" }}
-{{-         fail "controllerManager.deploymentMode \"standalone\" requires controllerManager.staticManifestMode to be \"off\"" }}
-{{-       end }}
 {{/*
-In standalone mode, the "real" controller manager runs in its own
-Deployment (see controller-manager-standalone.yaml) and connects to the
-SPIRE Server over TCP. The only thing rendered here, in the spire-server
-Pod, is a minimal bootstrap container whose sole job is to reconcile the
-one ClusterSPIFFEID that grants the standalone Deployment its own SPIFFE
-identity (see the ClusterSPIFFEID rendered in controller-manager-standalone.yaml).
-It uses a dedicated className (so the standalone Deployment's own
-reconciliation loop ignores this CR) and a dedicated entryIDPrefix (so
-neither instance's full-reconciliation GC pass deletes the other's
-registration entries as "unmanaged" - both instances otherwise poll the
-same SPIRE Server datastore). It has no readinessProbe so its health
-never affects the spire-server Pod's readiness (see issue #341).
+In standalone mode, the controller manager runs entirely in its own
+Deployment (see controller-manager-standalone.yaml), connecting to the
+SPIRE Server over TCP. Nothing is rendered here in the spire-server Pod
+at all - the spire-server Pod's shape is unaffected by the controller
+manager (see issue #341). The standalone Deployment obtains its own
+SPIFFE identity via its own in-pod spire-agent sidecar (attested as a
+distinct k8s_psat node via use_pod_uid_for_agent_id, see configmap.yaml)
+plus a node-alias registration entry created by a postStart hook on the
+spire-server container (see server-resource.yaml) - both are fully
+static/computable ahead of time, so no chicken-and-egg bootstrap
+container/CR is needed.
 */}}
-{{-       $reconcileEntries = add $reconcileEntries 1 }}
-{{-       $bootstrapSettings := include "spire-controller-manager.bootstrap-settings" . | fromYaml }}
-{{-       include "spire-controller-manager.container" (dict "Values" .Values "Chart" .Chart "startPort" $startPort "suffix" "-bootstrap" "portSuffix" "-bootstrap" "healthPortName" "" "prometheusPortName" "" "settings" $bootstrapSettings "defaults" $defaults "webhooksEnabled" false "noReadinessProbe" true) }}
 {{-     else }}
 {{-       if .Values.controllerManager.reconcile.clusterFederatedTrustDomains }}
 {{-         $reconcileFederation = add $reconcileFederation 1 }}

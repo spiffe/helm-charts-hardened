@@ -202,18 +202,35 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
 {{/*
-Dedicated class name used for the in-pod bootstrap identity when the
-controller manager runs in "standalone" deploymentMode. This MUST differ
-from the "real" controller-manager class name (returned by
-"spire-server.controller-manager-class-name") so the standalone Deployment
-does not also try to reconcile the bootstrap ClusterSPIFFEID.
+Name of the dedicated k8s_psat cluster profile (configmap.yaml) used to
+attest the standalone controller manager's own in-pod spire-agent
+sidecar, scoped via service_account_allow_list to just that Deployment's
+ServiceAccount, with use_pod_uid_for_agent_id enabled.
 */}}
-{{- define "spire-controller-manager.bootstrap-class-name" -}}
-{{- if .Values.controllerManager.standalone.bootstrap.className }}
-{{-   .Values.controllerManager.standalone.bootstrap.className }}
-{{- else }}
-{{-   printf "%s-bootstrap" (include "spire-server.controller-manager-class-name" .) }}
-{{- end -}}
+{{- define "spire-controller-manager.standalone-attestor-cluster-name" -}}
+{{- printf "%s-cm-standalone" (include "spire-lib.cluster-name" .) }}
+{{- end }}
+
+{{/* Path, inside the standalone Deployment's Pod, of the in-pod spire-agent's own Workload API socket. Shared between its two containers via an emptyDir. */}}
+{{- define "spire-controller-manager.standalone-agent-socket-path" -}}
+/tmp/spire-agent/public/api.sock
+{{- end }}
+
+{{/*
+SPIFFE ID of the "node alias" that grants the standalone Deployment's own
+in-pod spire-agent an additional identity, matched purely by node-attestor-
+style selectors (parentID = spiffe://<td>/spire/server), regardless of the
+concrete (unpredictable ahead of time) pod-UID-based agent ID it attests
+with. See controller-manager-standalone.yaml for the static registration
+entry that establishes this.
+*/}}
+{{- define "spire-controller-manager.standalone-alias-id" -}}
+spiffe://{{ include "spire-lib.trust-domain" . }}/spire/agent/controller-manager-standalone
+{{- end }}
+
+{{/* SPIFFE ID of the standalone Deployment's own controller-manager workload, parented to the alias above. */}}
+{{- define "spire-controller-manager.standalone-workload-id" -}}
+spiffe://{{ include "spire-lib.trust-domain" . }}/ns/{{ include "spire-server.namespace" . }}/sa/{{ include "spire-controller-manager.standalone-serviceAccountName" . }}
 {{- end }}
 
 {{/*

@@ -1,7 +1,8 @@
 {{- if not .Values.externalServer }}
 {{- if and (eq (.Values.controllerManager.enabled | toString) "true") (eq .Values.controllerManager.deploymentMode "standalone") }}
 {{- $webhooksEnabled := .Values.controllerManager.validatingWebhookConfiguration.enabled }}
-{{- $workloadAPISocketPath := printf "/spiffe-workload-api/%s" .Values.controllerManager.standalone.agentSocketName }}
+{{- $agentSocketPath := include "spire-controller-manager.standalone-agent-socket-path" . }}
+{{- $attestorCluster := include "spire-controller-manager.standalone-attestor-cluster-name" . }}
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -13,6 +14,124 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
+---
+# Config for the standalone Deployment's own in-pod spire-agent sidecar.
+# This agent attests as a distinct k8s_psat "node", scoped to just this
+# Deployment's own ServiceAccount (see the dedicated cluster profile in
+# configmap.yaml) and identified by its own Pod's UID
+# (use_pod_uid_for_agent_id), rather than depending on the per-node
+# spiffe-csi-driver/agent DaemonSet or any chicken-and-egg
+# registration-entry bootstrapping: the node-alias and workload entries
+# below are fully static, so they exist before this Pod is ever
+# scheduled.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spire-controller-manager.standalone-fullname" . }}-agent
+  namespace: {{ include "spire-server.namespace" . }}
+  labels:
+    {{- include "spire-controller-manager.standalone-labels" . | nindent 4 }}
+data:
+  agent.conf: |
+    agent {
+      data_dir = "/var/lib/spire-agent-cm"
+      log_level = {{ .Values.controllerManager.standalone.agent.logLevel | quote }}
+      server_address = {{ printf "%s.%s.svc.cluster.local" (include "spire-server.fullname" .) (include "spire-server.namespace" .) | quote }}
+      server_port = "443"
+      socket_path = {{ $agentSocketPath | quote }}
+      trust_bundle_path = "/run/spire/bundle/bundle.pem"
+      trust_domain = {{ include "spire-lib.trust-domain" . | quote }}
+    }
+
+    plugins {
+      NodeAttestor "k8s_psat" {
+        plugin_data {
+          cluster = {{ $attestorCluster | quote }}
+        }
+      }
+
+      KeyManager "memory" {
+        plugin_data {
+        }
+      }
+
+      WorkloadAttestor "k8s" {
+        plugin_data {
+          skip_kubelet_verification = true
+        }
+      }
+    }
+
+    health_checks {
+      listener_enabled = true
+      bind_address = "0.0.0.0"
+      bind_port = "8080"
+      live_path = "/live"
+      ready_path = "/ready"
+    }
+---
+# Bootstrap identity for the standalone controller manager Deployment,
+# expressed as two fully-static registration entries (computable at Helm
+# render time, with no dependency on which k8s Node the Deployment's Pod
+# is ever scheduled onto - unlike the concrete pod-UID agent ID itself).
+# Applied by a postStart hook on the spire-server container (see
+# server-resource.yaml), which is naturally idempotent: creating an
+# already-existing (parentID, spiffeID, selectors) tuple again returns
+# AlreadyExists without failing the CLI/hook.
+#
+# 1. A "node alias" entry (parentID = spiffe://<td>/spire/server) matched
+#    via k8s_psat node-attestor selectors (cluster/agent_ns/agent_sa) -
+#    these selector VALUES are known ahead of time even though the
+#    concrete pod-UID-based agent ID is not.
+# 2. A normal admin workload entry parented to that alias, matched via
+#    ordinary k8s workload-attestor selectors (ns/sa), granting the
+#    standalone Deployment's own SPIFFE ID admin rights on the Server.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spire-controller-manager.standalone-fullname" . }}-bootstrap-entries
+  namespace: {{ include "spire-server.namespace" . }}
+  labels:
+    {{- include "spire-controller-manager.standalone-labels" . | nindent 4 }}
+data:
+  entries.json: |
+    {
+      "entries": [
+        {
+          "parent_id": {{ printf "spiffe://%s/spire/server" (include "spire-lib.trust-domain" .) | quote }},
+          "selectors": [
+            {
+              "type": "k8s_psat",
+              "value": {{ printf "cluster:%s" $attestorCluster | quote }}
+            },
+            {
+              "type": "k8s_psat",
+              "value": {{ printf "agent_ns:%s" (include "spire-server.namespace" .) | quote }}
+            },
+            {
+              "type": "k8s_psat",
+              "value": {{ printf "agent_sa:%s" (include "spire-controller-manager.standalone-serviceAccountName" .) | quote }}
+            }
+          ],
+          "spiffe_id": {{ include "spire-controller-manager.standalone-alias-id" . | quote }}
+        },
+        {
+          "admin": true,
+          "parent_id": {{ include "spire-controller-manager.standalone-alias-id" . | quote }},
+          "selectors": [
+            {
+              "type": "k8s",
+              "value": {{ printf "ns:%s" (include "spire-server.namespace" .) | quote }}
+            },
+            {
+              "type": "k8s",
+              "value": {{ printf "sa:%s" (include "spire-controller-manager.standalone-serviceAccountName" .) | quote }}
+            }
+          ],
+          "spiffe_id": {{ include "spire-controller-manager.standalone-workload-id" . | quote }}
+        }
+      ]
+    }
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -63,6 +182,28 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
+        - name: spire-agent
+          securityContext:
+            {{- include "spire-lib.securitycontext-extended" (dict "root" . "securityContext" .Values.controllerManager.standalone.agent.securityContext) | nindent 12 }}
+          image: {{ template "spire-lib.image" (dict "appVersion" .Chart.AppVersion "image" .Values.controllerManager.standalone.agent.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.controllerManager.standalone.agent.image.pullPolicy }}
+          args: ["-config", "/opt/spire/conf/agent/agent.conf"]
+          resources:
+            {{- toYaml .Values.controllerManager.standalone.agent.resources | nindent 12 }}
+          volumeMounts:
+            - name: agent-config
+              mountPath: /opt/spire/conf/agent
+              readOnly: true
+            - name: spire-agent-data
+              mountPath: /var/lib/spire-agent-cm
+            - name: spire-agent-socket
+              mountPath: {{ dir $agentSocketPath }}
+            - name: spire-bundle
+              readOnly: true
+              mountPath: /run/spire/bundle
+            - name: spire-token
+              mountPath: /var/run/secrets/tokens
+              readOnly: true
         - name: spire-controller-manager
           securityContext:
             {{- include "spire-lib.securitycontext-extended" (dict "root" . "securityContext" .Values.controllerManager.standalone.securityContext) | nindent 12 }}
@@ -104,8 +245,8 @@ spec:
           resources:
             {{- toYaml .Values.controllerManager.standalone.resources | nindent 12 }}
           volumeMounts:
-            - name: spiffe-workload-api
-              mountPath: {{ dir $workloadAPISocketPath }}
+            - name: spire-agent-socket
+              mountPath: {{ dir $agentSocketPath }}
               readOnly: true
             - name: controller-manager-config
               mountPath: /controller-manager-config.yaml
@@ -115,40 +256,28 @@ spec:
               mountPath: /tmp
               readOnly: false
       volumes:
-        - name: spiffe-workload-api
-          csi:
-            driver: {{ .Values.controllerManager.standalone.csiDriverName | quote }}
-            readOnly: true
+        - name: agent-config
+          configMap:
+            name: {{ include "spire-controller-manager.standalone-fullname" . }}-agent
+        - name: spire-agent-data
+          emptyDir: {}
+        - name: spire-agent-socket
+          emptyDir: {}
+        - name: spire-bundle
+          configMap:
+            name: {{ include "spire-lib.bundle-configmap" . }}
+        - name: spire-token
+          projected:
+            sources:
+              - serviceAccountToken:
+                  path: spire-agent
+                  expirationSeconds: 7200
+                  audience: spire-server
         - name: controller-manager-config
           configMap:
             name: {{ include "spire-controller-manager.fullname" . }}
         - name: controller-manager-standalone-tmp
           emptyDir: {}
----
-# Bootstrap identity: grants the standalone controller manager Deployment
-# its own SPIFFE ID (with admin rights on the SPIRE Server) so it can dial
-# the Server over TCP. This entry is reconciled by the minimal bootstrap
-# container still running alongside spire-server (see
-# _controller-manager-container.tpl), using a dedicated className so the
-# standalone Deployment's own reconciliation loop ignores this CR.
-apiVersion: spire.spiffe.io/v1alpha1
-kind: ClusterSPIFFEID
-metadata:
-  name: {{ .Release.Namespace }}-{{ default .Release.Name .Values.crNameOverride }}-controller-manager-standalone-bootstrap
-  labels:
-    {{- include "spire-controller-manager.standalone-labels" . | nindent 4 }}
-    spire.spiffe.io/class-name: {{ include "spire-controller-manager.bootstrap-class-name" . | quote }}
-spec:
-  className: {{ include "spire-controller-manager.bootstrap-class-name" . | quote }}
-  spiffeIDTemplate: {{ .Values.controllerManager.identities.clusterSPIFFEIDs.default.spiffeIDTemplate | quote }}
-  podSelector:
-    matchLabels:
-      {{- include "spire-controller-manager.standalone-selectorLabels" . | nindent 6 }}
-  namespaceSelector:
-    matchLabels:
-      kubernetes.io/metadata.name: {{ include "spire-server.namespace" . }}
-  admin: true
-  fallback: false
 {{- if (dig "telemetry" "prometheus" "podMonitor" "enabled" .Values.telemetry.prometheus.podMonitor.enabled .Values.global) }}
 ---
 apiVersion: monitoring.coreos.com/v1

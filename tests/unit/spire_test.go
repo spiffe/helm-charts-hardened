@@ -992,82 +992,57 @@ spire-server:
     enabled: true
     deploymentMode: standalone
 `
-		It("renders the standalone Deployment, ServiceAccount and bootstrap ClusterSPIFFEID", func() {
+		It("renders the standalone Deployment with a spire-agent sidecar and the controller-manager container", func() {
 			objs, err := ValueStringRender(chart, standalone)
 			Expect(err).Should(Succeed())
 			standaloneManifest := objs["spire/charts/spire-server/templates/controller-manager-standalone.yaml"]
 			Expect(standaloneManifest).Should(ContainSubstring("kind: ServiceAccount"))
 			Expect(standaloneManifest).Should(ContainSubstring("kind: Deployment"))
-			Expect(standaloneManifest).Should(ContainSubstring("kind: ClusterSPIFFEID"))
-			Expect(standaloneManifest).Should(ContainSubstring("admin: true"))
-			Expect(standaloneManifest).Should(ContainSubstring("className: \"spire-server-spire-bootstrap\""))
-			Expect(standaloneManifest).Should(ContainSubstring("driver: \"csi.spiffe.io\""))
+			Expect(standaloneManifest).Should(ContainSubstring("name: spire-agent"))
+			Expect(standaloneManifest).Should(ContainSubstring("name: spire-controller-manager"))
 		})
 
-		It("labels the bootstrap ClusterSPIFFEID so it is visible to the bootstrap container's filterByClassName cache", func() {
-			// Regression test: the bootstrap controller-manager container sets
-			// filterByClassName: true, which restricts its informer cache to
-			// ClusterSPIFFEIDs carrying the well-known
-			// "spire.spiffe.io/class-name" label. Without this label, the
-			// bootstrap container's cache never sees this CR and never
-			// reconciles it, so the standalone Deployment can never obtain an
-			// SVID.
+		It("renders the static bootstrap registration entries as a node alias plus an admin workload entry", func() {
+			// The node alias entry (parentID = spiffe://<td>/spire/server,
+			// matched via k8s_psat node-attestor selectors) and the admin
+			// workload entry parented to it are both fully static and
+			// computable at Helm render time, since neither depends on
+			// which k8s Node the standalone Deployment's Pod is ever
+			// scheduled onto.
 			objs, err := ValueStringRender(chart, standalone)
 			Expect(err).Should(Succeed())
 			standaloneManifest := objs["spire/charts/spire-server/templates/controller-manager-standalone.yaml"]
-			Expect(standaloneManifest).Should(ContainSubstring("spire.spiffe.io/class-name: \"spire-server-spire-bootstrap\""))
+			Expect(standaloneManifest).Should(ContainSubstring("entries.json"))
+			Expect(standaloneManifest).Should(ContainSubstring("\"parent_id\": \"spiffe://example.org/spire/server\""))
+			Expect(standaloneManifest).Should(ContainSubstring("\"type\": \"k8s_psat\""))
+			Expect(standaloneManifest).Should(ContainSubstring("\"admin\": true"))
 		})
 
-		It("gives the bootstrap container a distinct entryIDPrefix from the standalone Deployment", func() {
-			// Regression test: without distinct entryIDPrefixes, both the
-			// bootstrap container and the standalone Deployment treat every
-			// registration entry in the datastore as their own to garbage
-			// collect, and each deletes the other's entries as "unmanaged".
+		It("configures a dedicated k8s_psat cluster profile with use_pod_uid_for_agent_id for the standalone agent", func() {
 			objs, err := ValueStringRender(chart, standalone)
 			Expect(err).Should(Succeed())
-			cm := objs["spire/charts/spire-server/templates/controller-manager-configmap.yaml"]
-			Expect(cm).Should(ContainSubstring("entryIDPrefix: \"example-cluster-bootstrap\""))
-			Expect(cm).Should(ContainSubstring("entryIDPrefix: example-cluster\n"))
+			serverConfig := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(serverConfig).Should(ContainSubstring("\"use_pod_uid_for_agent_id\": true"))
 		})
 
-		It("disables leader election on the bootstrap container", func() {
-			// Regression test: controller-runtime EXITS THE PROCESS when it
-			// loses a leader election lease - this is the exact failure mode
-			// reported in issue #341's own repro log ("error received after
-			// stop sequence was engaged: leader election lost"). A container
-			// exiting flips this Pod's readiness regardless of whether it has
-			// a readinessProbe, so leaving leader election enabled on the
-			// bootstrap container (which never has more than one replica)
-			// would silently reintroduce the exact bug this design exists to
-			// fix. The main (non-bootstrap) instance must keep leader
-			// election enabled, since it CAN be horizontally scaled.
-			objs, err := ValueStringRender(chart, standalone)
-			Expect(err).Should(Succeed())
-			cm := objs["spire/charts/spire-server/templates/controller-manager-configmap.yaml"]
-			bootstrapSection := cm[strings.Index(cm, "controller-manager-config-bootstrap.yaml"):]
-			Expect(bootstrapSection).Should(ContainSubstring("leaderElect: false"))
-			mainSection := cm[:strings.Index(cm, "controller-manager-config-bootstrap.yaml")]
-			Expect(mainSection).Should(ContainSubstring("leaderElect: true"))
-		})
-
-		It("does not add a readinessProbe to the in-pod bootstrap container", func() {
+		It("applies the bootstrap entries via a postStart hook on the spire-server container", func() {
 			objs, err := ValueStringRender(chart, standalone)
 			Expect(err).Should(Succeed())
 			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
-			Expect(serverResource).Should(ContainSubstring("spire-controller-manager-bootstrap"))
-			Expect(serverResource).ShouldNot(ContainSubstring("/readyz"))
+			Expect(serverResource).Should(ContainSubstring("postStart"))
+			Expect(serverResource).Should(ContainSubstring("entry"))
+			Expect(serverResource).Should(ContainSubstring("create"))
+			Expect(serverResource).Should(ContainSubstring("-data=/controller-manager-standalone-bootstrap/entries.json"))
 		})
 
-		It("renders both the main (TCP) and bootstrap (socket) ControllerManagerConfigs", func() {
+		It("renders a single ControllerManagerConfig that dials the SPIRE Server over TCP", func() {
 			objs, err := ValueStringRender(chart, standalone)
 			Expect(err).Should(Succeed())
 			cm := objs["spire/charts/spire-server/templates/controller-manager-configmap.yaml"]
 			Expect(cm).Should(ContainSubstring("controller-manager-config.yaml"))
-			Expect(cm).Should(ContainSubstring("controller-manager-config-bootstrap.yaml"))
+			Expect(cm).ShouldNot(ContainSubstring("controller-manager-config-bootstrap.yaml"))
 			Expect(cm).Should(ContainSubstring("spireServerAddress:"))
 			Expect(cm).Should(ContainSubstring("workloadAPIAddr:"))
-			Expect(cm).Should(ContainSubstring("spireServerSocketPath: \"/tmp/spire-server/private/api.sock\""))
-			Expect(cm).Should(ContainSubstring("className: \"spire-server-spire-bootstrap\""))
 		})
 
 		It("grants the standalone ServiceAccount the leader-election and CRD RBAC", func() {
@@ -1077,6 +1052,14 @@ spire-server:
 			Expect(roles).Should(ContainSubstring("name: spire-controller-manager-standalone"))
 		})
 
+		It("grants the standalone agent RBAC to query the kubelet for workload attestation", func() {
+			objs, err := ValueStringRender(chart, standalone)
+			Expect(err).Should(Succeed())
+			roles := objs["spire/charts/spire-server/templates/controller-manager-roles.yaml"]
+			Expect(roles).Should(ContainSubstring("spire-controller-manager-standalone-agent"))
+			Expect(roles).Should(ContainSubstring("nodes/proxy"))
+		})
+
 		It("points the webhook Service at the standalone Deployment's pods", func() {
 			objs, err := ValueStringRender(chart, standalone)
 			Expect(err).Should(Succeed())
@@ -1084,7 +1067,7 @@ spire-server:
 			Expect(svc).Should(ContainSubstring("app.kubernetes.io/name: spire-controller-manager-standalone"))
 		})
 
-		It("fails when combined with a non-off staticManifestMode", func() {
+		It("does not restrict staticManifestMode", func() {
 			_, err := ValueStringRender(chart, `
 spire-server:
   controllerManager:
@@ -1092,7 +1075,7 @@ spire-server:
     deploymentMode: standalone
     staticManifestMode: internal
 `)
-			Expect(err).Should(MatchError(ContainSubstring("staticManifestMode to be \"off\"")))
+			Expect(err).Should(Succeed())
 		})
 
 		It("fails on an unsupported deploymentMode", func() {

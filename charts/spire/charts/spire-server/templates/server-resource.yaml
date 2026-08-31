@@ -310,6 +310,24 @@ spec:
             {{- include "spire-lib.securitycontext" . | nindent 12 }}
           image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if and (eq (.Values.controllerManager.enabled | toString) "true") (eq .Values.controllerManager.deploymentMode "standalone") }}
+          lifecycle:
+            postStart:
+              exec:
+                # Applies the standalone controller manager's bootstrap
+                # registration entries (see controller-manager-standalone.yaml)
+                # on every start of this container. Naturally idempotent:
+                # re-creating an already-existing entry returns AlreadyExists
+                # without failing the CLI, so this self-heals if the
+                # datastore is ever wiped without needing any reconciliation
+                # loop or extra RBAC (uses the already-trusted local socket).
+                command:
+                  - /opt/spire/bin/spire-server
+                  - entry
+                  - create
+                  - -socketPath=/tmp/spire-server/private/api.sock
+                  - -data=/controller-manager-standalone-bootstrap/entries.json
+          {{- end }}
           args:
             - -expandEnv
             - -config
@@ -502,6 +520,11 @@ spec:
             - name: server-tmp
               mountPath: /tmp
               readOnly: false
+            {{- if and (eq (.Values.controllerManager.enabled | toString) "true") (eq .Values.controllerManager.deploymentMode "standalone") }}
+            - name: controller-manager-standalone-bootstrap
+              mountPath: /controller-manager-standalone-bootstrap
+              readOnly: true
+            {{- end }}
         {{- include "spire-controller-manager.containers" . | nindent 8 }}
         {{- if eq (.Values.dynamicRegistration.enabled | toString) "true" }}
         - name: dynamic-registration
@@ -770,6 +793,11 @@ spec:
         - name: controller-manager-config
           configMap:
             name: {{ include "spire-controller-manager.fullname" . }}
+        {{- if eq .Values.controllerManager.deploymentMode "standalone" }}
+        - name: controller-manager-standalone-bootstrap
+          configMap:
+            name: {{ include "spire-controller-manager.standalone-fullname" . }}-bootstrap-entries
+        {{- end }}
         {{- end }}
         {{- if eq (.Values.tornjak.enabled | toString) "true" }}
         {{- if .Values.tornjak.config }}

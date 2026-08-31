@@ -19,9 +19,6 @@ data:
 {{- if eq .Values.controllerManager.deploymentMode "standalone" }}
   controller-manager-config.yaml: |
     {{- include "spire-controller-manager.config" (dict "Values" .Values "Chart" .Chart "Release" .Release "startPort" $startPort "suffix" "" "settings" (dict) "defaults" .Values.controllerManager "webhookEnabled" .Values.controllerManager.validatingWebhookConfiguration.enabled "clusterName" $clusterName "standalone" true) | nindent 4 }}
-  controller-manager-config-bootstrap.yaml: |
-    {{- $bootstrapSettings := include "spire-controller-manager.bootstrap-settings" . | fromYaml }}
-    {{- include "spire-controller-manager.config" (dict "Values" .Values "Chart" .Chart "Release" .Release "startPort" $startPort "suffix" "-bootstrap" "settings" $bootstrapSettings "defaults" .Values.controllerManager "webhookEnabled" false "clusterName" $clusterName "standalone" false) | nindent 4 }}
 {{- else }}
   controller-manager-config.yaml: |
     {{- include "spire-controller-manager.config" (dict "Values" .Values "Chart" .Chart "Release" .Release "startPort" $startPort "suffix" "" "settings" (dict) "defaults" .Values.controllerManager "webhookEnabled" .Values.controllerManager.validatingWebhookConfiguration.enabled "clusterName" $clusterName "standalone" false) | nindent 4 }}
@@ -61,14 +58,8 @@ logLevel: {{ .Values.controllerManager.logLevel }}
 logEncoding: {{ . }}
 {{- end }}
 {{- if eq .Values.controllerManager.staticManifestMode "off" }}
-{{- $leaderElect := true }}
-{{- if hasKey .settings "leaderElection" }}
-{{-   if hasKey .settings.leaderElection "leaderElect" }}
-{{-     $leaderElect = .settings.leaderElection.leaderElect }}
-{{-   end }}
-{{- end }}
 leaderElection:
-  leaderElect: {{ $leaderElect }}
+  leaderElect: true
   resourceName: {{ printf "%s-%s%s" .Release.Namespace (default .Release.Name .Values.crNameOverride) .suffix | sha256sum | trunc 8 }}.spiffe.io
   resourceNamespace: {{ include "spire-server.namespace" . }}
   leaseDuration: {{ .defaults.leaderElection.leaseDuration }}
@@ -106,7 +97,7 @@ ignoreNamespaces:
 {{- end }}
 {{- if .standalone }}
 spireServerAddress: {{ include "spire-controller-manager.standalone-spire-server-address" . | quote }}
-workloadAPIAddr: {{ printf "unix:///spiffe-workload-api/%s" .Values.controllerManager.standalone.agentSocketName | quote }}
+workloadAPIAddr: {{ printf "unix://%s" (include "spire-controller-manager.standalone-agent-socket-path" .) | quote }}
 {{- else }}
 spireServerSocketPath: "/tmp/spire-server/private/api.sock"
 {{- end }}
