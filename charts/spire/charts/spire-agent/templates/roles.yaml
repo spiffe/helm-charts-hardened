@@ -1,5 +1,5 @@
 {{- $brokerEndpoint := or .Values.sockets.broker.enabled .Values.brokerAPI.tcp.enabled }}
-{{- $enforced := and $brokerEndpoint (eq .Values.workloadAttestors.k8s.brokerAPI.accessPolicy "enforced") }}
+{{- $enforced := and $brokerEndpoint (eq (include "spire-agent.broker-access-policy" .) "enforced") }}
 # Required cluster role to allow spire-agent to query k8s API server
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
@@ -38,7 +38,11 @@ roleRef:
 {{- if $enforced }}
 {{- $trustDomain := include "spire-lib.trust-domain" . }}
 {{- range $key, $value := .Values.workloadAttestors.k8s.brokerAPI.brokers }}
-{{-   if and (or (not (hasKey $value "enabled")) $value.enabled) (dig "impersonation" "clusterWidePodsOnly" false $value) }}
+{{- /* Defaulting to false, not auto, is deliberate: a broker someone adds
+       themselves gets no grant unless they ask for one. */}}
+{{-   $imp := dig "impersonation" "clusterWidePodsOnly" false $value | toString }}
+{{-   $grant := ternary $enforced (eq $imp "true") (eq $imp "auto") }}
+{{-   if and (or (not (hasKey $value "enabled")) $value.enabled) $grant }}
 {{-     $idTemplate := (index $.Values.brokerAPI.brokers $key).idTemplate }}
 {{-     if hasKey $value "idTemplate" }}
 {{-       $idTemplate = $value.idTemplate }}

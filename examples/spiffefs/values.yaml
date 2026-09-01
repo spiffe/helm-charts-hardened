@@ -47,9 +47,12 @@ spire-agent:
         brokers:
           # Lets the k8s attestor resolve the pids spiffefs names, so a reader
           # gets what its own entry entitles it to.
+          #
+          # The chart's accessPolicy default of auto lands on permissive here,
+          # because spiffefs is limited to pid references and those cannot name
+          # anything off this node. That matters: enforced asks the cluster
+          # authorizer on every broker stream open, and spiffefs subscribes once
+          # per reading pid, so a workload reading from a fresh process each
+          # time would pay an uncached apiserver round trip per read.
           spiffefs:
             enabled: true
-            impersonation:
-              # Under the default enforced policy the agent asks the cluster
-              # authorizer whether spiffefs may speak for the pod it named.
-              clusterWidePodsOnly: true
