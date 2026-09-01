@@ -199,3 +199,49 @@ Kept for backward compatibility
 names:
 {{ $l | toYaml }}
 {{- end }}
+
+{{/*
+Resolve workloadAttestors.k8s.brokerAPI.accessPolicy to one of the two values
+spire itself accepts. "auto" picks permissive only when every enabled broker is
+confined to references that cannot name anything off this node, and enforced
+otherwise -- including for anything unrecognized, so it fails closed.
+
+The enforced triggers, in order below: a cluster pod reference scope, which lets
+a pod reference fall through to the apiserver; an absent or empty
+allowedReferenceTypes, which is the case spire treats as "no policy" and leaves
+every reference type open over unix; any reference type other than a pid; and
+any type reachable over tcp. The types are looked up with dig rather than index
+so a broker missing from brokerAPI.brokers resolves to enforced instead of
+erroring.
+*/}}
+{{- define "spire-agent.broker-access-policy" -}}
+{{-   $configured := .Values.workloadAttestors.k8s.brokerAPI.accessPolicy | toString }}
+{{-   if and (ne $configured "auto") (ne $configured "") }}
+{{-     if not (has $configured (list "enforced" "permissive")) }}
+{{-       fail (printf "workloadAttestors.k8s.brokerAPI.accessPolicy must be one of [auto, enforced, permissive], got: %s" $configured) }}
+{{-     end }}
+{{-     $configured }}
+{{-   else }}
+{{-     $policy := "permissive" }}
+{{-     range $key, $value := .Values.workloadAttestors.k8s.brokerAPI.brokers }}
+{{-       if or (not (hasKey $value "enabled")) $value.enabled }}
+{{-         if eq (dig "podReferenceScope" "" $value | toString) "cluster" }}
+{{-           $policy = "enforced" }}
+{{-         end }}
+{{-         $types := dig $key "allowedReferenceTypes" (list) $.Values.brokerAPI.brokers }}
+{{-         if not $types }}
+{{-           $policy = "enforced" }}
+{{-         end }}
+{{-         range $types }}
+{{-           if ne (.typeURL | toString) "type.googleapis.com/spiffe.broker.WorkloadPIDReference" }}
+{{-             $policy = "enforced" }}
+{{-           end }}
+{{-           if eq (.allowOverTCP | toString) "true" }}
+{{-             $policy = "enforced" }}
+{{-           end }}
+{{-         end }}
+{{-       end }}
+{{-     end }}
+{{-     $policy }}
+{{-   end }}
+{{- end }}

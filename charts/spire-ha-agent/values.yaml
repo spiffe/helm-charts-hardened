@@ -73,7 +73,7 @@ brokerAPI:
     ## @param brokerAPI.socket.mountOnHost Make the served broker socket visible on the host, so consumers running in other pods on the node can reach it. When false the socket stays in an emptyDir, reachable only from this pod.
     mountOnHost: true
     ## @param brokerAPI.socket.hostPath Where the served broker socket is made available on the host when mountOnHost is true
-    hostPath: /var/run/spire/agent/sockets/main/csi.spiffe.io/broker
+    hostPath: /run/spire/agent/sockets/csi.spiffe.io/broker
   tcp:
     ## @param brokerAPI.tcp.enabled Serve the broker api over tcp
     enabled: false
@@ -84,7 +84,7 @@ brokerAPI:
   ## these following the same shape.
   brokers:
     spiffefs:
-      ## @param brokerAPI.brokers.spiffefs.enabled Enable spiffefs as a broker
+      ## @param brokerAPI.brokers.spiffefs.enabled Enable spiffefs as a broker. This feature is experimental.
       enabled: false
       ## @param brokerAPI.brokers.spiffefs.idTemplate The default id template
       idTemplate: spiffe://{{ .TrustDomain }}/spiffefs
