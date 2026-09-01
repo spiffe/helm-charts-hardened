@@ -49,3 +49,7 @@ spire-agent:
           # gets what its own entry entitles it to.
           spiffefs:
             enabled: true
+            impersonation:
+              # Under the default enforced policy the agent asks the cluster
+              # authorizer whether spiffefs may speak for the pod it named.
+              clusterWidePodsOnly: true

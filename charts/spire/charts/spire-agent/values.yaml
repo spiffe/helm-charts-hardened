@@ -259,11 +259,17 @@ workloadAttestors:
         spiffefs:
           ## @param workloadAttestors.k8s.brokerAPI.brokers.spiffefs.enabled Enables the broker api
           enabled: false
+          impersonation:
+            ## @param workloadAttestors.k8s.brokerAPI.brokers.spiffefs.impersonation.clusterWidePodsOnly Grant this broker the impersonate-via-spire verb on pods, cluster wide. Only rendered when accessPolicy is enforced.
+            clusterWidePodsOnly: false
           # idTemplate: spiffe://{{ .TrustDomain }}/spiffefs
           # podReferenceScope: agent_node
         spire-ha-agent:
           ## @param workloadAttestors.k8s.brokerAPI.brokers.spire-ha-agent.enabled Enables the broker api
           enabled: false
+          impersonation:
+            ## @param workloadAttestors.k8s.brokerAPI.brokers.spire-ha-agent.impersonation.clusterWidePodsOnly Grant this broker the impersonate-via-spire verb on pods, cluster wide. Only rendered when accessPolicy is enforced.
+            clusterWidePodsOnly: false
           # idTemplate: spiffe://{{ .TrustDomain }}/spire-ha-agent
           # podReferenceScope: agent_node
 
