@@ -985,4 +985,21 @@ spire-server:
 			Expect(serverResource).Should(ContainSubstring("name: my-ro-db-secret"))
 		})
 	})
+	Describe("gatewayAPI.gateway.infrastructure", func() {
+		It("passes infrastructure through to the shared Gateway spec when set", func() {
+			objs, err := ValueStringRender(chart, `
+gatewayAPI:
+  gateway:
+    enabled: true
+    className: istio
+    infrastructure:
+      annotations:
+        service.beta.kubernetes.io/aws-load-balancer-scheme: internal
+`)
+			Expect(err).Should(Succeed())
+			gateway := objs["spire/templates/gateway.yaml"]
+			Expect(gateway).Should(ContainSubstring("infrastructure:"))
+			Expect(gateway).Should(ContainSubstring("service.beta.kubernetes.io/aws-load-balancer-scheme: internal"))
+		})
+	})
 })
