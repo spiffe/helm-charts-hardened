@@ -138,6 +138,8 @@ gatewayAPI:
     className: ""
     ## @param gatewayAPI.gateway.annotations [object] Annotations for the Gateway object
     annotations: {}
+    ## @param gatewayAPI.gateway.infrastructure [object] Metadata (labels/annotations) propagated to the provisioned Gateway Service/Deployment. Use for cloud LB annotations, e.g. internal NLB.
+    infrastructure: {}
     ## @param gatewayAPI.gateway.allowedListenersNamespaces From which namespaces ListenerSets may attach to the Gateway. One of All, Same, Selector.
     allowedListenersNamespaces: All
     ## @param gatewayAPI.gateway.allowedRoutesNamespaces From which namespaces routes may attach directly to the base listener (used when ListenerSet management is off). One of All, Same, Selector.
