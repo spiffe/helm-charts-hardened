@@ -1058,8 +1058,23 @@ spire-server:
 			cm := objs["spire/charts/spire-server/templates/controller-manager-standalone.yaml"]
 			Expect(cm).Should(ContainSubstring(`WorkloadAttestor "unix"`))
 			Expect(cm).Should(ContainSubstring(`"type": "unix"`))
-			Expect(cm).Should(ContainSubstring(`"value": "uid:1000"`))
+			Expect(cm).Should(ContainSubstring(`"value": "path:/spire-controller-manager"`))
 			Expect(cm).Should(ContainSubstring("shareProcessNamespace: true"))
+		})
+
+		It("does not require a fixed runAsUser and omits it on OpenShift", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  controllerManager:
+    enabled: true
+    deploymentMode: standalone
+global:
+  openshift: true
+`)
+			Expect(err).Should(Succeed())
+			cm := objs["spire/charts/spire-server/templates/controller-manager-standalone.yaml"]
+			Expect(cm).Should(ContainSubstring(`"value": "path:/spire-controller-manager"`))
+			Expect(cm).ShouldNot(ContainSubstring("runAsUser"))
 		})
 
 		It("points the webhook Service at the standalone Deployment's pods", func() {

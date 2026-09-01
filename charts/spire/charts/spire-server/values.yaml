@@ -683,10 +683,8 @@ controllerManager:
     resources: {}
     ## @param controllerManager.standalone.securityContext [object] Security context for the standalone controller manager container
     securityContext: {}
-    ## @param controllerManager.standalone.podSecurityContext [object] Pod security context for the standalone controller manager Pod. runAsUser must stay set to a fixed, known value: it is used as the `unix:uid` selector value that the in-pod spire-agent sidecar's WorkloadAttestor uses to identify the spire-controller-manager container (see controller-manager-standalone.yaml).
-    podSecurityContext:
-      runAsUser: 1000
-      runAsGroup: 1000
+    ## @param controllerManager.standalone.podSecurityContext [object] Pod security context for the standalone controller manager Pod. Leave runAsUser/runAsGroup unset on OpenShift (global.openshift: true) so its SCC can assign the namespace's random UID.
+    podSecurityContext: {}
     ## @param controllerManager.standalone.podAnnotations [object] Annotations for the standalone controller manager Pod
     podAnnotations: {}
     ## @param controllerManager.standalone.podLabels [object] Labels for the standalone controller manager Pod

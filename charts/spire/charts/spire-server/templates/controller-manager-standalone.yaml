@@ -122,7 +122,7 @@ data:
           "selectors": [
             {
               "type": "unix",
-              "value": {{ printf "uid:%d" (int .Values.controllerManager.standalone.podSecurityContext.runAsUser) | quote }}
+              "value": {{ printf "path:%s" (include "spire-controller-manager.standalone-workload-path" .) | quote }}
             }
           ],
           "spiffe_id": {{ include "spire-controller-manager.standalone-workload-id" . | quote }}
@@ -163,10 +163,8 @@ spec:
       {{- end }}
       serviceAccountName: {{ include "spire-controller-manager.standalone-serviceAccountName" . }}
       shareProcessNamespace: true
-      {{- with .Values.controllerManager.standalone.podSecurityContext }}
       securityContext:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- include "spire-controller-manager.standalone-podSecurityContext" . | nindent 8 }}
       {{- with .Values.controllerManager.standalone.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

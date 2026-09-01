@@ -234,6 +234,39 @@ spiffe://{{ include "spire-lib.trust-domain" . }}/ns/{{ include "spire-server.na
 {{- end }}
 
 {{/*
+Absolute path of the spire-controller-manager binary inside its own
+container image, used as a unix:path WorkloadAttestor selector to
+identify that co-located container regardless of which UID it runs as
+(so this works unchanged under OpenShift's per-namespace random UID
+assignment, unlike a unix:uid selector).
+*/}}
+{{- define "spire-controller-manager.standalone-workload-path" -}}
+/spire-controller-manager
+{{- end }}
+
+{{/*
+Pod security context for the standalone controller manager Deployment.
+Mirrors spire-lib.podsecuritycontext, but - like
+spire-identity-exchange.podSecurityContext - leaves runAsUser/runAsGroup
+unset on OpenShift so its SCC can assign the namespace's random UID,
+since (unlike the fixed-UID pattern this chart used to rely on) the
+unix:path selector above doesn't need a known-ahead-of-time UID at all.
+*/}}
+{{- define "spire-controller-manager.standalone-podSecurityContext" -}}
+{{-   $podSecurityContext := deepCopy .Values.controllerManager.standalone.podSecurityContext }}
+{{-   $openshift := ((.Values).global).openshift | default false }}
+{{-   if not $openshift }}
+{{-     if not (hasKey $podSecurityContext "runAsUser") }}
+{{-       $_ := set $podSecurityContext "runAsUser" 1000 }}
+{{-     end }}
+{{-     if not (hasKey $podSecurityContext "runAsGroup") }}
+{{-       $_ := set $podSecurityContext "runAsGroup" 1000 }}
+{{-     end }}
+{{-   end }}
+{{-   toYaml $podSecurityContext }}
+{{- end }}
+
+{{/*
 The host:port of the spire-server Service, used by the standalone
 controller manager Deployment to dial the SPIRE Server API over TCP. Falls
 back to the Service's own name/namespace/port when
