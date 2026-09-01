@@ -5,6 +5,10 @@ spire-server:
   controllerManager:
     identities:
       clusterSPIFFEIDs:
+        # spiffefs authenticates to the broker endpoint with an svid of its own,
+        # so it needs this entry. Off by default while spiffefs is experimental.
+        spiffefs:
+          enabled: true
         # Two identities for the late test pod. Two svids on one workload is
         # what exercises the indexed file names and the hint mapping in
         # hints.json.

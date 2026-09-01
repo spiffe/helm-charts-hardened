@@ -289,10 +289,12 @@ spire-identity-exchange:
 
 ## @section spiffefs parameters
 ## Parameter values for spiffefs. Also deploys the spiffefs-csi-driver instance below.
-## Requires spire-agent.sockets.admin.enabled and spire-agent.sockets.admin.mountOnHost.
+## Requires spire-agent.sockets.broker.enabled, spire-agent.sockets.broker.mountOnHost, and
+## spiffefs enabled under spire-agent.brokerAPI.brokers, spire-agent.workloadAttestors.k8s.brokerAPI.brokers
+## and spire-server.controllerManager.identities.clusterSPIFFEIDs.
 ##
 spiffefs:
-  ## @param spiffefs.enabled Enables deployment of spiffefs and its spiffe-csi-driver instance
+  ## @param spiffefs.enabled Enables deployment of spiffefs and its spiffe-csi-driver instance. This feature is experimental.
   enabled: false
 
 ## @section spiffefs SPIFFE CSI Driver parameters

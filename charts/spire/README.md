@@ -416,9 +416,9 @@ Now you can interact with the Spire agent socket from your own application. The 
 
 ### spiffefs parameters
 
-| Name               | Description                                                       | Value   |
-| ------------------ | ----------------------------------------------------------------- | ------- |
-| `spiffefs.enabled` | Enables deployment of spiffefs and its spiffe-csi-driver instance | `false` |
+| Name               | Description                                                                                      | Value   |
+| ------------------ | ------------------------------------------------------------------------------------------------ | ------- |
+| `spiffefs.enabled` | Enables deployment of spiffefs and its spiffe-csi-driver instance. This feature is experimental. | `false` |
 
 ### spiffefs SPIFFE CSI Driver parameters
 

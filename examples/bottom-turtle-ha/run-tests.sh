@@ -47,11 +47,13 @@ if [ "${BROKER}" -eq 1 ]; then
     # spiffefs reads credentials over the ha-agent's served broker endpoint, so
     # it only exists on this path. Nothing turns it on in delegated mode.
     --set "spire-ha-agent.brokerAPI.enabled=true"
+    --set "spire-ha-agent.brokerAPI.brokers.spiffefs.enabled=true"
     --set "spiffefs.enabled=true"
   )
   BROKER_SOCKET_ARGS_A=(
     --set downstream-spire-agent-bottom-turtle-ha-a.sockets.broker.enabled=true
     --set downstream-spire-agent-bottom-turtle-ha-a.sockets.broker.mountOnHost=true
+    --set internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.clusterSPIFFEIDs.spiffefs.enabled=true
     --set 'internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent.federatesWith={spire-ha,other.invalid}'
     --set 'internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.clusterSPIFFEIDs.federation-test.federatesWith={other.invalid}'
     --set 'internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.clusterSPIFFEIDs.federation-test.podSelector.matchLabels.app=federation-test'
@@ -59,6 +61,7 @@ if [ "${BROKER}" -eq 1 ]; then
   BROKER_SOCKET_ARGS_B=(
     --set downstream-spire-agent-bottom-turtle-ha-b.sockets.broker.enabled=true
     --set downstream-spire-agent-bottom-turtle-ha-b.sockets.broker.mountOnHost=true
+    --set internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.clusterSPIFFEIDs.spiffefs.enabled=true
     --set 'internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent.federatesWith={spire-ha,other.invalid}'
     --set 'internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.clusterSPIFFEIDs.federation-test.federatesWith={other.invalid}'
     --set 'internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.clusterSPIFFEIDs.federation-test.podSelector.matchLabels.app=federation-test'

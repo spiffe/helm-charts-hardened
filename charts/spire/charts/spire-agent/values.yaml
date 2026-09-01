@@ -257,7 +257,7 @@ workloadAttestors:
       accessPolicy: auto
       brokers:
         spiffefs:
-          ## @param workloadAttestors.k8s.brokerAPI.brokers.spiffefs.enabled Enables the broker api
+          ## @param workloadAttestors.k8s.brokerAPI.brokers.spiffefs.enabled Enables the broker api. This feature is experimental.
           enabled: false
           impersonation:
             ## @param workloadAttestors.k8s.brokerAPI.brokers.spiffefs.impersonation.clusterWidePodsOnly Grant this broker the impersonate-via-spire verb on pods cluster wide. auto grants it when the resolved accessPolicy is enforced.
@@ -508,7 +508,7 @@ brokerAPI:
     bindAddress: 0.0.0.0:8788
   brokers:
     spiffefs:
-      ## @param brokerAPI.brokers.spiffefs.enabled Enable spiffefs
+      ## @param brokerAPI.brokers.spiffefs.enabled Enable spiffefs. This feature is experimental.
       enabled: false
       ## @param brokerAPI.brokers.spiffefs.idTemplate The default id template
       idTemplate: spiffe://{{ .TrustDomain }}/spiffefs

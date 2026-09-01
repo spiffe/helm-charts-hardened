@@ -669,8 +669,8 @@ spire-ha-agent:
   brokerAPI:
     brokers:
       spiffefs:
-        ## @param spire-ha-agent.brokerAPI.brokers.spiffefs.enabled Let spiffefs use the served broker api. Inert until brokerAPI.enabled is set, which needs mode broker.
-        enabled: true
+        ## @param spire-ha-agent.brokerAPI.brokers.spiffefs.enabled Let spiffefs use the served broker api. Needs brokerAPI.enabled, which needs mode broker. This feature is experimental.
+        enabled: false
 
 ## @section spiffefs parameters
 ## Parameter values for spiffefs. Needs spire-ha-agent in broker mode with
@@ -678,7 +678,7 @@ spire-ha-agent:
 ##
 # Used with tags [haAgentCommon]
 spiffefs:
-  ## @param spiffefs.enabled Enables deployment of spiffefs and its spiffe-csi-driver instance
+  ## @param spiffefs.enabled Enables deployment of spiffefs and its spiffe-csi-driver instance. This feature is experimental.
   enabled: false
   ## @param spiffefs.fullnameOverride Fullname override
   fullnameOverride: spiffefs

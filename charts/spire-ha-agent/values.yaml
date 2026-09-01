@@ -84,7 +84,7 @@ brokerAPI:
   ## these following the same shape.
   brokers:
     spiffefs:
-      ## @param brokerAPI.brokers.spiffefs.enabled Enable spiffefs as a broker
+      ## @param brokerAPI.brokers.spiffefs.enabled Enable spiffefs as a broker. This feature is experimental.
       enabled: false
       ## @param brokerAPI.brokers.spiffefs.idTemplate The default id template
       idTemplate: spiffe://{{ .TrustDomain }}/spiffefs
