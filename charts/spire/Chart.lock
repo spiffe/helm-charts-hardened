@@ -17,6 +17,9 @@ dependencies:
 - name: spiffe-csi-driver
   repository: file://./charts/spiffe-csi-driver
   version: 0.1.0
+- name: spiffe-csi-driver
+  repository: file://./charts/spiffe-csi-driver
+  version: 0.1.0
 - name: spiffe-oidc-discovery-provider
   repository: file://./charts/spiffe-oidc-discovery-provider
   version: 0.1.0
@@ -35,5 +38,8 @@ dependencies:
 - name: spire-identity-exchange
   repository: file://../spire-identity-exchange
   version: 0.2.1
-digest: sha256:2916c04b61f4813e2e107b84a2168fdf141c67086658e1adbb9501b8425cd6e1
-generated: "2026-08-21T14:41:50.353186-07:00"
+- name: spiffefs
+  repository: file://../spiffefs
+  version: 0.1.0
+digest: sha256:604dee6fab439bae8761624d027e7f6030ab06f8f17d0c38ec206929b83dca0e
+generated: "2026-08-28T07:29:01.274927-07:00"

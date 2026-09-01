@@ -1,0 +1,36 @@
+# A second workload with its own service account, so the controller manager
+# issues it a different SPIFFE ID than the first. That is what makes it possible
+# to assert spiffefs hands each caller its own credentials rather than a shared
+# or swapped set.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: spiffefs-late
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: spiffefs-test-late
+  labels:
+    # selected by both ClusterSPIFFEIDs in values.yaml, so this pod is issued
+    # two svids rather than the single fallback identity
+    spiffefs.test/multi-svid: "true"
+spec:
+  serviceAccountName: spiffefs-late
+  terminationGracePeriodSeconds: 1
+  containers:
+    - name: main
+      image: busybox
+      command: ["/bin/sh", "-c", "sleep infinity"]
+      volumeMounts:
+        - name: spiffefs
+          mountPath: /spiffe
+          readOnly: true
+          # Required so the pod picks up spiffefs remounting on restart
+          # instead of holding a stale mount.
+          mountPropagation: HostToContainer
+  volumes:
+    - name: spiffefs
+      csi:
+        driver: spiffefs.csi.spiffe.io
+        readOnly: true

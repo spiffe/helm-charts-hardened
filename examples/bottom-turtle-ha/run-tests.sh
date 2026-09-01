@@ -42,10 +42,18 @@ BROKER_MODE_ARGS=()
 BROKER_SOCKET_ARGS_A=()
 BROKER_SOCKET_ARGS_B=()
 if [ "${BROKER}" -eq 1 ]; then
-  BROKER_MODE_ARGS=(--set "spire-ha-agent.mode=broker")
+  BROKER_MODE_ARGS=(
+    --set "spire-ha-agent.mode=broker"
+    # spiffefs reads credentials over the ha-agent's served broker endpoint, so
+    # it only exists on this path. Nothing turns it on in delegated mode.
+    --set "spire-ha-agent.brokerAPI.enabled=true"
+    --set "spire-ha-agent.brokerAPI.brokers.spiffefs.enabled=true"
+    --set "spiffefs.enabled=true"
+  )
   BROKER_SOCKET_ARGS_A=(
     --set downstream-spire-agent-bottom-turtle-ha-a.sockets.broker.enabled=true
     --set downstream-spire-agent-bottom-turtle-ha-a.sockets.broker.mountOnHost=true
+    --set internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.clusterSPIFFEIDs.spiffefs.enabled=true
     --set 'internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent.federatesWith={spire-ha,other.invalid}'
     --set 'internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.clusterSPIFFEIDs.federation-test.federatesWith={other.invalid}'
     --set 'internal-spire-server-bottom-turtle-ha-a.controllerManager.identities.clusterSPIFFEIDs.federation-test.podSelector.matchLabels.app=federation-test'
@@ -53,6 +61,7 @@ if [ "${BROKER}" -eq 1 ]; then
   BROKER_SOCKET_ARGS_B=(
     --set downstream-spire-agent-bottom-turtle-ha-b.sockets.broker.enabled=true
     --set downstream-spire-agent-bottom-turtle-ha-b.sockets.broker.mountOnHost=true
+    --set internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.clusterSPIFFEIDs.spiffefs.enabled=true
     --set 'internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent.federatesWith={spire-ha,other.invalid}'
     --set 'internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.clusterSPIFFEIDs.federation-test.federatesWith={other.invalid}'
     --set 'internal-spire-server-bottom-turtle-ha-b.controllerManager.identities.clusterSPIFFEIDs.federation-test.podSelector.matchLabels.app=federation-test'
@@ -107,10 +116,13 @@ teardown() {
   if [[ "$1" -ne 0 ]]; then
     get_namespace_details spire-server spire-system
     kubectl describe pod -n spire-system
+    kubectl describe pod spiffefs-test || true
+    kubectl logs -n spire-system daemonset/spiffefs --tail=50 || true
   fi
 
   if [ "${CLEANUP}" -eq 1 ]; then
     kubectl delete job federation-test 2>/dev/null || true
+    kubectl delete pod spiffefs-test --ignore-not-found --timeout=2m 2>/dev/null || true
     helm uninstall --namespace spire-mgmt spire-b 2>/dev/null || true
     helm uninstall --namespace spire-mgmt spire-a 2>/dev/null || true
     helm uninstall --namespace spire-mgmt spire 2>/dev/null || true
@@ -182,6 +194,33 @@ wait_for_entry_federation() {
     sleep 2
     ((count++)) || true
   done
+  return 1
+}
+
+# Read credentials through spiffefs, which gets them over the ha-agent's broker
+# endpoint rather than from a spire-agent directly. Called once with both sides
+# up and again with only side b, so the second run proves the ha-agent still
+# brokers a fresh reader after a side goes away.
+#
+# Each kubectl exec is a new process, and spiffefs subscribes per reading pid,
+# so every call opens a new broker stream and re-attests rather than riding an
+# established subscription.
+run_spiffefs_test() {
+  local timeout=120
+  local count=0
+  kubectl rollout status daemonset -n spire-system spiffefs --timeout=2m
+  while [ "$count" -lt "$timeout" ]; do
+    if kubectl exec spiffefs-test -- sh -c 'test -f /spiffe/private/credential-bundle.private-key.x509.pem &&
+                                            test -f /spiffe/private/production.other.spiffe-trust-bundle.x509.pem'; then
+      kubectl exec spiffefs-test -- ls -la /spiffe/private/
+      return 0
+    fi
+    sleep 3
+    ((count += 3)) || true
+  done
+  echo "spiffefs never published credentials for the test pod"
+  kubectl logs -n spire-system daemonset/spiffefs --tail=50 || true
+  kubectl exec spiffefs-test -- ls -la /spiffe/private/ || true
   return 1
 }
 
@@ -426,6 +465,10 @@ if [ "${BROKER}" -eq 1 ]; then
   # Verify a workload on the ha-agent socket receives the other.invalid federated trust bundles,
   # x509 and jwt, merged from both sides.
   run_federation_test_job
+
+  kubectl apply -f "${SCRIPTPATH}/spiffefs-test-pod.yaml"
+  kubectl wait --for=condition=Ready pod/spiffefs-test --timeout 2m
+  run_spiffefs_test
 fi
 
 #Test out running only on side b since we know already only both servers work together, and that only side a works if we made it this far.
@@ -439,5 +482,6 @@ curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discov
 if [ "${BROKER}" -eq 1 ]; then
   # Verify the other.invalid federated trust bundles still serve with only side b running.
   run_federation_test_job
+  run_spiffefs_test
 fi
 

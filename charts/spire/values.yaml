@@ -288,3 +288,37 @@ spire-identity-exchange:
   enabled: false
   ## @param spire-identity-exchange.nameOverride Overrides the name of the SPIRE Identity Exchnage
   nameOverride: identity-exchange
+
+## @section spiffefs parameters
+## Parameter values for spiffefs. Also deploys the spiffefs-csi-driver instance below.
+## Requires spire-agent.sockets.broker.enabled, spire-agent.sockets.broker.mountOnHost, and
+## spiffefs enabled under spire-agent.brokerAPI.brokers, spire-agent.workloadAttestors.k8s.brokerAPI.brokers
+## and spire-server.controllerManager.identities.clusterSPIFFEIDs.
+##
+spiffefs:
+  ## @param spiffefs.enabled Enables deployment of spiffefs and its spiffe-csi-driver instance. This feature is experimental.
+  enabled: false
+
+## @section spiffefs SPIFFE CSI Driver parameters
+## Parameter values for the spiffe-csi-driver instance that publishes the spiffefs filesystem
+##
+spiffefs-csi-driver:
+  ## @param spiffefs-csi-driver.pluginName The plugin name for the spiffefs CSI driver instance
+  pluginName: spiffefs.csi.spiffe.io
+  ## @param spiffefs-csi-driver.agentSocketPath Only its directory is used. That directory is published to workloads and must be the parent of spiffefs.mountPath, never the mount point itself: publishing the mount point ties workloads to one filesystem instance, which is orphaned when spiffefs restarts.
+  agentSocketPath: /run/spire/k8s/spiffefs/private
+  ## @param spiffefs-csi-driver.agentSocketMountPropagation spiffefs remounts its filesystem when it restarts, so this instance has to see mounts propagate rather than hold a stale bind mount.
+  agentSocketMountPropagation: Bidirectional
+  ## @param spiffefs-csi-driver.image.registry The OCI registry to pull the image from
+  ## @param spiffefs-csi-driver.image.repository The repository within the registry
+  ## @param spiffefs-csi-driver.image.tag Overrides the image tag whose default is the chart appVersion
+  ## Temporary: the released driver publishes the volume as a plain bind, which pins it to
+  ## whichever filesystem was mounted at publish time. This build marks the published mount
+  ## slave to the source, so a spiffefs restart reaches workloads instead of stranding them.
+  image:
+    registry: docker.io
+    repository: kfox1111/misc2
+    tag: csi3
+  healthChecks:
+    ## @param spiffefs-csi-driver.healthChecks.port The port where the spiffefs CSI driver health checks are exposed
+    port: 9811

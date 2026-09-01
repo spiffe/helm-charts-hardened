@@ -414,3 +414,21 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `spike-pilot.enabled`                  | Enables deployment of SPIKE Pilot (Not for production)                 | `false`             |
 | `spire-identity-exchange.enabled`      | Enables deployment of the SPIRE Identity Exchange (Not for production) | `false`             |
 | `spire-identity-exchange.nameOverride` | Overrides the name of the SPIRE Identity Exchnage                      | `identity-exchange` |
+
+### spiffefs parameters
+
+| Name               | Description                                                                                      | Value   |
+| ------------------ | ------------------------------------------------------------------------------------------------ | ------- |
+| `spiffefs.enabled` | Enables deployment of spiffefs and its spiffe-csi-driver instance. This feature is experimental. | `false` |
+
+### spiffefs SPIFFE CSI Driver parameters
+
+| Name                                              | Description                                                                                                                                                                                                                                                      | Value                             |
+| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| `spiffefs-csi-driver.pluginName`                  | The plugin name for the spiffefs CSI driver instance                                                                                                                                                                                                             | `spiffefs.csi.spiffe.io`          |
+| `spiffefs-csi-driver.agentSocketPath`             | Only its directory is used. That directory is published to workloads and must be the parent of spiffefs.mountPath, never the mount point itself: publishing the mount point ties workloads to one filesystem instance, which is orphaned when spiffefs restarts. | `/run/spire/k8s/spiffefs/private` |
+| `spiffefs-csi-driver.agentSocketMountPropagation` | spiffefs remounts its filesystem when it restarts, so this instance has to see mounts propagate rather than hold a stale bind mount.                                                                                                                             | `Bidirectional`                   |
+| `spiffefs-csi-driver.image.registry`              | The OCI registry to pull the image from                                                                                                                                                                                                                          | `docker.io`                       |
+| `spiffefs-csi-driver.image.repository`            | The repository within the registry                                                                                                                                                                                                                               | `kfox1111/misc2`                  |
+| `spiffefs-csi-driver.image.tag`                   | Overrides the image tag whose default is the chart appVersion                                                                                                                                                                                                    | `csi3`                            |
+| `spiffefs-csi-driver.healthChecks.port`           | The port where the spiffefs CSI driver health checks are exposed                                                                                                                                                                                                 | `9811`                            |
