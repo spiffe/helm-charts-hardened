@@ -347,9 +347,15 @@ spec:
                 # socket, and kubelet KILLS the container on any postStart
                 # failure, which would otherwise be a guaranteed,
                 # permanent crash loop rather than an occasional race.
-                # Naturally idempotent: re-creating an already-existing
-                # entry returns AlreadyExists without failing the CLI, so
-                # this also self-heals if the datastore is ever wiped.
+                # Naturally idempotent: the spire-server CLI reports
+                # AlreadyExists as an error (nonzero exit) when re-
+                # applying an entry that's already present, so the loop
+                # below treats "every reported error is AlreadyExists" the
+                # same as a clean success instead of retrying forever and
+                # ultimately failing - this is what makes it safe to rerun
+                # on every container start/restart once the entries from
+                # a previous run are already in the datastore, and it
+                # still self-heals if the datastore is ever wiped.
                 command:
                   - /shared-tools/busybox
                   - sh
@@ -358,10 +364,17 @@ spec:
                     i=0
                     while [ "$i" -lt 30 ]; do
                       if [ -S /tmp/spire-server/private/api.sock ]; then
-                        /opt/spire/bin/spire-server entry create \
+                        out=$(/opt/spire/bin/spire-server entry create \
                           -socketPath=/tmp/spire-server/private/api.sock \
-                          -data=/controller-manager-standalone-bootstrap/entries.json \
-                          && exit 0
+                          -data=/controller-manager-standalone-bootstrap/entries.json 2>&1)
+                        rc=$?
+                        echo "$out"
+                        if [ "$rc" -eq 0 ]; then
+                          exit 0
+                        fi
+                        if [ -z "$(echo "$out" | grep 'code: ' | grep -v 'AlreadyExists')" ]; then
+                          exit 0
+                        fi
                       fi
                       i=$((i + 1))
                       /shared-tools/busybox sleep 1

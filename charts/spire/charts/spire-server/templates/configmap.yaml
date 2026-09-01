@@ -255,6 +255,22 @@ plugins:
             audience: {{ $root.Values.nodeAttestor.k8sPSAT.audience }}
             use_pod_uid_for_agent_id: true
           {{- end }}
+          {{- if and (eq ($root.Values.controllerManager.enabled | toString) "true") (eq $root.Values.controllerManager.deploymentMode "standalone") $root.Values.externalControllerManagers.enabled }}
+          {{/*
+          Same as above, one additional dedicated k8s_psat cluster profile
+          per external cluster the standalone controller manager
+          reconciles (see controller-manager-standalone.yaml) - each such
+          cluster gets its own standalone Deployment, own in-pod
+          spire-agent sidecar and own ServiceAccount, in addition to the
+          single default Deployment's profile above.
+          */}}
+          {{- range $name, $_ := (include "spire-controller-manager.standalone-clusters" $root | fromYaml) }}
+        - {{ include "spire-controller-manager.standalone-cluster-attestor-cluster-name" (dict "root" $root "name" $name) }}:
+            service_account_allow_list: [{{ printf "%s:%s" (include "spire-server.namespace" $root) (include "spire-controller-manager.standalone-cluster-serviceAccountName" (dict "root" $root "name" $name)) | quote }}]
+            audience: {{ $root.Values.nodeAttestor.k8sPSAT.audience }}
+            use_pod_uid_for_agent_id: true
+          {{- end }}
+          {{- end }}
   {{- end }}
   {{- with .Values.nodeAttestor.joinToken }}
   {{- if eq (.enabled | toString) "true" }}

@@ -52,7 +52,7 @@
 {{-     $names = append $names (include "spire-controller-manager.promPortName" (dict "name" "" "settings" .Values.controllerManager)) -}}
 {{-   end -}}
 {{- end -}}
-{{- if .Values.externalControllerManagers.enabled -}}
+{{- if and .Values.externalControllerManagers.enabled (ne .Values.controllerManager.deploymentMode "standalone") -}}
 {{-   $clusters := default .Values.kubeConfigs .Values.externalControllerManagers.clusters -}}
 {{-   range $name, $_ := $clusters -}}
 {{-     $clusterSettings := dict -}}
@@ -105,7 +105,7 @@ container/CR is needed.
 {{-       include "spire-controller-manager.container" (dict "Values" .Values "Chart" .Chart "startPort" $startPort "suffix" "" "portSuffix" "" "healthPortName" "" "prometheusPortName" "" "settings" $settings "defaults" $defaults "webhooksEnabled" $webhooksEnabled) }}
 {{-     end }}
 {{-   end }}
-{{-   if .Values.externalControllerManagers.enabled }}
+{{-   if and .Values.externalControllerManagers.enabled (ne .Values.controllerManager.deploymentMode "standalone") }}
 {{-     $clusters := default .Values.kubeConfigs .Values.externalControllerManagers.clusters }}
 {{-     $clusterDefaults := .Values.externalControllerManagers.defaults }}
 {{-     range $name, $_ := $clusters }}

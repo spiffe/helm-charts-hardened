@@ -1104,6 +1104,70 @@ spire-server:
 `)
 			Expect(err).Should(MatchError(ContainSubstring("deploymentMode must be one of")))
 		})
+
+		externalClusters := standalone + `
+    externalControllerManagers:
+      enabled: true
+  kubeConfigs:
+    clustera:
+      kubeConfig: test-kubeconfig-a
+    clusterb:
+      kubeConfig: test-kubeconfig-b
+`
+
+		It("renders one additional standalone Deployment per external cluster, alongside the default one", func() {
+			objs, err := ValueStringRender(chart, externalClusters)
+			Expect(err).Should(Succeed())
+			cm := objs["spire/charts/spire-server/templates/controller-manager-standalone.yaml"]
+			Expect(cm).Should(ContainSubstring("name: spire-controller-manager-standalone\n"))
+			Expect(cm).Should(ContainSubstring("name: spire-controller-manager-standalone-clustera"))
+			Expect(cm).Should(ContainSubstring("name: spire-controller-manager-standalone-clusterb"))
+			Expect(cm).Should(ContainSubstring("--kubeconfig=/kubeconfigs/clustera"))
+			Expect(cm).Should(ContainSubstring("--kubeconfig=/kubeconfigs/clusterb"))
+			Expect(cm).Should(ContainSubstring("--config=controller-manager-config-clustera.yaml"))
+			Expect(cm).Should(ContainSubstring("--config=controller-manager-config-clusterb.yaml"))
+			Expect(cm).Should(ContainSubstring(`spiffe_id": "spiffe://example.org/agent-alias/controller-manager-standalone"`))
+			Expect(cm).Should(ContainSubstring(`spiffe_id": "spiffe://example.org/agent-alias/controller-manager-standalone-clustera"`))
+			Expect(cm).Should(ContainSubstring(`spiffe_id": "spiffe://example.org/agent-alias/controller-manager-standalone-clusterb"`))
+		})
+
+		It("disables webhooks on the per-external-cluster standalone Deployments", func() {
+			objs, err := ValueStringRender(chart, externalClusters)
+			Expect(err).Should(Succeed())
+			cm := objs["spire/charts/spire-server/templates/controller-manager-standalone.yaml"]
+			Expect(cm).Should(ContainSubstring("ENABLE_WEBHOOKS"))
+			Expect(strings.Count(cm, `value: "false"`)).Should(BeNumerically(">=", 2))
+		})
+
+		It("uses the standalone TCP address for external-cluster controller-manager configs", func() {
+			objs, err := ValueStringRender(chart, externalClusters)
+			Expect(err).Should(Succeed())
+			cmConfig := objs["spire/charts/spire-server/templates/controller-manager-configmap.yaml"]
+			Expect(strings.Count(cmConfig, "spireServerAddress:")).Should(Equal(3))
+			Expect(strings.Count(cmConfig, "spireServerSocketPath:")).Should(Equal(0))
+		})
+
+		It("rejects jwtSVIDExec kubeConfigs entries combined with standalone mode", func() {
+			_, err := ValueStringRender(chart, standalone+`
+    externalControllerManagers:
+      enabled: true
+  kubeConfigs:
+    clustera:
+      jwtSVIDExec:
+        server: https://clustera-api.example.com:6443
+        certificateAuthorityData: YWJj
+`)
+			Expect(err).Should(MatchError(ContainSubstring("jwtSVIDExec")))
+			Expect(err).Should(MatchError(ContainSubstring("not supported for controllerManager.deploymentMode standalone")))
+		})
+
+		It("does not also add external-cluster controller-manager containers to the spire-server Pod", func() {
+			objs, err := ValueStringRender(chart, externalClusters)
+			Expect(err).Should(Succeed())
+			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
+			Expect(serverResource).ShouldNot(ContainSubstring("spire-controller-manager-clustera"))
+			Expect(serverResource).ShouldNot(ContainSubstring("spire-controller-manager-clusterb"))
+		})
 	})
 	Describe("spire-server.controllerManager.deploymentMode sidecar (default)", func() {
 		It("does not render the standalone Deployment and keeps the readinessProbe on the in-pod container", func() {

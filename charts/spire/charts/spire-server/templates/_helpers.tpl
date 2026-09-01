@@ -245,6 +245,131 @@ assignment, unlike a unix:uid selector).
 {{- end }}
 
 {{/*
+The dictionary of external clusters a standalone controller manager
+should reconcile - one controller manager Deployment per entry, each
+with its own in-pod spire-agent sidecar and its own SPIFFE identity, in
+addition to (not instead of) the single default Deployment above. Same
+fallback convention as spire-controller-manager.containers: explicit
+externalControllerManagers.clusters overrides win, else every cluster
+in kubeConfigs is used.
+*/}}
+{{- define "spire-controller-manager.standalone-clusters" -}}
+{{- default .Values.kubeConfigs .Values.externalControllerManagers.clusters | toYaml }}
+{{- end }}
+
+{{/*
+Per-external-cluster variants of the standalone-* helpers above, one
+Deployment per cluster name. Takes a dict: root (the root context),
+name (the cluster name key from spire-controller-manager.standalone-
+clusters).
+*/}}
+{{- define "spire-controller-manager.standalone-cluster-fullname" -}}
+{{- printf "%s-%s" (include "spire-controller-manager.standalone-fullname" .root) .name }}
+{{- end }}
+
+{{- define "spire-controller-manager.standalone-cluster-serviceAccountName" -}}
+{{ include "spire-controller-manager.standalone-cluster-fullname" . }}
+{{- end }}
+
+{{- define "spire-controller-manager.standalone-cluster-selectorLabels" -}}
+app.kubernetes.io/name: {{ include "spire-controller-manager.standalone-cluster-fullname" . }}
+app.kubernetes.io/instance: {{ .root.Release.Name }}
+{{- end }}
+
+{{- define "spire-controller-manager.standalone-cluster-labels" -}}
+helm.sh/chart: {{ include "spire-server.chart" .root }}
+{{ include "spire-controller-manager.standalone-cluster-selectorLabels" . }}
+{{- if .root.Chart.AppVersion }}
+app.kubernetes.io/version: {{ .root.Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .root.Release.Service }}
+{{- end }}
+
+{{- define "spire-controller-manager.standalone-cluster-attestor-cluster-name" -}}
+{{- printf "%s-%s" (include "spire-controller-manager.standalone-attestor-cluster-name" .root) .name }}
+{{- end }}
+
+{{- define "spire-controller-manager.standalone-cluster-alias-id" -}}
+spiffe://{{ include "spire-lib.trust-domain" .root }}/agent-alias/controller-manager-standalone-{{ .name }}
+{{- end }}
+
+{{- define "spire-controller-manager.standalone-cluster-workload-id" -}}
+spiffe://{{ include "spire-lib.trust-domain" .root }}/ns/{{ include "spire-server.namespace" .root }}/sa/{{ include "spire-controller-manager.standalone-cluster-serviceAccountName" . }}
+{{- end }}
+
+{{/*
+Dispatcher helpers used by controller-manager-standalone.yaml to render
+one Deployment (with its own in-pod agent, bootstrap identity, etc) per
+dict "root" "name" (root context, cluster name key). name "" means the
+single default/local instance (using the standalone-* helpers above);
+any other value means one of the additional per-external-cluster
+instances (using the standalone-cluster-* helpers above), letting the
+same template body handle both without duplicating it.
+*/}}
+{{- define "spire-controller-manager.standalone-instance-fullname" -}}
+{{- if eq .name "" -}}
+{{- include "spire-controller-manager.standalone-fullname" .root -}}
+{{- else -}}
+{{- include "spire-controller-manager.standalone-cluster-fullname" . -}}
+{{- end -}}
+{{- end }}
+
+{{- define "spire-controller-manager.standalone-instance-serviceAccountName" -}}
+{{- if eq .name "" -}}
+{{- include "spire-controller-manager.standalone-serviceAccountName" .root -}}
+{{- else -}}
+{{- include "spire-controller-manager.standalone-cluster-serviceAccountName" . -}}
+{{- end -}}
+{{- end }}
+
+{{- define "spire-controller-manager.standalone-instance-selectorLabels" -}}
+{{- if eq .name "" -}}
+{{- include "spire-controller-manager.standalone-selectorLabels" .root -}}
+{{- else -}}
+{{- include "spire-controller-manager.standalone-cluster-selectorLabels" . -}}
+{{- end -}}
+{{- end }}
+
+{{- define "spire-controller-manager.standalone-instance-labels" -}}
+{{- if eq .name "" -}}
+{{- include "spire-controller-manager.standalone-labels" .root -}}
+{{- else -}}
+{{- include "spire-controller-manager.standalone-cluster-labels" . -}}
+{{- end -}}
+{{- end }}
+
+{{- define "spire-controller-manager.standalone-instance-attestor-cluster-name" -}}
+{{- if eq .name "" -}}
+{{- include "spire-controller-manager.standalone-attestor-cluster-name" .root -}}
+{{- else -}}
+{{- include "spire-controller-manager.standalone-cluster-attestor-cluster-name" . -}}
+{{- end -}}
+{{- end }}
+
+{{- define "spire-controller-manager.standalone-instance-alias-id" -}}
+{{- if eq .name "" -}}
+{{- include "spire-controller-manager.standalone-alias-id" .root -}}
+{{- else -}}
+{{- include "spire-controller-manager.standalone-cluster-alias-id" . -}}
+{{- end -}}
+{{- end }}
+
+{{- define "spire-controller-manager.standalone-instance-workload-id" -}}
+{{- if eq .name "" -}}
+{{- include "spire-controller-manager.standalone-workload-id" .root -}}
+{{- else -}}
+{{- include "spire-controller-manager.standalone-cluster-workload-id" . -}}
+{{- end -}}
+{{- end }}
+
+{{/* controller-manager-config{suffix}.yaml suffix for this instance: "" for the default/local instance, "-<name>" for a per-external-cluster instance (matches controller-manager-configmap.yaml's own suffixing). */}}
+{{- define "spire-controller-manager.standalone-instance-config-suffix" -}}
+{{- if ne .name "" -}}
+{{- printf "-%s" .name -}}
+{{- end -}}
+{{- end }}
+
+{{/*
 Pod security context for the standalone controller manager Deployment.
 Mirrors spire-lib.podsecuritycontext, but - like
 spire-identity-exchange.podSecurityContext - leaves runAsUser/runAsGroup
