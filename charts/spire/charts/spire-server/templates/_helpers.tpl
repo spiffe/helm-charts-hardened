@@ -225,7 +225,7 @@ with. See controller-manager-standalone.yaml for the static registration
 entry that establishes this.
 */}}
 {{- define "spire-controller-manager.standalone-alias-id" -}}
-spiffe://{{ include "spire-lib.trust-domain" . }}/spire/agent/controller-manager-standalone
+spiffe://{{ include "spire-lib.trust-domain" . }}/agent-alias/controller-manager-standalone
 {{- end }}
 
 {{/* SPIFFE ID of the standalone Deployment's own controller-manager workload, parented to the alias above. */}}

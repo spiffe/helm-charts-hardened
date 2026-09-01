@@ -141,7 +141,6 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "spire-server.serviceAccountName" . }}
-      shareProcessNamespace: true
       securityContext:
         {{- $podSecurityContext | toYaml | nindent 8 }}
       {{- include "spire-lib.default_cluster_priority_class_name" . | nindent 6 }}
@@ -285,6 +284,28 @@ spec:
             runAsUser: 0
             runAsGroup: 0
       {{- end }}
+      {{- if and (eq (.Values.controllerManager.enabled | toString) "true") (eq .Values.controllerManager.deploymentMode "standalone") }}
+        - name: bootstrap-tools
+          # Copies a busybox binary into a shared emptyDir so the
+          # spire-server container's postStart hook (below) can exec a
+          # real shell and retry in a loop until the admin socket is
+          # actually open, instead of racing spire-server's own startup on
+          # a single, immediate attempt - the spire-server image itself
+          # ships no shell at all, only the spire-server binary.
+          image: {{ template "spire-lib.image" (dict "image" .Values.chown.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.chown.image.pullPolicy }}
+          command:
+            - sh
+            - -c
+            - |
+              cp /bin/busybox /shared-tools/busybox
+              chmod +x /shared-tools/busybox
+          resources:
+            {{- toYaml .Values.chown.resources | nindent 12 }}
+          volumeMounts:
+            - name: shared-tools
+              mountPath: /shared-tools
+      {{- end }}
       {{- if and .Values.upstreamAuthority.certManager.enabled .Values.upstreamAuthority.certManager.ca.create }}
         - name: wait
           securityContext:
@@ -315,18 +336,37 @@ spec:
             postStart:
               exec:
                 # Applies the standalone controller manager's bootstrap
-                # registration entries (see controller-manager-standalone.yaml)
-                # on every start of this container. Naturally idempotent:
-                # re-creating an already-existing entry returns AlreadyExists
-                # without failing the CLI, so this self-heals if the
-                # datastore is ever wiped without needing any reconciliation
-                # loop or extra RBAC (uses the already-trusted local socket).
+                # registration entries (see controller-manager-standalone.yaml),
+                # retrying in a loop (via the busybox shell copied into
+                # /shared-tools by the bootstrap-tools init container
+                # above) until the admin socket is actually open, instead
+                # of racing spire-server's own startup on a single,
+                # immediate attempt - a postStart hook fires concurrently
+                # with the container's own entrypoint, well before
+                # spire-server has finished initializing and opened its
+                # socket, and kubelet KILLS the container on any postStart
+                # failure, which would otherwise be a guaranteed,
+                # permanent crash loop rather than an occasional race.
+                # Naturally idempotent: re-creating an already-existing
+                # entry returns AlreadyExists without failing the CLI, so
+                # this also self-heals if the datastore is ever wiped.
                 command:
-                  - /opt/spire/bin/spire-server
-                  - entry
-                  - create
-                  - -socketPath=/tmp/spire-server/private/api.sock
-                  - -data=/controller-manager-standalone-bootstrap/entries.json
+                  - /shared-tools/busybox
+                  - sh
+                  - -c
+                  - |
+                    i=0
+                    while [ "$i" -lt 30 ]; do
+                      if [ -S /tmp/spire-server/private/api.sock ]; then
+                        /opt/spire/bin/spire-server entry create \
+                          -socketPath=/tmp/spire-server/private/api.sock \
+                          -data=/controller-manager-standalone-bootstrap/entries.json \
+                          && exit 0
+                      fi
+                      i=$((i + 1))
+                      /shared-tools/busybox sleep 1
+                    done
+                    exit 1
           {{- end }}
           args:
             - -expandEnv
@@ -523,6 +563,9 @@ spec:
             {{- if and (eq (.Values.controllerManager.enabled | toString) "true") (eq .Values.controllerManager.deploymentMode "standalone") }}
             - name: controller-manager-standalone-bootstrap
               mountPath: /controller-manager-standalone-bootstrap
+              readOnly: true
+            - name: shared-tools
+              mountPath: /shared-tools
               readOnly: true
             {{- end }}
         {{- include "spire-controller-manager.containers" . | nindent 8 }}
@@ -797,6 +840,8 @@ spec:
         - name: controller-manager-standalone-bootstrap
           configMap:
             name: {{ include "spire-controller-manager.standalone-fullname" . }}-bootstrap-entries
+        - name: shared-tools
+          emptyDir: {}
         {{- end }}
         {{- end }}
         {{- if eq (.Values.tornjak.enabled | toString) "true" }}

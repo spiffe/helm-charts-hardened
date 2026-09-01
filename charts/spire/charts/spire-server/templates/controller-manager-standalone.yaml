@@ -39,7 +39,8 @@ data:
       server_address = {{ printf "%s.%s.svc.cluster.local" (include "spire-server.fullname" .) (include "spire-server.namespace" .) | quote }}
       server_port = "443"
       socket_path = {{ $agentSocketPath | quote }}
-      trust_bundle_path = "/run/spire/bundle/bundle.pem"
+      trust_bundle_format = {{ .Values.bundlePublisher.k8sConfigMap.format | quote }}
+      trust_bundle_path = {{ printf "/run/spire/bundle/bundle.%s" (include "spire-lib.trust-bundle-ext" (dict "trustBundleFormat" .Values.bundlePublisher.k8sConfigMap.format)) | quote }}
       trust_domain = {{ include "spire-lib.trust-domain" . | quote }}
     }
 
@@ -55,9 +56,9 @@ data:
         }
       }
 
-      WorkloadAttestor "k8s" {
+      WorkloadAttestor "unix" {
         plugin_data {
-          skip_kubelet_verification = true
+          discover_workload_path = true
         }
       }
     }
@@ -120,12 +121,8 @@ data:
           "parent_id": {{ include "spire-controller-manager.standalone-alias-id" . | quote }},
           "selectors": [
             {
-              "type": "k8s",
-              "value": {{ printf "ns:%s" (include "spire-server.namespace" .) | quote }}
-            },
-            {
-              "type": "k8s",
-              "value": {{ printf "sa:%s" (include "spire-controller-manager.standalone-serviceAccountName" .) | quote }}
+              "type": "unix",
+              "value": {{ printf "uid:%d" (int .Values.controllerManager.standalone.podSecurityContext.runAsUser) | quote }}
             }
           ],
           "spiffe_id": {{ include "spire-controller-manager.standalone-workload-id" . | quote }}
@@ -165,6 +162,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "spire-controller-manager.standalone-serviceAccountName" . }}
+      shareProcessNamespace: true
       {{- with .Values.controllerManager.standalone.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}

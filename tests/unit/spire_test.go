@@ -1052,12 +1052,14 @@ spire-server:
 			Expect(roles).Should(ContainSubstring("name: spire-controller-manager-standalone"))
 		})
 
-		It("grants the standalone agent RBAC to query the kubelet for workload attestation", func() {
+		It("attests the standalone controller manager container via the unix workload attestor", func() {
 			objs, err := ValueStringRender(chart, standalone)
 			Expect(err).Should(Succeed())
-			roles := objs["spire/charts/spire-server/templates/controller-manager-roles.yaml"]
-			Expect(roles).Should(ContainSubstring("spire-controller-manager-standalone-agent"))
-			Expect(roles).Should(ContainSubstring("nodes/proxy"))
+			cm := objs["spire/charts/spire-server/templates/controller-manager-standalone.yaml"]
+			Expect(cm).Should(ContainSubstring(`WorkloadAttestor "unix"`))
+			Expect(cm).Should(ContainSubstring(`"type": "unix"`))
+			Expect(cm).Should(ContainSubstring(`"value": "uid:1000"`))
+			Expect(cm).Should(ContainSubstring("shareProcessNamespace: true"))
 		})
 
 		It("points the webhook Service at the standalone Deployment's pods", func() {
