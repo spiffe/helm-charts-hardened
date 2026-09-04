@@ -1,3 +1,5 @@
+{{- $brokerEndpoint := or .Values.sockets.broker.enabled .Values.brokerAPI.tcp.enabled }}
+{{- $enforced := and $brokerEndpoint (eq (include "spire-agent.broker-access-policy" .) "enforced") }}
 # Required cluster role to allow spire-agent to query k8s API server
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
@@ -10,6 +12,14 @@ rules:
       - nodes
       - nodes/proxy
     verbs: ["get"]
+  {{- if $enforced }}
+  {{- /* The enforced broker access policy asks the cluster's authorizer whether
+         a broker may speak for the pod it named, which the agent does by
+         creating a SubjectAccessReview on its behalf. */}}
+  - apiGroups: ["authorization.k8s.io"]
+    resources: ["subjectaccessreviews"]
+    verbs: ["create"]
+  {{- end }}
 ---
 # Binds above cluster role to spire-agent service account
 kind: ClusterRoleBinding
@@ -24,3 +34,48 @@ roleRef:
   kind: ClusterRole
   name: {{ include "spire-agent.fullname" . | quote }}
   apiGroup: rbac.authorization.k8s.io
+
+{{- if $enforced }}
+{{- $trustDomain := include "spire-lib.trust-domain" . }}
+{{- range $key, $value := .Values.workloadAttestors.k8s.brokerAPI.brokers }}
+{{- /* Defaulting to false, not auto, is deliberate: a broker someone adds
+       themselves gets no grant unless they ask for one. */}}
+{{-   $imp := dig "impersonation" "clusterWidePodsOnly" false $value | toString }}
+{{-   $grant := ternary $enforced (eq $imp "true") (eq $imp "auto") }}
+{{-   if and (or (not (hasKey $value "enabled")) $value.enabled) $grant }}
+{{-     $idTemplate := (index $.Values.brokerAPI.brokers $key).idTemplate }}
+{{-     if hasKey $value "idTemplate" }}
+{{-       $idTemplate = $value.idTemplate }}
+{{-     end }}
+{{-     $name := printf "%s-broker-impersonation-%s" (include "spire-agent.fullname" $) $key | trunc 63 | trimSuffix "-" }}
+---
+# What the SubjectAccessReview above asks about for this broker. The review
+# names the broker's SPIFFE ID as the user, so the grant is bound to that name
+# rather than to any service account. A pair per broker, because a future grant
+# covering more than pods needs rules of its own.
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ $name | quote }}
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["impersonate-via-spire"]
+---
+# Cluster wide: a broker serves whatever pods land on its node, so the set of
+# namespaces is not known ahead of time.
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ $name | quote }}
+subjects:
+  - kind: User
+    name: {{ tpl $idTemplate (dict "TrustDomain" $trustDomain) | quote }}
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: {{ $name | quote }}
+  apiGroup: rbac.authorization.k8s.io
+{{-   end }}
+{{- end }}
+{{- end }}

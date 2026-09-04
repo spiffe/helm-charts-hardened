@@ -110,6 +110,15 @@ Create the name of the service account to use
 {{- end }}
 {{- end }}
 
+{{/*
+Whether prometheus metrics are on.
+*/}}
+{{- define "spire-ha-agent.prometheus-enabled" -}}
+{{- if or (dig "telemetry" "prometheus" "enabled" .Values.telemetry.prometheus.enabled .Values.global) (and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "prometheus" true .Values.global)) }}
+{{- printf "true" }}
+{{- end }}
+{{- end }}
+
 {{- define "spire-ha-agent.socket-path" -}}
 {{- print .Values.socketPath }}
 {{- end }}

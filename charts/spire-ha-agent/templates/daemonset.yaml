@@ -2,6 +2,7 @@
 {{- $mainSecurityContext := deepCopy .Values.securityContext }}
 {{- $socketAlternateNames := index (include "spire-ha-agent.socket-alternate-names" . | fromYaml) "names" }}
 {{- $socketPath := include "spire-ha-agent.socket-path" . }}
+{{- $configSum := (include (print $.Template.BasePath "/configmap.yaml") . | sha256sum) }}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -30,6 +31,12 @@ spec:
     metadata:
       annotations:
         kubectl.kubernetes.io/default-container: spire-ha-agent
+        {{- if eq .Values.mode "broker" }}
+        checksum/config: {{ $configSum | quote }}
+        {{- end }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
       labels:
         {{- include "spire-ha-agent.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: spire-ha-agent
@@ -122,52 +129,50 @@ spec:
           args:
             - "-mode"
             - {{ .Values.mode | quote }}
+          {{- if eq .Values.mode "broker" }}
+            - "-config"
+            - "/opt/spire-ha-agent/conf/config.yaml"
+          {{- end }}
           securityContext:
             privileged: true
 #FIXME read permission to api socket
             runAsUser: 0
             runAsGroup: 0
         #{- $mainSecurityContext | toYaml | nindent 12 }}
+          {{- /* Broker mode is configured entirely by the rendered config
+                 file, so it has nothing to put here unless the user supplied
+                 extraEnvVars. Emitting a bare env: would render env: null. */}}
+          {{- if or (eq .Values.mode "delegated") (gt (len .Values.extraEnvVars) 0) }}
           env:
+          {{- if eq .Values.mode "delegated" }}
             - name: SPIRE_HA_AGENT_SOCK
               value: /tmp/spire-ha-agent/public/spire-agent.sock
-          {{- if .Values.singleSocket }}
+          {{-   if .Values.singleSocket }}
             - name: SPIRE_HA_AGENT_SINGLE
               value: enabled
-          {{-   if eq .Values.mode "delegated" }}
             - name: SPIRE_HA_AGENT_SOCKET
               value: unix:///var/run/spire/agent/sockets/a/csi.spiffe.io/admin/admin.sock
-          {{-    else }}
-            - name: SPIRE_HA_AGENT_BROKER
-              value: unix:///var/run/spire/agent/sockets/a/csi.spiffe.io/broker/broker.sock
-            - name: SPIRE_HA_AGENT_WORKLOAD_SOCKET
-              value: unix:///var/run/spire/agent/sockets/a/csi.spiffe.io/public/spire-agent.sock
-          {{-    end }}
-          {{- else }}
-          {{-   if eq .Values.mode "delegated" }}
+          {{-   else }}
             - name: SPIRE_HA_AGENT_SOCKET_A
               value: unix:///var/run/spire/agent/sockets/a/csi.spiffe.io/admin/admin.sock
             - name: SPIRE_HA_AGENT_SOCKET_B
               value: unix:///var/run/spire/agent/sockets/b/csi.spiffe.io/admin/admin.sock
-          {{-    else }}
-            - name: SPIRE_HA_AGENT_BROKER_A
-              value: unix:///var/run/spire/agent/sockets/a/csi.spiffe.io/broker/broker.sock
-            - name: SPIRE_HA_AGENT_BROKER_B
-              value: unix:///var/run/spire/agent/sockets/b/csi.spiffe.io/broker/broker.sock
-            - name: SPIRE_HA_AGENT_WORKLOAD_SOCKET_A
-              value: unix:///var/run/spire/agent/sockets/a/csi.spiffe.io/public/spire-agent.sock
-            - name: SPIRE_HA_AGENT_WORKLOAD_SOCKET_B
-              value: unix:///var/run/spire/agent/sockets/b/csi.spiffe.io/public/spire-agent.sock
-          {{-    end }}
-          {{- end }}
-          {{- if .Values.vsock }}
+          {{-   end }}
+          {{-   if .Values.vsock }}
             - name: SPIRE_HA_AGENT_VSOCK
               value: enabled
             - name: SPIRE_HA_AGENT_PORT
               value: {{ .Values.port | quote }}
+          {{-   end }}
           {{- end }}
           {{- with .Values.extraEnvVars }}
           {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- end }}
+          {{- if include "spire-ha-agent.prometheus-enabled" . }}
+          ports:
+            - containerPort: {{ .Values.telemetry.prometheus.port }}
+              name: prom
           {{- end }}
           volumeMounts:
 #            - name: spire-ha-agent-persistence
@@ -199,6 +204,18 @@ spec:
               mountPath: /var/run/spire/agent/sockets/b/csi.spiffe.io/broker
             - name: spire-ha-workload-socket-dir-upstream-b
               mountPath: /var/run/spire/agent/sockets/b/csi.spiffe.io/public
+            {{-   end }}
+            {{- end }}
+            {{- if eq .Values.mode "broker" }}
+            - name: spire-ha-agent-config
+              mountPath: /opt/spire-ha-agent/conf
+              readOnly: true
+            {{-   if .Values.brokerAPI.enabled }}
+            {{-     if .Values.brokerAPI.socket.enabled }}
+            - name: spire-ha-agent-broker-socket-dir
+              mountPath: /tmp/spire-ha-agent/broker
+              readOnly: false
+            {{-     end }}
             {{-   end }}
             {{- end }}
             - name: dev
@@ -259,6 +276,22 @@ spec:
           hostPath:
             path: {{ .Values.sockets.b.workload.hostPath }}
             type: DirectoryOrCreate
+        {{-   end }}
+        {{- end }}
+        {{- if eq .Values.mode "broker" }}
+        - name: spire-ha-agent-config
+          configMap:
+            name: {{ include "spire-ha-agent.fullname" . | quote }}
+        {{-   if and .Values.brokerAPI.enabled .Values.brokerAPI.socket.enabled }}
+        {{-     if .Values.brokerAPI.socket.mountOnHost }}
+        - name: spire-ha-agent-broker-socket-dir
+          hostPath:
+            path: {{ .Values.brokerAPI.socket.hostPath | quote }}
+            type: DirectoryOrCreate
+        {{-     else }}
+        - name: spire-ha-agent-broker-socket-dir
+          emptyDir: {}
+        {{-     end }}
         {{-   end }}
         {{- end }}
         - name: dev
