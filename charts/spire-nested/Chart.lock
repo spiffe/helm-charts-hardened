@@ -1,7 +1,7 @@
 dependencies:
 - name: spire-lib
   repository: file://../spire-lib
-  version: 0.3.0
+  version: 0.3.1
 - name: spire-server
   repository: file://../spire/charts/spire-server
   version: 0.1.0
@@ -43,7 +43,7 @@ dependencies:
   version: 0.1.0
 - name: spire-ha-agent
   repository: file://../spire-ha-agent
-  version: 0.3.0
+  version: 0.3.1
 - name: spire-server
   repository: file://../spire/charts/spire-server
   version: 0.1.0
@@ -58,7 +58,7 @@ dependencies:
   version: 0.1.0
 - name: spire-identity-exchange
   repository: file://../spire-identity-exchange
-  version: 0.2.0
+  version: 0.2.1
 - name: spire-server
   repository: file://../spire/charts/spire-server
   version: 0.1.0
@@ -73,6 +73,6 @@ dependencies:
   version: 0.1.0
 - name: spire-identity-exchange
   repository: file://../spire-identity-exchange
-  version: 0.2.0
-digest: sha256:edf96a8d833dffffc31f0bfdd400ced75f0cf1868e2711a1cd72f51d6f099621
-generated: "2026-07-31T16:55:07.391766-07:00"
+  version: 0.2.1
+digest: sha256:bd10aa2236190a29056e5b32300d16883bc01635d2446a32c91ead2639b98f1d
+generated: "2026-08-21T14:41:50.936953-07:00"

@@ -253,12 +253,15 @@ workloadAttestors:
     ## @param workloadAttestors.k8s.verboseContainerLocatorLogs If true, enables verbose logging of mountinfo and cgroup information used to locate containers. Defaults to false
     verboseContainerLocatorLogs: false
     brokerAPI:
-      ## @param workloadAttestors.k8s.brokerAPI.accessPolicy Which access policy to use. Supported values: enforced, permissive
-      accessPolicy: enforced
+      ## @param workloadAttestors.k8s.brokerAPI.accessPolicy Which access policy to use. Supported values: auto, enforced, permissive. auto uses permissive while all broker access is node local, and enforced otherwise.
+      accessPolicy: auto
       brokers:
         spire-ha-agent:
           ## @param workloadAttestors.k8s.brokerAPI.brokers.spire-ha-agent.enabled Enables the broker api
           enabled: false
+          impersonation:
+            ## @param workloadAttestors.k8s.brokerAPI.brokers.spire-ha-agent.impersonation.clusterWidePodsOnly Grant this broker the impersonate-via-spire verb on pods cluster wide. auto grants it when the resolved accessPolicy is enforced.
+            clusterWidePodsOnly: auto
           # idTemplate: spiffe://{{ .TrustDomain }}/spire-ha-agent
           # podReferenceScope: agent_node
 

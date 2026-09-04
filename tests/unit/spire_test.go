@@ -810,6 +810,104 @@ spire-server:
 			}
 		})
 	})
+	Describe("spire-server.telemetry.podMonitor controller-manager ports", func() {
+		podMonitorTmpl := "spire/charts/spire-server/templates/podmonitor.yaml"
+		serverTmpl := "spire/charts/spire-server/templates/server-resource.yaml"
+
+		It("targets the real main controller-manager port name, not the legacy prom-cm", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  controllerManager:
+    enabled: true
+  telemetry:
+    prometheus:
+      enabled: true
+      podMonitor:
+        enabled: true
+`)
+			Expect(err).Should(Succeed())
+			podMonitor := objs[podMonitorTmpl]
+			Expect(podMonitor).Should(ContainSubstring("- port: prom"))
+			Expect(podMonitor).Should(ContainSubstring("- port: pm-cm"))
+			// Regression: the PodMonitor used to hardcode a port name the container never renders.
+			Expect(podMonitor).ShouldNot(ContainSubstring("prom-cm"))
+			// The endpoint must match the actual container port.
+			Expect(objs[serverTmpl]).Should(ContainSubstring("name: pm-cm"))
+		})
+
+		It("enumerates external controller-managers, honouring auto-suffix and prometheusPortName override", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  controllerManager:
+    enabled: true
+  telemetry:
+    prometheus:
+      enabled: true
+      podMonitor:
+        enabled: true
+  kubeConfigs:
+    child01:
+      kubeConfig: |
+        apiVersion: v1
+        kind: Config
+    verylongclustername:
+      kubeConfig: |
+        apiVersion: v1
+        kind: Config
+  externalControllerManagers:
+    enabled: true
+    clusters:
+      child01:
+        kubeConfigName: child01
+      verylongclustername:
+        kubeConfigName: verylongclustername
+        prometheusPortName: prom-ext2
+`)
+			Expect(err).Should(Succeed())
+			podMonitor := objs[podMonitorTmpl]
+			server := objs[serverTmpl]
+			// Auto-suffixed external CM and the overridden one must both be scraped,
+			// and each endpoint must match a real container port name.
+			for _, port := range []string{"pm-cm", "pm-cm-child01", "prom-ext2"} {
+				Expect(podMonitor).Should(ContainSubstring("- port: " + port))
+				Expect(server).Should(ContainSubstring("name: " + port))
+			}
+		})
+
+		It("derives external controller-managers from kubeConfigs when clusters is the default {}", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  controllerManager:
+    enabled: true
+  telemetry:
+    prometheus:
+      enabled: true
+      podMonitor:
+        enabled: true
+  kubeConfigs:
+    child01:
+      kubeConfig: |
+        apiVersion: v1
+        kind: Config
+    child02:
+      kubeConfig: |
+        apiVersion: v1
+        kind: Config
+  externalControllerManagers:
+    enabled: true
+    clusters: {}
+`)
+			Expect(err).Should(Succeed())
+			podMonitor := objs[podMonitorTmpl]
+			server := objs[serverTmpl]
+			// clusters={} (the chart default) falls back to kubeConfigs, so each
+			// kubeConfig-derived controller-manager must be scraped and match its port.
+			for _, port := range []string{"pm-cm", "pm-cm-child01", "pm-cm-child02"} {
+				Expect(podMonitor).Should(ContainSubstring("- port: " + port))
+				Expect(server).Should(ContainSubstring("name: " + port))
+			}
+		})
+	})
 	Describe("spire-server.dataStore.sql.postgres passwordless", func() {
 		It("omits password and the -dbpw Secret for cert auth with an empty password", func() {
 			objs, err := ValueStringRender(chart, `
@@ -885,6 +983,23 @@ spire-server:
 			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
 			Expect(serverResource).Should(ContainSubstring("name: RODBPW"))
 			Expect(serverResource).Should(ContainSubstring("name: my-ro-db-secret"))
+		})
+	})
+	Describe("gatewayAPI.gateway.infrastructure", func() {
+		It("passes infrastructure through to the shared Gateway spec when set", func() {
+			objs, err := ValueStringRender(chart, `
+gatewayAPI:
+  gateway:
+    enabled: true
+    className: istio
+    infrastructure:
+      annotations:
+        service.beta.kubernetes.io/aws-load-balancer-scheme: internal
+`)
+			Expect(err).Should(Succeed())
+			gateway := objs["spire/templates/gateway.yaml"]
+			Expect(gateway).Should(ContainSubstring("infrastructure:"))
+			Expect(gateway).Should(ContainSubstring("service.beta.kubernetes.io/aws-load-balancer-scheme: internal"))
 		})
 	})
 })

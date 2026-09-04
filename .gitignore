@@ -4,3 +4,4 @@ bin/
 *.swp
 charts/**/*.tgz
 .DS_Store
+.github/kind/conf/credential-providers/
