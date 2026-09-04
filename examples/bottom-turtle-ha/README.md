@@ -199,8 +199,12 @@ from what you would deploy. Worth knowing if you are using this as a reference:
 
 * One `spire-ha-agent` is shared by every virtual node, with a `spiffe-socat-unix` bridge
   per node in front of it. On a real host kubelet talks to its local ha-agent directly.
-* Because of that bridge, the registration entries select on the socat unit rather than on
-  kubelet's own unit. On a real host that selector is the only line that changes.
+  Each bridge is mounted into its node at `/var/run/spire/agent/sockets/main/public`, which
+  is where a package installed ha-agent listens, so kubelet's own configuration is not a
+  deviation: what you see here is what you would deploy.
+* The registration entries do deviate. Because the caller the ha-agent attests by pid is the
+  bridge, they select on the socat unit rather than on kubelet's own unit. On a real host
+  that selector is the only line that changes.
 * One ha-agent behind every node means the test covers a root server failing, which is the
   part that matters here, but not a single node's ha-agent failing.
 * The credential provider binary and its configuration are staged into every kind cluster

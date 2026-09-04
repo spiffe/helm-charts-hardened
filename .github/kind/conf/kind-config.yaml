@@ -30,8 +30,12 @@ nodes:
         containerPath: /var/run/spiffe/socat/unix/k8s-spire-agent-a/public
       - hostPath: /var/run/spiffe/socat/unix/k8s-spire-agent-2-b/public
         containerPath: /var/run/spiffe/socat/unix/k8s-spire-agent-b/public
+      # One spire-ha-agent on the host is shared by all three virtual nodes, with a
+      # spiffe-socat-unix bridge per node in front of it. Mount that bridge where a
+      # package installed spire-ha-agent@main listens, so kubelet's configuration in
+      # the node is the same one a real bare metal node would use.
       - hostPath: /var/run/spiffe/socat/unix/k8s-kubelet-2/public
-        containerPath: /var/run/spiffe/socat/unix/k8s-kubelet/public
+        containerPath: /var/run/spire/agent/sockets/main/public
       - hostPath: ./.github/kind/conf/credential-providers
         containerPath: /credential-plugins
       - hostPath: ./.github/kind/conf/credential-provider-config.yaml
@@ -69,8 +73,12 @@ nodes:
         containerPath: /var/run/spiffe/socat/unix/k8s-spire-agent-a/public
       - hostPath: /var/run/spiffe/socat/unix/k8s-spire-agent-3-b/public
         containerPath: /var/run/spiffe/socat/unix/k8s-spire-agent-b/public
+      # One spire-ha-agent on the host is shared by all three virtual nodes, with a
+      # spiffe-socat-unix bridge per node in front of it. Mount that bridge where a
+      # package installed spire-ha-agent@main listens, so kubelet's configuration in
+      # the node is the same one a real bare metal node would use.
       - hostPath: /var/run/spiffe/socat/unix/k8s-kubelet-3/public
-        containerPath: /var/run/spiffe/socat/unix/k8s-kubelet/public
+        containerPath: /var/run/spire/agent/sockets/main/public
       - hostPath: ./.github/kind/conf/credential-providers
         containerPath: /credential-plugins
       - hostPath: ./.github/kind/conf/credential-provider-config.yaml
@@ -108,8 +116,12 @@ nodes:
         containerPath: /var/run/spiffe/socat/unix/k8s-spire-agent-a/public
       - hostPath: /var/run/spiffe/socat/unix/k8s-spire-agent-4-b/public
         containerPath: /var/run/spiffe/socat/unix/k8s-spire-agent-b/public
+      # One spire-ha-agent on the host is shared by all three virtual nodes, with a
+      # spiffe-socat-unix bridge per node in front of it. Mount that bridge where a
+      # package installed spire-ha-agent@main listens, so kubelet's configuration in
+      # the node is the same one a real bare metal node would use.
       - hostPath: /var/run/spiffe/socat/unix/k8s-kubelet-4/public
-        containerPath: /var/run/spiffe/socat/unix/k8s-kubelet/public
+        containerPath: /var/run/spire/agent/sockets/main/public
       - hostPath: ./.github/kind/conf/credential-providers
         containerPath: /credential-plugins
       - hostPath: ./.github/kind/conf/credential-provider-config.yaml

@@ -229,7 +229,7 @@ dump_kubelet() {
   docker exec -i "${node}" ls -l /credential-plugins /etc/kubernetes/credential-provider-config.yaml 2>&1 || true
   # The plugin reaches the workload API through this bridge. If the socket is absent the
   # plugin fails immediately, kubelet falls back to anonymous, and the pull 401s.
-  docker exec -i "${node}" ls -l /var/run/spiffe/socat/unix/k8s-kubelet/public/ 2>&1 || true
+  docker exec -i "${node}" ls -l /var/run/spire/agent/sockets/main/public/ 2>&1 || true
   # Only the registry we care about. A broad credential grep is pure noise at v=4, which
   # logs a provider line for every image pull on the node.
   docker exec -i "${node}" journalctl -u kubelet --no-pager 2>&1 \
@@ -469,7 +469,9 @@ wait_for_socket /var/run/spire/agent/sockets/main/public/api.sock
 # A real deployment runs one ha-agent per host and kubelet talks to it directly. Here a single VM
 # backs three virtual nodes, so we put one socat instance in front of the shared ha-agent per
 # node. The ha-agent attests each caller by pid, so every bridge resolves to its own entry and
-# each node still gets a distinct identity.
+# each node still gets a distinct identity. Each bridge is mounted into its node at
+# /var/run/spire/agent/sockets/main/public, where a package installed ha-agent listens, so
+# kubelet's configuration inside the node is the same one a real host would use.
 sudo /bin/bash -c "echo SPIFFE_INSTANCE=main > /etc/spiffe/socat/unix/k8s-kubelet-2.conf"
 sudo /bin/bash -c "echo SPIFFE_INSTANCE=main > /etc/spiffe/socat/unix/k8s-kubelet-3.conf"
 sudo /bin/bash -c "echo SPIFFE_INSTANCE=main > /etc/spiffe/socat/unix/k8s-kubelet-4.conf"
