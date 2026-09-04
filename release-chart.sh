@@ -23,6 +23,9 @@
 ##   - GitHub CLI (gh)
 ##   - npm (if readme-generator is not already installed)
 ##   - yq
+##   - the Helm repositories required by the chart being released and its dependent
+##     charts (see chart-repos in ct.yaml); the script prints the needed
+##     'helm repo add' lines if any are missing
 ##
 ## Commands
 ##
@@ -153,12 +156,110 @@ function refresh_chart_docs {
   done
 }
 
+function update_readme_badge {
+  local readme=$1
+  local badge_name=$2
+  local badge_value=$3
+  # shields.io escapes a literal dash in a badge value as '--'
+  local url_value="${badge_value//-/--}"
+
+  "${SED}" -i \
+    -e "s#!\[${badge_name}: [^]]*\]#![${badge_name}: ${badge_value}]#g" \
+    -e "s#/badge/${badge_name}-[^)]*-informational#/badge/${badge_name}-${url_value}-informational#g" \
+    "${readme}"
+}
+
+# Nothing regenerates the shields.io badges in a chart README, so every chart
+# whose Chart.yaml this script rewrites needs its badges resynced or CI's
+# check-readme-versions.sh rejects the release. READMEs without badges are
+# left alone by the substitutions.
+function sync_readme_version_badges {
+  local chart_dir=$1
+  local chart_yaml="${chart_dir}/Chart.yaml"
+  local readme="${chart_dir}/README.md"
+  local chart_version chart_app_version
+
+  if [ ! -f "${chart_yaml}" ] || [ ! -f "${readme}" ] ; then
+    return 0
+  fi
+
+  chart_version="$(yq e '.version // ""' "${chart_yaml}")"
+  chart_app_version="$(yq e '.appVersion // ""' "${chart_yaml}")"
+
+  if [ -n "${chart_version}" ] ; then
+    update_readme_badge "${readme}" Version "${chart_version}"
+  fi
+  if [ -n "${chart_app_version}" ] ; then
+    update_readme_badge "${readme}" AppVersion "${chart_app_version}"
+  fi
+}
+
 function chart_has_remote_dependencies {
   local chart_yaml=$1
   local remote_count
 
   remote_count="$(yq e '[.dependencies[]? | select(((.repository // "") | test("^file://")) | not)] | length' "${chart_yaml}")"
   [ "${remote_count}" -gt 0 ]
+}
+
+function remote_chart_repositories {
+  local chart_dir
+
+  {
+    for chart_dir in "$@" ; do
+      if [ -f "${chart_dir}/Chart.yaml" ] ; then
+        yq e -N '.dependencies[]? | select(((.repository // "") | test("^file://")) | not) | .repository' "${chart_dir}/Chart.yaml"
+      fi
+    done
+  } | "${SED}" -e 's#/*$##' | sort -u
+}
+
+function configured_helm_repositories {
+  helm repo list -o yaml 2>/dev/null | yq e -N '.[]?.url' - 2>/dev/null | "${SED}" -e 's#/*$##' | sort -u
+}
+
+function helm_repository_name {
+  local repo_url=$1
+  local repo_name
+
+  repo_name="$(REPO_URL="${repo_url}" \
+    yq e -N '.chart-repos[]? | split("=") | select((.[1] | sub("/+$", "")) == strenv(REPO_URL)) | .[0]' ct.yaml 2>/dev/null | head -n 1)"
+
+  if [ -z "${repo_name}" ] ; then
+    repo_name="$(printf '%s\n' "${repo_url}" | "${SED}" -E -e 's#^[a-zA-Z]+://##' -e 's#[/.].*$##')"
+  fi
+
+  echo "${repo_name}"
+}
+
+function require_helm_repositories {
+  local configured repo_url
+  local missing=''
+
+  configured="$(configured_helm_repositories)"
+
+  while IFS= read -r repo_url ; do
+    if [ -z "${repo_url}" ] ; then
+      continue
+    fi
+    if ! printf '%s\n' "${configured}" | grep -qxF "${repo_url}" ; then
+      missing="${missing}  helm repo add $(helm_repository_name "${repo_url}") ${repo_url}"$'\n'
+    fi
+  done < <(remote_chart_repositories "$@")
+
+  if [ -n "${missing}" ] ; then
+    print_error 'the charts in this release require Helm repositories that are not configured locally.'
+    echo >&2
+    echo >&2 'Run the following, then rerun this script:'
+    echo >&2
+    printf '%s' "${missing}" >&2
+    echo >&2
+    echo >&2 'No chart files were modified.'
+    if [ -z "${from_current_branch}" ] ; then
+      echo >&2 "To discard the release branch: git checkout main && git branch -D ${branch_name}"
+    fi
+    exit 1
+  fi
 }
 
 function refresh_chart_dependencies {
@@ -170,7 +271,9 @@ function refresh_chart_dependencies {
       helm repo update
       refreshed_repos='true'
     fi
-    helm dependency update --skip-refresh "${chart_dir}"
+    if ! helm dependency update --skip-refresh "${chart_dir}" ; then
+      print_error_and_exit "helm dependency update failed for ${chart_dir}; its Chart.lock would be left stale and CI lint would reject the release"
+    fi
   done
 }
 
@@ -255,6 +358,23 @@ else
   git checkout --track -B "${branch_name}" main
 fi
 
+dependent_charts=()
+release_chart_dirs=("charts/${chart}")
+while IFS= read -r dependent_chart ; do
+  if [ -z "${dependent_chart}" ] ; then
+    continue
+  fi
+
+  if [ ! -f "charts/${dependent_chart}/Chart.yaml" ] ; then
+    print_error_and_exit "dependent chart '${dependent_chart}' does not have a Chart.yaml at charts/${dependent_chart}/Chart.yaml"
+  fi
+
+  dependent_charts+=("${dependent_chart}")
+  release_chart_dirs+=("charts/${dependent_chart}")
+done < <(collect_dependent_charts "${chart}")
+
+require_helm_repositories "${release_chart_dirs[@]}"
+
 current_version="$(grep '^version:' "charts/${chart}/Chart.yaml" | awk '{print $2}')"
 new_version="$(bump_version "${current_version}" "${bump_type}")"
 release_base_tag="$(latest_chart_tag "${chart}")"
@@ -265,28 +385,22 @@ else
 fi
 update_chart_version "${chart}" "${new_version}"
 "${SED}" -i "s/${current_version}/${new_version}/g" "charts/${chart}/README.md"
+sync_readme_version_badges "charts/${chart}"
 
 updated_dependency_charts=()
 updated_chart_versions=()
 release_charts=("${chart}")
-while IFS= read -r dependent_chart ; do
-  if [ -z "${dependent_chart}" ] ; then
-    continue
-  fi
-
+for dependent_chart in "${dependent_charts[@]}" ; do
   chart_yaml="charts/${dependent_chart}/Chart.yaml"
-  if [ ! -f "${chart_yaml}" ] ; then
-    print_error_and_exit "dependent chart '${dependent_chart}' does not have a Chart.yaml at ${chart_yaml}"
-  fi
-
   dependent_current_version="$(grep '^version:' "${chart_yaml}" | awk '{print $2}')"
   dependent_new_version="$(bump_version "${dependent_current_version}" "${bump_type}")"
   update_chart_version "${dependent_chart}" "${dependent_new_version}"
+  sync_readme_version_badges "charts/${dependent_chart}"
   update_dependency_version "${chart_yaml}" "${chart}" "${new_version}"
   updated_dependency_charts+=("charts/${dependent_chart}")
   updated_chart_versions+=("${dependent_chart}:${dependent_current_version}:${dependent_new_version}")
   release_charts+=("${dependent_chart}")
-done < <(collect_dependent_charts "${chart}")
+done
 
 unique_dependency_charts=()
 while IFS= read -r chart_dir ; do
@@ -320,7 +434,7 @@ if [ -n "${dry_run}" ] && [ -n "${from_current_branch}" ] ; then
   exit 0
 fi
 
-git add release-chart.sh "charts/${chart}/"{Chart.yaml,README.md}
+git add "charts/${chart}/"{Chart.yaml,README.md}
 for chart_dir in "${unique_dependency_charts[@]}" ; do
   git add "${chart_dir}/Chart.yaml"
   if [ -f "${chart_dir}/Chart.lock" ] ; then
@@ -343,7 +457,13 @@ for chart_dir in charts/*/; do
   fi
 done
 
-cat <<EOF | gh pr create --base main --body-file - "${dry_run}"
+pr_title="Bump ${chart} Helm Chart version from ${current_version} to ${new_version}"
+gh_create_args=(--base main --title "${pr_title}" --body-file -)
+if [ -n "${dry_run}" ] ; then
+  gh_create_args+=("${dry_run}")
+fi
+
+if ! cat <<EOF | gh pr create "${gh_create_args[@]}"
 Please review the below changelog to ensure this matches up with the semantic version being applied.
 
 > [!Important]
@@ -375,6 +495,9 @@ done)
 
 ${commits_since_previous_release}
 EOF
+then
+  print_error_and_exit "failed to create the release PR for branch '${branch_name}'; not attempting auto-merge"
+fi
 
 if [ -n "${dry_run}" ] ; then
   echo >&2
@@ -394,7 +517,7 @@ if [ -n "${dry_run}" ] ; then
   exit
 fi
 
-gh pr merge --auto -r -d
+gh pr merge --auto -r -d "${branch_name}"
 if [ -z "${from_current_branch}" ] ; then
   git checkout main
 fi
