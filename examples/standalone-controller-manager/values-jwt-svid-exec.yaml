@@ -1,0 +1,20 @@
+spire-server:
+  controllerManager:
+    enabled: true
+    deploymentMode: standalone
+  externalControllerManagers:
+    enabled: true
+  nodeAttestor:
+    externalK8sPSAT:
+      enabled: false
+  bundlePublisher:
+    externalK8sConfigMap:
+      enabled: false
+  jwtSVIDExecConfig:
+    spiffeID: /external-spire-server
+  kubeConfigs:
+    example-external:
+      jwtSVIDExec:
+        server: https://external-api.example.com:6443
+        certificateAuthorityData: TEST-CA-BASE64==
+        audience: k8s

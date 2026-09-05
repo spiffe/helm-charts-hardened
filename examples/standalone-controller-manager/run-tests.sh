@@ -66,7 +66,24 @@ until kubectl logs standalone-cm-client --namespace default | grep -q 'SPIFFE ID
   count=$((count - 1))
   if [ "${count}" -le 0 ]; then
     echo "timed out waiting for standalone-cm-client to receive an SVID" >&2
-    kubectl logs standalone-cm-client --namespace default
+kubectl logs standalone-cm-client --namespace default
+
+# Render-only smoke test: validate that combining standalone
+# deploymentMode with a jwtSVIDExec-based kubeConfigs entry produces the
+# expected artifacts (extra bootstrap workload entry, jwt-svid-exec init
+# container, workload-api mode kubeconfig). We can't fully exercise this
+# without a second target cluster with SPIFFE-based structured auth, so
+# CI keeps the check to a helm-template assertion.
+rendered=$(helm template spire charts/spire \
+  --namespace "${ns}" \
+  --values "${SCRIPTPATH}/values.yaml" \
+  --values "${SCRIPTPATH}/values-jwt-svid-exec.yaml")
+echo "${rendered}" | grep -q 'path:/plugins/jwt-svid-exec' \
+  || { echo "expected extra bootstrap entry with unix:path:/plugins/jwt-svid-exec" >&2; exit 1; }
+echo "${rendered}" | grep -q '"hint": "jwt-svid-exec"' \
+  || { echo "expected extra bootstrap entry to carry the deterministic hint" >&2; exit 1; }
+echo "${rendered}" | grep -q 'init-jwt-svid-exec' \
+  || { echo "expected the standalone Deployment to stage the exec plugin binary" >&2; exit 1; }
     exit 1
   fi
   sleep 2

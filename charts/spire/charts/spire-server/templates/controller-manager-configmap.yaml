@@ -41,10 +41,6 @@ data:
 {{- end }}
 {{- if $standalone }}
 {{-   $kubeConfigName := default $name $clusterSettings.kubeConfigName }}
-{{-   $kubeConfigEntry := default dict (index $root.Values.kubeConfigs $kubeConfigName) }}
-{{-   if hasKey $kubeConfigEntry "jwtSVIDExec" }}
-{{-     fail (printf "kubeConfigs entry %q uses jwtSVIDExec, which is not supported for controllerManager.deploymentMode standalone (it depends on spire-server's own admin socket, which a standalone Deployment's Pod does not have); use kubeConfig, kubeConfigBase64, or externalSecret instead" $kubeConfigName) }}
-{{-   end }}
 {{- end }}
   controller-manager-config{{ $suffix }}.yaml: |
     {{- include "spire-controller-manager.config" (dict "Values" $root.Values "Chart" $root.Chart "Release" $root.Release "startPort" $clusterStartPort "suffix" $suffix "settings" $clusterSettings "defaults" $clusterDefaults "webhookEnabled" false "clusterName" $name "standalone" $standalone) | nindent 4 }}

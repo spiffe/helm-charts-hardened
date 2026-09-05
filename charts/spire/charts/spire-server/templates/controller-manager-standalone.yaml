@@ -83,6 +83,7 @@ data:
 {{- $serviceAccountName := include "spire-controller-manager.standalone-instance-serviceAccountName" . -}}
 {{- $aliasID := include "spire-controller-manager.standalone-instance-alias-id" . -}}
 {{- $workloadID := include "spire-controller-manager.standalone-instance-workload-id" . -}}
+{{- $jwtExecNeeded := include "spire-controller-manager.standalone-instance-jwt-exec-needed" . | eq "true" -}}
 {
           "parent_id": {{ printf "spiffe://%s/spire/server" (include "spire-lib.trust-domain" $root) | quote }},
           "selectors": [
@@ -112,6 +113,19 @@ data:
           ],
           "spiffe_id": {{ $workloadID | quote }}
         }
+{{- if $jwtExecNeeded }},
+        {
+          "parent_id": {{ $aliasID | quote }},
+          "selectors": [
+            {
+              "type": "unix",
+              "value": {{ printf "path:%s" (include "spire-server.jwt-svid-exec-binary-path" $root) | quote }}
+            }
+          ],
+          "spiffe_id": {{ include "spire-server.jwt-svid-exec-spiffeID" $root | quote }},
+          "hint": {{ include "spire-server.jwt-svid-exec-hint" $root | quote }}
+        }
+{{- end -}}
 {{- end -}}
 
 {{- define "spire-controller-manager.standalone-instance" }}
@@ -121,6 +135,7 @@ data:
 {{- if $isDefault }}
 {{- $webhooksEnabled = $root.Values.controllerManager.validatingWebhookConfiguration.enabled }}
 {{- end }}
+{{- $jwtExecNeeded := include "spire-controller-manager.standalone-instance-jwt-exec-needed" . | eq "true" }}
 {{- $agentSocketPath := include "spire-controller-manager.standalone-agent-socket-path" $root }}
 {{- $attestorCluster := include "spire-controller-manager.standalone-instance-attestor-cluster-name" . }}
 {{- $fullname := include "spire-controller-manager.standalone-instance-fullname" . }}
@@ -241,6 +256,10 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if $jwtExecNeeded }}
+      initContainers:
+        {{- include "spire-server.jwt-svid-exec-init-containers" $root | nindent 8 }}
+      {{- end }}
       containers:
         - name: spire-agent
           securityContext:
@@ -321,6 +340,11 @@ spec:
               subPath: {{ .kubeConfigName }}
               readOnly: true
             {{- end }}
+            {{- if $jwtExecNeeded }}
+            - name: plugins
+              mountPath: /plugins
+              readOnly: true
+            {{- end }}
             - name: controller-manager-standalone-tmp
               mountPath: /tmp
               readOnly: false
@@ -352,6 +376,10 @@ spec:
         {{- end }}
         - name: controller-manager-standalone-tmp
           emptyDir: {}
+        {{- if $jwtExecNeeded }}
+        - name: plugins
+          emptyDir: {}
+        {{- end }}
 {{- if (dig "telemetry" "prometheus" "podMonitor" "enabled" $root.Values.telemetry.prometheus.podMonitor.enabled $root.Values.global) }}
 ---
 apiVersion: monitoring.coreos.com/v1

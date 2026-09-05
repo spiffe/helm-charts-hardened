@@ -1713,8 +1713,13 @@ kubeConfigs: {}
 ## @param jwtSVIDExecConfig.pluginPath The path of the plugin binary inside the plugin image, staged for exec by the kubeConfigs consumers
 ## @param jwtSVIDExecConfig.spiffeID The SPIFFE ID the plugin mints a JWT-SVID for; a full spiffe:// URI, or a "/"-prefixed path expanded with the chart trust domain (e.g. /spire-root); required when any kubeConfigs entry uses jwtSVIDExec
 ## Global wiring shared by every kubeConfigs entry that uses jwtSVIDExec. The plugin binary is staged from this
-## image into the shared plugins volume, and every such entry mints a JWT-SVID for spiffeID from the SPIRE Server
-## admin API socket, which is already mounted into the kubeConfigs consumers, so no agent Workload API socket is required.
+## image into the shared plugins volume. In sidecar (default) controllerManager.deploymentMode the plugin mints a
+## JWT-SVID for spiffeID from the SPIRE Server admin API socket, which is already mounted into the kubeConfigs
+## consumers. In standalone controllerManager.deploymentMode the plugin instead fetches a JWT-SVID from the
+## standalone controller-manager Pod's own in-pod spire-agent Workload API socket; the chart materializes spiffeID
+## as an extra static bootstrap workload entry (non-admin, matched via unix:path on the plugin binary, tagged with
+## a deterministic hint the kubeconfig references via SPIFFE_JWT_HINT) parented to the same node-alias used by the
+## standalone Pod's own identity, so no dependency on spire-server's admin socket is required.
 jwtSVIDExecConfig:
   image:
     registry: ghcr.io

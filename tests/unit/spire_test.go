@@ -1147,18 +1147,51 @@ spire-server:
 			Expect(strings.Count(cmConfig, "spireServerSocketPath:")).Should(Equal(0))
 		})
 
-		It("rejects jwtSVIDExec kubeConfigs entries combined with standalone mode", func() {
+		It("supports jwtSVIDExec kubeConfigs entries in standalone mode by switching the exec plugin to the standalone Pod's own agent Workload API", func() {
+			standaloneJWTExec := standalone + `
+  externalControllerManagers:
+    enabled: true
+  nodeAttestor:
+    externalK8sPSAT:
+      enabled: false
+  bundlePublisher:
+    externalK8sConfigMap:
+      enabled: false
+  jwtSVIDExecConfig:
+    spiffeID: /external-spire-server
+  kubeConfigs:
+    clustera:
+      jwtSVIDExec:
+        server: https://clustera-api.example.com:6443
+        certificateAuthorityData: YWJj
+`
+			objs, err := ValueStringRender(chart, standaloneJWTExec)
+			Expect(err).Should(Succeed())
+
+			secret := objs["spire/charts/spire-server/templates/kubeconfig-secret.yaml"]
+			Expect(secret).Should(ContainSubstring("kind: Secret"))
+
+			standaloneManifest := objs["spire/charts/spire-server/templates/controller-manager-standalone.yaml"]
+			Expect(standaloneManifest).Should(ContainSubstring("path:/plugins/jwt-svid-exec"))
+			Expect(standaloneManifest).Should(ContainSubstring(`"spiffe_id": "spiffe://example.org/external-spire-server"`))
+			Expect(standaloneManifest).Should(ContainSubstring(`"hint": "jwt-svid-exec"`))
+			Expect(standaloneManifest).Should(ContainSubstring("init-jwt-svid-exec"))
+			Expect(standaloneManifest).Should(ContainSubstring("finalize-jwt-svid-exec"))
+		})
+
+		It("refuses to render when a jwtSVIDExec entry is consumed by both a standalone controller-manager and a spire-server-container consumer, since one Secret entry can only carry one kubeconfig", func() {
 			_, err := ValueStringRender(chart, standalone+`
-    externalControllerManagers:
-      enabled: true
+  externalControllerManagers:
+    enabled: true
+  jwtSVIDExecConfig:
+    spiffeID: /external-spire-server
   kubeConfigs:
     clustera:
       jwtSVIDExec:
         server: https://clustera-api.example.com:6443
         certificateAuthorityData: YWJj
 `)
-			Expect(err).Should(MatchError(ContainSubstring("jwtSVIDExec")))
-			Expect(err).Should(MatchError(ContainSubstring("not supported for controllerManager.deploymentMode standalone")))
+			Expect(err).Should(MatchError(ContainSubstring("consumed by both a standalone controller-manager")))
 		})
 
 		It("does not also add external-cluster controller-manager containers to the spire-server Pod", func() {

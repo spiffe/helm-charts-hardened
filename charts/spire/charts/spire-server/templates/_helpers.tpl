@@ -362,6 +362,31 @@ same template body handle both without duplicating it.
 {{- end -}}
 {{- end }}
 
+{{/*
+"true" if this standalone instance consumes a kubeConfigs entry that
+uses jwtSVIDExec (i.e. the default/local instance never does, per-
+external-cluster instances do if their resolved kubeConfigName's entry
+sets jwtSVIDExec). Drives both the extra bootstrap workload entry
+in controller-manager-standalone.yaml and the plugin-staging init
+containers on the same Pod.
+*/}}
+{{- define "spire-controller-manager.standalone-instance-jwt-exec-needed" -}}
+{{- $root := .root -}}
+{{- $result := "false" -}}
+{{- if ne .name "" -}}
+{{-   $clusterSettings := dict -}}
+{{-   if hasKey $root.Values.externalControllerManagers.clusters .name -}}
+{{-     $clusterSettings = index $root.Values.externalControllerManagers.clusters .name -}}
+{{-   end -}}
+{{-   $kubeConfigName := default .name (default "" $clusterSettings.kubeConfigName) -}}
+{{-   $kubeConfigEntry := default dict (index $root.Values.kubeConfigs $kubeConfigName) -}}
+{{-   if hasKey $kubeConfigEntry "jwtSVIDExec" -}}
+{{-     $result = "true" -}}
+{{-   end -}}
+{{- end -}}
+{{- $result -}}
+{{- end }}
+
 {{/* controller-manager-config{suffix}.yaml suffix for this instance: "" for the default/local instance, "-<name>" for a per-external-cluster instance (matches controller-manager-configmap.yaml's own suffixing). */}}
 {{- define "spire-controller-manager.standalone-instance-config-suffix" -}}
 {{- if ne .name "" -}}
@@ -420,24 +445,107 @@ init-container copy target and as the exec kubeconfig command, so the two must s
 /plugins/jwt-svid-exec
 {{- end }}
 
-{{- define "spire-server.jwt-svid-exec-kubeconfig" -}}
-{{- $jwtSVIDExec := .jwtSVIDExec -}}
-{{- $root := .root -}}
+{{/*
+Init containers that stage the jwt-svid-exec plugin binary into a shared
+"plugins" emptyDir. Rendered into both the spire-server Pod (see
+server-resource.yaml) and each standalone controller-manager Pod (see
+controller-manager-standalone.yaml). The consumer container mounts the
+same "plugins" volume read-only at /plugins and execs the plugin from
+the path returned by spire-server.jwt-svid-exec-binary-path.
+
+The spire-server image itself ships no shell, so a busybox is first
+staged into the shared volume (init-plugins) and then used to copy the
+plugin binary (init-jwt-svid-exec), and finally the busybox is removed
+(finalize-plugins).
+*/}}
+{{- define "spire-server.jwt-svid-exec-init-containers" -}}
+- name: init-plugins
+  securityContext:
+    {{- include "spire-lib.securitycontext" . | nindent 4 }}
+  image: {{ template "spire-lib.image" (dict "appVersion" .Chart.AppVersion "image" .Values.tools.busybox.image "global" .Values.global) }}
+  command:
+    - busybox
+    - sh
+    - -ec
+    - |
+      cp -a /bin/busybox /plugins/busybox
+  volumeMounts:
+    - name: plugins
+      mountPath: /plugins
+  imagePullPolicy: {{ .Values.tools.busybox.image.pullPolicy }}
+- name: init-jwt-svid-exec
+  securityContext:
+    {{- include "spire-lib.securitycontext" . | nindent 4 }}
+  image: {{ template "spire-lib.image" (dict "appVersion" .Chart.AppVersion "image" .Values.jwtSVIDExecConfig.image "global" .Values.global) }}
+  command:
+    - /plugins/busybox
+    - sh
+    - -ec
+    - |
+      /plugins/busybox cp -a {{ .Values.jwtSVIDExecConfig.pluginPath }} {{ include "spire-server.jwt-svid-exec-binary-path" . }}
+  volumeMounts:
+    - name: plugins
+      mountPath: /plugins
+  imagePullPolicy: {{ .Values.jwtSVIDExecConfig.image.pullPolicy }}
+- name: finalize-jwt-svid-exec
+  securityContext:
+    {{- include "spire-lib.securitycontext" . | nindent 4 }}
+  image: {{ template "spire-lib.image" (dict "appVersion" .Chart.AppVersion "image" .Values.tools.busybox.image "global" .Values.global) }}
+  command:
+    - busybox
+    - sh
+    - -ec
+    - |
+      rm -f /plugins/busybox
+  volumeMounts:
+    - name: plugins
+      mountPath: /plugins
+  imagePullPolicy: {{ .Values.tools.busybox.image.pullPolicy }}
+{{- end }}
+
+{{/*
+Resolves jwtSVIDExecConfig.spiffeID to a full spiffe:// URI, validating
+the trust domain. Used by both the kubeconfig template (server-admin-api
+source in sidecar mode) and the extra standalone bootstrap workload
+entry that materializes this identity for workload-api source in
+standalone mode.
+*/}}
+{{- define "spire-server.jwt-svid-exec-spiffeID" -}}
+{{- $root := . -}}
 {{- $spiffeID := $root.Values.jwtSVIDExecConfig.spiffeID -}}
 {{- if not $spiffeID -}}
 {{- fail "jwtSVIDExecConfig.spiffeID is required when a kubeConfigs entry uses jwtSVIDExec" -}}
 {{- end -}}
 {{- $chartTD := include "spire-lib.trust-domain" $root -}}
 {{- if hasPrefix "/" $spiffeID -}}
-{{- $spiffeID = printf "spiffe://%s%s" $chartTD $spiffeID -}}
+{{- printf "spiffe://%s%s" $chartTD $spiffeID -}}
 {{- else if hasPrefix "spiffe://" $spiffeID -}}
 {{- $idTD := $spiffeID | trimPrefix "spiffe://" | splitList "/" | first -}}
 {{- if ne $idTD $chartTD -}}
 {{- fail (printf "jwtSVIDExecConfig.spiffeID trust domain %q must match the chart trust domain %q" $idTD $chartTD) -}}
 {{- end -}}
+{{- $spiffeID -}}
 {{- else -}}
 {{- fail (printf "jwtSVIDExecConfig.spiffeID %q must be a spiffe:// URI or a path starting with \"/\"" $spiffeID) -}}
 {{- end -}}
+{{- end }}
+
+{{/*
+Deterministic hint applied to the extra standalone bootstrap workload
+entry (see controller-manager-standalone.yaml) and referenced from the
+kubeconfig via SPIFFE_JWT_HINT, so the exec plugin selects that specific
+JWT-SVID out of any others the Workload API might return for the
+standalone controller-manager Pod.
+*/}}
+{{- define "spire-server.jwt-svid-exec-hint" -}}
+jwt-svid-exec
+{{- end }}
+
+{{- define "spire-server.jwt-svid-exec-kubeconfig" -}}
+{{- $jwtSVIDExec := .jwtSVIDExec -}}
+{{- $root := .root -}}
+{{- $mode := default "sidecar" .mode -}}
+{{- $spiffeID := include "spire-server.jwt-svid-exec-spiffeID" $root -}}
 apiVersion: v1
 kind: Config
 clusters:
@@ -453,12 +561,21 @@ users:
       command: {{ include "spire-server.jwt-svid-exec-binary-path" $root }}
       interactiveMode: Never
       env:
+      {{- if eq $mode "standalone" }}
+      - name: SPIFFE_JWT_SOURCE
+        value: "workload-api"
+      - name: SPIFFE_ENDPOINT_SOCKET
+        value: {{ printf "unix://%s" (include "spire-controller-manager.standalone-agent-socket-path" $root) | quote }}
+      - name: SPIFFE_JWT_HINT
+        value: {{ include "spire-server.jwt-svid-exec-hint" . | quote }}
+      {{- else }}
       - name: SPIFFE_JWT_SOURCE
         value: "server-admin-api"
       - name: SPIRE_SERVER_SOCKET
         value: "unix:///tmp/spire-server/private/api.sock"
       - name: SPIFFE_ID
         value: {{ $spiffeID | quote }}
+      {{- end }}
       - name: SPIFFE_JWT_AUDIENCE
         value: {{ $jwtSVIDExec.audience | default "k8s" | quote }}
 contexts:

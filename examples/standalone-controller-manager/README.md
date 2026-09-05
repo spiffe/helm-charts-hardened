@@ -39,3 +39,11 @@ Received 1 svid after 10s
 
 SPIFFE ID:		spiffe://<trust domain>/ns/default/sa/default
 ```
+
+## jwtSVIDExec kubeConfigs entries in standalone mode
+
+`kubeConfigs` entries that use `jwtSVIDExec` (an exec-credential kubeconfig that authenticates with a SPIFFE JWT-SVID minted at call time) are supported in standalone mode. In sidecar mode the exec plugin sources the JWT-SVID from `spire-server`'s admin API socket, which the standalone Deployment's Pod does not have access to; the chart instead switches the plugin to `workload-api` mode against the standalone Pod's own in-pod agent socket and materializes `jwtSVIDExecConfig.spiffeID` as an extra static bootstrap workload entry (non-admin, matched via `unix:path` on the plugin binary, tagged with a deterministic hint the kubeconfig references via `SPIFFE_JWT_HINT`).
+
+Because a single Secret entry can only carry one kubeconfig, an entry that would be consumed by both a standalone controller-manager (needing workload-api mode) and a spire-server-container consumer such as `nodeAttestor.externalK8sPSAT` / `notifier.externalK8sBundle` / `bundlePublisher.externalK8sConfigMap` (needing server-admin-api mode) is rejected at render time. Split into two entries or narrow the server-container consumer's `clusters` map to a non-jwtSVIDExec kubeconfig.
+
+`values-jwt-svid-exec.yaml` in this directory shows a minimal override that combines standalone mode with an example `jwtSVIDExec` entry against a hypothetical external cluster.
