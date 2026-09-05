@@ -1,0 +1,16 @@
+apiVersion: spire.spiffe.io/v1alpha1
+kind: ClusterSPIFFEID
+metadata:
+  name: target-marker
+spec:
+  className: spire-spire-server
+  spiffeIDTemplate: "spiffe://{{ .TrustDomain }}/target/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}"
+  namespaceSelector:
+    matchLabels:
+      exercise: standalone-cm-jwt-svid-exec
+  podSelector:
+    matchLabels:
+      app: target-marker
+  workloadSelectorTemplates:
+    - "k8s:ns:{{ .PodMeta.Namespace }}"
+    - "k8s:pod-name:{{ .PodMeta.Name }}"

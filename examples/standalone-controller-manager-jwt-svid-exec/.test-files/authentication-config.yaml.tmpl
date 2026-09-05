@@ -1,0 +1,14 @@
+apiVersion: apiserver.config.k8s.io/v1
+kind: AuthenticationConfiguration
+jwt:
+  - issuer:
+      url: __ISSUER_URL__
+      audiences:
+        - k8s
+    claimMappings:
+      username:
+        claim: sub
+        prefix: ""
+    claimValidationRules:
+      - claim: sub
+        requiredValue: "spiffe://example.org/external-cluster-admin"

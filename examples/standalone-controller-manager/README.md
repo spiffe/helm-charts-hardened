@@ -46,4 +46,4 @@ SPIFFE ID:		spiffe://<trust domain>/ns/default/sa/default
 
 Because a single Secret entry can only carry one kubeconfig, an entry that would be consumed by both a standalone controller-manager (needing workload-api mode) and a spire-server-container consumer such as `nodeAttestor.externalK8sPSAT` / `notifier.externalK8sBundle` / `bundlePublisher.externalK8sConfigMap` (needing server-admin-api mode) is rejected at render time. Split into two entries or narrow the server-container consumer's `clusters` map to a non-jwtSVIDExec kubeconfig.
 
-`values-jwt-svid-exec.yaml` in this directory shows a minimal override that combines standalone mode with an example `jwtSVIDExec` entry against a hypothetical external cluster.
+`values-jwt-svid-exec.yaml` in this directory shows a minimal override that combines standalone mode with an example `jwtSVIDExec` entry against a hypothetical external cluster. For a real two-cluster end-to-end exercise (source SPIRE + target apiserver with SPIFFE-based structured JWT authentication), see [`examples/standalone-controller-manager-jwt-svid-exec/`](../standalone-controller-manager-jwt-svid-exec/).

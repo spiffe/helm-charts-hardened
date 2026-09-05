@@ -1,0 +1,20 @@
+spire-server:
+  controllerManager:
+    enabled: true
+    deploymentMode: standalone
+  externalControllerManagers:
+    enabled: true
+  nodeAttestor:
+    externalK8sPSAT:
+      enabled: false
+  bundlePublisher:
+    externalK8sConfigMap:
+      enabled: false
+  jwtSVIDExecConfig:
+    spiffeID: /external-cluster-admin
+  kubeConfigs:
+    target:
+      jwtSVIDExec:
+        server: PLACEHOLDER_TARGET_APISERVER
+        certificateAuthorityData: PLACEHOLDER_TARGET_CA_B64
+        audience: k8s
