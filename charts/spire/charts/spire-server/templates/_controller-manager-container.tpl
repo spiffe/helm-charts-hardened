@@ -1,3 +1,72 @@
+{{/* 15-char-safe port-name suffix for a controller-manager cluster name ("" -> ""). Shared by container ports and the PodMonitor so they cannot drift. */}}
+{{- define "spire-controller-manager.portSuffix" -}}
+{{- $name := . -}}
+{{- $portSuffix := "" -}}
+{{- if ne $name "" -}}
+{{-   $portSuffix = printf "-%s" $name -}}
+{{-   if gt (len $name) 9 -}}
+{{-     $numberMatch := regexFind "[-]?[0-9]{1,2}$" $name -}}
+{{-     if $numberMatch -}}
+{{-       $numLen := len $numberMatch -}}
+{{-       $baseLen := sub (len $name) $numLen | int -}}
+{{-       $baseName := substr 0 $baseLen $name -}}
+{{-       if not (hasPrefix "-" $numberMatch) -}}
+{{-         $numberMatch = printf "-%s" $numberMatch -}}
+{{-       end -}}
+{{-       $maxBase := sub 9 (len $numberMatch) | int -}}
+{{-       $baseName = $baseName | trunc $maxBase | trimSuffix "-" -}}
+{{-       $portSuffix = printf "-%s%s" $baseName $numberMatch -}}
+{{-     else -}}
+{{-       $hash := sha256sum $name | trunc 3 -}}
+{{-       $portSuffix = printf "-%s-%s" ($name | trunc 5 | trimSuffix "-") $hash -}}
+{{-     end -}}
+{{-   end -}}
+{{- end -}}
+{{- $portSuffix -}}
+{{- end -}}
+
+{{/* Resolve a port name: override wins, else prefix+suffix. dict: prefix, portSuffix, override */}}
+{{- define "spire-controller-manager.portName" -}}
+{{- if and (hasKey . "override") (ne (.override | toString) "") -}}
+{{- .override -}}
+{{- else -}}
+{{- printf "%s%s" .prefix .portSuffix -}}
+{{- end -}}
+{{- end -}}
+
+{{/* Prometheus port name for one controller-manager. dict: name (""=main), settings (may hold prometheusPortName) */}}
+{{- define "spire-controller-manager.promPortName" -}}
+{{- $override := "" -}}
+{{- if hasKey .settings "prometheusPortName" -}}
+{{-   $override = .settings.prometheusPortName -}}
+{{- end -}}
+{{- include "spire-controller-manager.portName" (dict "prefix" "pm-cm" "portSuffix" (include "spire-controller-manager.portSuffix" .name) "override" $override) -}}
+{{- end -}}
+
+{{/* List of prometheus port names for every controller-manager that renders one. Consumed by the PodMonitor. */}}
+{{- define "spire-controller-manager.prometheusPortNames" -}}
+{{- $root := . -}}
+{{- $names := list -}}
+{{- if eq (.Values.controllerManager.enabled | toString) "true" -}}
+{{-   $names = append $names (include "spire-controller-manager.promPortName" (dict "name" "" "settings" .Values.controllerManager)) -}}
+{{- end -}}
+{{- if .Values.externalControllerManagers.enabled -}}
+{{-   $clusters := default .Values.kubeConfigs .Values.externalControllerManagers.clusters -}}
+{{-   range $name, $_ := $clusters -}}
+{{-     $clusterSettings := dict -}}
+{{-     if hasKey $root.Values.externalControllerManagers.clusters $name -}}
+{{-       $clusterSettings = index $root.Values.externalControllerManagers.clusters $name -}}
+{{-     end -}}
+{{-     $pmName := include "spire-controller-manager.promPortName" (dict "name" $name "settings" $clusterSettings) -}}
+{{-     if has $pmName $names -}}
+{{-       fail (printf "controller-manager prometheus port name %q collides for cluster %q; set a distinct prometheusPortName override" $pmName $name) -}}
+{{-     end -}}
+{{-     $names = append $names $pmName -}}
+{{-   end -}}
+{{- end -}}
+{{- $names | toYaml -}}
+{{- end -}}
+
 {{- define "spire-controller-manager.containers" }}
 {{-   $root := . }}
 {{-   $settings := dict }}
@@ -41,23 +110,7 @@ Auto-generation preserves trailing numbers from cluster names or uses hash for u
 {{-         $prometheusPortName = $clusterSettings.prometheusPortName }}
 {{-       end }}
 {{-       if or (eq $healthPortName "") (eq $prometheusPortName "") }}
-{{-         if gt (len $name) 9 }}
-{{-           $numberMatch := regexFind "[-]?[0-9]{1,2}$" $name }}
-{{-           if $numberMatch }}
-{{-             $numLen := len $numberMatch }}
-{{-             $baseLen := sub (len $name) $numLen | int }}
-{{-             $baseName := substr 0 $baseLen $name }}
-{{-             if not (hasPrefix "-" $numberMatch) }}
-{{-               $numberMatch = printf "-%s" $numberMatch }}
-{{-             end }}
-{{-             $maxBase := sub 9 (len $numberMatch) | int }}
-{{-             $baseName = $baseName | trunc $maxBase | trimSuffix "-" }}
-{{-             $portSuffix = printf "-%s%s" $baseName $numberMatch }}
-{{-           else }}
-{{-             $hash := sha256sum $name | trunc 3 }}
-{{-             $portSuffix = printf "-%s-%s" ($name | trunc 5 | trimSuffix "-") $hash }}
-{{-           end }}
-{{-         end }}
+{{-         $portSuffix = include "spire-controller-manager.portSuffix" $name }}
 {{-       end }}
 
 {{-       $startPort = add $startPort 2 }}
@@ -127,17 +180,11 @@ Auto-generation preserves trailing numbers from cluster names or uses hash for u
       containerPort: 9443
       protocol: TCP
     {{- end }}
-    {{- $hpName := .healthPortName }}
-    {{- if eq $hpName "" }}
-    {{-   $hpName = printf "hp-cm%s" .portSuffix }}
-    {{- end }}
+    {{- $hpName := include "spire-controller-manager.portName" (dict "prefix" "hp-cm" "portSuffix" .portSuffix "override" .healthPortName) }}
     - containerPort: {{ $healthPort }}
       name: {{ $hpName }}
     {{- if or (dig "telemetry" "prometheus" "enabled" .Values.telemetry.prometheus.enabled .Values.global) (and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "prometheus" true .Values.global)) }}
-    {{-   $pmName := .prometheusPortName }}
-    {{-   if eq $pmName "" }}
-    {{-     $pmName = printf "pm-cm%s" .portSuffix }}
-    {{-   end }}
+    {{-   $pmName := include "spire-controller-manager.portName" (dict "prefix" "pm-cm" "portSuffix" .portSuffix "override" .prometheusPortName) }}
     - containerPort: {{ $promPort }}
       name: {{ $pmName }}
     {{- end }}

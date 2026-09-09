@@ -589,6 +589,10 @@ metadata:
   {{- end }}
 spec:
   gatewayClassName: {{ required "gatewayAPI.gateway.className is required to render the shared Gateway" $obj.className | quote }}
+  {{- with $obj.infrastructure }}
+  infrastructure:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   allowedListeners:
     namespaces:
       from: {{ default "All" $obj.allowedListenersNamespaces }}

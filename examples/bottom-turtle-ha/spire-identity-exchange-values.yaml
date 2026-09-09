@@ -1,6 +1,14 @@
 internal-spire-server-bottom-turtle-ha-a: &server
   controllerManager:
     identities:
+      clusterSPIFFEIDs:
+        zot:
+          spiffeIDTemplate: spiffe://{{ .TrustDomain }}/zot
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: zot
+          dnsNameTemplates:
+            - zot.{{ .TrustDomain }}
       clusterStaticEntries:
         test:
           parentID: spiffe://production.other/spire-identity-exchange
@@ -8,6 +16,33 @@ internal-spire-server-bottom-turtle-ha-a: &server
           selectors:
             - k8s_psat:namespace:default
             - k8s_psat:service_account_name:default
+
+        image-push:
+          parentID: spiffe://production.other/spire-identity-exchange
+          spiffeID: spiffe://production.other/image-push
+          selectors:
+            - k8s_psat:namespace:default
+            - k8s_psat:service_account_name:zot-push
+            - spiffe:source_path:/ns/default/sa/zot-push
+            - spire_identity_exchange:stack:name:image_pull
+
+        image-pull:
+          parentID: spiffe://production.other/spire-identity-exchange
+          spiffeID: spiffe://production.other/image-pull
+          selectors:
+            - k8s_psat:namespace:default
+            - k8s_psat:service_account_name:zot-pull
+            - spiffe:source_path:/kubelet
+            - spire_identity_exchange:stack:name:image_pull
+
+        image-pull-from-pod:
+          parentID: spiffe://production.other/spire-identity-exchange
+          spiffeID: spiffe://production.other/image-pull
+          selectors:
+            - k8s_psat:namespace:default
+            - k8s_psat:service_account_name:zot-pull
+            - spiffe:source_path:/ns/default/sa/zot-pull
+            - spire_identity_exchange:stack:name:image_pull
   spireIdentityExchange:
     enabled: true
 
@@ -30,6 +65,14 @@ spire-identity-exchange-bottom-turtle-ha-a: &six
         config:
           allowedServiceAccounts:
             - default/default
+            - default/zot-push
+            - default/zot-pull
+      spiffe:
+        config:
+          pathPatterns:
+            - "^/kubelet$"
+            - "^/ns/default/sa/zot-push$"
+            - "^/ns/default/sa/zot-pull$"
 
 #Set the same settings on the B side
 spire-identity-exchange-bottom-turtle-ha-b: *six

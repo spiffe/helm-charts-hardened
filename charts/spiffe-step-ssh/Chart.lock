@@ -1,9 +1,9 @@
 dependencies:
 - name: spire-lib
   repository: file://../spire-lib
-  version: 0.3.1
+  version: 0.3.2
 - name: step-certificates
   repository: https://smallstep.github.io/helm-charts/
   version: 1.27.4
-digest: sha256:11d3748666d0c9aa04a77a01ed3cde99553aae715bc9f00b311247e6a9c6ee91
-generated: "2026-08-21T14:41:49.31784-07:00"
+digest: sha256:9b62d2daefc0199e874a43e80127cc1fd75486121d860bd36a5249978fde04ac
+generated: "2026-09-04T14:16:46.86151-07:00"

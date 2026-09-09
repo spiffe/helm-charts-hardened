@@ -217,7 +217,7 @@ plugins:
         {{- if or .Values.sockets.broker.enabled .Values.brokerAPI.tcp.enabled }}
         experimental:
           broker:
-            access_policy: {{ .Values.workloadAttestors.k8s.brokerAPI.accessPolicy | quote }}
+            access_policy: {{ include "spire-agent.broker-access-policy" . | quote }}
             brokers:
               {{- range $key, $value := .Values.workloadAttestors.k8s.brokerAPI.brokers }}
               {{-   if or (not (hasKey $value "enabled")) $value.enabled }}
