@@ -416,6 +416,14 @@ spire-server:
 			Expect(objs[serverTmpl]).Should(ContainSubstring("init-jwt-svid-exec"))
 		})
 	})
+	Describe("spiffe-csi-driver.serviceAccount.automountServiceAccountToken", func() {
+		saTmpl := "spire/charts/spiffe-csi-driver/templates/serviceaccount.yaml"
+		It("declines an API token, which the driver never uses", func() {
+			objs, err := ValueStringRender(chart, ``)
+			Expect(err).Should(Succeed())
+			Expect(objs[saTmpl]).Should(ContainSubstring("automountServiceAccountToken: false"))
+		})
+	})
 	Describe("spiffe-csi-driver.syncWave", func() {
 		csiTmpl := "spire/charts/spiffe-csi-driver/templates/spiffe-csi-driver.yaml"
 		It("renders the default sync-wave annotation on OpenShift", func() {
