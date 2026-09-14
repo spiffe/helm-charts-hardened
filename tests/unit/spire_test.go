@@ -424,6 +424,44 @@ spire-server:
 			Expect(objs[saTmpl]).Should(ContainSubstring("automountServiceAccountToken: false"))
 		})
 	})
+	Describe("spiffe-csi-driver.validatingAdmissionPolicy.allowedNamespaces", func() {
+		policyTmpl := "spire/charts/spiffe-csi-driver/templates/policy.yaml"
+		It("exempts both namespaces the chart itself installs into", func() {
+			objs, err := ValueStringRender(chart, `
+spiffe-csi-driver:
+  serverNamespaceOverride: spire-srv
+  validatingAdmissionPolicy:
+    enabled: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[policyTmpl]).Should(ContainSubstring("kind: ValidatingAdmissionPolicyBinding"))
+			Expect(objs[policyTmpl]).Should(ContainSubstring(`- "spire-srv"`))
+			Expect(objs[policyTmpl]).Should(ContainSubstring(`- "spire-server"`))
+		})
+		It("names the configured driver in the denial message", func() {
+			objs, err := ValueStringRender(chart, `
+spiffe-csi-driver:
+  pluginName: example.csi.spiffe.io
+  validatingAdmissionPolicy:
+    enabled: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[policyTmpl]).Should(ContainSubstring("you may not use the example.csi.spiffe.io csi driver"))
+		})
+		It("exempts the workload namespaces that mount the driver", func() {
+			objs, err := ValueStringRender(chart, `
+spiffe-csi-driver:
+  validatingAdmissionPolicy:
+    enabled: true
+    allowedNamespaces:
+      - workloads
+      - apps
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[policyTmpl]).Should(ContainSubstring(`- "workloads"`))
+			Expect(objs[policyTmpl]).Should(ContainSubstring(`- "apps"`))
+		})
+	})
 	Describe("spiffe-csi-driver.syncWave", func() {
 		csiTmpl := "spire/charts/spiffe-csi-driver/templates/spiffe-csi-driver.yaml"
 		It("renders the default sync-wave annotation on OpenShift", func() {
