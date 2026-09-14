@@ -462,6 +462,105 @@ spiffe-csi-driver:
 			Expect(objs[policyTmpl]).Should(ContainSubstring(`- "apps"`))
 		})
 	})
+	Describe("spire-agent.scc", func() {
+		sccTmpl := "spire/charts/spire-agent/templates/scc-spire-agent.yaml"
+		It("grants only the host access the agent daemonset uses", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowHostPID: true"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowHostNetwork: true"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowHostDirVolumePlugin: true"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowHostIPC: false"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowHostPorts: false"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegedContainer: false"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegeEscalation: false"))
+		})
+		It("allows host ports only when an injected container declares one", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowHostPorts: false"))
+
+			objs, err = ValueStringRender(chart, `
+global:
+  openshift: true
+spire-agent:
+  extraContainers:
+  - name: sidecar
+    image: busybox
+    ports:
+    - containerPort: 9999
+      hostPort: 9999
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowHostPorts: true"))
+		})
+		It("keeps host IPC off, which no value can ask for", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowHostIPC: false"))
+		})
+		It("allows a privileged container when values ask for one", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+spire-agent:
+  securityContext:
+    privileged: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegedContainer: true"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegeEscalation: true"))
+		})
+		It("allows a privileged container when one agent profile asks for one", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+spire-agent:
+  agents:
+    gpu:
+      securityContext:
+        privileged: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegedContainer: true"))
+		})
+		It("allows escalation alone without allowing privileged containers", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+spire-agent:
+  securityContext:
+    allowPrivilegeEscalation: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegeEscalation: true"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegedContainer: false"))
+		})
+		It("allows a privileged container only for the tpmDirect attestor", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+spire-agent:
+  nodeAttestor:
+    k8sPSAT:
+      enabled: false
+    tpmDirect:
+      enabled: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegedContainer: true"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegeEscalation: true"))
+		})
+	})
 	Describe("spiffe-csi-driver.syncWave", func() {
 		csiTmpl := "spire/charts/spiffe-csi-driver/templates/spiffe-csi-driver.yaml"
 		It("renders the default sync-wave annotation on OpenShift", func() {
