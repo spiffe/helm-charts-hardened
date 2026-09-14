@@ -985,6 +985,59 @@ spire-server:
 			Expect(serverResource).Should(ContainSubstring("name: my-ro-db-secret"))
 		})
 	})
+	Describe("spire-server.controllerManager.cacheNamespaces", func() {
+		configMapTmpl := "spire/charts/spire-server/templates/controller-manager-configmap.yaml"
+		It("renders for the primary controller manager", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  controllerManager:
+    enabled: true
+    cacheNamespaces:
+      spire-server: {}
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[configMapTmpl]).Should(ContainSubstring("cacheNamespaces"))
+			Expect(objs[configMapTmpl]).Should(ContainSubstring("spire-server: {}"))
+		})
+		It("applies externalControllerManagers.defaults.cacheNamespaces to every generated cluster config", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  controllerManager:
+    enabled: false
+  externalControllerManagers:
+    enabled: true
+    defaults:
+      className: test-class
+      cacheNamespaces:
+        spire-server: {}
+    clusters:
+      child1: {}
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[configMapTmpl]).Should(ContainSubstring("cacheNamespaces"))
+			Expect(objs[configMapTmpl]).Should(ContainSubstring("spire-server: {}"))
+		})
+		It("lets a per-cluster override take precedence over externalControllerManagers.defaults", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  controllerManager:
+    enabled: false
+  externalControllerManagers:
+    enabled: true
+    defaults:
+      className: test-class
+      cacheNamespaces:
+        default-ns: {}
+    clusters:
+      child1:
+        cacheNamespaces:
+          override-ns: {}
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[configMapTmpl]).Should(ContainSubstring("override-ns: {}"))
+			Expect(objs[configMapTmpl]).ShouldNot(ContainSubstring("default-ns: {}"))
+		})
+	})
 	Describe("gatewayAPI.gateway.infrastructure", func() {
 		It("passes infrastructure through to the shared Gateway spec when set", func() {
 			objs, err := ValueStringRender(chart, `

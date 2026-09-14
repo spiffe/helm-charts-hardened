@@ -61,7 +61,11 @@ leaderElection:
   renewDeadline: {{ .defaults.leaderElection.renewDeadline }}
   retryPeriod: {{ .defaults.leaderElection.retryPeriod }}
 {{- end }}
-{{- with .settings.cacheNamespaces }}
+{{- $cacheNamespaces := .defaults.cacheNamespaces }}
+{{- if hasKey .settings "cacheNamespaces" }}
+{{-   $cacheNamespaces = .settings.cacheNamespaces }}
+{{- end }}
+{{- with $cacheNamespaces }}
 cacheNamespaces:
   {{- toYaml . | nindent 2 }}
 {{- end }}
