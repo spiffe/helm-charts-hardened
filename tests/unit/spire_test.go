@@ -424,6 +424,38 @@ spire-server:
 			Expect(objs[saTmpl]).Should(ContainSubstring("automountServiceAccountToken: false"))
 		})
 	})
+	Describe("spiffe-csi-driver.nodeDriverRegistrar.securityContext", func() {
+		dsTmpl := "spire/charts/spiffe-csi-driver/templates/daemonset.yaml"
+		It("hardens the registrar without demanding a non-root image", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  spire:
+    recommendations:
+      enabled: true
+      strictMode: false
+`)
+			Expect(err).Should(Succeed())
+			registrar := objs[dsTmpl][strings.Index(objs[dsTmpl], "name: node-driver-registrar"):]
+			Expect(registrar).Should(ContainSubstring("allowPrivilegeEscalation: false"))
+			Expect(registrar).Should(ContainSubstring("runAsNonRoot: false"))
+			Expect(registrar).Should(ContainSubstring("readOnlyRootFilesystem: true"))
+			Expect(registrar).Should(ContainSubstring("type: RuntimeDefault"))
+			Expect(registrar).ShouldNot(ContainSubstring("privileged: true"))
+		})
+		It("takes other settings from values but ignores runAsNonRoot", func() {
+			objs, err := ValueStringRender(chart, `
+spiffe-csi-driver:
+  nodeDriverRegistrar:
+    securityContext:
+      runAsUser: 1234
+      runAsNonRoot: true
+`)
+			Expect(err).Should(Succeed())
+			registrar := objs[dsTmpl][strings.Index(objs[dsTmpl], "name: node-driver-registrar"):]
+			Expect(registrar).Should(ContainSubstring("runAsUser: 1234"))
+			Expect(registrar).Should(ContainSubstring("runAsNonRoot: false"))
+		})
+	})
 	Describe("spiffe-csi-driver.syncWave", func() {
 		csiTmpl := "spire/charts/spiffe-csi-driver/templates/spiffe-csi-driver.yaml"
 		It("renders the default sync-wave annotation on OpenShift", func() {
