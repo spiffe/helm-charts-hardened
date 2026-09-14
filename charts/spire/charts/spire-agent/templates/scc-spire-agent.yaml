@@ -1,4 +1,29 @@
 {{- if eq (.Values.global.openshift | toString) "true" }}
+{{- $privileged := false }}
+{{- $escalates := false }}
+{{- $cfgs := list (.Values | toYaml | fromYaml) }}
+{{- range $a := (.Values.agents | default dict) }}
+{{-   $cfgs = append $cfgs ($a | toYaml | fromYaml) }}
+{{- end }}
+{{- range $cfg := $cfgs }}
+{{-   if or (dig "nodeAttestor" "tpmDirect" "enabled" false $cfg) (dig "securityContext" "privileged" false $cfg) }}
+{{-     $privileged = true }}
+{{-   end }}
+{{-   if dig "securityContext" "allowPrivilegeEscalation" false $cfg }}
+{{-     $escalates = true }}
+{{-   end }}
+{{- end }}
+{{- $escalates = or $escalates $privileged }}
+{{- $hostPorts := false }}
+{{- range $cfg := $cfgs }}
+{{-   range $c := concat (dig "initContainers" (list) $cfg) (dig "extraContainers" (list) $cfg) }}
+{{-     range $port := (dig "ports" (list) ($c | toYaml | fromYaml)) }}
+{{-       if $port.hostPort }}
+{{-         $hostPorts = true }}
+{{-       end }}
+{{-     end }}
+{{-   end }}
+{{- end }}
 apiVersion: security.openshift.io/v1
 kind: SecurityContextConstraints
 metadata:
@@ -20,12 +45,12 @@ volumes:
   - emptyDir
 allowedCapabilities: null
 allowHostDirVolumePlugin: true
-allowHostIPC: true
+allowHostIPC: false
 allowHostNetwork: true
 allowHostPID: true
-allowHostPorts: true
-allowPrivilegeEscalation: true
-allowPrivilegedContainer: true
+allowHostPorts: {{ $hostPorts }}
+allowPrivilegeEscalation: {{ $escalates }}
+allowPrivilegedContainer: {{ $privileged }}
 defaultAddCapabilities: null
 fsGroup:
   type: RunAsAny
