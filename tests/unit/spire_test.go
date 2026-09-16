@@ -480,17 +480,20 @@ global:
 			Expect(registrar).Should(ContainSubstring("type: RuntimeDefault"))
 			Expect(registrar).ShouldNot(ContainSubstring("privileged: true"))
 		})
-		It("takes other settings from values but ignores runAsNonRoot", func() {
+		It("takes other settings from values but forces the registrar to run as root", func() {
 			objs, err := ValueStringRender(chart, `
 spiffe-csi-driver:
   nodeDriverRegistrar:
     securityContext:
       runAsUser: 1234
       runAsNonRoot: true
+      readOnlyRootFilesystem: false
 `)
 			Expect(err).Should(Succeed())
 			registrar := objs[dsTmpl][strings.Index(objs[dsTmpl], "name: node-driver-registrar"):]
-			Expect(registrar).Should(ContainSubstring("runAsUser: 1234"))
+			Expect(registrar).Should(ContainSubstring("readOnlyRootFilesystem: false"))
+			Expect(registrar).Should(ContainSubstring("runAsUser: 0"))
+			Expect(registrar).ShouldNot(ContainSubstring("runAsUser: 1234"))
 			Expect(registrar).Should(ContainSubstring("runAsNonRoot: false"))
 		})
 	})

@@ -130,6 +130,7 @@ spec:
           securityContext:
             {{- $registrarSecurityContext := include "spire-lib.securitycontext-extended" (dict "root" . "securityContext" .Values.nodeDriverRegistrar.securityContext) | fromYaml }}
             {{- $_ := set $registrarSecurityContext "runAsNonRoot" false }}
+            {{- $_ := set $registrarSecurityContext "runAsUser" 0 }}
             {{- $registrarSecurityContext | toYaml | nindent 12 }}
           args: [
             "-csi-address", "/spiffe-csi/csi.sock",
