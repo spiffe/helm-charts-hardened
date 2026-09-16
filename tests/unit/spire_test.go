@@ -168,6 +168,23 @@ spire-server:
 			Expect(err).Should(Succeed())
 			notes := objs["spire/charts/spire-server/templates/configmap.yaml"]
 			Expect(notes).Should(ContainSubstring("\"aws_kms\": {"))
+			Expect(notes).ShouldNot(ContainSubstring("enable_tag_based_key_discovery"))
+		})
+		It("tag-based key discovery set ok", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  keyManager:
+    awsKMS:
+      enabled: true
+      region: us-west-2
+      enableTagBasedKeyDiscovery: true
+    disk:
+      enabled: false
+`)
+			Expect(err).Should(Succeed())
+			notes := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(notes).Should(ContainSubstring("\"aws_kms\": {"))
+			Expect(notes).Should(ContainSubstring("\"enable_tag_based_key_discovery\": true"))
 		})
 	})
 	Describe("spire-server.UpstreamAuthority.aws_pca", func() {

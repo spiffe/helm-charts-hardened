@@ -1,0 +1,10 @@
+spire-server:
+  keyManager:
+    disk:
+      enabled: false
+    awsKMS:
+      enabled: true
+      region: "us-east-1"
+      keyIdentifierFile:
+        enabled: true
+      enableTagBasedKeyDiscovery: true
