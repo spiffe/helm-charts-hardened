@@ -82,7 +82,7 @@
 {{-     if or .Values.controllerManager.reconcile.clusterSPIFFEIDs .Values.controllerManager.reconcile.clusterStaticEntries }}
 {{-       $reconcileEntries = add $reconcileEntries 1 }}
 {{-     end }}
-{{-     include "spire-controller-manager.container" (dict "Values" .Values "Chart" .Chart "startPort" $startPort "suffix" "" "portSuffix" "" "healthPortName" "" "prometheusPortName" "" "settings" $settings "defaults" $defaults "webhooksEnabled" $webhooksEnabled) }}
+{{-     include "spire-controller-manager.container" (dict "Values" .Values "Chart" .Chart "startPort" $startPort "suffix" "" "portSuffix" "" "healthPortName" "" "prometheusPortName" "" "settings" $settings "defaults" $defaults "resources" .Values.controllerManager.resources "webhooksEnabled" $webhooksEnabled) }}
 {{-   end }}
 {{-   if .Values.externalControllerManagers.enabled }}
 {{-     $clusters := default .Values.kubeConfigs .Values.externalControllerManagers.clusters }}
@@ -130,7 +130,11 @@ Auto-generation preserves trailing numbers from cluster names or uses hash for u
 {{-       if gt $reconcileFederation 1 }}
 {{-         fail "You can only have one controller-manager with reconcile.clusterFederatedTrustDomains set to true" }}
 {{-       end }}
-{{-       include "spire-controller-manager.container" (dict "Values" $root.Values "Chart" $root.Chart "startPort" $startPort "suffix" $suffix "portSuffix" $portSuffix "healthPortName" $healthPortName "prometheusPortName" $prometheusPortName "settings" $clusterSettings "defaults" $clusterDefaults "webhooksEnabled" false "kubeConfig" $kubeConfig ) }}
+{{-       $resources := $clusterDefaults.resources }}
+{{-       if hasKey $clusterSettings "resources" }}
+{{-         $resources = mergeOverwrite (deepCopy $clusterDefaults.resources) $clusterSettings.resources }}
+{{-       end }}
+{{-       include "spire-controller-manager.container" (dict "Values" $root.Values "Chart" $root.Chart "startPort" $startPort "suffix" $suffix "portSuffix" $portSuffix "healthPortName" $healthPortName "prometheusPortName" $prometheusPortName "settings" $clusterSettings "defaults" $clusterDefaults "resources" $resources "webhooksEnabled" false "kubeConfig" $kubeConfig ) }}
 {{-     end }}
 {{-   end }}
 {{- end }}
@@ -201,7 +205,7 @@ Auto-generation preserves trailing numbers from cluster names or uses hash for u
     {{- toYaml .Values.controllerManager.readinessProbe | nindent 4 }}
 {{- end }}
   resources:
-    {{- toYaml .Values.controllerManager.resources | nindent 4 }}
+    {{- toYaml .resources | nindent 4 }}
   volumeMounts:
     - name: spire-server-socket
       mountPath: /tmp/spire-server/private
