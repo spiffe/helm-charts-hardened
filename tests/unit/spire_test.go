@@ -168,6 +168,23 @@ spire-server:
 			Expect(err).Should(Succeed())
 			notes := objs["spire/charts/spire-server/templates/configmap.yaml"]
 			Expect(notes).Should(ContainSubstring("\"aws_kms\": {"))
+			Expect(notes).ShouldNot(ContainSubstring("enable_tag_based_key_discovery"))
+		})
+		It("tag-based key discovery set ok", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  keyManager:
+    awsKMS:
+      enabled: true
+      region: us-west-2
+      enableTagBasedKeyDiscovery: true
+    disk:
+      enabled: false
+`)
+			Expect(err).Should(Succeed())
+			notes := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(notes).Should(ContainSubstring("\"aws_kms\": {"))
+			Expect(notes).Should(ContainSubstring("\"enable_tag_based_key_discovery\": true"))
 		})
 	})
 	Describe("spire-server.UpstreamAuthority.aws_pca", func() {
@@ -1181,6 +1198,73 @@ spire-server:
 			Expect(err).Should(Succeed())
 			Expect(objs[configMapTmpl]).Should(ContainSubstring("override-ns: {}"))
 			Expect(objs[configMapTmpl]).ShouldNot(ContainSubstring("default-ns: {}"))
+		})
+	})
+	Describe("spire-server.externalControllerManagers.resources", func() {
+		serverTmpl := "spire/charts/spire-server/templates/server-resource.yaml"
+		It("uses local, external default, and per-cluster resources independently", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  controllerManager:
+    enabled: true
+    resources:
+      requests:
+        cpu: 25m
+        memory: 128Mi
+      limits:
+        cpu: 250m
+        memory: 256Mi
+  externalControllerManagers:
+    enabled: true
+    defaults:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 256Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+    clusters:
+      child-default: {}
+      child-override:
+        resources:
+          requests:
+            cpu: 200m
+          limits:
+            memory: 1Gi
+`)
+			Expect(err).Should(Succeed())
+			server := objs[serverTmpl]
+			controllerBlock := func(name string) string {
+				start := strings.Index(server, "- name: "+name+"\n")
+				Expect(start).To(BeNumerically(">=", 0))
+				end := strings.Index(server[start+1:], "\n        - name: spire-controller-manager")
+				if end < 0 {
+					return server[start:]
+				}
+				return server[start : start+end+1]
+			}
+			Expect(controllerBlock("spire-controller-manager")).Should(ContainSubstring(`resources:
+            limits:
+              cpu: 250m
+              memory: 256Mi
+            requests:
+              cpu: 25m
+              memory: 128Mi`))
+			Expect(controllerBlock("spire-controller-manager-child-default")).Should(ContainSubstring(`resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 50m
+              memory: 256Mi`))
+			Expect(controllerBlock("spire-controller-manager-child-override")).Should(ContainSubstring(`resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 256Mi`))
 		})
 	})
 	Describe("gatewayAPI.gateway.infrastructure", func() {

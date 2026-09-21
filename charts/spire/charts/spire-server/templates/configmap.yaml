@@ -402,6 +402,9 @@ plugins:
           {{ $key }}: {{ $value | quote }}
           {{- end }}
         {{- end }}
+        {{- if eq (.enableTagBasedKeyDiscovery | toString) "true" }}
+        enable_tag_based_key_discovery: true
+        {{- end }}
   {{- end }}
   {{- end }}
 
