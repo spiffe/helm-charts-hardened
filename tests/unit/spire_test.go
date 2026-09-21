@@ -168,6 +168,23 @@ spire-server:
 			Expect(err).Should(Succeed())
 			notes := objs["spire/charts/spire-server/templates/configmap.yaml"]
 			Expect(notes).Should(ContainSubstring("\"aws_kms\": {"))
+			Expect(notes).ShouldNot(ContainSubstring("enable_tag_based_key_discovery"))
+		})
+		It("tag-based key discovery set ok", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  keyManager:
+    awsKMS:
+      enabled: true
+      region: us-west-2
+      enableTagBasedKeyDiscovery: true
+    disk:
+      enabled: false
+`)
+			Expect(err).Should(Succeed())
+			notes := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(notes).Should(ContainSubstring("\"aws_kms\": {"))
+			Expect(notes).Should(ContainSubstring("\"enable_tag_based_key_discovery\": true"))
 		})
 	})
 	Describe("spire-server.UpstreamAuthority.aws_pca", func() {
@@ -495,6 +512,105 @@ spiffe-csi-driver:
 			Expect(registrar).Should(ContainSubstring("runAsUser: 0"))
 			Expect(registrar).ShouldNot(ContainSubstring("runAsUser: 1234"))
 			Expect(registrar).Should(ContainSubstring("runAsNonRoot: false"))
+		})
+	})
+	Describe("spire-agent.scc", func() {
+		sccTmpl := "spire/charts/spire-agent/templates/scc-spire-agent.yaml"
+		It("grants only the host access the agent daemonset uses", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowHostPID: true"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowHostNetwork: true"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowHostDirVolumePlugin: true"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowHostIPC: false"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowHostPorts: false"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegedContainer: false"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegeEscalation: false"))
+		})
+		It("allows host ports only when an injected container declares one", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowHostPorts: false"))
+
+			objs, err = ValueStringRender(chart, `
+global:
+  openshift: true
+spire-agent:
+  extraContainers:
+  - name: sidecar
+    image: busybox
+    ports:
+    - containerPort: 9999
+      hostPort: 9999
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowHostPorts: true"))
+		})
+		It("keeps host IPC off, which no value can ask for", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowHostIPC: false"))
+		})
+		It("allows a privileged container when values ask for one", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+spire-agent:
+  securityContext:
+    privileged: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegedContainer: true"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegeEscalation: true"))
+		})
+		It("allows a privileged container when one agent profile asks for one", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+spire-agent:
+  agents:
+    gpu:
+      securityContext:
+        privileged: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegedContainer: true"))
+		})
+		It("allows escalation alone without allowing privileged containers", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+spire-agent:
+  securityContext:
+    allowPrivilegeEscalation: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegeEscalation: true"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegedContainer: false"))
+		})
+		It("allows a privileged container only for the tpmDirect attestor", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+spire-agent:
+  nodeAttestor:
+    k8sPSAT:
+      enabled: false
+    tpmDirect:
+      enabled: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegedContainer: true"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegeEscalation: true"))
 		})
 	})
 	Describe("spiffe-csi-driver.syncWave", func() {
@@ -1117,6 +1233,73 @@ spire-server:
 			Expect(err).Should(Succeed())
 			Expect(objs[configMapTmpl]).Should(ContainSubstring("override-ns: {}"))
 			Expect(objs[configMapTmpl]).ShouldNot(ContainSubstring("default-ns: {}"))
+		})
+	})
+	Describe("spire-server.externalControllerManagers.resources", func() {
+		serverTmpl := "spire/charts/spire-server/templates/server-resource.yaml"
+		It("uses local, external default, and per-cluster resources independently", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  controllerManager:
+    enabled: true
+    resources:
+      requests:
+        cpu: 25m
+        memory: 128Mi
+      limits:
+        cpu: 250m
+        memory: 256Mi
+  externalControllerManagers:
+    enabled: true
+    defaults:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 256Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+    clusters:
+      child-default: {}
+      child-override:
+        resources:
+          requests:
+            cpu: 200m
+          limits:
+            memory: 1Gi
+`)
+			Expect(err).Should(Succeed())
+			server := objs[serverTmpl]
+			controllerBlock := func(name string) string {
+				start := strings.Index(server, "- name: "+name+"\n")
+				Expect(start).To(BeNumerically(">=", 0))
+				end := strings.Index(server[start+1:], "\n        - name: spire-controller-manager")
+				if end < 0 {
+					return server[start:]
+				}
+				return server[start : start+end+1]
+			}
+			Expect(controllerBlock("spire-controller-manager")).Should(ContainSubstring(`resources:
+            limits:
+              cpu: 250m
+              memory: 256Mi
+            requests:
+              cpu: 25m
+              memory: 128Mi`))
+			Expect(controllerBlock("spire-controller-manager-child-default")).Should(ContainSubstring(`resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 50m
+              memory: 256Mi`))
+			Expect(controllerBlock("spire-controller-manager-child-override")).Should(ContainSubstring(`resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 256Mi`))
 		})
 	})
 	Describe("gatewayAPI.gateway.infrastructure", func() {

@@ -471,6 +471,8 @@ keyManager:
       # Environment: "production"
       # Team: "security"
       # Component: "spire"
+    ## @param keyManager.awsKMS.enableTagBasedKeyDiscovery Discover keys via the AWS Resource Groups Tagging API using the tags SPIRE applies to them, instead of listing every key and alias in the account (SPIRE 1.15.2+). Existing alias-managed keys are tagged automatically on first start. Requires `kms:TagResource` and `tag:GetResources` (identity policy only). Alias-based discovery is deprecated upstream.
+    enableTagBasedKeyDiscovery: false
     ## @param keyManager.awsKMS.accessKeyID [nullable] Access key ID for the AWS account. It's recommended to use an IAM role instead. See [here](https://docs.aws.amazon.com/eks/latest/userguide/associate-service-account-role.html) to learn how to annotate your SPIRE Server Service Account to assume an IAM role.
     accessKeyID: ""
     ## @param keyManager.awsKMS.secretAccessKey [nullable] Secret access key for the AWS account.
@@ -1025,7 +1027,7 @@ externalControllerManagers:
     ## @param externalControllerManagers.defaults.cacheNamespaces [object] If specified restricts the manager's cache to watch objects in the desired namespaces. Defaults to all namespaces.
     cacheNamespaces: {}
 
-  ## @param externalControllerManagers.clusters [object] A dictionary of clusters to add with optional overrides (kubeConfigName, reconcile, healthPortName, prometheusPortName). If empty, all clusters defined in kubeConfigs will be used.
+  ## @param externalControllerManagers.clusters [object] A dictionary of clusters to add with optional overrides (kubeConfigName, reconcile, resources, healthPortName, prometheusPortName). If empty, all clusters defined in kubeConfigs will be used.
   clusters: {}
   # clustera:
       # Should match the name of the config in the kubeConfigs section
@@ -1034,6 +1036,13 @@ externalControllerManagers:
   #     clusterStaticEntries: true
   #   healthPortName: "hp-clustera-01"
   #   prometheusPortName: "pm-clustera-01"
+  #   resources:
+  #     requests:
+  #       cpu: 100m
+  #       memory: 128Mi
+  #     limits:
+  #       cpu: 500m
+  #       memory: 512Mi
   # other: {}
 
 tools:
