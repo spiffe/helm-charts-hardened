@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/onsi/ginkgo/v2 v2.32.2
-	github.com/onsi/gomega v1.43.0
+	github.com/onsi/gomega v1.43.1
 	helm.sh/helm/v3 v3.22.0
 	k8s.io/apimachinery v0.37.0
 )
