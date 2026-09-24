@@ -147,7 +147,7 @@ Auto-generation preserves trailing numbers from cluster names or uses hash for u
 {{-   end }}
 {{-   $expandEnv := .defaults.expandEnv }}
 {{-   if hasKey .settings "expandEnv" }}
-{{-     $extraEnv = .settings.expandEnv }}
+{{-     $expandEnv = .settings.expandEnv }}
 {{-   end }}
 {{-   $securityContext := .defaults.securityContext }}
 {{-   if hasKey .settings "securityContext" }}
