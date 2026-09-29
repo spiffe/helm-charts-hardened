@@ -1235,6 +1235,59 @@ spire-server:
 			Expect(objs[configMapTmpl]).ShouldNot(ContainSubstring("default-ns: {}"))
 		})
 	})
+	Describe("spire-server.controllerManager.tlsConfig", func() {
+		configMapTmpl := "spire/charts/spire-server/templates/controller-manager-configmap.yaml"
+		It("is omitted by default", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  controllerManager:
+    enabled: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[configMapTmpl]).ShouldNot(ContainSubstring("tlsConfig"))
+		})
+		It("renders into the primary controller manager config", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  controllerManager:
+    enabled: true
+    tlsConfig:
+      minTLSVersion: VersionTLS13
+      curvePreferences:
+        - X25519MLKEM768
+        - X25519
+`)
+			Expect(err).Should(Succeed())
+			var configMap struct {
+				Data map[string]string `json:"data"`
+			}
+			Expect(yamlutil.NewYAMLOrJSONDecoder(strings.NewReader(objs[configMapTmpl]), 4096).Decode(&configMap)).Should(Succeed())
+			var config struct {
+				TLSConfig struct {
+					MinTLSVersion    string   `json:"minTLSVersion"`
+					CipherSuites     []string `json:"cipherSuites"`
+					CurvePreferences []string `json:"curvePreferences"`
+				} `json:"tlsConfig"`
+			}
+			Expect(yamlutil.NewYAMLOrJSONDecoder(strings.NewReader(configMap.Data["controller-manager-config.yaml"]), 4096).Decode(&config)).Should(Succeed())
+			Expect(config.TLSConfig.MinTLSVersion).Should(Equal("VersionTLS13"))
+			Expect(config.TLSConfig.CipherSuites).Should(BeEmpty())
+			Expect(config.TLSConfig.CurvePreferences).Should(Equal([]string{"X25519MLKEM768", "X25519"}))
+		})
+		It("is omitted when the validating webhook is disabled", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  controllerManager:
+    enabled: true
+    validatingWebhookConfiguration:
+      enabled: false
+    tlsConfig:
+      minTLSVersion: VersionTLS13
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[configMapTmpl]).ShouldNot(ContainSubstring("tlsConfig"))
+		})
+	})
 	Describe("spire-server.externalControllerManagers.resources", func() {
 		serverTmpl := "spire/charts/spire-server/templates/server-resource.yaml"
 		It("uses local, external default, and per-cluster resources independently", func() {
