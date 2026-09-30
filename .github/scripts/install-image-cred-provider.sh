@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-VERSION="${IMAGE_CRED_PROVIDER_VERSION:-v0.5.0}"
+VERSION="${IMAGE_CRED_PROVIDER_VERSION:-v0.6.0}"
 BIN_NAME="k8s-image-cred-spire-identity-exchange"
 
 SCRIPTPATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

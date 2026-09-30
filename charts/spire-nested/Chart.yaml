@@ -4,7 +4,7 @@ description: >
   A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
 
 type: application
-version: 0.30.1
+version: 0.30.2
 appVersion: "1.15.3"
 keywords: ["spiffe", "spire", "spire-server", "spire-agent", "oidc", "spire-controller-manager"]
 home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire
@@ -23,7 +23,7 @@ kubeVersion: ">=1.21.0-0"
 dependencies:
   - name: spire-lib
     repository: file://../spire-lib
-    version: 0.3.1
+    version: 0.3.2
   - name: spire-server
     alias: root-spire-server
     condition: root-spire-server.enabled
@@ -121,7 +121,7 @@ dependencies:
       - haAgentCommon
   - name: spire-ha-agent
     repository: file://../spire-ha-agent
-    version: 0.3.1
+    version: 0.3.2
     condition: spire-ha-agent.enabled
     tags:
       - haAgentCommon
@@ -157,7 +157,7 @@ dependencies:
     alias: spire-identity-exchange-bottom-turtle-ha-a
     condition: spire-identity-exchange-bottom-turtle-ha-a.enabled
     repository: file://../spire-identity-exchange
-    version: 0.2.1
+    version: 0.2.2
     tags:
       - bottomTurtleHAA
   - name: spire-server
@@ -192,7 +192,7 @@ dependencies:
     alias: spire-identity-exchange-bottom-turtle-ha-b
     condition: spire-identity-exchange-bottom-turtle-ha-b.enabled
     repository: file://../spire-identity-exchange
-    version: 0.2.1
+    version: 0.2.2
     tags:
       - bottomTurtleHAB
 annotations:
