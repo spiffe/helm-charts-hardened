@@ -42,6 +42,7 @@
 {{- if lt (len $enabledPlugins) 1 }}
 {{-   fail "Every auth plugin is disabled: at least one entry in auth.plugins must have enabled: true" }}
 {{- end }}
+{{- $kubeconfigVolumes := include "spire-identity-exchange.kubeconfig-volumes" . | fromJson }}
 {{- include "spire-lib.check-strict-mode" (list . "trustDomain must be set" (eq $trustDomain "example.org"))}}
 apiVersion: v1
 kind: ConfigMap
@@ -88,14 +89,28 @@ data:
         {{-   if has $name $enabledPlugins }}
         {{-   $pluginType := include "spire-identity-exchange.plugin-type" (dict "root" $root "name" $name "config" $config) }}
         {{-   $cfg := $config.config | default dict }}
+        {{-   $socketPlugin := has $pluginType (list "spiffe" "github" "gitlab") }}
+        {{-   $usesWorkloadAPI := include "spire-identity-exchange.plugin-uses-workload-api" (dict "type" $pluginType "plugin" $config) }}
         {{-   if hasKey ($config | default dict) "csiDriverName" }}
-        {{-     if ne $pluginType "spiffe" }}
-        {{-       fail (printf "auth.plugins.%s: csiDriverName is only supported on plugins of type \"spiffe\". Plugin type %q does not talk to a SPIRE Agent workload socket, so there is nothing to mount the driver for." $name $pluginType) }}
+        {{-     if not $socketPlugin }}
+        {{-       fail (printf "auth.plugins.%s: csiDriverName is only supported on plugins of type \"spiffe\", \"github\" or \"gitlab\". Plugin type %q does not talk to a SPIRE Agent workload socket, so there is nothing to mount the driver for." $name $pluginType) }}
         {{-     end }}
         {{-     if not (kindIs "string" $config.csiDriverName) }}
         {{-       fail (printf "auth.plugins.%s.csiDriverName: expected string, got %s" $name (kindOf $config.csiDriverName)) }}
         {{-     end }}
         {{-   end }}
+        {{-   $driver := dig "csiDriverName" "" ($config | default dict) }}
+        {{-   if and (not (empty $driver)) (not $usesWorkloadAPI) }}
+        {{-     if eq $pluginType "spiffe" }}
+        {{-       fail (printf "auth.plugins.%s: csiDriverName is only meaningful when config.connectWithTrustBundle is true, config.discoverySPIFFEID is set or keySource is workloadAPI; the SPIRE Agent workload socket is not used otherwise." $name) }}
+        {{-     else }}
+        {{-       fail (printf "auth.plugins.%s: csiDriverName is only meaningful when config.discoverySPIFFEID is set; the SPIRE Agent workload socket is not used otherwise." $name) }}
+        {{-     end }}
+        {{-   end }}
+        {{-   if and $socketPlugin (hasKey $cfg "agentWorkloadSocketPath") }}
+        {{-     fail (printf "auth.plugins.%s.config: agentWorkloadSocketPath is set by this chart, not in values. The SPIRE Agent workload socket is mounted from the SPIFFE CSI driver and the path is filled in automatically whenever the plugin needs it; use csiDriverName to pick a different driver." $name) }}
+        {{-   end }}
+        {{-   $socketPath := include "spire-identity-exchange.plugin-workload-api-socket-path" (dict "root" $root "driver" $driver) }}
         {{ if eq $name "k8sPSAT" }}k8s_psat{{ else }}{{ $name | quote }}{{ end }}:
         {{-   with $config.plugin }}
           plugin: {{ . | quote }}
@@ -103,7 +118,7 @@ data:
           config:
         {{-   if eq $pluginType "k8s_psat" }}
         {{-     if hasKey $cfg "kubeconfig" }}
-        {{-       fail (printf "auth.plugins.%s.config: kubeconfig is not supported by this chart. In a pod, spire-identity-exchange always authenticates to the Kubernetes API with the in-cluster credentials of its own ServiceAccount and ignores a kubeconfig file, so pointing it at another cluster would silently validate tokens against the local one instead." $name) }}
+        {{-       fail (printf "auth.plugins.%s.config: kubeconfig is set by this chart, not in values. Set auth.plugins.%s.kubeconfig.existingSecret.name and .key to a Secret holding the kubeconfig; the chart mounts it and fills in the path." $name $name) }}
         {{-     end }}
         {{-     $_ := include "spire-identity-exchange.check-plugin-options" (dict "name" $name "type" $pluginType "config" $cfg "options" (dict
                    "clusterName" "string"
@@ -123,30 +138,42 @@ data:
         {{-     if and (empty $cfg.allowedNamespaces) (empty $cfg.allowedServiceAccounts) }}
         {{-       fail (printf "auth.plugins.%s.config: at least one of allowedNamespaces or allowedServiceAccounts must be set" $name) }}
         {{-     end }}
-        {{-     toYaml $config.config | nindent 12 }}
+        {{-     $effective := $cfg }}
+        {{-     if hasKey $kubeconfigVolumes $name }}
+        {{-       $effective = merge (dict "kubeconfig" (include "spire-identity-exchange.kubeconfig-path" $name)) $cfg }}
+        {{-     end }}
+        {{-     toYaml $effective | nindent 12 }}
         {{-   else if eq $pluginType "spiffe" }}
-        {{-     if hasKey $cfg "agentWorkloadSocketPath" }}
-        {{-       fail (printf "auth.plugins.%s.config: agentWorkloadSocketPath is set by this chart, not in values. The SPIRE Agent workload socket is mounted from the SPIFFE CSI driver and the path is filled in automatically when connectWithTrustBundle is true." $name) }}
+        {{-     if hasKey $cfg "keySource" }}
+        {{-       fail (printf "auth.plugins.%s.config: keySource is set by this chart, not in config. Set auth.plugins.%s.keySource to oidc, oidcLocal or workloadAPI instead." $name $name) }}
         {{-     end }}
         {{-     $_ := include "spire-identity-exchange.check-plugin-options" (dict "name" $name "type" $pluginType "config" $cfg "options" (dict
                    "issuerURL" "string"
                    "discoveryURL" "string"
+                   "discoverySPIFFEID" "string"
                    "trustDomain" "string"
                    "audiences" "[]string"
                    "pathPatterns" "[]string"
-                   "connectWithTrustBundle" "bool")) }}
+                   "connectWithTrustBundle" "bool"
+                   "jwksTrustDomain" "string")) }}
         {{-     $_ := include "spire-identity-exchange.check-plugin-required" (dict "name" $name "type" $pluginType "config" $cfg "required" (list "issuerURL" "audiences" "trustDomain" "pathPatterns")) }}
-        {{-     $driver := dig "csiDriverName" "" ($config | default dict) }}
-        {{-     if and (not (empty $driver)) (not $cfg.connectWithTrustBundle) }}
-        {{-       fail (printf "auth.plugins.%s: csiDriverName is only meaningful when config.connectWithTrustBundle is true; the SPIRE Agent workload socket is not used otherwise." $name) }}
-        {{-     end }}
         {{-     $keySource := dig "keySource" "oidc" ($config | default dict) }}
-        {{-     if not (has $keySource (list "oidc" "oidcLocal")) }}
-        {{-       fail (printf "auth.plugins.%s.keySource: %q is not valid; must be oidc or oidcLocal" $name $keySource) }}
+        {{-     if not (has $keySource (list "oidc" "oidcLocal" "workloadAPI")) }}
+        {{-       fail (printf "auth.plugins.%s.keySource: %q is not valid; must be oidc, oidcLocal or workloadAPI" $name $keySource) }}
+        {{-     end }}
+        {{-     if eq $keySource "workloadAPI" }}
+        {{-       if $cfg.connectWithTrustBundle }}
+        {{-         fail (printf "auth.plugins.%s: keySource workloadAPI reads keys from the SPIRE Agent Workload API and never contacts an OIDC discovery endpoint, so config.connectWithTrustBundle cannot be used with it. Set auth.plugins.%s.config.connectWithTrustBundle: false." $name $name) }}
+        {{-       end }}
+        {{-     else if hasKey $cfg "jwksTrustDomain" }}
+        {{-       fail (printf "auth.plugins.%s.config: jwksTrustDomain is only used when auth.plugins.%s.keySource is workloadAPI" $name $name) }}
         {{-     end }}
         {{-     $effective := $cfg }}
-        {{-     if $cfg.connectWithTrustBundle }}
-        {{-       $effective = merge (dict "agentWorkloadSocketPath" (include "spire-identity-exchange.plugin-workload-api-socket-path" (dict "root" $root "driver" $driver))) $cfg }}
+        {{-     if eq $keySource "workloadAPI" }}
+        {{-       $effective = merge (dict "keySource" "workload_api") $effective }}
+        {{-     end }}
+        {{-     if $usesWorkloadAPI }}
+        {{-       $effective = merge (dict "agentWorkloadSocketPath" $socketPath) $effective }}
         {{-     end }}
         {{-     if and (eq $keySource "oidcLocal") (empty $cfg.discoveryURL) }}
         {{-       $effective = merge (dict "discoveryURL" (printf "https://%s-spiffe-oidc-discovery-provider" $root.Release.Name)) $effective }}
@@ -155,6 +182,8 @@ data:
         {{-   else if eq $pluginType "github" }}
         {{-     $_ := include "spire-identity-exchange.check-plugin-options" (dict "name" $name "type" $pluginType "config" $cfg "options" (dict
                    "issuerURL" "string"
+                   "discoveryURL" "string"
+                   "discoverySPIFFEID" "string"
                    "audiences" "[]string"
                    "allowedRepositoryOwners" "[]string"
                    "allowedRepositories" "[]string")) }}
@@ -162,10 +191,16 @@ data:
         {{-     if and (empty $cfg.allowedRepositoryOwners) (empty $cfg.allowedRepositories) }}
         {{-       fail (printf "auth.plugins.%s.config: at least one of allowedRepositoryOwners or allowedRepositories must be set" $name) }}
         {{-     end }}
-        {{-     toYaml $config.config | nindent 12 }}
+        {{-     $effective := $cfg }}
+        {{-     if $usesWorkloadAPI }}
+        {{-       $effective = merge (dict "agentWorkloadSocketPath" $socketPath) $cfg }}
+        {{-     end }}
+        {{-     toYaml $effective | nindent 12 }}
         {{-   else if eq $pluginType "gitlab" }}
         {{-     $_ := include "spire-identity-exchange.check-plugin-options" (dict "name" $name "type" $pluginType "config" $cfg "options" (dict
                    "issuerURL" "string"
+                   "discoveryURL" "string"
+                   "discoverySPIFFEID" "string"
                    "audiences" "[]string"
                    "allowedNamespacePaths" "[]string"
                    "allowedProjectPaths" "[]string")) }}
@@ -173,7 +208,11 @@ data:
         {{-     if and (empty $cfg.allowedNamespacePaths) (empty $cfg.allowedProjectPaths) }}
         {{-       fail (printf "auth.plugins.%s.config: at least one of allowedNamespacePaths or allowedProjectPaths must be set" $name) }}
         {{-     end }}
-        {{-     toYaml $config.config | nindent 12 }}
+        {{-     $effective := $cfg }}
+        {{-     if $usesWorkloadAPI }}
+        {{-       $effective = merge (dict "agentWorkloadSocketPath" $socketPath) $cfg }}
+        {{-     end }}
+        {{-     toYaml $effective | nindent 12 }}
         {{-   end }}
         {{-   end }}
         {{- end }}
@@ -190,6 +229,21 @@ data:
       {{-         else }}
       {{-           fail (printf "auth.stacks.%s lists plugin %q, which is not defined in auth.plugins" $stackName $plugin) }}
       {{-         end }}
+      {{-       end }}
+      {{-     end }}
+      {{-     if hasKey $stack "mintAudiences" }}
+      {{-       if not (kindIs "slice" $stack.mintAudiences) }}
+      {{-         fail (printf "auth.stacks.%s.mintAudiences: expected a list of strings, got %s" $stackName (kindOf $stack.mintAudiences)) }}
+      {{-       end }}
+      {{-       $seen := dict }}
+      {{-       range $aud := $stack.mintAudiences }}
+      {{-         if or (not (kindIs "string" $aud)) (empty $aud) }}
+      {{-           fail (printf "auth.stacks.%s.mintAudiences: every entry must be a non-empty string" $stackName) }}
+      {{-         end }}
+      {{-         if hasKey $seen $aud }}
+      {{-           fail (printf "auth.stacks.%s.mintAudiences: duplicate entry %q" $stackName $aud) }}
+      {{-         end }}
+      {{-         $_ := set $seen $aud true }}
       {{-       end }}
       {{-     end }}
       {{-     $_ := set $stacks $stackName (omit $stack "enabled") }}

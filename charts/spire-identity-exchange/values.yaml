@@ -201,12 +201,18 @@ auth:
         ## @param auth.plugins.k8s_psat.config.allowedServiceAccounts [array] The service accounts that are allowed
         allowedServiceAccounts:
           - "*"
+      ## @extra auth.plugins.k8s_psat.kubeconfig.existingSecret.name Secret holding a kubeconfig for TokenReview calls, to validate tokens against another cluster. Defaults to the in-cluster credentials of the pod's ServiceAccount.
+      ## @extra auth.plugins.k8s_psat.kubeconfig.existingSecret.key Key within the Secret that holds the kubeconfig
+      # kubeconfig:
+      #   existingSecret:
+      #     name: remote-cluster-kubeconfig
+      #     key: kubeconfig
     spiffe:
       ## @param auth.plugins.spiffe.enabled Enable the spiffe plugin
       enabled: true
-      ## @param auth.plugins.spiffe.keySource What source to use to fetch the keys. Can be oidc or oidcLocal. oidcLocal forces discoveryURL to be the internal discovery address.
+      ## @param auth.plugins.spiffe.keySource Where to fetch the keys: oidc, oidcLocal or workloadAPI. oidcLocal forces discoveryURL to the internal discovery address. workloadAPI reads a federated JWT bundle from the Workload API and needs config.connectWithTrustBundle false.
       keySource: oidcLocal
-      ## @extra auth.plugins.spiffe.csiDriverName The CSI driver providing the SPIRE Agent workload socket this plugin attests against. Defaults to the chart level csiDriverName. Requires config.connectWithTrustBundle.
+      ## @extra auth.plugins.spiffe.csiDriverName CSI driver providing the SPIRE Agent workload socket this plugin uses. Defaults to the chart level csiDriverName. Needs connectWithTrustBundle, discoverySPIFFEID or keySource workloadAPI. Also valid on github/gitlab with discoverySPIFFEID.
       config:
         ## @param auth.plugins.spiffe.config.issuerURL The url to connect to for JWKS discovery
         issuerURL: "${SPIFFE_JWT_ISSUER}"
@@ -220,6 +226,20 @@ auth:
           - spire-identity-exchange
         ## @param auth.plugins.spiffe.config.connectWithTrustBundle Use the trust bundle to validate the issuerURL
         connectWithTrustBundle: true
+        ## @extra auth.plugins.spiffe.config.discoverySPIFFEID Verify the discovery endpoint's TLS against the trust bundle and require it to present exactly this SPIFFE ID. Narrower than connectWithTrustBundle. Also supported on github and gitlab plugins.
+        # discoverySPIFFEID: spiffe://example.org/oidc-discovery-provider
+        ## @extra auth.plugins.spiffe.config.jwksTrustDomain Federated trust domain whose JWT bundle to use when keySource is workloadAPI. Defaults to config.trustDomain.
+        # jwksTrustDomain: peer.example.org
+
+    # GitHub Actions, and Forgejo Actions which emits the same claims, use the github plugin:
+    # forgejo:
+    #   plugin: github
+    #   config:
+    #     issuerURL: https://forgejo.example.org/api/actions
+    #     audiences:
+    #       - spire-identity-exchange
+    #     allowedRepositoryOwners:
+    #       - my-org
 
   stacks:
     image_pull:
@@ -229,6 +249,9 @@ auth:
       plugins:
         - spiffe
         - k8s_psat
+      ## @extra auth.stacks.image_pull.mintAudiences [array] Allowlist of JWT-SVID audiences this stack may mint. Empty means no restriction beyond SPIRE registration policy.
+      # mintAudiences:
+      #   - zot
 
   ## @param auth.unsupportedBuiltInPlugins [object] Unsupported mechanism to use plugins not yet supported by the chart.
   unsupportedBuiltInPlugins: {}
