@@ -71,6 +71,10 @@ cacheNamespaces:
 {{- end }}
 {{- if .webhookEnabled }}
 validatingWebhookConfigurationName: {{ .Release.Namespace }}-{{ include "spire-controller-manager.fullname" . }}-webhook
+{{- with .Values.controllerManager.tlsConfig }}
+tlsConfig:
+  {{- toYaml . | nindent 2 }}
+{{- end }}
 {{- end }}
 {{- $entryIDPrefixCleanup := .defaults.entryIDPrefixCleanup }}
 {{- if hasKey .settings "entryIDPrefixCleanup" }}
