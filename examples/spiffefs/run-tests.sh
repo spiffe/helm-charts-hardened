@@ -290,9 +290,10 @@ csi_mountinfo() {
     exit 1'
 }
 
-# The driver refuses to start on a shared socket mount. Record the shape the
-# kubelet and container runtime actually gave it: a slave of the node's mount,
-# which still receives spiffefs remounting, and nothing that sends unmounts back.
+# The runtime makes the socket mount shared, since the driver's pod also has a
+# Bidirectional volume, and the driver makes its own view a slave when it starts.
+# Check that took: a slave of the node's mount, which still receives spiffefs
+# remounting, and nothing that sends unmounts back.
 check_csi_socket_mount() {
   local line
   line="$(csi_mountinfo "$1" | awk '$5 == "/spire-agent-socket"')"

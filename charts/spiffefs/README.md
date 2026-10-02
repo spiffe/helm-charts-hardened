@@ -88,9 +88,10 @@ instead of being rejected.
 
 The node's root filesystem must be a shared mount, which is the default on
 systemd hosts. The CSI driver instance mounts the socket directory
-`HostToContainer`, as a slave of the node's mount, so spiffefs restarts reach it,
-and it refuses to start if that mount is shared instead. This has been tested with
-containerd; CRI-O has not been tested.
+`HostToContainer`, so spiffefs restarts reach it. The runtime still makes that
+mount shared, because the driver's pod also has a `Bidirectional` volume, so the
+driver makes its own view a slave of the node's mount when it starts. This has
+been tested with containerd; CRI-O has not been tested.
 
 <!-- The parameters section is generated using helm-docs.sh and should not be edited by hand. -->
 
