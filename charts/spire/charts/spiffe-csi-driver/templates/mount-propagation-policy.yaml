@@ -35,10 +35,12 @@ spec:
   validations:
     {{- /* One rule per list: CEL cannot join containers and ephemeral
            containers, which are different types. Adding an ephemeral container
-           leaves the rest of the pod alone, so only that list is judged then. */}}
+           leaves the rest of the pod alone, so only that list is judged then.
+           A request with no subresource has no subResource at all, so it has
+           to be tested for before it is compared. */}}
     {{- range $field := list "containers" "initContainers" }}
     - expression: >-
-        request.subResource == 'ephemeralcontainers' ||
+        (has(request.subResource) && request.subResource == 'ephemeralcontainers') ||
         !has(object.spec.{{ $field }}) ||
         !object.spec.{{ $field }}.exists(c, {{ $stale }})
       message: {{ $message | quote }}
