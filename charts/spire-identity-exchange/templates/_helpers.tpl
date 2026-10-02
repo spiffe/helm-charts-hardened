@@ -119,8 +119,25 @@ Args: dict "root" <root context> "driver" <csi driver name, may be empty>
 {{- end }}
 
 {{/*
+Whether one auth plugin talks to a SPIRE Agent workload socket, and so needs one mounted
+and its path filled in. spiffe plugins do when verifying the discovery endpoint against the
+trust bundle or reading keys from the Workload API; github and gitlab only when verifying
+the discovery endpoint by SPIFFE ID. Emits "true" or nothing.
+Args: dict "type" <plugin type> "plugin" <the auth.plugins entry, may be nil>
+*/}}
+{{- define "spire-identity-exchange.plugin-uses-workload-api" -}}
+{{-   $plugin := .plugin | default dict }}
+{{-   $cfg := $plugin.config | default dict }}
+{{-   if eq .type "spiffe" }}
+{{-     if or $cfg.connectWithTrustBundle (not (empty $cfg.discoverySPIFFEID)) (eq (dig "keySource" "oidc" $plugin) "workloadAPI") }}true{{ end }}
+{{-   else if has .type (list "github" "gitlab") }}
+{{-     if not (empty $cfg.discoverySPIFFEID) }}true{{ end }}
+{{-   end }}
+{{- end }}
+
+{{/*
 The CSI drivers this release must mount in addition to the pod's own, collected from the
-enabled spiffe auth plugins. Deduplicated, so two plugins naming the same driver share one
+enabled spiffe, github and gitlab auth plugins. Deduplicated, so two plugins naming the same driver share one
 volume. Returns JSON of driver name -> volume name; callers pipe it through fromJson.
 */}}
 {{- define "spire-identity-exchange.extra-csi-drivers" -}}
@@ -132,7 +149,7 @@ volume. Returns JSON of driver name -> volume name; callers pipe it through from
 {{-     if ne (dig "enabled" true $config) false }}
 {{-       $pluginType := include "spire-identity-exchange.plugin-type" (dict "root" $root "name" $name "config" $config) }}
 {{-       $driver := dig "csiDriverName" "" $config }}
-{{-       if and (eq $pluginType "spiffe") (not (empty $driver)) }}
+{{-       if and (has $pluginType (list "spiffe" "github" "gitlab")) (not (empty $driver)) }}
 {{-         if not (kindIs "string" $driver) }}
 {{-           fail (printf "auth.plugins.%s.csiDriverName: expected string, got %s" $name (kindOf $driver)) }}
 {{-         end }}
@@ -148,6 +165,62 @@ volume. Returns JSON of driver name -> volume name; callers pipe it through from
 {{-     end }}
 {{-   end }}
 {{-   $drivers | toJson }}
+{{- end }}
+
+{{/*
+Volume name for the kubeconfig Secret of one k8s_psat plugin. Plugin names may hold
+characters a volume name (a DNS-1123 label) may not, so squash them as for CSI volumes.
+Args: the plugin instance name as a string
+*/}}
+{{- define "spire-identity-exchange.kubeconfig-volume-name" -}}
+{{- printf "kubeconfig-%s" (trimAll "-" (regexReplaceAll "[^a-z0-9]+" (lower .) "-")) | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Path the kubeconfig of one k8s_psat plugin is mounted at.
+Args: the plugin instance name as a string
+*/}}
+{{- define "spire-identity-exchange.kubeconfig-path" -}}
+{{- printf "/etc/spire/identity-exchange/kubeconfigs/%s/kubeconfig" (include "spire-identity-exchange.kubeconfig-volume-name" .) }}
+{{- end }}
+
+{{/*
+The kubeconfig Secrets to mount, collected from the enabled k8s_psat plugins that set
+kubeconfig.existingSecret. Returns JSON of plugin name -> dict "volume" "secretName" "key";
+callers pipe it through fromJson.
+*/}}
+{{- define "spire-identity-exchange.kubeconfig-volumes" -}}
+{{-   $root := . }}
+{{-   $volumes := dict }}
+{{-   $volumeNames := dict }}
+{{-   range $name, $config := .Values.auth.plugins }}
+{{-     $config = $config | default dict }}
+{{-     if and (ne (dig "enabled" true $config) false) (hasKey $config "kubeconfig") }}
+{{-       $pluginType := include "spire-identity-exchange.plugin-type" (dict "root" $root "name" $name "config" $config) }}
+{{-       if ne $pluginType "k8s_psat" }}
+{{-         fail (printf "auth.plugins.%s.kubeconfig is only supported on plugins of type \"k8s_psat\", not %q." $name $pluginType) }}
+{{-       end }}
+{{-       if not (kindIs "map" $config.kubeconfig) }}
+{{-         fail (printf "auth.plugins.%s.kubeconfig: expected a map with existingSecret.name and existingSecret.key, got %s" $name (kindOf $config.kubeconfig)) }}
+{{-       end }}
+{{-       $secret := $config.kubeconfig.existingSecret | default dict }}
+{{-       if not (kindIs "map" $secret) }}
+{{-         fail (printf "auth.plugins.%s.kubeconfig.existingSecret: expected a map with name and key, got %s" $name (kindOf $secret)) }}
+{{-       end }}
+{{-       range $k := list "name" "key" }}
+{{-         if or (empty (index $secret $k)) (not (kindIs "string" (index $secret $k))) }}
+{{-           fail (printf "auth.plugins.%s.kubeconfig.existingSecret.%s must be set to a string" $name $k) }}
+{{-         end }}
+{{-       end }}
+{{-       $volumeName := include "spire-identity-exchange.kubeconfig-volume-name" $name }}
+{{-       if hasKey $volumeNames $volumeName }}
+{{-         fail (printf "auth.plugins.%s.kubeconfig: plugins %q and %q both reduce to the volume name %q; rename one so they differ by more than punctuation." $name $name (index $volumeNames $volumeName) $volumeName) }}
+{{-       end }}
+{{-       $_ := set $volumeNames $volumeName $name }}
+{{-       $_ := set $volumes $name (dict "volume" $volumeName "secretName" $secret.name "key" $secret.key) }}
+{{-     end }}
+{{-   end }}
+{{-   $volumes | toJson }}
 {{- end }}
 
 {{- define "spire-identity-exchange.podSecurityContext" -}}

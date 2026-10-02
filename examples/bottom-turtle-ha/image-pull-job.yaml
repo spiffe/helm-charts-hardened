@@ -1,0 +1,34 @@
+# Pulls the image zot only serves to an exchange-minted identity.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: zot-pull
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: image-pull
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: image-pull
+    spec:
+      serviceAccountName: zot-pull
+      restartPolicy: Never
+      containers:
+      - name: main
+        image: zot.production.other/test/busybox:latest
+        imagePullPolicy: Always
+        command: ["sh", "-c", "echo IMAGE-PULL-OK"]
+      # The node authorizer only lets kubelet mint a service account token for an audience
+      # that appears in the pod spec. This must be here to work, even if it looks unused.
+      volumes:
+      - name: spire-token-gate
+        projected:
+          sources:
+          - serviceAccountToken:
+              path: token
+              audience: spire-identity-exchange
+              expirationSeconds: 3600

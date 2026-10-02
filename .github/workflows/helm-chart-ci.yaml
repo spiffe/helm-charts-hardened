@@ -17,6 +17,7 @@ on:
       - '.github/tests/**/*.sh'
       - '.github/tests/**/*.json'
       - '.github/scripts/check-readme-versions.sh'
+      - '.github/scripts/install-image-cred-provider.sh'
       - 'examples/**/*.yaml'
       - 'examples/**/*.sh'
       - 'tests/**/*'
@@ -31,6 +32,7 @@ env:
   PYTHON_VERSION: 3.11.3
   KIND_VERSION: v0.32.0
   CHART_TESTING_VERSION: v3.8.0
+  IMAGE_CRED_PROVIDER_VERSION: v0.5.0
 
 jobs:
   checks:
@@ -160,9 +162,9 @@ jobs:
         # Kubernetes, but can go back farther as long as we don't need heroics
         # to pull it off (i.e. kubectl version juggling).
         k8s:
-          - v1.33.7
-          - v1.34.3
-          - v1.35.1
+          - v1.34.8
+          - v1.35.5
+          - v1.36.1
 
     steps:
       - name: Checkout
@@ -184,6 +186,9 @@ jobs:
         uses: helm/chart-testing-action@v2.8.0
         with:
           version: ${{ env.CHART_TESTING_VERSION }}
+
+      - name: Install image credential provider
+        run: ./.github/scripts/install-image-cred-provider.sh
 
       - name: Create kind ${{ matrix.k8s }} cluster
         uses: helm/kind-action@v1.14.0
@@ -251,9 +256,9 @@ jobs:
       fail-fast: false
       matrix:
         k8s:
-          - v1.33.7
-          - v1.34.3
-          - v1.35.1
+          - v1.34.8
+          - v1.35.5
+          - v1.36.1
         example:
           - ${{ fromJson(needs.build-matrix.outputs.examples) }}
 
@@ -270,6 +275,9 @@ jobs:
         uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install image credential provider
+        run: ./.github/scripts/install-image-cred-provider.sh
 
       - name: Create kind cluster
         uses: helm/kind-action@v1.14.0
@@ -306,9 +314,9 @@ jobs:
       fail-fast: false
       matrix:
         k8s:
-          - v1.33.7
-          - v1.34.3
-          - v1.35.1
+          - v1.34.8
+          - v1.35.5
+          - v1.36.1
         integrationtest:
           - ${{ fromJson(needs.build-matrix.outputs.integrationtests) }}
 
@@ -325,6 +333,9 @@ jobs:
         uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install image credential provider
+        run: ./.github/scripts/install-image-cred-provider.sh
 
       - name: Create kind cluster
         uses: helm/kind-action@v1.14.0
@@ -354,9 +365,9 @@ jobs:
       fail-fast: false
       matrix:
         k8s:
-          - v1.33.7
-          - v1.34.3
-          - v1.35.1
+          - v1.34.8
+          - v1.35.5
+          - v1.36.1
 
     steps:
       - name: Checkout
@@ -371,6 +382,9 @@ jobs:
         uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install image credential provider
+        run: ./.github/scripts/install-image-cred-provider.sh
 
       - name: Create kind cluster
         uses: helm/kind-action@v1.14.0

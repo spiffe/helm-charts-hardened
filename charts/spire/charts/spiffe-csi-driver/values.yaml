@@ -69,6 +69,8 @@ serverNamespaceOverride: ""
 validatingAdmissionPolicy:
   ## @param validatingAdmissionPolicy.enabled When set to auto, the validatingAdmissionPolicy will be enabled when the pluginName == "upstream.csi.spiffe.io" and k8s >= 1.30.0. Valid options are [auto, true, false]
   enabled: auto
+  ## @param validatingAdmissionPolicy.allowedNamespaces [array] Namespaces whose pods may mount this driver, besides the chart's own
+  allowedNamespaces: []
 
 ## @param fullnameOverride Full name override for spiffe-csi-driver
 fullnameOverride: ""
@@ -143,6 +145,9 @@ nodeDriverRegistrar:
     tag: v2.15.0
   ## @param nodeDriverRegistrar.extraEnvVars [array] Extra environment variables to be added to the nodeDriverRegistrar container
   extraEnvVars: []
+  ## @param nodeDriverRegistrar.securityContext [object] Security context for the nodeDriverRegistrar container
+  ##
+  securityContext: {}
 
 ## @param agentSocketPath The unix socket path to the spire-agent
 agentSocketPath: /run/spire/agent-sockets/spire-agent.sock
