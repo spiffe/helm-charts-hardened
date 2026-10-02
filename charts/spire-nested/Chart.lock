@@ -80,5 +80,5 @@ dependencies:
 - name: spire-identity-exchange
   repository: file://../spire-identity-exchange
   version: 0.2.2
-digest: sha256:b107601c95dca75c1bc8be08699d8051200fc3e83d12c392c1853936cffe74ce
-generated: "2026-09-04T14:16:48.37985-07:00"
+digest: sha256:974f197cfb8d8f1d7249f352ab65e676d2ba28a67ca3234396e506dc3b9ad136
+generated: "2026-10-02T11:26:56.566165-07:00"

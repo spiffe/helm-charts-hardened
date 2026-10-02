@@ -41,5 +41,5 @@ dependencies:
 - name: spiffefs
   repository: file://../spiffefs
   version: 0.1.0
-digest: sha256:f2df7c3ec6008984f9987f181764c4773a8d8d2b3786656170f0dc45fd20b9d2
-generated: "2026-09-04T14:16:47.91006-07:00"
+digest: sha256:10444d8a5c19365edbe3c3f5aeb1a0e6e467c2466c4016ac6b97bc3b216e9cad
+generated: "2026-10-02T11:26:56.274858-07:00"
