@@ -155,7 +155,7 @@ agentSocketPath: /run/spire/agent-sockets/spire-agent.sock
 ## @param agentSocketMountPropagation Mount propagation for the directory holding agentSocketPath. Empty uses the Kubernetes default. Valid options are [None, HostToContainer].
 agentSocketMountPropagation: ""
 
-## @param recursiveBind Publish anything mounted beneath the directory holding agentSocketPath along with it, following it as it is remounted. Needs agentSocketMountPropagation set to HostToContainer to follow remounts.
+## @param recursiveBind Publish anything mounted beneath the directory holding agentSocketPath along with it, following it as it is remounted. Requires agentSocketMountPropagation HostToContainer. Mounts beneath keep their own writability, so only read-only or per-caller filesystems belong there.
 recursiveBind: false
 
 workloadMountPropagationPolicy:

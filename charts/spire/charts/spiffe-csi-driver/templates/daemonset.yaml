@@ -93,6 +93,11 @@ spec:
             "-plugin-name", "{{ .Values.pluginName }}",
             "-csi-socket-path", "/spiffe-csi/csi.sock",
             {{- if .Values.recursiveBind }}
+            {{- /* The driver refuses to start on a socket directory that
+                   receives no mounts from the host. */}}
+            {{- if ne .Values.agentSocketMountPropagation "HostToContainer" }}
+            {{- fail "recursiveBind requires agentSocketMountPropagation to be HostToContainer" }}
+            {{- end }}
             "-recursive-bind",
             {{- end }}
           ]

@@ -503,6 +503,11 @@ if render --set spiffefs-csi-driver.agentSocketMountPropagation=Bidirectional >/
   exit 1
 fi
 
+if render --set spiffefs-csi-driver.agentSocketMountPropagation=None >/dev/null 2>&1; then
+  echo "The chart rendered recursiveBind with a socket mount that receives nothing from the host, which the driver refuses."
+  exit 1
+fi
+
 RENDERED="$(render)"
 
 RECURSIVE="$(docs_matching '"-recursive-bind"' <<<"${RENDERED}")"
