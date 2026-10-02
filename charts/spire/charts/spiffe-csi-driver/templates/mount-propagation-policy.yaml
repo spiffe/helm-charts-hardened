@@ -1,0 +1,136 @@
+{{- with .Values.workloadMountPropagationPolicy }}
+{{- $name := printf "%s-mount-propagation" $.Values.pluginName }}
+{{- $driver := $.Values.pluginName | quote }}
+{{- /* Only pods using this driver are evaluated, so a fault in an expression
+       below can never reach any other pod. */}}
+{{- $usesDriver := printf "has(object.spec.volumes) && object.spec.volumes.exists(v, has(v.csi) && v.csi.driver == %s)" $driver }}
+{{- $volumes := printf "object.spec.volumes.filter(v, has(v.csi) && v.csi.driver == %s).map(v, v.name)" $driver }}
+{{- $stale := "has(c.volumeMounts) && c.volumeMounts.exists(m, m.name in variables.volumes && !(has(m.mountPropagation) && m.mountPropagation == 'HostToContainer'))" }}
+{{- $message := printf "mounts of %s volumes must set mountPropagation: HostToContainer, or they are left stale when the source is remounted" $.Values.pluginName }}
+{{- if .enabled }}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: {{ $name }}
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE"]
+        resources: ["pods"]
+      # kubectl debug adds containers to a running pod through this subresource.
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["UPDATE"]
+        resources: ["pods/ephemeralcontainers"]
+  matchConditions:
+    - name: uses-driver
+      expression: {{ $usesDriver | quote }}
+  variables:
+    - name: volumes
+      expression: {{ $volumes | quote }}
+  validations:
+    {{- /* One rule per list: CEL cannot join containers and ephemeral
+           containers, which are different types. Adding an ephemeral container
+           leaves the rest of the pod alone, so only that list is judged then.
+           A request with no subresource has no subResource at all, so it has
+           to be tested for before it is compared. */}}
+    {{- range $field := list "containers" "initContainers" }}
+    - expression: >-
+        (has(request.subResource) && request.subResource == 'ephemeralcontainers') ||
+        !has(object.spec.{{ $field }}) ||
+        !object.spec.{{ $field }}.exists(c, {{ $stale }})
+      message: {{ $message | quote }}
+      messageExpression: >-
+        {{ $message | squote }} + ': {{ $field }} ' +
+        object.spec.{{ $field }}.filter(c, {{ $stale }}).map(c, c.name).join(', ')
+    {{- end }}
+    - expression: >-
+        !has(object.spec.ephemeralContainers) ||
+        !object.spec.ephemeralContainers.exists(c, {{ $stale }})
+      message: {{ $message | quote }}
+      messageExpression: >-
+        {{ $message | squote }} + ': ephemeralContainers ' +
+        object.spec.ephemeralContainers.filter(c, {{ $stale }}).map(c, c.name).join(', ')
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: {{ $name }}
+spec:
+  policyName: {{ $name }}
+  validationActions: ["Deny"]
+{{- end }}
+{{- if .mutate.enabled }}
+{{- $apiVersion := .mutate.apiVersion }}
+{{- if not $apiVersion }}
+{{- if $.Capabilities.APIVersions.Has "admissionregistration.k8s.io/v1/MutatingAdmissionPolicy" }}
+{{- $apiVersion = "admissionregistration.k8s.io/v1" }}
+{{- else if $.Capabilities.APIVersions.Has "admissionregistration.k8s.io/v1beta1/MutatingAdmissionPolicy" }}
+{{- $apiVersion = "admissionregistration.k8s.io/v1beta1" }}
+{{- end }}
+{{- end }}
+{{- if $apiVersion }}
+{{- $unset := "has(c.volumeMounts) && c.volumeMounts.exists(m, m.name in variables.volumes && !has(m.mountPropagation))" }}
+---
+apiVersion: {{ $apiVersion }}
+kind: MutatingAdmissionPolicy
+metadata:
+  name: {{ $name }}
+spec:
+  {{- /* A convenience only: the validating policy is what enforces the
+         requirement, so a fault here must not block pods. */}}
+  failurePolicy: Ignore
+  reinvocationPolicy: IfNeeded
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE"]
+        resources: ["pods"]
+  matchConditions:
+    - name: uses-driver
+      expression: {{ $usesDriver | quote }}
+  variables:
+    - name: volumes
+      expression: {{ $volumes | quote }}
+  mutations:
+    {{- /* containers, initContainers and volumeMounts are all map lists, keyed
+           by name and mountPath, so the apply configuration merges into the
+           existing entries and leaves the rest untouched. A list that filters
+           to empty merges nothing. Only an unset value is filled in; an
+           explicit one is left for the validating policy to judge. */}}
+    - patchType: ApplyConfiguration
+      applyConfiguration:
+        expression: >-
+          Object{
+            spec: Object.spec{
+              containers: object.spec.containers.filter(c, {{ $unset }}).map(c, Object.spec.containers{
+                name: c.name,
+                volumeMounts: c.volumeMounts.filter(m, m.name in variables.volumes && !has(m.mountPropagation)).map(m, Object.spec.containers.volumeMounts{
+                  mountPath: m.mountPath,
+                  mountPropagation: "HostToContainer"
+                })
+              }),
+              initContainers: !has(object.spec.initContainers) ? [] : object.spec.initContainers.filter(c, {{ $unset }}).map(c, Object.spec.initContainers{
+                name: c.name,
+                volumeMounts: c.volumeMounts.filter(m, m.name in variables.volumes && !has(m.mountPropagation)).map(m, Object.spec.initContainers.volumeMounts{
+                  mountPath: m.mountPath,
+                  mountPropagation: "HostToContainer"
+                })
+              })
+            }
+          }
+---
+apiVersion: {{ $apiVersion }}
+kind: MutatingAdmissionPolicyBinding
+metadata:
+  name: {{ $name }}
+spec:
+  policyName: {{ $name }}
+{{- end }}
+{{- end }}
+{{- end }}

@@ -152,6 +152,21 @@ nodeDriverRegistrar:
 ## @param agentSocketPath The unix socket path to the spire-agent
 agentSocketPath: /run/spire/agent-sockets/spire-agent.sock
 
+## @param agentSocketMountPropagation Mount propagation for the directory holding agentSocketPath. Empty uses the Kubernetes default. Valid options are [None, HostToContainer].
+agentSocketMountPropagation: ""
+
+## @param recursiveBind Publish anything mounted beneath the directory holding agentSocketPath along with it, following it as it is remounted. Requires agentSocketMountPropagation HostToContainer. Mounts beneath keep their own writability, so only read-only or per-caller filesystems belong there.
+recursiveBind: false
+
+workloadMountPropagationPolicy:
+  ## @param workloadMountPropagationPolicy.enabled Reject workloads that mount this driver's volumes without mountPropagation HostToContainer. Such a mount is left stale when the source is remounted.
+  enabled: false
+  mutate:
+    ## @param workloadMountPropagationPolicy.mutate.enabled Also set mountPropagation to HostToContainer on such mounts that leave it unset, using a MutatingAdmissionPolicy.
+    enabled: false
+    ## @param workloadMountPropagationPolicy.mutate.apiVersion The MutatingAdmissionPolicy API version, such as admissionregistration.k8s.io/v1beta1. Empty detects it from the cluster, and renders no policy when the cluster serves neither v1 nor v1beta1. Set it for tools that render without a cluster.
+    apiVersion: ""
+
 ## @param kubeletPath Path to kubelet file
 kubeletPath: /var/lib/kubelet
 

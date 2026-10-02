@@ -50,6 +50,9 @@ matchLabels:
   release: {{ .Release.Name }}
   release-namespace: {{ .Release.Namespace }}
   component: test-keys
+{{-   else if eq .type "spiffefs" }}
+matchLabels:
+  "app.kubernetes.io/name": spiffefs
 {{-   else if eq .type "spire-ha-agent" }}
 matchLabels:
   "app.kubernetes.io/name": spire-ha-agent
@@ -81,8 +84,8 @@ matchLabels:
 {{-     end }}
 {{-     if $process }}
 {{-       $type := dig "type" "base" $value }}
-{{-       if not (has $type (list "base" "raw" "spire-ha-agent" "child-servers" "oidc-discovery-provider" "oidc-discovery-provider-common" "spike-keeper" "spike-nexus" "spike-bootstrap" "spike-pilot" "spire-identity-exchange" "test-keys")) }}
-{{-         fail (printf "Type given: %s, must be one of [base, raw, spire-ha-agent, child-servers, oidc-discovery-provider, oidc-discovery-provider-common, spike-keeper, spike-nexus, spike-bootstrap, spike-pilot, spire-identity-exchange, test-keys]" $type) }}
+{{-       if not (has $type (list "base" "raw" "spiffefs" "spire-ha-agent" "child-servers" "oidc-discovery-provider" "oidc-discovery-provider-common" "spike-keeper" "spike-nexus" "spike-bootstrap" "spike-pilot" "spire-identity-exchange" "test-keys")) }}
+{{-         fail (printf "Type given: %s, must be one of [base, raw, spiffefs, spire-ha-agent, child-servers, oidc-discovery-provider, oidc-discovery-provider-common, spike-keeper, spike-nexus, spike-bootstrap, spike-pilot, spire-identity-exchange, test-keys]" $type) }}
 {{-       end }}
 {{-       $namespaceSelector := deepCopy (dig "namespaceSelector" (dict) $value) }}
 {{-       if ne $type "raw" }}
