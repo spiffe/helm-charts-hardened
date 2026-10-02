@@ -78,9 +78,19 @@ one level down — `<volume mountPath>/private/credential-bundle.private-key.x50
 with the default settings. Publishing the mount point itself would tie a workload to
 a single filesystem instance, which is orphaned as soon as spiffefs restarts.
 
-A workload consuming the filesystem should set `mountPropagation:
-HostToContainer` on its volume mount, so that spiffefs remounting on restart
-reaches it instead of leaving a stale mount behind.
+A workload consuming the filesystem must set `mountPropagation: HostToContainer`
+on its volume mount. spiffefs remounts its filesystem when it restarts, and a mount
+without it keeps the old, disconnected filesystem, so reads fail from the first
+restart on. When deployed through the `spire` chart, a ValidatingAdmissionPolicy
+rejects pods that mount the volume any other way. Where the cluster serves
+MutatingAdmissionPolicy, a mount that leaves it unset is given `HostToContainer`
+instead of being rejected.
+
+The node's root filesystem must be a shared mount, which is the default on
+systemd hosts. The CSI driver instance mounts the socket directory
+`HostToContainer`, as a slave of the node's mount, so spiffefs restarts reach it,
+and it refuses to start if that mount is shared instead. This has been tested with
+containerd; CRI-O has not been tested.
 
 <!-- The parameters section is generated using helm-docs.sh and should not be edited by hand. -->
 

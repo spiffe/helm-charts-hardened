@@ -92,6 +92,9 @@ spec:
             "-workload-api-socket-dir", "/spire-agent-socket",
             "-plugin-name", "{{ .Values.pluginName }}",
             "-csi-socket-path", "/spiffe-csi/csi.sock",
+            {{- if .Values.recursiveBind }}
+            "-recursive-bind",
+            {{- end }}
           ]
           env:
             # The CSI driver needs a unique node ID. The node name can be
@@ -108,11 +111,10 @@ spec:
             # driver will mount this directory into containers.
             - mountPath: /spire-agent-socket
               name: spire-agent-socket-dir
-              {{- /* Bidirectional propagation needs a read-write mount. */}}
-              readOnly: {{ ne .Values.agentSocketMountPropagation "Bidirectional" }}
+              readOnly: true
               {{- with .Values.agentSocketMountPropagation }}
-              {{- if not (has . (list "None" "HostToContainer" "Bidirectional")) }}
-              {{- fail "agentSocketMountPropagation can only be None, HostToContainer or Bidirectional" }}
+              {{- if not (has . (list "None" "HostToContainer")) }}
+              {{- fail "agentSocketMountPropagation can only be None or HostToContainer" }}
               {{- end }}
               mountPropagation: {{ . }}
               {{- end }}

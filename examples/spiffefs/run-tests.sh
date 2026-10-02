@@ -88,6 +88,9 @@ dump_mount_topology() {
   else
     echo "no spiffefs pod on ${node:-unknown}"
   fi
+  echo "--- spiffefs csi driver on ${node:-unknown} ---"
+  csi_mountinfo "${node}" | grep -E ' /spire-agent-socket|kubernetes.io~csi/spiffefs/' ||
+    echo "no spiffefs csi driver mount table on ${node:-unknown}"
   echo "--- workload ---"
   kubectl exec "${pod}" -- \
     sh -c 'grep spiffe /proc/self/mountinfo || echo "the workload has no spiffe mount"' || true
@@ -267,6 +270,217 @@ spiffefs_up() {
   kubectl rollout status daemonset/spire-spiffefs -n spire-system --timeout 3m
 }
 
+# kind nodes are containers on the runner, so a node's own mount table is one
+# docker exec away, whether or not spiffefs is running there.
+node_mountinfo() {
+  docker exec "$1" cat /proc/self/mountinfo
+}
+
+# The spiffefs csi driver's own mount table, found by its command line: its image
+# has no shell to exec into. The bracket keeps the scan from matching itself.
+csi_mountinfo() {
+  # shellcheck disable=SC2016  # expanded by the node's shell
+  docker exec "$1" sh -c '
+    for p in /proc/[0-9]*; do
+      if tr "\0" " " < "$p/cmdline" 2>/dev/null | grep -q -- "-plugin-name [s]piffefs.csi.spiffe.io"; then
+        cat "$p/mountinfo"
+        exit 0
+      fi
+    done
+    exit 1'
+}
+
+# The driver refuses to start on a shared socket mount. Record the shape the
+# kubelet and container runtime actually gave it: a slave of the node's mount,
+# which still receives spiffefs remounting, and nothing that sends unmounts back.
+check_csi_socket_mount() {
+  local line
+  line="$(csi_mountinfo "$1" | awk '$5 == "/spire-agent-socket"')"
+  echo "spiffefs csi driver socket mount on $1: ${line}"
+  if [ -z "${line}" ] || ! grep -q ' master:' <<<"${line}" || grep -q ' shared:' <<<"${line}"; then
+    echo "expected the socket mount on $1 to be a slave (master:) and not shared"
+    return 1
+  fi
+}
+
+# spiffefs's filesystem is still mounted on the node.
+assert_node_mount() {
+  if ! node_mountinfo "$1" | awk '$5 == "/run/spire/k8s/spiffefs/private" {
+      for (i = 7; i <= NF; i++) if ($i == "-") { if ($(i + 1) ~ /^fuse/) found = 1; break }
+    } END { exit !found }'; then
+    echo "the spiffefs mount is gone from node $1"
+    node_mountinfo "$1" | grep spiffefs || true
+    return 1
+  fi
+}
+
+# Nothing is left mounted for a deleted pod's spiffefs volume, or for any pod's
+# when no uid is given.
+wait_no_leftovers() {
+  local node="$1" uid="${2:-}" left="" count=0
+  while [ "${count}" -lt 60 ]; do
+    left="$(node_mountinfo "${node}" | awk -v uid="${uid}" '$5 ~ ("/pods/" uid ".*/volumes/kubernetes.io~csi/spiffefs/")')"
+    [ -z "${left}" ] && return 0
+    sleep 3
+    count=$((count + 3))
+  done
+  echo "mounts left behind on ${node}${uid:+ for pod ${uid}}:"
+  echo "${left}"
+  return 1
+}
+
+# Tear one workload down and check that its neighbour, and the node's spiffefs
+# mount, are untouched. A delete that cannot unmount never completes, so it is
+# bounded.
+delete_beside() {
+  local gone="$1" survivor="$2" hint="$3" id="$4" uid
+  uid="$(kubectl get pod "${gone}" -o go-template='{{ .metadata.uid }}')"
+  kubectl delete pod "${gone}" --timeout=2m
+  wait_no_leftovers "${NODE}" "${uid}"
+  assert_node_mount "${NODE}"
+  wait_for_svid "${survivor}" "after ${gone} was torn down beside it"
+  check_mount "${survivor}"
+  check_svid "${survivor}" "${hint}" "${id}"
+}
+
+# Restart spiffefs in place on every node with the given signal, and check the
+# test pod reads through it untouched. A rollout replaces the pod; a crash does
+# not: kubelet restarts the container, and init containers do not run again.
+restart_spiffefs_in_place() {
+  local signal="$1" before after p
+  before="$(kubectl get pod -n spire-system -l app.kubernetes.io/name=spiffefs \
+    -o go-template='{{ range .items }}{{ .metadata.name }}={{ (index .status.containerStatuses 0).restartCount }} {{ end }}')"
+  echo "spiffefs restart counts before SIG${signal}: ${before}"
+
+  for p in $(kubectl get pod -n spire-system -l app.kubernetes.io/name=spiffefs -o name); do
+    echo "sending SIG${signal} to spiffefs in ${p}"
+    # hostPID is on, so target the binary rather than pid 1, which is the node's
+    # init. The bracket keeps pgrep from matching the shell running it.
+    kubectl exec -n spire-system "${p}" -- sh -c "kill -${signal} \$(pgrep -f '[/]usr/bin/spiffefs')" || true
+  done
+
+  sleep 10
+  kubectl wait --for=condition=Ready pod -n spire-system -l app.kubernetes.io/name=spiffefs --timeout 2m
+
+  after="$(kubectl get pod -n spire-system -l app.kubernetes.io/name=spiffefs \
+    -o go-template='{{ range .items }}{{ .metadata.name }}={{ (index .status.containerStatuses 0).restartCount }} {{ end }}')"
+  echo "spiffefs restart counts after SIG${signal}: ${after}"
+
+  if [ "${before}" = "${after}" ]; then
+    echo "No spiffefs container restarted, so SIG${signal} did not exercise an in place restart."
+    return 1
+  fi
+
+  wait_for_svid spiffefs-test "after the SIG${signal} in place restart"
+  check_mount spiffefs-test
+
+  if [ "${POD_UID}" != "$(kubectl get pod spiffefs-test -o go-template='{{ .metadata.uid }}')" ] ||
+     [ "${RESTARTS_BEFORE}" != "$(kubectl get pod spiffefs-test -o go-template='{{ (index .status.containerStatuses 0).restartCount }}')" ]; then
+    echo "The test pod was restarted or replaced; the mount surviving proves nothing."
+    return 1
+  fi
+
+  check_svid spiffefs-test "default" "spiffe://production.other/ns/default/sa/default"
+  echo "spiffefs mount survived a SIG${signal} in place container restart with the workload pod untouched."
+}
+
+# A pod mounting a volume of the given driver from the given container list,
+# with the given propagation ("unset" leaves it out). Bidirectional is only
+# accepted for privileged containers, so it gets one; otherwise field validation
+# would reject it before the policy ever sees it.
+admission_pod() {
+  local field="$1" propagation="$2" driver="${3:-spiffefs.csi.spiffe.io}"
+  local prop_line="" priv_line="" app="" volume
+  if [ "${propagation}" != "unset" ]; then prop_line="mountPropagation: ${propagation}"; fi
+  if [ "${propagation}" = "Bidirectional" ]; then priv_line="securityContext: {privileged: true}"; fi
+  if [ "${field}" = "initContainers" ]; then app='containers: [{name: app, image: busybox, command: ["true"]}]'; fi
+  if [ "${driver}" = "emptyDir" ]; then
+    volume="emptyDir: {}"
+  else
+    volume="csi: {driver: ${driver}, readOnly: true}"
+  fi
+  cat <<MANIFEST
+apiVersion: v1
+kind: Pod
+metadata:
+  name: spiffefs-admission
+spec:
+  ${app}
+  ${field}:
+    - name: main
+      image: busybox
+      command: ["true"]
+      ${priv_line}
+      volumeMounts:
+        - name: vol
+          mountPath: /spiffe
+          readOnly: true
+          ${prop_line}
+  volumes:
+    - name: vol
+      ${volume}
+MANIFEST
+}
+
+POLICY_MESSAGE="must set mountPropagation: HostToContainer"
+
+expect_rejected() {
+  local desc="$1" out
+  shift
+  if out="$("$@" 2>&1)"; then
+    echo "admission: ${desc} was admitted, expected the mount propagation policy to reject it"
+    echo "${out}"
+    return 1
+  fi
+  if ! grep -q "${POLICY_MESSAGE}" <<<"${out}"; then
+    echo "admission: ${desc} was rejected, but not by the mount propagation policy:"
+    echo "${out}"
+    return 1
+  fi
+  echo "admission: ${desc} rejected as expected"
+}
+
+expect_admitted() {
+  local desc="$1" out
+  shift
+  if ! out="$("$@" 2>&1)"; then
+    echo "admission: ${desc} was rejected, expected it to be admitted:"
+    echo "${out}"
+    return 1
+  fi
+  echo "admission: ${desc} admitted as expected"
+  ADMITTED="${out}"
+}
+
+dry_run() {
+  kubectl apply --dry-run=server -o yaml -f - <<<"$1"
+}
+
+# A pod that leaves propagation unset is defaulted where the cluster serves
+# MutatingAdmissionPolicy, and rejected where it does not.
+expect_unset() {
+  local desc="$1" manifest="$2"
+  if [ "${MUTATING}" -eq 1 ]; then
+    expect_admitted "${desc}" dry_run "${manifest}"
+    if ! grep -q 'mountPropagation: HostToContainer' <<<"${ADMITTED}"; then
+      echo "admission: ${desc} was admitted without being given HostToContainer:"
+      echo "${ADMITTED}"
+      return 1
+    fi
+    echo "admission: ${desc} was given HostToContainer"
+  else
+    expect_rejected "${desc}" dry_run "${manifest}"
+  fi
+}
+
+# Prints the documents of a multi-document render whose text matches a pattern.
+docs_matching() {
+  awk -v pat="$1" '
+    /^---$/ { if (doc ~ pat) printf "%s---\n", doc; doc = ""; next }
+    { doc = doc $0 "\n" }
+    END { if (doc ~ pat) printf "%s", doc }'
+}
+
 # CI already installed spire-crds into spire-server. The CRDs are cluster
 # scoped, so installing a second release of them here would collide.
 
@@ -276,11 +490,85 @@ kubectl label namespace spire-system pod-security.kubernetes.io/enforce=privileg
 kubectl create namespace spire-server --dry-run=client -o yaml | kubectl apply -f -
 kubectl label namespace spire-server pod-security.kubernetes.io/enforce=restricted || true
 
+# Render checks. These need no cluster, so a chart mistake fails here rather
+# than as a confusing runtime symptom.
+render() {
+  helm template spire charts/spire --namespace spire-server \
+    --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/values.yaml" "$@"
+}
+
+if render --set spiffefs-csi-driver.agentSocketMountPropagation=Bidirectional >/dev/null 2>&1; then
+  echo "The chart rendered a Bidirectional socket mount for the spiffefs csi driver, which the driver refuses."
+  exit 1
+fi
+
+RENDERED="$(render)"
+
+RECURSIVE="$(docs_matching '"-recursive-bind"' <<<"${RENDERED}")"
+if [ "$(grep -c '^kind: DaemonSet' <<<"${RECURSIVE}")" -ne 1 ] || ! grep -q '"spiffefs.csi.spiffe.io"' <<<"${RECURSIVE}"; then
+  echo "-recursive-bind should be passed to the spiffefs csi driver and no other. Rendered with it:"
+  grep -E '^kind:|^  name:|-plugin-name' <<<"${RECURSIVE}" || true
+  exit 1
+fi
+
+POLICY=spiffefs.csi.spiffe.io-mount-propagation
+POLICIES="$(grep -A2 '^kind: ValidatingAdmissionPolicy$' <<<"${RENDERED}" | grep -o 'name: .*-mount-propagation' || true)"
+if [ "${POLICIES}" != "name: ${POLICY}" ]; then
+  echo "Expected exactly one mount propagation policy, for the spiffefs csi driver, got: ${POLICIES:-none}"
+  exit 1
+fi
+echo "render ok: Bidirectional is refused, -recursive-bind and the policy apply to the spiffefs csi driver only."
+
 helm upgrade --install --namespace spire-server \
   --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/values.yaml" \
   --wait spire charts/spire
 
 kubectl get pods -A
+
+# The policy is type checked in the background once it is created. A warning
+# here means an expression is wrong, and its rule would fail every pod it
+# matches.
+count=0
+until [ -n "$(kubectl get validatingadmissionpolicy "${POLICY}" -o jsonpath='{.status.observedGeneration}')" ]; do
+  if [ "${count}" -ge 60 ]; then
+    echo "${POLICY} was never type checked."
+    exit 1
+  fi
+  sleep 3
+  count=$((count + 3))
+done
+WARNINGS="$(kubectl get validatingadmissionpolicy "${POLICY}" -o jsonpath='{.status.typeChecking.expressionWarnings}')"
+if [ -n "${WARNINGS}" ]; then
+  echo "${POLICY} has type checking warnings: ${WARNINGS}"
+  exit 1
+fi
+
+MUTATING=0
+if kubectl api-resources --api-group=admissionregistration.k8s.io -o name | grep -q '^mutatingadmissionpolicies' &&
+   kubectl get mutatingadmissionpolicy "${POLICY}" >/dev/null 2>&1; then
+  MUTATING=1
+fi
+echo "MutatingAdmissionPolicy in use: ${MUTATING}"
+
+# A new policy takes effect a little after it is created. Wait for a pod it must
+# reject, so the matrix below is not racing that.
+count=0
+until ! dry_run "$(admission_pod containers None)" >/dev/null 2>&1; do
+  if [ "${count}" -ge 60 ]; then
+    echo "${POLICY} never started rejecting pods."
+    exit 1
+  fi
+  sleep 3
+  count=$((count + 3))
+done
+
+expect_rejected "a mount with propagation None" dry_run "$(admission_pod containers None)"
+expect_rejected "a privileged Bidirectional mount" dry_run "$(admission_pod containers Bidirectional)"
+expect_unset "a mount leaving propagation unset" "$(admission_pod containers unset)"
+expect_unset "an init container leaving propagation unset" "$(admission_pod initContainers unset)"
+expect_admitted "a HostToContainer mount" dry_run "$(admission_pod containers HostToContainer)"
+expect_admitted "a pod without a spiffefs volume" dry_run "$(admission_pod containers unset emptyDir)"
+echo "admission ok: spiffefs mounts must use HostToContainer, and other pods are not affected."
 
 # Hop 1: spiffefs mounted its filesystem in its own container. A failure here
 # is spiffefs itself (agent socket, /dev/fuse, mount) rather than propagation.
@@ -318,6 +606,14 @@ kubectl exec spiffefs-test -- ls -la /spiffe/ /spiffe/private/ || {
 }
 
 echo "spiffefs-test is on $(pod_node spiffefs-test), served by $(node_spiffefs_pod "$(pod_node spiffefs-test)")"
+NODE="$(pod_node spiffefs-test)"
+check_csi_socket_mount "${NODE}"
+
+# kubectl debug adds containers through a subresource, which must not be a way
+# around the policy.
+expect_rejected "an ephemeral container leaving propagation unset" \
+  kubectl patch pod spiffefs-test --subresource ephemeralcontainers --dry-run=server --type=strategic \
+  -p '{"spec":{"ephemeralContainers":[{"name":"debug","image":"busybox","volumeMounts":[{"name":"spiffefs","mountPath":"/spiffe","readOnly":true}]}]}}'
 
 # Ordering 1: spiffefs was already mounted when this workload was published, so
 # the csi driver had to carry an existing mount across at bind time. A plain
@@ -343,6 +639,12 @@ if kubectl exec spiffefs-test-late -- test -f /spiffe/private/credential-bundle.
 fi
 
 spiffefs_up
+
+if [ "$(pod_node spiffefs-test-late)" != "${NODE}" ]; then
+  echo "spiffefs-test-late is on $(pod_node spiffefs-test-late), not ${NODE}; the teardown checks need both pods on one node."
+  exit 1
+fi
+
 wait_for_svid spiffefs-test-late "after spiffefs came up under an existing workload"
 check_mount spiffefs-test-late
 echo "ordering 2 ok: a workload published before spiffefs picks the filesystem up when it arrives."
@@ -413,42 +715,67 @@ fi
 check_svid spiffefs-test "default" "spiffe://production.other/ns/default/sa/default"
 echo "spiffefs mount survived a daemonset restart with the workload pod untouched."
 
-# A rollout replaces the pod. A crash does not: kubelet restarts the container in
-# place. Kill the process on every node to cover that path too.
-SPIFFEFS_RESTARTS_BEFORE="$(kubectl get pod -n spire-system -l app.kubernetes.io/name=spiffefs \
-  -o go-template='{{ range .items }}{{ .metadata.name }}={{ (index .status.containerStatuses 0).restartCount }} {{ end }}')"
-echo "spiffefs restart counts before: ${SPIFFEFS_RESTARTS_BEFORE}"
+# A graceful stop unmounts on the way out. A kill leaves a dead mount behind,
+# which the restarted container has to clear itself.
+restart_spiffefs_in_place TERM
+restart_spiffefs_in_place KILL
 
-for p in $(kubectl get pod -n spire-system -l app.kubernetes.io/name=spiffefs -o name); do
-  echo "killing spiffefs in ${p}"
-  # hostPID is on, so target the binary rather than pid 1, which is the node's
-  # init. The bracket keeps pgrep from matching the shell running it.
-  # shellcheck disable=SC2016  # the subshell has to run in the remote shell
-  kubectl exec -n spire-system "${p}" -- sh -c 'kill $(pgrep -f "[/]usr/bin/spiffefs")' || true
+# The workload's own container restarting, with the pod kept, gets a fresh view
+# of the volume from the node's copy.
+WORKLOAD_RESTARTS="$(kubectl get pod spiffefs-test -o go-template='{{ (index .status.containerStatuses 0).restartCount }}')"
+kubectl exec spiffefs-test -- touch /tmp/exit
+count=0
+until [ "$(kubectl get pod spiffefs-test -o go-template='{{ (index .status.containerStatuses 0).restartCount }}')" -gt "${WORKLOAD_RESTARTS}" ]; do
+  if [ "${count}" -ge 60 ]; then
+    echo "spiffefs-test's container did not restart."
+    exit 1
+  fi
+  sleep 3
+  count=$((count + 3))
 done
-
-sleep 10
-kubectl wait --for=condition=Ready pod -n spire-system -l app.kubernetes.io/name=spiffefs --timeout 2m
-
-SPIFFEFS_RESTARTS_AFTER="$(kubectl get pod -n spire-system -l app.kubernetes.io/name=spiffefs \
-  -o go-template='{{ range .items }}{{ .metadata.name }}={{ (index .status.containerStatuses 0).restartCount }} {{ end }}')"
-echo "spiffefs restart counts after: ${SPIFFEFS_RESTARTS_AFTER}"
-
-if [ "${SPIFFEFS_RESTARTS_BEFORE}" = "${SPIFFEFS_RESTARTS_AFTER}" ]; then
-  echo "No spiffefs container restarted, so this did not exercise an in place restart."
-  exit 1
-fi
-
-wait_for_svid spiffefs-test "after the in place restart"
+kubectl wait --for=condition=Ready pod/spiffefs-test --timeout 2m
+wait_for_svid spiffefs-test "after its container restarted in place"
 check_mount spiffefs-test
+check_svid spiffefs-test "default" "spiffe://production.other/ns/default/sa/default"
+echo "a workload container restarted in place still reads spiffefs."
 
-POD_UID_FINAL="$(kubectl get pod spiffefs-test -o go-template='{{ .metadata.uid }}')"
-RESTARTS_FINAL="$(kubectl get pod spiffefs-test -o go-template='{{ (index .status.containerStatuses 0).restartCount }}')"
+# Tearing a workload down detaches the volume beneath it. That must stop at the
+# workload: the neighbour on the same node, and the node's spiffefs mount, stay.
+delete_beside spiffefs-test spiffefs-test-late "multi-main" "spiffe://production.other/ns/default/sa/spiffefs-late"
+echo "a workload torn down beside another left it, and spiffefs, untouched."
 
-if [ "${POD_UID}" != "${POD_UID_FINAL}" ] || [ "${RESTARTS_BEFORE}" != "${RESTARTS_FINAL}" ]; then
-  echo "The test pod was restarted or replaced; the mount surviving proves nothing."
+# A restarted csi driver does not bind the volumes it already published: it gets
+# them from the container runtime, copied from the node. Teardown through those
+# copies has to stop at the workload too.
+kubectl apply -f "${SCRIPTPATH}/test-pod.yaml"
+kubectl wait --for=condition=Ready pod/spiffefs-test --timeout 2m
+if [ "$(pod_node spiffefs-test)" != "${NODE}" ]; then
+  echo "spiffefs-test came back on $(pod_node spiffefs-test), not ${NODE}."
   exit 1
 fi
+wait_for_svid spiffefs-test "after being recreated"
 
-check_svid spiffefs-test "default" "spiffe://production.other/ns/default/sa/default"
-echo "spiffefs mount survived an in place container restart with the workload pod untouched."
+kubectl rollout restart daemonset/spire-spiffefs-csi-driver -n spire-system
+kubectl rollout status daemonset/spire-spiffefs-csi-driver -n spire-system --timeout 3m
+check_csi_socket_mount "${NODE}"
+dump_mount_topology spiffefs-test "after the csi driver restarted"
+
+check_mount spiffefs-test
+check_mount spiffefs-test-late
+delete_beside spiffefs-test spiffefs-test-late "multi-main" "spiffe://production.other/ns/default/sa/spiffefs-late"
+echo "a workload torn down through a restarted csi driver left its neighbour, and spiffefs, untouched."
+
+# With spiffefs down nothing is mounted beneath the volume, so teardown takes
+# the plain unmount instead of the detaching one.
+spiffefs_down
+LATE_UID="$(kubectl get pod spiffefs-test-late -o go-template='{{ .metadata.uid }}')"
+kubectl delete pod spiffefs-test-late --timeout=2m
+wait_no_leftovers "${NODE}" "${LATE_UID}"
+spiffefs_up
+assert_node_mount "${NODE}"
+echo "a workload torn down while spiffefs was down left nothing behind."
+
+for n in $(kubectl get nodes -o go-template='{{ range .items }}{{ .metadata.name }} {{ end }}'); do
+  wait_no_leftovers "${n}"
+done
+echo "no spiffefs volume mounts are left on any node."

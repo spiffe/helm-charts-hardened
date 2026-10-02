@@ -2,12 +2,25 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: spiffefs-test
+  labels:
+    spiffefs.test/colocate: "true"
 spec:
   terminationGracePeriodSeconds: 1
+  affinity:
+    # Both test pods share a node. Tearing one down must leave the other, and the
+    # node's spiffefs mount, untouched, which can only be seen on one node.
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              spiffefs.test/colocate: "true"
+          topologyKey: kubernetes.io/hostname
   containers:
     - name: main
       image: busybox
-      command: ["/bin/sh", "-c", "sleep infinity"]
+      # Exits when /tmp/exit appears, so the test can restart the container in
+      # place without replacing the pod.
+      command: ["/bin/sh", "-c", "while [ ! -e /tmp/exit ]; do sleep 1; done"]
       volumeMounts:
         - name: spiffefs
           mountPath: /spiffe

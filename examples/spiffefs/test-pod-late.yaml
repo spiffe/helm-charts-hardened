@@ -15,9 +15,19 @@ metadata:
     # selected by both ClusterSPIFFEIDs in values.yaml, so this pod is issued
     # two svids rather than the single fallback identity
     spiffefs.test/multi-svid: "true"
+    spiffefs.test/colocate: "true"
 spec:
   serviceAccountName: spiffefs-late
   terminationGracePeriodSeconds: 1
+  affinity:
+    # Both test pods share a node. Tearing one down must leave the other, and the
+    # node's spiffefs mount, untouched, which can only be seen on one node.
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              spiffefs.test/colocate: "true"
+          topologyKey: kubernetes.io/hostname
   containers:
     - name: main
       image: busybox
