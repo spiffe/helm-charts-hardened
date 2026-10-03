@@ -270,7 +270,7 @@ spec:
         - name: ensure-alternate-names
           image: {{ template "spire-lib.image" (dict "image" .Values.socketAlternate.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.socketAlternate.image.pullPolicy | quote }}
-          command: ["bash", "-xc"]
+          command: ["sh", "-xc"]
           {{- /* 1. Look for symlinks pointing at the wrong place and remove them. 2. Make symlinks that don't exist. 3. If new socket is pointing at an existing symlink, remove old symlink. */}}
           args:
             - |
@@ -295,7 +295,7 @@ spec:
         - name: fsgroupfix
           image: {{ template "spire-lib.image" (dict "image" .Values.fsGroupFix.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.fsGroupFix.image.pullPolicy | quote }}
-          command: ["bash", "-c"]
+          command: ["sh", "-c"]
           args:
             - |
               chown -R {{ printf "%v:%v" $podSecurityContext.runAsUser $podSecurityContext.fsGroup | quote }} {{ $socketPath | dir }} /tmp/spire-agent/private
