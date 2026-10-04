@@ -109,6 +109,31 @@ func ValueStringRender(chart *helmchart.Chart, values string) (map[string]string
 var _ = Describe("Spire", func() {
 	chart, err := helmloader.Load("../../charts/spire")
 	Expect(err).Should(Succeed())
+	Describe("spire-server.jwtKeyType", func() {
+		DescribeTable("renders the JWT key override without changing the CA key type", func(values, caKeyType, jwtKeyType string) {
+			objs, err := ValueStringRender(chart, values)
+			Expect(err).Should(Succeed())
+			var configMap struct {
+				Data map[string]string `json:"data"`
+			}
+			rendered := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(yamlutil.NewYAMLOrJSONDecoder(strings.NewReader(rendered), 4096).Decode(&configMap)).Should(Succeed())
+			var config struct {
+				Server map[string]any `json:"server"`
+			}
+			Expect(json.Unmarshal([]byte(configMap.Data["server.conf"]), &config)).Should(Succeed())
+			Expect(config.Server).Should(HaveKeyWithValue("ca_key_type", caKeyType))
+			if jwtKeyType == "" {
+				Expect(config.Server).ShouldNot(HaveKey("jwt_key_type"))
+			} else {
+				Expect(config.Server).Should(HaveKeyWithValue("jwt_key_type", jwtKeyType))
+			}
+		},
+			Entry("default inheritance", "", "rsa-2048", ""),
+			Entry("custom CA inheritance with an empty override", "spire-server:\n  caKeyType: ec-p384\n  jwtKeyType: \"\"", "ec-p384", ""),
+			Entry("independent JWT key type", "spire-server:\n  caKeyType: rsa-4096\n  jwtKeyType: ec-p256", "rsa-4096", "ec-p256"),
+		)
+	})
 	Describe("spire-server.upstream.cert-manager", func() {
 		It("issuerName when set is passed through", func() {
 			objs, err := ValueStringRender(chart, `
