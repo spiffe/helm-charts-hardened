@@ -50,7 +50,7 @@ chart-deps: ## Prepare local Helm chart dependencies
 .PHONY: test-charts
 test-charts: ## Run tests on charts using Helm chart-testing
 	@echo Running tests…
-	@ct install --config ct.yaml --excluded-charts spire-crds,spiffe-step-ssh,spire-ha-agent,spire-lib
+	@ct install --config ct.yaml --excluded-charts spire-crds,spiffe-step-ssh,spire-ha-agent,spire-lib,spiffefs
 
 .PHONY: cleanup-test-deps
 cleanup-test-deps: ## Cleans up all test dependencies resources
