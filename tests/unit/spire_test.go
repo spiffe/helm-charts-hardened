@@ -249,6 +249,13 @@ spire-server:
 			Expect(notes).Should(ContainSubstring("ca_cert_path"))
 		})
 	})
+	Describe("spire-agent.workloadAttestors.k8s.sigstore", func() {
+		It("omits sigstore by default", func() {
+			objs, err := ValueStringRender(chart, ``)
+			Expect(err).Should(Succeed())
+			Expect(objs["spire/charts/spire-agent/templates/configmap.yaml"]).ShouldNot(ContainSubstring("sigstore"))
+		})
+	})
 	Describe("spire-agent.customPlugin.tpm", func() {
 		It("plugin set ok", func() {
 			objs, err := ValueStringRender(chart, `
