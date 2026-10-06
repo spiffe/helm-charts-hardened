@@ -1166,6 +1166,8 @@ initContainers: []
 
 ## @param caKeyType The CA key type to use, possible values are rsa-2048, rsa-4096, ec-p256, ec-p384 (AWS requires the use of RSA. EC cryptography is not supported)
 caKeyType: rsa-2048
+## @param jwtKeyType The JWT signing key type (rsa-2048, rsa-4096, ec-p256, ec-p384). If unset, SPIRE uses caKeyType.
+jwtKeyType: ""
 ## @param caTTL TTL for CA
 caTTL: 24h
 ## @param agentTTL The TTL to use for agent SVIDs. If unset, the defaultX509SvidTTL will be used.
