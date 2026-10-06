@@ -55,11 +55,18 @@ global:
 oc get cm -n openshift-config-managed  console-public -o go-template="{{ .data.consoleURL }}" | sed 's@https://@@; s/^[^.]*\.//'
 ```
 
-4. Find any additional values you might want to set based on the documentation below or using the [examples](https://github.com/spiffe/helm-charts-hardened/tree/main/examples)
+4. If your Kubernetes distribution keeps the kubelet directory outside `/var/lib/kubelet` (for example MicroK8s), set its real path. A symlink is not enough; see [spiffe-csi#196](https://github.com/spiffe/spiffe-csi/issues/196).
+
+```yaml
+spiffe-csi-driver:
+  kubeletPath: /var/snap/microk8s/common/var/lib/kubelet
+```
+
+5. Find any additional values you might want to set based on the documentation below or using the [examples](https://github.com/spiffe/helm-charts-hardened/tree/main/examples)
 
 In particular, consider using an external database.
 
-5. Deploy
+6. Deploy
 
 ```shell
 helm upgrade --install -n spire-mgmt spire-crds spire-crds --repo https://spiffe.github.io/helm-charts-hardened/ --create-namespace
