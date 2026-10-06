@@ -254,6 +254,40 @@ spire-server:
 			objs, err := ValueStringRender(chart, ``)
 			Expect(err).Should(Succeed())
 			Expect(objs["spire/charts/spire-agent/templates/configmap.yaml"]).ShouldNot(ContainSubstring("sigstore"))
+			Expect(objs["spire/charts/spire-agent/templates/daemonset.yaml"]).ShouldNot(ContainSubstring("DOCKER_CONFIG"))
+		})
+		It("mounts the pod pull secret for registry auth", func() {
+			objs, err := ValueStringRender(chart, `
+spire-agent:
+  imagePullSecrets:
+    - name: regcred
+  workloadAttestors:
+    k8s:
+      sigstore:
+        enabled: true
+        registryAuth:
+          usePodPullSecret: true
+`)
+			Expect(err).Should(Succeed())
+			ds := objs["spire/charts/spire-agent/templates/daemonset.yaml"]
+			Expect(ds).Should(ContainSubstring("DOCKER_CONFIG"))
+			Expect(ds).Should(ContainSubstring(`secretName: "regcred"`))
+		})
+		It("prefers the named pull secret", func() {
+			objs, err := ValueStringRender(chart, `
+spire-agent:
+  imagePullSecrets:
+    - name: regcred
+  workloadAttestors:
+    k8s:
+      sigstore:
+        enabled: true
+        registryAuth:
+          pullSecret: sigstore-cred
+          usePodPullSecret: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs["spire/charts/spire-agent/templates/daemonset.yaml"]).Should(ContainSubstring(`secretName: "sigstore-cred"`))
 		})
 	})
 	Describe("spire-agent.customPlugin.tpm", func() {
