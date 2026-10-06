@@ -59,6 +59,9 @@ server:
   audit_log_enabled: {{ .Values.auditLogEnabled }}
   disable_jwt_svids: {{ not .Values.jwtSVIDSupport }}
   ca_key_type: {{ .Values.caKeyType | quote }}
+  {{- with .Values.jwtKeyType }}
+  jwt_key_type: {{ . | quote }}
+  {{- end }}
   ca_ttl: {{ .Values.caTTL | quote }}
 
   {{- if .Values.agentTTL }}
@@ -401,6 +404,9 @@ plugins:
           {{- range $key, $value := . }}
           {{ $key }}: {{ $value | quote }}
           {{- end }}
+        {{- end }}
+        {{- if eq (.enableTagBasedKeyDiscovery | toString) "true" }}
+        enable_tag_based_key_discovery: true
         {{- end }}
   {{- end }}
   {{- end }}

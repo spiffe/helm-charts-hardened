@@ -109,6 +109,31 @@ func ValueStringRender(chart *helmchart.Chart, values string) (map[string]string
 var _ = Describe("Spire", func() {
 	chart, err := helmloader.Load("../../charts/spire")
 	Expect(err).Should(Succeed())
+	Describe("spire-server.jwtKeyType", func() {
+		DescribeTable("renders the JWT key override without changing the CA key type", func(values, caKeyType, jwtKeyType string) {
+			objs, err := ValueStringRender(chart, values)
+			Expect(err).Should(Succeed())
+			var configMap struct {
+				Data map[string]string `json:"data"`
+			}
+			rendered := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(yamlutil.NewYAMLOrJSONDecoder(strings.NewReader(rendered), 4096).Decode(&configMap)).Should(Succeed())
+			var config struct {
+				Server map[string]any `json:"server"`
+			}
+			Expect(json.Unmarshal([]byte(configMap.Data["server.conf"]), &config)).Should(Succeed())
+			Expect(config.Server).Should(HaveKeyWithValue("ca_key_type", caKeyType))
+			if jwtKeyType == "" {
+				Expect(config.Server).ShouldNot(HaveKey("jwt_key_type"))
+			} else {
+				Expect(config.Server).Should(HaveKeyWithValue("jwt_key_type", jwtKeyType))
+			}
+		},
+			Entry("default inheritance", "", "rsa-2048", ""),
+			Entry("custom CA inheritance with an empty override", "spire-server:\n  caKeyType: ec-p384\n  jwtKeyType: \"\"", "ec-p384", ""),
+			Entry("independent JWT key type", "spire-server:\n  caKeyType: rsa-4096\n  jwtKeyType: ec-p256", "rsa-4096", "ec-p256"),
+		)
+	})
 	Describe("spire-server.upstream.cert-manager", func() {
 		It("issuerName when set is passed through", func() {
 			objs, err := ValueStringRender(chart, `
@@ -168,6 +193,23 @@ spire-server:
 			Expect(err).Should(Succeed())
 			notes := objs["spire/charts/spire-server/templates/configmap.yaml"]
 			Expect(notes).Should(ContainSubstring("\"aws_kms\": {"))
+			Expect(notes).ShouldNot(ContainSubstring("enable_tag_based_key_discovery"))
+		})
+		It("tag-based key discovery set ok", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  keyManager:
+    awsKMS:
+      enabled: true
+      region: us-west-2
+      enableTagBasedKeyDiscovery: true
+    disk:
+      enabled: false
+`)
+			Expect(err).Should(Succeed())
+			notes := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(notes).Should(ContainSubstring("\"aws_kms\": {"))
+			Expect(notes).Should(ContainSubstring("\"enable_tag_based_key_discovery\": true"))
 		})
 	})
 	Describe("spire-server.UpstreamAuthority.aws_pca", func() {
@@ -414,6 +456,186 @@ spire-server:
 			Expect(err).Should(Succeed())
 			Expect(objs[secretTmpl]).Should(ContainSubstring("kind: Secret"))
 			Expect(objs[serverTmpl]).Should(ContainSubstring("init-jwt-svid-exec"))
+		})
+	})
+	Describe("spiffe-csi-driver.serviceAccount.automountServiceAccountToken", func() {
+		saTmpl := "spire/charts/spiffe-csi-driver/templates/serviceaccount.yaml"
+		It("declines an API token, which the driver never uses", func() {
+			objs, err := ValueStringRender(chart, ``)
+			Expect(err).Should(Succeed())
+			Expect(objs[saTmpl]).Should(ContainSubstring("automountServiceAccountToken: false"))
+		})
+	})
+	Describe("spiffe-csi-driver.validatingAdmissionPolicy.allowedNamespaces", func() {
+		policyTmpl := "spire/charts/spiffe-csi-driver/templates/policy.yaml"
+		It("exempts both namespaces the chart itself installs into", func() {
+			objs, err := ValueStringRender(chart, `
+spiffe-csi-driver:
+  serverNamespaceOverride: spire-srv
+  validatingAdmissionPolicy:
+    enabled: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[policyTmpl]).Should(ContainSubstring("kind: ValidatingAdmissionPolicyBinding"))
+			Expect(objs[policyTmpl]).Should(ContainSubstring(`- "spire-srv"`))
+			Expect(objs[policyTmpl]).Should(ContainSubstring(`- "spire-server"`))
+		})
+		It("names the configured driver in the denial message", func() {
+			objs, err := ValueStringRender(chart, `
+spiffe-csi-driver:
+  pluginName: example.csi.spiffe.io
+  validatingAdmissionPolicy:
+    enabled: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[policyTmpl]).Should(ContainSubstring("you may not use the example.csi.spiffe.io csi driver"))
+		})
+		It("exempts the workload namespaces that mount the driver", func() {
+			objs, err := ValueStringRender(chart, `
+spiffe-csi-driver:
+  validatingAdmissionPolicy:
+    enabled: true
+    allowedNamespaces:
+      - workloads
+      - apps
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[policyTmpl]).Should(ContainSubstring(`- "workloads"`))
+			Expect(objs[policyTmpl]).Should(ContainSubstring(`- "apps"`))
+		})
+	})
+	Describe("spiffe-csi-driver.nodeDriverRegistrar.securityContext", func() {
+		dsTmpl := "spire/charts/spiffe-csi-driver/templates/daemonset.yaml"
+		It("hardens the registrar without demanding a non-root image", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  spire:
+    recommendations:
+      enabled: true
+      strictMode: false
+`)
+			Expect(err).Should(Succeed())
+			registrar := objs[dsTmpl][strings.Index(objs[dsTmpl], "name: node-driver-registrar"):]
+			Expect(registrar).Should(ContainSubstring("allowPrivilegeEscalation: false"))
+			Expect(registrar).Should(ContainSubstring("runAsNonRoot: false"))
+			Expect(registrar).Should(ContainSubstring("readOnlyRootFilesystem: true"))
+			Expect(registrar).Should(ContainSubstring("type: RuntimeDefault"))
+			Expect(registrar).ShouldNot(ContainSubstring("privileged: true"))
+		})
+		It("takes other settings from values but forces the registrar to run as root", func() {
+			objs, err := ValueStringRender(chart, `
+spiffe-csi-driver:
+  nodeDriverRegistrar:
+    securityContext:
+      runAsUser: 1234
+      runAsNonRoot: true
+      readOnlyRootFilesystem: false
+`)
+			Expect(err).Should(Succeed())
+			registrar := objs[dsTmpl][strings.Index(objs[dsTmpl], "name: node-driver-registrar"):]
+			Expect(registrar).Should(ContainSubstring("readOnlyRootFilesystem: false"))
+			Expect(registrar).Should(ContainSubstring("runAsUser: 0"))
+			Expect(registrar).ShouldNot(ContainSubstring("runAsUser: 1234"))
+			Expect(registrar).Should(ContainSubstring("runAsNonRoot: false"))
+		})
+	})
+	Describe("spire-agent.scc", func() {
+		sccTmpl := "spire/charts/spire-agent/templates/scc-spire-agent.yaml"
+		It("grants only the host access the agent daemonset uses", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowHostPID: true"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowHostNetwork: true"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowHostDirVolumePlugin: true"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowHostIPC: false"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowHostPorts: false"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegedContainer: false"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegeEscalation: false"))
+		})
+		It("allows host ports only when an injected container declares one", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowHostPorts: false"))
+
+			objs, err = ValueStringRender(chart, `
+global:
+  openshift: true
+spire-agent:
+  extraContainers:
+  - name: sidecar
+    image: busybox
+    ports:
+    - containerPort: 9999
+      hostPort: 9999
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowHostPorts: true"))
+		})
+		It("keeps host IPC off, which no value can ask for", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowHostIPC: false"))
+		})
+		It("allows a privileged container when values ask for one", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+spire-agent:
+  securityContext:
+    privileged: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegedContainer: true"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegeEscalation: true"))
+		})
+		It("allows a privileged container when one agent profile asks for one", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+spire-agent:
+  agents:
+    gpu:
+      securityContext:
+        privileged: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegedContainer: true"))
+		})
+		It("allows escalation alone without allowing privileged containers", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+spire-agent:
+  securityContext:
+    allowPrivilegeEscalation: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegeEscalation: true"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegedContainer: false"))
+		})
+		It("allows a privileged container only for the tpmDirect attestor", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+spire-agent:
+  nodeAttestor:
+    k8sPSAT:
+      enabled: false
+    tpmDirect:
+      enabled: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegedContainer: true"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegeEscalation: true"))
 		})
 	})
 	Describe("spiffe-csi-driver.syncWave", func() {
@@ -983,6 +1205,179 @@ spire-server:
 			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
 			Expect(serverResource).Should(ContainSubstring("name: RODBPW"))
 			Expect(serverResource).Should(ContainSubstring("name: my-ro-db-secret"))
+		})
+	})
+	Describe("spire-server.controllerManager.cacheNamespaces", func() {
+		configMapTmpl := "spire/charts/spire-server/templates/controller-manager-configmap.yaml"
+		It("renders for the primary controller manager", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  controllerManager:
+    enabled: true
+    cacheNamespaces:
+      spire-server: {}
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[configMapTmpl]).Should(ContainSubstring("cacheNamespaces"))
+			Expect(objs[configMapTmpl]).Should(ContainSubstring("spire-server: {}"))
+		})
+		It("applies externalControllerManagers.defaults.cacheNamespaces to every generated cluster config", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  controllerManager:
+    enabled: false
+  externalControllerManagers:
+    enabled: true
+    defaults:
+      className: test-class
+      cacheNamespaces:
+        spire-server: {}
+    clusters:
+      child1: {}
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[configMapTmpl]).Should(ContainSubstring("cacheNamespaces"))
+			Expect(objs[configMapTmpl]).Should(ContainSubstring("spire-server: {}"))
+		})
+		It("lets a per-cluster override take precedence over externalControllerManagers.defaults", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  controllerManager:
+    enabled: false
+  externalControllerManagers:
+    enabled: true
+    defaults:
+      className: test-class
+      cacheNamespaces:
+        default-ns: {}
+    clusters:
+      child1:
+        cacheNamespaces:
+          override-ns: {}
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[configMapTmpl]).Should(ContainSubstring("override-ns: {}"))
+			Expect(objs[configMapTmpl]).ShouldNot(ContainSubstring("default-ns: {}"))
+		})
+	})
+	Describe("spire-server.controllerManager.tlsConfig", func() {
+		configMapTmpl := "spire/charts/spire-server/templates/controller-manager-configmap.yaml"
+		It("is omitted by default", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  controllerManager:
+    enabled: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[configMapTmpl]).ShouldNot(ContainSubstring("tlsConfig"))
+		})
+		It("renders into the primary controller manager config", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  controllerManager:
+    enabled: true
+    tlsConfig:
+      minTLSVersion: VersionTLS13
+      curvePreferences:
+        - X25519MLKEM768
+        - X25519
+`)
+			Expect(err).Should(Succeed())
+			var configMap struct {
+				Data map[string]string `json:"data"`
+			}
+			Expect(yamlutil.NewYAMLOrJSONDecoder(strings.NewReader(objs[configMapTmpl]), 4096).Decode(&configMap)).Should(Succeed())
+			var config struct {
+				TLSConfig struct {
+					MinTLSVersion    string   `json:"minTLSVersion"`
+					CipherSuites     []string `json:"cipherSuites"`
+					CurvePreferences []string `json:"curvePreferences"`
+				} `json:"tlsConfig"`
+			}
+			Expect(yamlutil.NewYAMLOrJSONDecoder(strings.NewReader(configMap.Data["controller-manager-config.yaml"]), 4096).Decode(&config)).Should(Succeed())
+			Expect(config.TLSConfig.MinTLSVersion).Should(Equal("VersionTLS13"))
+			Expect(config.TLSConfig.CipherSuites).Should(BeEmpty())
+			Expect(config.TLSConfig.CurvePreferences).Should(Equal([]string{"X25519MLKEM768", "X25519"}))
+		})
+		It("is omitted when the validating webhook is disabled", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  controllerManager:
+    enabled: true
+    validatingWebhookConfiguration:
+      enabled: false
+    tlsConfig:
+      minTLSVersion: VersionTLS13
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[configMapTmpl]).ShouldNot(ContainSubstring("tlsConfig"))
+		})
+	})
+	Describe("spire-server.externalControllerManagers.resources", func() {
+		serverTmpl := "spire/charts/spire-server/templates/server-resource.yaml"
+		It("uses local, external default, and per-cluster resources independently", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  controllerManager:
+    enabled: true
+    resources:
+      requests:
+        cpu: 25m
+        memory: 128Mi
+      limits:
+        cpu: 250m
+        memory: 256Mi
+  externalControllerManagers:
+    enabled: true
+    defaults:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 256Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+    clusters:
+      child-default: {}
+      child-override:
+        resources:
+          requests:
+            cpu: 200m
+          limits:
+            memory: 1Gi
+`)
+			Expect(err).Should(Succeed())
+			server := objs[serverTmpl]
+			controllerBlock := func(name string) string {
+				start := strings.Index(server, "- name: "+name+"\n")
+				Expect(start).To(BeNumerically(">=", 0))
+				end := strings.Index(server[start+1:], "\n        - name: spire-controller-manager")
+				if end < 0 {
+					return server[start:]
+				}
+				return server[start : start+end+1]
+			}
+			Expect(controllerBlock("spire-controller-manager")).Should(ContainSubstring(`resources:
+            limits:
+              cpu: 250m
+              memory: 256Mi
+            requests:
+              cpu: 25m
+              memory: 128Mi`))
+			Expect(controllerBlock("spire-controller-manager-child-default")).Should(ContainSubstring(`resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 50m
+              memory: 256Mi`))
+			Expect(controllerBlock("spire-controller-manager-child-override")).Should(ContainSubstring(`resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 256Mi`))
 		})
 	})
 	Describe("gatewayAPI.gateway.infrastructure", func() {

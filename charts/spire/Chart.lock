@@ -34,6 +34,6 @@ dependencies:
   version: 0.1.0
 - name: spire-identity-exchange
   repository: file://../spire-identity-exchange
-  version: 0.2.2
-digest: sha256:f2df7c3ec6008984f9987f181764c4773a8d8d2b3786656170f0dc45fd20b9d2
-generated: "2026-09-04T14:16:47.91006-07:00"
+  version: 0.2.3
+digest: sha256:5b4366fc6d0713afbd0fd435fdfdcaacdc02ce57874e81838fea4a3da127943d
+generated: "2026-09-30T06:35:27.987532-07:00"

@@ -2,6 +2,7 @@
 {{- $trustDomain := include "spire-lib.trust-domain" . }}
 {{- $fileTLS := or .Values.tls.rest.enabled .Values.tls.grpc.enabled }}
 {{- $extraCSIDrivers := include "spire-identity-exchange.extra-csi-drivers" . | fromJson }}
+{{- $kubeconfigVolumes := include "spire-identity-exchange.kubeconfig-volumes" . | fromJson }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -129,6 +130,11 @@ spec:
               mountPath: /spiffe-workload-apis/{{ $driver }}
               readOnly: true
             {{- end }}
+            {{- range $name, $kc := $kubeconfigVolumes }}
+            - name: {{ $kc.volume }}
+              mountPath: {{ include "spire-identity-exchange.kubeconfig-path" $name | dir }}
+              readOnly: true
+            {{- end }}
             {{- if $fileTLS }}
             - name: certdir
               mountPath: /secret
@@ -163,6 +169,14 @@ spec:
           csi:
             driver: "{{ $driver }}"
             readOnly: true
+        {{- end }}
+        {{- range $name, $kc := $kubeconfigVolumes }}
+        - name: {{ $kc.volume }}
+          secret:
+            secretName: {{ $kc.secretName | quote }}
+            items:
+              - key: {{ $kc.key | quote }}
+                path: kubeconfig
         {{- end }}
         {{- if $fileTLS }}
         - name: certdir
