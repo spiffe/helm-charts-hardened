@@ -1462,6 +1462,10 @@ var _ = Describe("spire-server.gcpWorkloadIdentity", func() {
 		_, err := ValueStringRender(chart, "spire-server:\n  gcpWorkloadIdentity:\n    enabled: true")
 		Expect(err).Should(MatchError(ContainSubstring("gcpWorkloadIdentity.providerResource is required")))
 	})
+	It("rejects secrets.gcp.applicationCredentials alongside it", func() {
+		_, err := ValueStringRender(chart, "spire-server:\n  secrets:\n    gcp:\n      applicationCredentials: x\n  gcpWorkloadIdentity:\n    enabled: true\n    providerResource: "+provider)
+		Expect(err).Should(MatchError(ContainSubstring("gcpWorkloadIdentity and secrets.gcp.applicationCredentials")))
+	})
 	It("renders nothing when disabled", func() {
 		objs, err := ValueStringRender(chart, "")
 		Expect(err).Should(Succeed())

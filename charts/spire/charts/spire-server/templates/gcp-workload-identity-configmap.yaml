@@ -1,5 +1,8 @@
 {{- with .Values.gcpWorkloadIdentity }}
 {{- if .enabled }}
+{{- if ne $.Values.secrets.gcp.applicationCredentials "" }}
+{{-   fail "Set only one of gcpWorkloadIdentity and secrets.gcp.applicationCredentials" }}
+{{- end }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
