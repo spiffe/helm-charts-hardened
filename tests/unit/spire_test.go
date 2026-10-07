@@ -2,6 +2,7 @@ package unit_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"strings"
 
@@ -132,6 +133,43 @@ var _ = Describe("Spire", func() {
 			Entry("default inheritance", "", "rsa-2048", ""),
 			Entry("custom CA inheritance with an empty override", "spire-server:\n  caKeyType: ec-p384\n  jwtKeyType: \"\"", "ec-p384", ""),
 			Entry("independent JWT key type", "spire-server:\n  caKeyType: rsa-4096\n  jwtKeyType: ec-p256", "rsa-4096", "ec-p256"),
+		)
+	})
+	Describe("telemetry.prometheus.tls", func() {
+		DescribeTable("renders the Prometheus TLS block", func(component, confKey, tlsValues string, expected any) {
+			values := fmt.Sprintf("%s:\n  telemetry:\n    prometheus:\n      enabled: true\n%s", component, tlsValues)
+			objs, err := ValueStringRender(chart, values)
+			Expect(err).Should(Succeed())
+			var configMap struct {
+				Data map[string]string `json:"data"`
+			}
+			decoder := yamlutil.NewYAMLOrJSONDecoder(strings.NewReader(objs["spire/charts/"+component+"/templates/configmap.yaml"]), 4096)
+			for configMap.Data[confKey] == "" {
+				Expect(decoder.Decode(&configMap)).Should(Succeed())
+			}
+			var config struct {
+				Telemetry []struct {
+					Prometheus []map[string]any `json:"Prometheus"`
+				} `json:"telemetry"`
+			}
+			Expect(json.Unmarshal([]byte(configMap.Data[confKey]), &config)).Should(Succeed())
+			Expect(config.Telemetry).Should(HaveLen(1))
+			Expect(config.Telemetry[0].Prometheus).Should(HaveLen(1))
+			prom := config.Telemetry[0].Prometheus[0]
+			if expected == nil {
+				Expect(prom).ShouldNot(HaveKey("tls"))
+			} else {
+				Expect(prom).Should(HaveKeyWithValue("tls", expected))
+			}
+		},
+			Entry("server default", "spire-server", "server.conf", "", nil),
+			Entry("agent default", "spire-agent", "agent.conf", "", nil),
+			Entry("server SVID with allowlist", "spire-server", "server.conf",
+				"      tls:\n        mode: spireSVID\n        authorizedSPIFFEIDs: [spiffe://example.org/ns/otel/sa/otel]",
+				[]any{map[string]any{"use_spire_svid": true, "authorized_spiffe_ids": []any{"spiffe://example.org/ns/otel/sa/otel"}}}),
+			Entry("agent SVID without allowlist", "spire-agent", "agent.conf",
+				"      tls:\n        mode: spireSVID",
+				[]any{map[string]any{"use_spire_svid": true}}),
 		)
 	})
 	Describe("spire-server.upstream.cert-manager", func() {
