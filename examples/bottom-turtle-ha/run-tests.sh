@@ -543,7 +543,7 @@ kubectl rollout status daemonset -n spire-system spire-ha-agent --timeout=1m
 kubectl rollout restart deployment -n spire-server spiffe-oidc-discovery-provider
 kubectl rollout status deployment -n spire-server spiffe-oidc-discovery-provider --timeout=1m
 kubectl wait -n spire-server --for=condition=ready pod -l "app.kubernetes.io/name=spiffe-oidc-discovery-provider" --field-selector=status.phase=Running --timeout=90s
-curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discovery.production.other/.well-known/openid-configuration" -s --fail
+curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discovery.production.other/.well-known/openid-configuration" -s --fail --retry 10 --retry-delay 3 --retry-all-errors
 
 # Install server side b
 helm upgrade --install --namespace spire-mgmt --values "${COMMON_TEST_YOUR_VALUES},${SCRIPTPATH}/spire-values.yaml" \
@@ -584,7 +584,7 @@ kubectl get ingress -A
 
 helm test --namespace spire-mgmt spire-a
 helm test --namespace spire-mgmt spire-b
-curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discovery.production.other/.well-known/openid-configuration" -s --fail
+curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discovery.production.other/.well-known/openid-configuration" -s --fail --retry 10 --retry-delay 3 --retry-all-errors
 
 kubectl apply -f "${SCRIPTPATH}/test-job.yaml"
 kubectl wait --for=condition=complete --timeout=60s job/test && \
@@ -678,7 +678,7 @@ kubectl rollout restart daemonset -n spire-system spire-ha-agent
 kubectl rollout status daemonset -n spire-system spire-ha-agent
 kubectl rollout restart deployment -n spire-server spiffe-oidc-discovery-provider
 kubectl rollout status deployment -n spire-server spiffe-oidc-discovery-provider --timeout=5m
-curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discovery.production.other/.well-known/openid-configuration" -s --fail
+curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discovery.production.other/.well-known/openid-configuration" -s --fail --retry 10 --retry-delay 3 --retry-all-errors
 
 if [ "${BROKER}" -eq 1 ]; then
   # Verify the other.invalid federated trust bundles still serve with only side b running.
