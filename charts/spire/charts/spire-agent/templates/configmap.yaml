@@ -214,6 +214,25 @@ plugins:
         {{- if eq (include "spire-agent.should-set-node-name-env" .) "true" }}
         node_name_env: "KUBELET_ADDR"
         {{- end }}
+        {{- with .Values.workloadAttestors.k8s.sigstore }}
+        {{- if .enabled }}
+        sigstore:
+          {{- with .allowedIdentities }}
+          allowed_identities:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .skippedImages }}
+          skipped_images:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .rekorURL }}
+          rekor_url: {{ . | quote }}
+          {{- end }}
+          ignore_tlog: {{ .ignoreTLog }}
+          ignore_attestations: {{ .ignoreAttestations }}
+          ignore_sct: {{ .ignoreSCT }}
+        {{- end }}
+        {{- end }}
         {{- if or .Values.sockets.broker.enabled .Values.brokerAPI.tcp.enabled }}
         experimental:
           broker:
