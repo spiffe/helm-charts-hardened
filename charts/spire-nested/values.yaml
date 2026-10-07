@@ -355,8 +355,6 @@ spireIdentityExchange:
         ## @param spireIdentityExchange.spiffe.grpc.gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
         sectionName: ""
 
-## subcharts
-
 ## @section Extra manifests
 ##
 ## @param extraManifests [array] Extra objects to deploy with the release. Each entry is a map or a string and renders through tpl.
@@ -366,6 +364,8 @@ extraManifests: []
 #   metadata:
 #     name: spire-server-allow-agents
 #     namespace: '{{ .Release.Namespace }}'
+
+## subcharts
 
 ## @section Spire agent parameters
 ## Parameter values for Spire agent
