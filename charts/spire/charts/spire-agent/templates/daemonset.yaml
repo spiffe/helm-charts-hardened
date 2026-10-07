@@ -38,10 +38,14 @@
 {{- $sigstore := .Values.workloadAttestors.k8s.sigstore }}
 {{- $sigstoreSecret := "" }}
 {{- if $sigstore.enabled }}
-{{- $sigstoreSecret = $sigstore.registryAuth.pullSecret }}
+{{- $mode := $sigstore.registryAuth.mode }}
+{{- if eq $mode "pullSecret" }}
+{{- $sigstoreSecret = required "sigstore.registryAuth.pullSecret is required in pullSecret mode" $sigstore.registryAuth.pullSecret }}
+{{- else if eq $mode "podPullSecret" }}
 {{- $podSecrets := coalesce .Values.imagePullSecrets .Values.global.imagePullSecrets }}
-{{- if and (not $sigstoreSecret) $sigstore.registryAuth.usePodPullSecret $podSecrets }}
-{{- $sigstoreSecret = (first $podSecrets).name }}
+{{- $sigstoreSecret = (first (required "sigstore.registryAuth.mode podPullSecret needs imagePullSecrets" $podSecrets)).name }}
+{{- else if ne $mode "none" }}
+{{- fail (printf "sigstore.registryAuth.mode must be none, podPullSecret or pullSecret, got %q" $mode) }}
 {{- end }}
 {{- end }}
 {{- if (and (eq $dnsPolicy "") $hostNetwork) }}

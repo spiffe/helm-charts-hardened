@@ -266,14 +266,14 @@ spire-agent:
       sigstore:
         enabled: true
         registryAuth:
-          usePodPullSecret: true
+          mode: podPullSecret
 `)
 			Expect(err).Should(Succeed())
 			ds := objs["spire/charts/spire-agent/templates/daemonset.yaml"]
 			Expect(ds).Should(ContainSubstring("DOCKER_CONFIG"))
 			Expect(ds).Should(ContainSubstring(`secretName: "regcred"`))
 		})
-		It("prefers the named pull secret", func() {
+		It("mounts the named pull secret", func() {
 			objs, err := ValueStringRender(chart, `
 spire-agent:
   imagePullSecrets:
@@ -283,11 +283,23 @@ spire-agent:
       sigstore:
         enabled: true
         registryAuth:
+          mode: pullSecret
           pullSecret: sigstore-cred
-          usePodPullSecret: true
 `)
 			Expect(err).Should(Succeed())
 			Expect(objs["spire/charts/spire-agent/templates/daemonset.yaml"]).Should(ContainSubstring(`secretName: "sigstore-cred"`))
+		})
+		It("rejects an unknown registry auth mode", func() {
+			_, err := ValueStringRender(chart, `
+spire-agent:
+  workloadAttestors:
+    k8s:
+      sigstore:
+        enabled: true
+        registryAuth:
+          mode: bogus
+`)
+			Expect(err).Should(MatchError(ContainSubstring("registryAuth.mode")))
 		})
 	})
 	Describe("spire-agent.customPlugin.tpm", func() {

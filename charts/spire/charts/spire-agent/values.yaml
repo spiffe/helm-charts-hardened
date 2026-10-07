@@ -261,17 +261,17 @@ workloadAttestors:
       skippedImages: []
       ## @param workloadAttestors.k8s.sigstore.rekorURL Rekor transparency log URL. Empty uses the public Rekor instance.
       rekorURL: ""
-      ## @param workloadAttestors.k8s.sigstore.ignoreTlog Skip transparency log verification
-      ignoreTlog: false
+      ## @param workloadAttestors.k8s.sigstore.ignoreTLog Skip transparency log verification
+      ignoreTLog: false
       ## @param workloadAttestors.k8s.sigstore.ignoreAttestations Skip image attestation verification
       ignoreAttestations: false
       ## @param workloadAttestors.k8s.sigstore.ignoreSCT Skip Signed Certificate Timestamp verification
       ignoreSCT: false
       registryAuth:
-        ## @param workloadAttestors.k8s.sigstore.registryAuth.pullSecret Name of a dockerconfigjson secret used to read signatures from private registries
+        ## @param workloadAttestors.k8s.sigstore.registryAuth.mode Registry auth for reading signatures: `none`, `podPullSecret` (first agent imagePullSecrets entry) or `pullSecret`
+        mode: none
+        ## @param workloadAttestors.k8s.sigstore.registryAuth.pullSecret Name of a dockerconfigjson secret, used in `pullSecret` mode
         pullSecret: ""
-        ## @param workloadAttestors.k8s.sigstore.registryAuth.usePodPullSecret Use the first agent imagePullSecrets entry when pullSecret is empty
-        usePodPullSecret: false
     brokerAPI:
       ## @param workloadAttestors.k8s.brokerAPI.accessPolicy Which access policy to use. Supported values: auto, enforced, permissive. auto uses permissive while all broker access is node local, and enforced otherwise.
       accessPolicy: auto

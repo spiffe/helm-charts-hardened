@@ -228,7 +228,7 @@ plugins:
           {{- with .rekorURL }}
           rekor_url: {{ . | quote }}
           {{- end }}
-          ignore_tlog: {{ .ignoreTlog }}
+          ignore_tlog: {{ .ignoreTLog }}
           ignore_attestations: {{ .ignoreAttestations }}
           ignore_sct: {{ .ignoreSCT }}
         {{- end }}
