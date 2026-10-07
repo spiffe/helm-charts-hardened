@@ -477,6 +477,31 @@ keyManager:
     accessKeyID: ""
     ## @param keyManager.awsKMS.secretAccessKey [nullable] Secret access key for the AWS account.
     secretAccessKey: ""
+  gcpKMS:
+    ## @param keyManager.gcpKMS.enabled Flag to enable the GCP KMS key manager
+    enabled: false
+    ## @param keyManager.gcpKMS.keyRing Key ring for the keys, in the form projects/<project>/locations/<location>/keyRings/<keyRing>
+    keyRing: ""
+    keyIdentifierFile:
+      ## @param keyManager.gcpKMS.keyIdentifierFile.enabled Store the key identifier in a file in persistent storage
+      enabled: false
+    keyIdentifierValue:
+      ## @param keyManager.gcpKMS.keyIdentifierValue.enabled Use a static key identifier value
+      enabled: false
+      ## @param keyManager.gcpKMS.keyIdentifierValue.identifier Static identifier for the SPIRE server instance
+      identifier: ""
+    ## @extra keyManager.gcpKMS.keyPolicy IAM policy to set on created keys. Without one, the plugin applies its default policy.
+    keyPolicy:
+      ## @param keyManager.gcpKMS.keyPolicy.policy [nullable] Key policy in JSON format
+      policy: ""
+      ## @param keyManager.gcpKMS.keyPolicy.existingConfigMap [nullable] Name of a ConfigMap with a `policy.json` key
+      existingConfigMap: ""
+    ## @extra keyManager.gcpKMS.serviceAccountKey Service account key. Without one, the plugin uses Application Default Credentials.
+    serviceAccountKey:
+      ## @param keyManager.gcpKMS.serviceAccountKey.json [nullable] Service account key in JSON format, stored in a Secret
+      json: ""
+      ## @param keyManager.gcpKMS.serviceAccountKey.existingSecret [nullable] Name of a Secret with a `service-account.json` key
+      existingSecret: ""
 
 upstreamAuthority:
   disk:

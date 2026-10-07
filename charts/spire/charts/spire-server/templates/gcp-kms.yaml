@@ -1,0 +1,22 @@
+{{- with .Values.keyManager.gcpKMS }}
+{{- if and .enabled (ne .keyPolicy.policy "") }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spire-server.fullname" $ }}-gcp-kms
+  namespace: {{ include "spire-server.namespace" $ }}
+data:
+  policy.json: |
+    {{- .keyPolicy.policy | nindent 4 }}
+{{- end }}
+{{- if and .enabled (ne .serviceAccountKey.json "") }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "spire-server.fullname" $ }}-gcp-kms
+  namespace: {{ include "spire-server.namespace" $ }}
+data:
+  service-account.json: {{ .serviceAccountKey.json | b64enc }}
+{{- end }}
+{{- end }}

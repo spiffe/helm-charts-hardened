@@ -476,6 +476,18 @@ spec:
               mountPath: /run/spire/upstream_agent
               readOnly: true
             {{ end }}
+            {{- with .Values.keyManager.gcpKMS }}
+            {{- if and .enabled (or (ne .keyPolicy.policy "") (ne .keyPolicy.existingConfigMap "")) }}
+            - name: gcp-kms-key-policy
+              mountPath: /run/spire/gcp-kms/policy
+              readOnly: true
+            {{- end }}
+            {{- if and .enabled (or (ne .serviceAccountKey.json "") (ne .serviceAccountKey.existingSecret "")) }}
+            - name: gcp-kms-credentials
+              mountPath: /run/spire/gcp-kms/credentials
+              readOnly: true
+            {{- end }}
+            {{- end }}
             {{- with .Values.keyManager.awsKMS }}
             {{- if and (eq (.enabled | toString) "true") (or (ne .keyPolicy.policy "") (ne .keyPolicy.existingConfigMap "")) }}
             - name: aws-kms-key-policy
@@ -749,6 +761,24 @@ spec:
           csi:
             driver: {{ .Values.upstreamAuthority.spire.upstreamDriver }}
             readOnly: true
+        {{- end }}
+        {{- with .Values.keyManager.gcpKMS }}
+        {{- if and .enabled (or (ne .keyPolicy.policy "") (ne .keyPolicy.existingConfigMap "")) }}
+        - name: gcp-kms-key-policy
+          configMap:
+            name: {{ .keyPolicy.existingConfigMap | default (printf "%s-gcp-kms" $fullname) }}
+            items:
+              - key: policy.json
+                path: policy.json
+        {{- end }}
+        {{- if and .enabled (or (ne .serviceAccountKey.json "") (ne .serviceAccountKey.existingSecret "")) }}
+        - name: gcp-kms-credentials
+          secret:
+            secretName: {{ .serviceAccountKey.existingSecret | default (printf "%s-gcp-kms" $fullname) }}
+            items:
+              - key: service-account.json
+                path: service-account.json
+        {{- end }}
         {{- end }}
         {{- with .Values.keyManager.awsKMS }}
         {{- if and (eq (.enabled | toString) "true") (or (ne .keyPolicy.policy "") (ne .keyPolicy.existingConfigMap "")) }}
