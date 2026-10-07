@@ -8,6 +8,8 @@ runAsUser:
   type: RunAsAny
 seLinuxContext:
   type: RunAsAny
+seccompProfiles:
+  - runtime/default
 supplementalGroups:
   type: RunAsAny
 users:

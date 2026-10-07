@@ -2,6 +2,7 @@ package unit_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"strings"
 
@@ -134,6 +135,43 @@ var _ = Describe("Spire", func() {
 			Entry("independent JWT key type", "spire-server:\n  caKeyType: rsa-4096\n  jwtKeyType: ec-p256", "rsa-4096", "ec-p256"),
 		)
 	})
+	Describe("telemetry.prometheus.tls", func() {
+		DescribeTable("renders the Prometheus TLS block", func(component, confKey, tlsValues string, expected any) {
+			values := fmt.Sprintf("%s:\n  telemetry:\n    prometheus:\n      enabled: true\n%s", component, tlsValues)
+			objs, err := ValueStringRender(chart, values)
+			Expect(err).Should(Succeed())
+			var configMap struct {
+				Data map[string]string `json:"data"`
+			}
+			decoder := yamlutil.NewYAMLOrJSONDecoder(strings.NewReader(objs["spire/charts/"+component+"/templates/configmap.yaml"]), 4096)
+			for configMap.Data[confKey] == "" {
+				Expect(decoder.Decode(&configMap)).Should(Succeed())
+			}
+			var config struct {
+				Telemetry []struct {
+					Prometheus []map[string]any `json:"Prometheus"`
+				} `json:"telemetry"`
+			}
+			Expect(json.Unmarshal([]byte(configMap.Data[confKey]), &config)).Should(Succeed())
+			Expect(config.Telemetry).Should(HaveLen(1))
+			Expect(config.Telemetry[0].Prometheus).Should(HaveLen(1))
+			prom := config.Telemetry[0].Prometheus[0]
+			if expected == nil {
+				Expect(prom).ShouldNot(HaveKey("tls"))
+			} else {
+				Expect(prom).Should(HaveKeyWithValue("tls", expected))
+			}
+		},
+			Entry("server default", "spire-server", "server.conf", "", nil),
+			Entry("agent default", "spire-agent", "agent.conf", "", nil),
+			Entry("server SVID with allowlist", "spire-server", "server.conf",
+				"      tls:\n        mode: spireSVID\n        authorizedSPIFFEIDs: [spiffe://example.org/ns/otel/sa/otel]",
+				[]any{map[string]any{"use_spire_svid": true, "authorized_spiffe_ids": []any{"spiffe://example.org/ns/otel/sa/otel"}}}),
+			Entry("agent SVID without allowlist", "spire-agent", "agent.conf",
+				"      tls:\n        mode: spireSVID",
+				[]any{map[string]any{"use_spire_svid": true}}),
+		)
+	})
 	Describe("spire-server.upstream.cert-manager", func() {
 		It("issuerName when set is passed through", func() {
 			objs, err := ValueStringRender(chart, `
@@ -247,6 +285,59 @@ spire-server:
 			Expect(notes).Should(ContainSubstring("\"ejbca\": {"))
 			Expect(notes).Should(ContainSubstring("SpireIntermediateCA"))
 			Expect(notes).Should(ContainSubstring("ca_cert_path"))
+		})
+	})
+	Describe("spire-agent.workloadAttestors.k8s.sigstore", func() {
+		It("omits sigstore by default", func() {
+			objs, err := ValueStringRender(chart, ``)
+			Expect(err).Should(Succeed())
+			Expect(objs["spire/charts/spire-agent/templates/configmap.yaml"]).ShouldNot(ContainSubstring("sigstore"))
+			Expect(objs["spire/charts/spire-agent/templates/daemonset.yaml"]).ShouldNot(ContainSubstring("DOCKER_CONFIG"))
+		})
+		It("mounts the pod pull secret for registry auth", func() {
+			objs, err := ValueStringRender(chart, `
+spire-agent:
+  imagePullSecrets:
+    - name: regcred
+  workloadAttestors:
+    k8s:
+      sigstore:
+        enabled: true
+        registryAuth:
+          mode: podPullSecret
+`)
+			Expect(err).Should(Succeed())
+			ds := objs["spire/charts/spire-agent/templates/daemonset.yaml"]
+			Expect(ds).Should(ContainSubstring("DOCKER_CONFIG"))
+			Expect(ds).Should(ContainSubstring(`secretName: "regcred"`))
+		})
+		It("mounts the named pull secret", func() {
+			objs, err := ValueStringRender(chart, `
+spire-agent:
+  imagePullSecrets:
+    - name: regcred
+  workloadAttestors:
+    k8s:
+      sigstore:
+        enabled: true
+        registryAuth:
+          mode: pullSecret
+          pullSecret: sigstore-cred
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs["spire/charts/spire-agent/templates/daemonset.yaml"]).Should(ContainSubstring(`secretName: "sigstore-cred"`))
+		})
+		It("rejects an unknown registry auth mode", func() {
+			_, err := ValueStringRender(chart, `
+spire-agent:
+  workloadAttestors:
+    k8s:
+      sigstore:
+        enabled: true
+        registryAuth:
+          mode: bogus
+`)
+			Expect(err).Should(MatchError(ContainSubstring("registryAuth.mode")))
 		})
 	})
 	Describe("spire-agent.customPlugin.tpm", func() {
