@@ -252,6 +252,16 @@ telemetry:
   - Prometheus:
       - host: {{ .Values.telemetry.prometheus.host }}
         port: {{ .Values.telemetry.prometheus.port }}
+{{- with .Values.telemetry.prometheus.tls }}
+{{- if .useSpireSvid }}
+        tls:
+          - use_spire_svid: true
+            {{- with .authorizedSpiffeIds }}
+            authorized_spiffe_ids:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+{{- end }}
+{{- end }}
 {{- end }}
 
 {{- if .Values.telemetry.datadog.enabled }}
