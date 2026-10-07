@@ -333,6 +333,11 @@ telemetry:
     port: 9988
     ## @param telemetry.prometheus.host Host for prometheus metrics
     host: "0.0.0.0"
+    tls:
+      ## @param telemetry.prometheus.tls.mode Metrics endpoint TLS mode: `disabled`, or `spireSVID` to serve TLS with the SPIRE SVID
+      mode: disabled
+      ## @param telemetry.prometheus.tls.authorizedSPIFFEIDs [array] SPIFFE IDs allowed to scrape the metrics endpoint; empty allows any client
+      authorizedSPIFFEIDs: []
     podMonitor:
       ## @param telemetry.prometheus.podMonitor.enabled Enable podMonitor for prometheus
       enabled: false
