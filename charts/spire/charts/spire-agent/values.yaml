@@ -252,6 +252,26 @@ workloadAttestors:
     useNewContainerLocator: true
     ## @param workloadAttestors.k8s.verboseContainerLocatorLogs If true, enables verbose logging of mountinfo and cgroup information used to locate containers. Defaults to false
     verboseContainerLocatorLogs: false
+    sigstore:
+      ## @param workloadAttestors.k8s.sigstore.enabled Enables verification of container image signatures and attestations with Sigstore
+      enabled: false
+      ## @param workloadAttestors.k8s.sigstore.allowedIdentities [object] Maps OIDC provider URIs to lists of allowed subject regexes. Empty accepts any issuer.
+      allowedIdentities: {}
+      ## @param workloadAttestors.k8s.sigstore.skippedImages [array] Image IDs to skip during signature verification
+      skippedImages: []
+      ## @param workloadAttestors.k8s.sigstore.rekorURL Rekor transparency log URL. Empty uses the public Rekor instance.
+      rekorURL: ""
+      ## @param workloadAttestors.k8s.sigstore.ignoreTLog Skip transparency log verification
+      ignoreTLog: false
+      ## @param workloadAttestors.k8s.sigstore.ignoreAttestations Skip image attestation verification
+      ignoreAttestations: false
+      ## @param workloadAttestors.k8s.sigstore.ignoreSCT Skip Signed Certificate Timestamp verification
+      ignoreSCT: false
+      registryAuth:
+        ## @param workloadAttestors.k8s.sigstore.registryAuth.mode Registry auth for reading signatures: `none`, `podPullSecret` (first agent imagePullSecrets entry) or `pullSecret`
+        mode: none
+        ## @param workloadAttestors.k8s.sigstore.registryAuth.pullSecret Name of a dockerconfigjson secret, used in `pullSecret` mode
+        pullSecret: ""
     brokerAPI:
       ## @param workloadAttestors.k8s.brokerAPI.accessPolicy Which access policy to use. Supported values: auto, enforced, permissive. auto uses permissive while all broker access is node local, and enforced otherwise.
       accessPolicy: auto
