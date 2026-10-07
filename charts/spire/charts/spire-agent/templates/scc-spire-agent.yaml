@@ -24,6 +24,16 @@
 {{-     end }}
 {{-   end }}
 {{- end }}
+{{- $seccomp := list "runtime/default" }}
+{{- range $cfg := $cfgs }}
+{{-   range $sc := list (dig "securityContext" "seccompProfile" dict $cfg) (dig "podSecurityContext" "seccompProfile" dict $cfg) }}
+{{-     if eq (dig "type" "" $sc) "Localhost" }}
+{{-       $seccomp = append $seccomp (printf "localhost/%s" $sc.localhostProfile) }}
+{{-     else if eq (dig "type" "" $sc) "Unconfined" }}
+{{-       $seccomp = append $seccomp "unconfined" }}
+{{-     end }}
+{{-   end }}
+{{- end }}
 apiVersion: security.openshift.io/v1
 kind: SecurityContextConstraints
 metadata:
@@ -57,5 +67,9 @@ fsGroup:
 groups: []
 priority: null
 requiredDropCapabilities: null
+seccompProfiles:
+{{- range $seccomp | uniq }}
+  - {{ . }}
+{{- end }}
 
 {{ end }}
