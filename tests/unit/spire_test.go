@@ -1298,6 +1298,24 @@ spire-server:
 			Expect(serverResource).Should(ContainSubstring("name: my-ro-db-secret"))
 		})
 	})
+	Describe("spire-server.controllerManager metrics", func() {
+		configMapTmpl := "spire/charts/spire-server/templates/controller-manager-configmap.yaml"
+		It("disables metrics when prometheus is off", func() {
+			objs, err := ValueStringRender(chart, ``)
+			Expect(err).Should(Succeed())
+			Expect(objs[configMapTmpl]).Should(ContainSubstring(`bindAddress: "0"`))
+		})
+		It("binds metrics when prometheus is on", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  telemetry:
+    prometheus:
+      enabled: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[configMapTmpl]).Should(ContainSubstring("bindAddress: 0.0.0.0:8082"))
+		})
+	})
 	Describe("spire-server.controllerManager.cacheNamespaces", func() {
 		configMapTmpl := "spire/charts/spire-server/templates/controller-manager-configmap.yaml"
 		It("renders for the primary controller manager", func() {
