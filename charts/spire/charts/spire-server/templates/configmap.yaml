@@ -697,10 +697,10 @@ telemetry:
       - host: "0.0.0.0"
         port: 9988
 {{- with .Values.telemetry.prometheus.tls }}
-{{- if .useSpireSvid }}
+{{- if eq .mode "spireSVID" }}
         tls:
           - use_spire_svid: true
-            {{- with .authorizedSpiffeIds }}
+            {{- with .authorizedSPIFFEIDs }}
             authorized_spiffe_ids:
               {{- toYaml . | nindent 14 }}
             {{- end }}

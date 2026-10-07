@@ -1087,10 +1087,10 @@ telemetry:
     ## @param telemetry.prometheus.enabled Flag to enable prometheus monitoring
     enabled: false
     tls:
-      ## @param telemetry.prometheus.tls.useSpireSvid Serve the metrics endpoint over TLS with the SPIRE SVID
-      useSpireSvid: false
-      ## @param telemetry.prometheus.tls.authorizedSpiffeIds [array] SPIFFE IDs allowed to scrape the metrics endpoint; empty allows any client
-      authorizedSpiffeIds: []
+      ## @param telemetry.prometheus.tls.mode Metrics endpoint TLS mode: `disabled`, or `spireSVID` to serve TLS with the SPIRE SVID
+      mode: disabled
+      ## @param telemetry.prometheus.tls.authorizedSPIFFEIDs [array] SPIFFE IDs allowed to scrape the metrics endpoint; empty allows any client
+      authorizedSPIFFEIDs: []
     podMonitor:
       ## @param telemetry.prometheus.podMonitor.enabled Enable podMonitor for prometheus
       enabled: false

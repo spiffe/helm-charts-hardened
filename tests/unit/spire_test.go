@@ -165,10 +165,10 @@ var _ = Describe("Spire", func() {
 			Entry("server default", "spire-server", "server.conf", "", nil),
 			Entry("agent default", "spire-agent", "agent.conf", "", nil),
 			Entry("server SVID with allowlist", "spire-server", "server.conf",
-				"      tls:\n        useSpireSvid: true\n        authorizedSpiffeIds: [spiffe://example.org/ns/otel/sa/otel]",
+				"      tls:\n        mode: spireSVID\n        authorizedSPIFFEIDs: [spiffe://example.org/ns/otel/sa/otel]",
 				[]any{map[string]any{"use_spire_svid": true, "authorized_spiffe_ids": []any{"spiffe://example.org/ns/otel/sa/otel"}}}),
 			Entry("agent SVID without allowlist", "spire-agent", "agent.conf",
-				"      tls:\n        useSpireSvid: true",
+				"      tls:\n        mode: spireSVID",
 				[]any{map[string]any{"use_spire_svid": true}}),
 		)
 	})
