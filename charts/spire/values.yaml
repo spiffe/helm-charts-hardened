@@ -145,6 +145,16 @@ global:
 #        namespace: "kube-prometheus-system"
 #        labels: {}
 
+## @section Extra manifests
+##
+## @param extraManifests [array] Extra objects to deploy with the release. Each entry is a map or a string and renders through tpl.
+extraManifests: []
+# - apiVersion: networking.k8s.io/v1
+#   kind: NetworkPolicy
+#   metadata:
+#     name: spire-server-allow-agents
+#     namespace: '{{ .Release.Namespace }}'
+
 ## @section Gateway API parameters
 ## Configuration for the optional shared Gateway object managed by this umbrella
 ## chart. The Gateway is rendered here (rather than in a subchart) so it exists

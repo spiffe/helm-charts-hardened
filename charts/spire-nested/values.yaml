@@ -357,6 +357,16 @@ spireIdentityExchange:
 
 ## subcharts
 
+## @section Extra manifests
+##
+## @param extraManifests [array] Extra objects to deploy with the release. Each entry is a map or a string and renders through tpl.
+extraManifests: []
+# - apiVersion: networking.k8s.io/v1
+#   kind: NetworkPolicy
+#   metadata:
+#     name: spire-server-allow-agents
+#     namespace: '{{ .Release.Namespace }}'
+
 ## @section Spire agent parameters
 ## Parameter values for Spire agent
 ##

@@ -1398,3 +1398,46 @@ gatewayAPI:
 		})
 	})
 })
+
+var _ = Describe("extraManifests", func() {
+	values := `
+extraManifests:
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: "{{ .Release.Name }}-extra"
+      namespace: "{{ .Release.Namespace }}"
+  - |
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: {{ .Release.Name }}-string
+`
+	DescribeTable("renders map and string entries through tpl", func(path string) {
+		chart, err := helmloader.Load(path)
+		Expect(err).Should(Succeed())
+		objs, err := ValueStringRender(chart, values)
+		Expect(err).Should(Succeed())
+		var names []string
+		for _, rendered := range objs {
+			decoder := yamlutil.NewYAMLOrJSONDecoder(strings.NewReader(rendered), 4096)
+			for {
+				var doc struct {
+					Kind     string `json:"kind"`
+					Metadata struct {
+						Name      string `json:"name"`
+						Namespace string `json:"namespace"`
+					} `json:"metadata"`
+				}
+				if decoder.Decode(&doc) != nil {
+					break
+				}
+				names = append(names, doc.Metadata.Name+"/"+doc.Metadata.Namespace)
+			}
+		}
+		Expect(names).Should(ContainElements("spire-extra/spire-server", "spire-string/"))
+	},
+		Entry("spire", "../../charts/spire"),
+		Entry("spire-nested", "../../charts/spire-nested"),
+	)
+})
