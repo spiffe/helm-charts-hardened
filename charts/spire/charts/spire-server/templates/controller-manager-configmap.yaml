@@ -44,7 +44,7 @@ metadata:
   labels:
     {{- include "spire-server.labels" . | nindent 4 }}
 metrics:
-{{- if or (dig "telemetry" "prometheus" "enabled" .Values.telemetry.prometheus.enabled .Values.global) (and (dig "spire" "recommendations" "enabled" false .Values.global) (dig "spire" "recommendations" "prometheus" true .Values.global)) }}
+{{- if or (dig "telemetry" "prometheus" "enabled" .Values.telemetry.prometheus.enabled .Values.global) (and .Values.global.spire.recommendations.enabled .Values.global.spire.recommendations.prometheus) }}
   bindAddress: 0.0.0.0:{{ $promPort }}
 {{- else }}
   bindAddress: "0"
