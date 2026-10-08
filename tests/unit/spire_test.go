@@ -287,6 +287,33 @@ spire-server:
 			Expect(notes).Should(ContainSubstring("ca_cert_path"))
 		})
 	})
+	Describe("grafanaDashboards", func() {
+		It("renders the bundled dashboard when enabled", func() {
+			objs, err := ValueStringRender(chart, `
+grafanaDashboards:
+  spireServer:
+    enabled: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs["spire/templates/grafana-dashboard.yaml"]).Should(ContainSubstring(`"uid": "uid_spire_dashboard"`))
+			Expect(objs["spire/templates/grafana-dashboard.yaml"]).Should(ContainSubstring(`"legendFormat": "{{version}}"`))
+			Expect(objs["spire/templates/grafana-dashboard.yaml"]).Should(ContainSubstring(`"name": "server"`))
+			Expect(objs["spire/templates/grafana-dashboard.yaml"]).Should(ContainSubstring(`spire_server_started{spire_server=~\"$server\"}`))
+		})
+		It("renders from spire-nested in haAgentCommon mode", func() {
+			nested, err := helmloader.Load("../../charts/spire-nested")
+			Expect(err).Should(Succeed())
+			objs, err := ValueStringRender(nested, `
+tags:
+  haAgentCommon: true
+grafanaDashboards:
+  spireServer:
+    enabled: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs["spire-nested/templates/grafana-dashboard.yaml"]).Should(ContainSubstring(`"uid": "uid_spire_dashboard"`))
+		})
+	})
 	Describe("spire-agent.workloadAttestors.k8s.sigstore", func() {
 		It("omits sigstore by default", func() {
 			objs, err := ValueStringRender(chart, ``)
@@ -1172,6 +1199,23 @@ spire-server:
 	Describe("spire-server.telemetry.podMonitor controller-manager ports", func() {
 		podMonitorTmpl := "spire/charts/spire-server/templates/podmonitor.yaml"
 		serverTmpl := "spire/charts/spire-server/templates/server-resource.yaml"
+
+		It("labels every endpoint with the server instance", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  controllerManager:
+    enabled: true
+  telemetry:
+    prometheus:
+      enabled: true
+      podMonitor:
+        enabled: true
+`)
+			Expect(err).Should(Succeed())
+			podMonitor := objs[podMonitorTmpl]
+			Expect(strings.Count(podMonitor, "targetLabel: spire_server")).Should(Equal(strings.Count(podMonitor, "- port: ")))
+			Expect(podMonitor).Should(ContainSubstring("replacement: spire-server"))
+		})
 
 		It("targets the real main controller-manager port name, not the legacy prom-cm", func() {
 			objs, err := ValueStringRender(chart, `

@@ -355,6 +355,20 @@ spireIdentityExchange:
         ## @param spireIdentityExchange.spiffe.grpc.gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
         sectionName: ""
 
+## @section Grafana dashboard parameters
+##
+grafanaDashboards:
+  ## @param grafanaDashboards.namespace Namespace for the dashboard ConfigMaps. Defaults to the release namespace.
+  namespace: ""
+  ## @param grafanaDashboards.labels [object] Labels the Grafana sidecar uses to discover dashboards
+  labels:
+    grafana_dashboard: "1"
+  ## @param grafanaDashboards.annotations [object] Annotations for the dashboard ConfigMaps, e.g. grafana_folder
+  annotations: {}
+  spireServer:
+    ## @param grafanaDashboards.spireServer.enabled Render a ConfigMap holding the SPIRE Server Grafana dashboard for the Grafana dashboard sidecar to load
+    enabled: false
+
 ## @section Extra manifests
 ##
 ## @param extraManifests [array] Extra objects to deploy with the release. Each entry is a map or a string and renders through tpl.

@@ -329,6 +329,15 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `spireIdentityExchange.spiffe.grpc.gatewayAPI.parentRefs`                | parentRefs used when ListenerSet management is disabled (direct attach)                                                                                                                                                                | `[]`                                  |
 | `spireIdentityExchange.spiffe.grpc.gatewayAPI.sectionName`               | Listener sectionName override when attaching directly to a Gateway                                                                                                                                                                     | `""`                                  |
 
+### Grafana dashboard parameters
+
+| Name                                    | Description                                                                                             | Value   |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------- |
+| `grafanaDashboards.namespace`           | Namespace for the dashboard ConfigMaps. Defaults to the release namespace.                              | `""`    |
+| `grafanaDashboards.labels`              | Labels the Grafana sidecar uses to discover dashboards                                                  | `{}`    |
+| `grafanaDashboards.annotations`         | Annotations for the dashboard ConfigMaps, e.g. grafana_folder                                           | `{}`    |
+| `grafanaDashboards.spireServer.enabled` | Render a ConfigMap holding the SPIRE Server Grafana dashboard for the Grafana dashboard sidecar to load | `false` |
+
 ### Extra manifests
 
 | Name             | Description                                                                                        | Value |
