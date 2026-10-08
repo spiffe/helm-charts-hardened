@@ -1531,7 +1531,7 @@ var _ = Describe("spire-server.keyManager.azureKeyVault", func() {
 		Expect(objs["spire/charts/spire-server/templates/cloud-secret.yaml"]).ShouldNot(ContainSubstring("kind: Secret"))
 	})
 	It("stores an inline app secret in the cloud Secret", func() {
-		objs, err := ValueStringRender(chart, base+"      keyVaultURI: u\n      appSecret: s3cret\n")
+		objs, err := ValueStringRender(chart, base+"      keyVaultURI: u\n      keyIdentifierFile:\n        enabled: true\n      appSecret: s3cret\n")
 		Expect(err).Should(Succeed())
 		Expect(objs["spire/charts/spire-server/templates/cloud-secret.yaml"]).Should(ContainSubstring("AZURE_KEY_VAULT_APP_SECRET:"))
 		Expect(objs["spire/charts/spire-server/templates/server-resource.yaml"]).Should(ContainSubstring("name: spire-server-cloud\n                key: AZURE_KEY_VAULT_APP_SECRET"))
@@ -1543,5 +1543,18 @@ var _ = Describe("spire-server.keyManager.azureKeyVault", func() {
 	It("rejects both key identifier options", func() {
 		_, err := ValueStringRender(chart, base+"      keyVaultURI: u\n      keyIdentifierFile:\n        enabled: true\n      keyIdentifierValue:\n        enabled: true\n")
 		Expect(err).Should(MatchError(ContainSubstring("only enable one of keyManager.azureKeyVault")))
+	})
+	It("warns when keyIdentifierFile has no persistence", func() {
+		file := base + "      keyVaultURI: https://v.vault.azure.net/\n      keyIdentifierFile:\n        enabled: true\n"
+		objs, err := ValueStringRender(chart, file)
+		Expect(err).Should(Succeed())
+		Expect(objs["spire/templates/NOTES.txt"]).ShouldNot(ContainSubstring("keyManager.azureKeyVault.keyIdentifierFile is set"))
+		objs, err = ValueStringRender(chart, file+"  persistence:\n    type: emptyDir\n")
+		Expect(err).Should(Succeed())
+		Expect(objs["spire/templates/NOTES.txt"]).Should(ContainSubstring("keyManager.azureKeyVault.keyIdentifierFile is set with persistence.type emptyDir"))
+	})
+	It("requires a key identifier option", func() {
+		_, err := ValueStringRender(chart, base+"      keyVaultURI: https://v.vault.azure.net/\n")
+		Expect(err).Should(MatchError(ContainSubstring("Enable one of keyManager.azureKeyVault keyIdentifierFile or keyIdentifierValue")))
 	})
 })

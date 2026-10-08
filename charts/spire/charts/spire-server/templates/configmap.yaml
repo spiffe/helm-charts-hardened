@@ -425,6 +425,8 @@ plugins:
         key_identifier_file: "/run/spire/data/azure-key-vault-key-identifier"
         {{- else if .keyIdentifierValue.enabled }}
         key_identifier_value: {{ .keyIdentifierValue.identifier | quote }}
+        {{- else }}
+        {{- fail "Enable one of keyManager.azureKeyVault keyIdentifierFile or keyIdentifierValue" }}
         {{- end }}
         {{- with .tenantID }}
         tenant_id: {{ . | quote }}

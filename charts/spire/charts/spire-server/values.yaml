@@ -483,7 +483,7 @@ keyManager:
     ## @param keyManager.azureKeyVault.keyVaultURI URI of the Key Vault that holds the keys
     keyVaultURI: ""
     keyIdentifierFile:
-      ## @param keyManager.azureKeyVault.keyIdentifierFile.enabled Store the key identifier in a file in persistent storage
+      ## @param keyManager.azureKeyVault.keyIdentifierFile.enabled Store the key identifier in the server data directory. Needs persistence, or each restart creates new keys.
       enabled: false
     keyIdentifierValue:
       ## @param keyManager.azureKeyVault.keyIdentifierValue.enabled Use a static key identifier value
