@@ -329,6 +329,12 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `spireIdentityExchange.spiffe.grpc.gatewayAPI.parentRefs`                | parentRefs used when ListenerSet management is disabled (direct attach)                                                                                                                                                                | `[]`                                  |
 | `spireIdentityExchange.spiffe.grpc.gatewayAPI.sectionName`               | Listener sectionName override when attaching directly to a Gateway                                                                                                                                                                     | `""`                                  |
 
+### Extra manifests
+
+| Name             | Description                                                                                        | Value |
+| ---------------- | -------------------------------------------------------------------------------------------------- | ----- |
+| `extraManifests` | Extra objects to deploy with the release. Each entry is a map or a string and renders through tpl. | `[]`  |
+
 ### Spire agent parameters
 
 | Name                                               | Description                                                    | Value                                 |

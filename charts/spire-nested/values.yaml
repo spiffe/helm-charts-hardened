@@ -355,6 +355,16 @@ spireIdentityExchange:
         ## @param spireIdentityExchange.spiffe.grpc.gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
         sectionName: ""
 
+## @section Extra manifests
+##
+## @param extraManifests [array] Extra objects to deploy with the release. Each entry is a map or a string and renders through tpl.
+extraManifests: []
+# - apiVersion: networking.k8s.io/v1
+#   kind: NetworkPolicy
+#   metadata:
+#     name: spire-server-allow-agents
+#     namespace: '{{ .Release.Namespace }}'
+
 ## subcharts
 
 ## @section Spire agent parameters

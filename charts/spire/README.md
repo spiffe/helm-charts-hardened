@@ -321,6 +321,12 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `global.deleteHooks.enabled`                     | Enable Helm hooks to autofix common delete issues (should be disabled when using `helm template`)                                                                                                                                      | `true`            |
 | `global.deleteHooks.resources`                   | Resource requests and limits for deleteHooks                                                                                                                                                                                           | `{}`              |
 
+### Extra manifests
+
+| Name             | Description                                                                                        | Value |
+| ---------------- | -------------------------------------------------------------------------------------------------- | ----- |
+| `extraManifests` | Extra objects to deploy with the release. Each entry is a map or a string and renders through tpl. | `[]`  |
+
 ### Gateway API parameters
 
 | Name                                            | Description                                                                                                                                  | Value   |

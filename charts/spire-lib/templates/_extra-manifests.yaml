@@ -1,0 +1,10 @@
+{{- define "spire-lib.extra-manifests" }}
+{{- range .Values.extraManifests }}
+---
+{{- if typeIs "string" . }}
+{{ tpl . $ }}
+{{- else }}
+{{ tpl (toYaml .) $ }}
+{{- end }}
+{{- end }}
+{{- end }}
