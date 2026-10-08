@@ -1539,6 +1539,15 @@ var _ = Describe("spire-server.keyManager.gcpKMS", func() {
 		_, err := ValueStringRender(chart, base+"      keyRing: r\n      keyIdentifierFile:\n        enabled: true\n      keyIdentifierValue:\n        enabled: true\n")
 		Expect(err).Should(MatchError(ContainSubstring("only enable one of keyManager.gcpKMS")))
 	})
+	It("warns when keyIdentifierFile has no persistence", func() {
+		file := base + "      keyRing: r\n      keyIdentifierFile:\n        enabled: true\n"
+		objs, err := ValueStringRender(chart, file)
+		Expect(err).Should(Succeed())
+		Expect(objs["spire/templates/NOTES.txt"]).ShouldNot(ContainSubstring("keyManager.gcpKMS.keyIdentifierFile is set"))
+		objs, err = ValueStringRender(chart, file+"  persistence:\n    type: emptyDir\n")
+		Expect(err).Should(Succeed())
+		Expect(objs["spire/templates/NOTES.txt"]).Should(ContainSubstring("keyManager.gcpKMS.keyIdentifierFile is set with persistence.type emptyDir"))
+	})
 	It("requires a key identifier option", func() {
 		_, err := ValueStringRender(chart, base+"      keyRing: r\n")
 		Expect(err).Should(MatchError(ContainSubstring("Enable one of keyManager.gcpKMS keyIdentifierFile or keyIdentifierValue")))

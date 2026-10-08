@@ -39,6 +39,12 @@ Warning: dataStore.sql.inMemory is set with keyManager.memory and no upstreamAut
 {{-     end }}
 {{-   end }}
 {{- end }}
+{{- with index .Values "spire-server" }}
+{{-   if and .enabled .keyManager.gcpKMS.enabled .keyManager.gcpKMS.keyIdentifierFile.enabled (eq .persistence.type "emptyDir") }}
+
+Warning: keyManager.gcpKMS.keyIdentifierFile is set with persistence.type emptyDir. The key identifier is lost on restart, so the server creates new KMS keys each time. Use a pvc or hostPath, or keyIdentifierValue.
+{{-   end }}
+{{- end }}
 {{- if (index .Values "spire-server").enabled }}
 {{-   $className := include "spire-server.controller-manager-class-name" (dict "Values" (index .Values "spire-server") "Release" .Release) }}
 {{-   if (index .Values "spire-server").controllerManager.enabled }}
