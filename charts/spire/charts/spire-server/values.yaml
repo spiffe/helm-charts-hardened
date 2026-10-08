@@ -483,7 +483,7 @@ keyManager:
     ## @param keyManager.gcpKMS.keyRing Key ring for the keys, in the form projects/<project>/locations/<location>/keyRings/<keyRing>
     keyRing: ""
     keyIdentifierFile:
-      ## @param keyManager.gcpKMS.keyIdentifierFile.enabled Store the key identifier in a file in persistent storage
+      ## @param keyManager.gcpKMS.keyIdentifierFile.enabled Store the key identifier in the server data directory. Needs persistence, or each restart creates new keys.
       enabled: false
     keyIdentifierValue:
       ## @param keyManager.gcpKMS.keyIdentifierValue.enabled Use a static key identifier value

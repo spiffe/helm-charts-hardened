@@ -1539,4 +1539,8 @@ var _ = Describe("spire-server.keyManager.gcpKMS", func() {
 		_, err := ValueStringRender(chart, base+"      keyRing: r\n      keyIdentifierFile:\n        enabled: true\n      keyIdentifierValue:\n        enabled: true\n")
 		Expect(err).Should(MatchError(ContainSubstring("only enable one of keyManager.gcpKMS")))
 	})
+	It("requires a key identifier option", func() {
+		_, err := ValueStringRender(chart, base+"      keyRing: r\n")
+		Expect(err).Should(MatchError(ContainSubstring("Enable one of keyManager.gcpKMS keyIdentifierFile or keyIdentifierValue")))
+	})
 })
