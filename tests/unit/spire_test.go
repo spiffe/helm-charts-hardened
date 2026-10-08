@@ -728,6 +728,52 @@ spire-agent:
 			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegedContainer: true"))
 			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegeEscalation: true"))
 		})
+		It("allows the runtime/default seccomp profile", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+spire-agent:
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[sccTmpl]).Should(ContainSubstring("seccompProfiles:\n  - runtime/default\n"))
+		})
+		It("allows a localhost or unconfined seccomp profile when values ask for one", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+spire-agent:
+  podSecurityContext:
+    seccompProfile:
+      type: Unconfined
+  agents:
+    gpu:
+      securityContext:
+        seccompProfile:
+          type: Localhost
+          localhostProfile: profiles/agent.json
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[sccTmpl]).Should(ContainSubstring("  - runtime/default\n"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("  - unconfined\n"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("  - localhost/profiles/agent.json\n"))
+		})
+	})
+	Describe("spiffe-csi-driver.scc", func() {
+		It("allows the runtime/default seccomp profile the registrar uses", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+  spire:
+    recommendations:
+      enabled: true
+      strictMode: false
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs["spire/charts/spiffe-csi-driver/templates/scc-spiffe-csi-driver.yaml"]).Should(ContainSubstring("seccompProfiles:\n  - runtime/default\n"))
+		})
 	})
 	Describe("spiffe-csi-driver.syncWave", func() {
 		csiTmpl := "spire/charts/spiffe-csi-driver/templates/spiffe-csi-driver.yaml"
@@ -1296,6 +1342,24 @@ spire-server:
 			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
 			Expect(serverResource).Should(ContainSubstring("name: RODBPW"))
 			Expect(serverResource).Should(ContainSubstring("name: my-ro-db-secret"))
+		})
+	})
+	Describe("spire-server.controllerManager metrics", func() {
+		configMapTmpl := "spire/charts/spire-server/templates/controller-manager-configmap.yaml"
+		It("disables metrics when prometheus is off", func() {
+			objs, err := ValueStringRender(chart, ``)
+			Expect(err).Should(Succeed())
+			Expect(objs[configMapTmpl]).Should(ContainSubstring(`bindAddress: "0"`))
+		})
+		It("binds metrics when prometheus is on", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  telemetry:
+    prometheus:
+      enabled: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[configMapTmpl]).Should(ContainSubstring("bindAddress: 0.0.0.0:8082"))
 		})
 	})
 	Describe("spire-server.controllerManager.cacheNamespaces", func() {

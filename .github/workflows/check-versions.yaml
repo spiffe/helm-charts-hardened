@@ -38,7 +38,7 @@ jobs:
       - name: Setup go
         uses: actions/setup-go@v7.0.0
         with:
-          go-version: '1.21'
+          go-version-file: tests/go.mod
           cache: false
 
       - uses: actions/setup-python@v7
