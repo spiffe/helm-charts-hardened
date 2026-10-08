@@ -21,8 +21,8 @@ global:
     jwtIssuer: ""
     ## @param global.spire.trustDomain The trust domain for Spire install
     trustDomain: example.org
-    ## @param global.spire.upstreamServerAddress Set what address to use for the upstream server when using nested spire
-    upstreamServerAddress: ""
+    ## @param global.spire.upstreamSpireAddress Set what address to use for the upstream server when using nested spire
+    upstreamSpireAddress: ""
 
     ## @param global.spire.caSubject.country Country for Spire server CA
     ## @param global.spire.caSubject.organization Organization for Spire server CA
