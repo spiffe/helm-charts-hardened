@@ -38,6 +38,9 @@
 {{- if and (eq (.Values.keyManager.awsKMS.keyIdentifierFile.enabled | toString) "true") (eq (.Values.keyManager.awsKMS.keyIdentifierValue.enabled | toString ) "true") }}
 {{-   fail "You can only enable one of keyIdentifierFile or keyIdentifierValue at a time" }}
 {{- end }}
+{{- if and .Values.keyManager.gcpKMS.keyIdentifierFile.enabled .Values.keyManager.gcpKMS.keyIdentifierValue.enabled }}
+{{-   fail "You can only enable one of keyManager.gcpKMS keyIdentifierFile or keyIdentifierValue at a time" }}
+{{- end }}
 {{- define "spire-server.yaml-config" -}}
 {{- $upstreamAuthorityUsed := 0 }}
 {{- $keyManagerUsed := 0 }}
@@ -407,6 +410,29 @@ plugins:
         {{- end }}
         {{- if eq (.enableTagBasedKeyDiscovery | toString) "true" }}
         enable_tag_based_key_discovery: true
+        {{- end }}
+  {{- end }}
+  {{- end }}
+
+  {{- with .Values.keyManager.gcpKMS }}
+  {{- if .enabled }}
+  {{- $keyManagerUsed = add1 $keyManagerUsed }}
+  KeyManager:
+    gcp_kms:
+      plugin_data:
+        key_ring: {{ required "keyManager.gcpKMS.keyRing is required" .keyRing | quote }}
+        {{- if .keyIdentifierFile.enabled }}
+        key_identifier_file: "/run/spire/data/gcp-kms-key-identifier"
+        {{- else if .keyIdentifierValue.enabled }}
+        key_identifier_value: {{ .keyIdentifierValue.identifier | quote }}
+        {{- else }}
+        {{- fail "Enable one of keyManager.gcpKMS keyIdentifierFile or keyIdentifierValue" }}
+        {{- end }}
+        {{- if or (ne .keyPolicy.policy "") (ne .keyPolicy.existingConfigMap "") }}
+        key_policy_file: "/run/spire/gcp-kms/policy/policy.json"
+        {{- end }}
+        {{- if or (ne .serviceAccountKey.json "") (ne .serviceAccountKey.existingSecret "") }}
+        service_account_file: "/run/spire/gcp-kms/credentials/service-account.json"
         {{- end }}
   {{- end }}
   {{- end }}
