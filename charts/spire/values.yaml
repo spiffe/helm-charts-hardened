@@ -178,6 +178,20 @@ gatewayAPI:
     ## @param gatewayAPI.gateway.extraListeners [array] Additional listeners to add to the Gateway
     extraListeners: []
 
+## @section Grafana dashboard parameters
+##
+grafanaDashboards:
+  ## @param grafanaDashboards.namespace Namespace for the dashboard ConfigMaps. Defaults to the release namespace.
+  namespace: ""
+  ## @param grafanaDashboards.labels [object] Labels the Grafana sidecar uses to discover dashboards
+  labels:
+    grafana_dashboard: "1"
+  ## @param grafanaDashboards.annotations [object] Annotations for the dashboard ConfigMaps, e.g. grafana_folder
+  annotations: {}
+  spireServer:
+    ## @param grafanaDashboards.spireServer.enabled Render a ConfigMap holding the SPIRE Server Grafana dashboard for the Grafana dashboard sidecar to load
+    enabled: false
+
 ## subcharts
 
 ## @section Spire server parameters

@@ -339,6 +339,15 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `gatewayAPI.gateway.allowedRoutesNamespaces`    | From which namespaces routes may attach directly to the base listener (used when ListenerSet management is off). One of All, Same, Selector. | `All`   |
 | `gatewayAPI.gateway.extraListeners`             | Additional listeners to add to the Gateway                                                                                                   | `[]`    |
 
+### Grafana dashboard parameters
+
+| Name                                    | Description                                                                                             | Value   |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------- |
+| `grafanaDashboards.namespace`           | Namespace for the dashboard ConfigMaps. Defaults to the release namespace.                              | `""`    |
+| `grafanaDashboards.labels`              | Labels the Grafana sidecar uses to discover dashboards                                                  | `{}`    |
+| `grafanaDashboards.annotations`         | Annotations for the dashboard ConfigMaps, e.g. grafana_folder                                           | `{}`    |
+| `grafanaDashboards.spireServer.enabled` | Render a ConfigMap holding the SPIRE Server Grafana dashboard for the Grafana dashboard sidecar to load | `false` |
+
 ### Spire server parameters
 
 | Name                                              | Description                                                               | Value         |
