@@ -728,6 +728,52 @@ spire-agent:
 			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegedContainer: true"))
 			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegeEscalation: true"))
 		})
+		It("allows the runtime/default seccomp profile", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+spire-agent:
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[sccTmpl]).Should(ContainSubstring("seccompProfiles:\n  - runtime/default\n"))
+		})
+		It("allows a localhost or unconfined seccomp profile when values ask for one", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+spire-agent:
+  podSecurityContext:
+    seccompProfile:
+      type: Unconfined
+  agents:
+    gpu:
+      securityContext:
+        seccompProfile:
+          type: Localhost
+          localhostProfile: profiles/agent.json
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[sccTmpl]).Should(ContainSubstring("  - runtime/default\n"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("  - unconfined\n"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("  - localhost/profiles/agent.json\n"))
+		})
+	})
+	Describe("spiffe-csi-driver.scc", func() {
+		It("allows the runtime/default seccomp profile the registrar uses", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+  spire:
+    recommendations:
+      enabled: true
+      strictMode: false
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs["spire/charts/spiffe-csi-driver/templates/scc-spiffe-csi-driver.yaml"]).Should(ContainSubstring("seccompProfiles:\n  - runtime/default\n"))
+		})
 	})
 	Describe("spiffe-csi-driver.syncWave", func() {
 		csiTmpl := "spire/charts/spiffe-csi-driver/templates/spiffe-csi-driver.yaml"
