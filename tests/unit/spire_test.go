@@ -1553,3 +1553,39 @@ gatewayAPI:
 		})
 	})
 })
+
+var _ = Describe("spire-server.gcpWorkloadIdentity", func() {
+	chart, err := helmloader.Load("../../charts/spire")
+	Expect(err).Should(Succeed())
+	provider := "projects/123/locations/global/workloadIdentityPools/pool/providers/prov"
+	It("renders the credential config, token volume and env", func() {
+		objs, err := ValueStringRender(chart, "spire-server:\n  gcpWorkloadIdentity:\n    enabled: true\n    providerResource: "+provider)
+		Expect(err).Should(Succeed())
+		var configMap struct {
+			Data map[string]string `json:"data"`
+		}
+		rendered := objs["spire/charts/spire-server/templates/gcp-workload-identity-configmap.yaml"]
+		Expect(yamlutil.NewYAMLOrJSONDecoder(strings.NewReader(rendered), 4096).Decode(&configMap)).Should(Succeed())
+		var credConfig map[string]any
+		Expect(json.Unmarshal([]byte(configMap.Data["credential-configuration.json"]), &credConfig)).Should(Succeed())
+		Expect(credConfig).Should(HaveKeyWithValue("audience", "//iam.googleapis.com/"+provider))
+		Expect(credConfig).Should(HaveKeyWithValue("credential_source", HaveKeyWithValue("file", "/var/run/secrets/gcp-wif/token")))
+		server := objs["spire/charts/spire-server/templates/server-resource.yaml"]
+		Expect(server).Should(ContainSubstring("audience: https://iam.googleapis.com/" + provider))
+		Expect(server).Should(ContainSubstring("value: /etc/gcp-wif/credential-configuration.json"))
+		Expect(server).Should(ContainSubstring("name: spire-server-gcp-wif"))
+	})
+	It("requires providerResource", func() {
+		_, err := ValueStringRender(chart, "spire-server:\n  gcpWorkloadIdentity:\n    enabled: true")
+		Expect(err).Should(MatchError(ContainSubstring("gcpWorkloadIdentity.providerResource is required")))
+	})
+	It("rejects secrets.gcp.applicationCredentials alongside it", func() {
+		_, err := ValueStringRender(chart, "spire-server:\n  secrets:\n    gcp:\n      applicationCredentials: x\n  gcpWorkloadIdentity:\n    enabled: true\n    providerResource: "+provider)
+		Expect(err).Should(MatchError(ContainSubstring("gcpWorkloadIdentity and secrets.gcp.applicationCredentials")))
+	})
+	It("renders nothing when disabled", func() {
+		objs, err := ValueStringRender(chart, "")
+		Expect(err).Should(Succeed())
+		Expect(objs["spire/charts/spire-server/templates/server-resource.yaml"]).ShouldNot(ContainSubstring("gcp-wif"))
+	})
+})

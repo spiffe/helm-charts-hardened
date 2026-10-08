@@ -1154,6 +1154,13 @@ gatewayAPI:
   ## @param gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
   sectionName: ""
 
+## Workload Identity Federation for GCP APIs. Sets GOOGLE_APPLICATION_CREDENTIALS from a projected service account token.
+gcpWorkloadIdentity:
+  ## @param gcpWorkloadIdentity.enabled Authenticate to GCP with Workload Identity Federation
+  enabled: false
+  ## @param gcpWorkloadIdentity.providerResource Provider resource name: projects/<number>/locations/global/workloadIdentityPools/<pool>/providers/<provider>
+  providerResource: ""
+
 ## @param extraEnv [array] Extra environment variables to add to the spire server
 extraEnv: []
 
