@@ -287,6 +287,33 @@ spire-server:
 			Expect(notes).Should(ContainSubstring("ca_cert_path"))
 		})
 	})
+	Describe("grafanaDashboards", func() {
+		It("renders the bundled dashboard when enabled", func() {
+			objs, err := ValueStringRender(chart, `
+grafanaDashboards:
+  spireServer:
+    enabled: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs["spire/templates/grafana-dashboard.yaml"]).Should(ContainSubstring(`"uid": "uid_spire_dashboard"`))
+			Expect(objs["spire/templates/grafana-dashboard.yaml"]).Should(ContainSubstring(`"legendFormat": "{{version}}"`))
+			Expect(objs["spire/templates/grafana-dashboard.yaml"]).Should(ContainSubstring(`"name": "server"`))
+			Expect(objs["spire/templates/grafana-dashboard.yaml"]).Should(ContainSubstring(`spire_server_started{spire_server=~\"$server\"}`))
+		})
+		It("renders from spire-nested in haAgentCommon mode", func() {
+			nested, err := helmloader.Load("../../charts/spire-nested")
+			Expect(err).Should(Succeed())
+			objs, err := ValueStringRender(nested, `
+tags:
+  haAgentCommon: true
+grafanaDashboards:
+  spireServer:
+    enabled: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs["spire-nested/templates/grafana-dashboard.yaml"]).Should(ContainSubstring(`"uid": "uid_spire_dashboard"`))
+		})
+	})
 	Describe("spire-agent.workloadAttestors.k8s.sigstore", func() {
 		It("omits sigstore by default", func() {
 			objs, err := ValueStringRender(chart, ``)
@@ -1173,6 +1200,23 @@ spire-server:
 		podMonitorTmpl := "spire/charts/spire-server/templates/podmonitor.yaml"
 		serverTmpl := "spire/charts/spire-server/templates/server-resource.yaml"
 
+		It("labels every endpoint with the server instance", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  controllerManager:
+    enabled: true
+  telemetry:
+    prometheus:
+      enabled: true
+      podMonitor:
+        enabled: true
+`)
+			Expect(err).Should(Succeed())
+			podMonitor := objs[podMonitorTmpl]
+			Expect(strings.Count(podMonitor, "targetLabel: spire_server")).Should(Equal(strings.Count(podMonitor, "- port: ")))
+			Expect(podMonitor).Should(ContainSubstring("replacement: spire-server"))
+		})
+
 		It("targets the real main controller-manager port name, not the legacy prom-cm", func() {
 			objs, err := ValueStringRender(chart, `
 spire-server:
@@ -1588,4 +1632,47 @@ var _ = Describe("spire-server.gcpWorkloadIdentity", func() {
 		Expect(err).Should(Succeed())
 		Expect(objs["spire/charts/spire-server/templates/server-resource.yaml"]).ShouldNot(ContainSubstring("gcp-wif"))
 	})
+})
+
+var _ = Describe("extraManifests", func() {
+	values := `
+extraManifests:
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: "{{ .Release.Name }}-extra"
+      namespace: "{{ .Release.Namespace }}"
+  - |
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: {{ .Release.Name }}-string
+`
+	DescribeTable("renders map and string entries through tpl", func(path string) {
+		chart, err := helmloader.Load(path)
+		Expect(err).Should(Succeed())
+		objs, err := ValueStringRender(chart, values)
+		Expect(err).Should(Succeed())
+		var names []string
+		for _, rendered := range objs {
+			decoder := yamlutil.NewYAMLOrJSONDecoder(strings.NewReader(rendered), 4096)
+			for {
+				var doc struct {
+					Kind     string `json:"kind"`
+					Metadata struct {
+						Name      string `json:"name"`
+						Namespace string `json:"namespace"`
+					} `json:"metadata"`
+				}
+				if decoder.Decode(&doc) != nil {
+					break
+				}
+				names = append(names, doc.Metadata.Name+"/"+doc.Metadata.Namespace)
+			}
+		}
+		Expect(names).Should(ContainElements("spire-extra/spire-server", "spire-string/"))
+	},
+		Entry("spire", "../../charts/spire"),
+		Entry("spire-nested", "../../charts/spire-nested"),
+	)
 })

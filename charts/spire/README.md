@@ -321,6 +321,12 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `global.deleteHooks.enabled`                     | Enable Helm hooks to autofix common delete issues (should be disabled when using `helm template`)                                                                                                                                      | `true`            |
 | `global.deleteHooks.resources`                   | Resource requests and limits for deleteHooks                                                                                                                                                                                           | `{}`              |
 
+### Extra manifests
+
+| Name             | Description                                                                                        | Value |
+| ---------------- | -------------------------------------------------------------------------------------------------- | ----- |
+| `extraManifests` | Extra objects to deploy with the release. Each entry is a map or a string and renders through tpl. | `[]`  |
+
 ### Gateway API parameters
 
 | Name                                            | Description                                                                                                                                  | Value   |
@@ -332,6 +338,15 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `gatewayAPI.gateway.allowedListenersNamespaces` | From which namespaces ListenerSets may attach to the Gateway. One of All, Same, Selector.                                                    | `All`   |
 | `gatewayAPI.gateway.allowedRoutesNamespaces`    | From which namespaces routes may attach directly to the base listener (used when ListenerSet management is off). One of All, Same, Selector. | `All`   |
 | `gatewayAPI.gateway.extraListeners`             | Additional listeners to add to the Gateway                                                                                                   | `[]`    |
+
+### Grafana dashboard parameters
+
+| Name                                    | Description                                                                                             | Value   |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------- |
+| `grafanaDashboards.namespace`           | Namespace for the dashboard ConfigMaps. Defaults to the release namespace.                              | `""`    |
+| `grafanaDashboards.labels`              | Labels the Grafana sidecar uses to discover dashboards                                                  | `{}`    |
+| `grafanaDashboards.annotations`         | Annotations for the dashboard ConfigMaps, e.g. grafana_folder                                           | `{}`    |
+| `grafanaDashboards.spireServer.enabled` | Render a ConfigMap holding the SPIRE Server Grafana dashboard for the Grafana dashboard sidecar to load | `false` |
 
 ### Spire server parameters
 
