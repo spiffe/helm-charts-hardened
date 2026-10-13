@@ -287,6 +287,33 @@ spire-server:
 			Expect(notes).Should(ContainSubstring("ca_cert_path"))
 		})
 	})
+	Describe("grafanaDashboards", func() {
+		It("renders the bundled dashboard when enabled", func() {
+			objs, err := ValueStringRender(chart, `
+grafanaDashboards:
+  spireServer:
+    enabled: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs["spire/templates/grafana-dashboard.yaml"]).Should(ContainSubstring(`"uid": "uid_spire_dashboard"`))
+			Expect(objs["spire/templates/grafana-dashboard.yaml"]).Should(ContainSubstring(`"legendFormat": "{{version}}"`))
+			Expect(objs["spire/templates/grafana-dashboard.yaml"]).Should(ContainSubstring(`"name": "server"`))
+			Expect(objs["spire/templates/grafana-dashboard.yaml"]).Should(ContainSubstring(`spire_server_started{spire_server=~\"$server\"}`))
+		})
+		It("renders from spire-nested in haAgentCommon mode", func() {
+			nested, err := helmloader.Load("../../charts/spire-nested")
+			Expect(err).Should(Succeed())
+			objs, err := ValueStringRender(nested, `
+tags:
+  haAgentCommon: true
+grafanaDashboards:
+  spireServer:
+    enabled: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs["spire-nested/templates/grafana-dashboard.yaml"]).Should(ContainSubstring(`"uid": "uid_spire_dashboard"`))
+		})
+	})
 	Describe("spire-agent.workloadAttestors.k8s.sigstore", func() {
 		It("omits sigstore by default", func() {
 			objs, err := ValueStringRender(chart, ``)
@@ -728,6 +755,52 @@ spire-agent:
 			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegedContainer: true"))
 			Expect(objs[sccTmpl]).Should(ContainSubstring("allowPrivilegeEscalation: true"))
 		})
+		It("allows the runtime/default seccomp profile", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+spire-agent:
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[sccTmpl]).Should(ContainSubstring("seccompProfiles:\n  - runtime/default\n"))
+		})
+		It("allows a localhost or unconfined seccomp profile when values ask for one", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+spire-agent:
+  podSecurityContext:
+    seccompProfile:
+      type: Unconfined
+  agents:
+    gpu:
+      securityContext:
+        seccompProfile:
+          type: Localhost
+          localhostProfile: profiles/agent.json
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[sccTmpl]).Should(ContainSubstring("  - runtime/default\n"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("  - unconfined\n"))
+			Expect(objs[sccTmpl]).Should(ContainSubstring("  - localhost/profiles/agent.json\n"))
+		})
+	})
+	Describe("spiffe-csi-driver.scc", func() {
+		It("allows the runtime/default seccomp profile the registrar uses", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  openshift: true
+  spire:
+    recommendations:
+      enabled: true
+      strictMode: false
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs["spire/charts/spiffe-csi-driver/templates/scc-spiffe-csi-driver.yaml"]).Should(ContainSubstring("seccompProfiles:\n  - runtime/default\n"))
+		})
 	})
 	Describe("spiffe-csi-driver.syncWave", func() {
 		csiTmpl := "spire/charts/spiffe-csi-driver/templates/spiffe-csi-driver.yaml"
@@ -1127,6 +1200,23 @@ spire-server:
 		podMonitorTmpl := "spire/charts/spire-server/templates/podmonitor.yaml"
 		serverTmpl := "spire/charts/spire-server/templates/server-resource.yaml"
 
+		It("labels every endpoint with the server instance", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  controllerManager:
+    enabled: true
+  telemetry:
+    prometheus:
+      enabled: true
+      podMonitor:
+        enabled: true
+`)
+			Expect(err).Should(Succeed())
+			podMonitor := objs[podMonitorTmpl]
+			Expect(strings.Count(podMonitor, "targetLabel: spire_server")).Should(Equal(strings.Count(podMonitor, "- port: ")))
+			Expect(podMonitor).Should(ContainSubstring("replacement: spire-server"))
+		})
+
 		It("targets the real main controller-manager port name, not the legacy prom-cm", func() {
 			objs, err := ValueStringRender(chart, `
 spire-server:
@@ -1296,6 +1386,24 @@ spire-server:
 			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
 			Expect(serverResource).Should(ContainSubstring("name: RODBPW"))
 			Expect(serverResource).Should(ContainSubstring("name: my-ro-db-secret"))
+		})
+	})
+	Describe("spire-server.controllerManager metrics", func() {
+		configMapTmpl := "spire/charts/spire-server/templates/controller-manager-configmap.yaml"
+		It("disables metrics when prometheus is off", func() {
+			objs, err := ValueStringRender(chart, ``)
+			Expect(err).Should(Succeed())
+			Expect(objs[configMapTmpl]).Should(ContainSubstring(`bindAddress: "0"`))
+		})
+		It("binds metrics when prometheus is on", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  telemetry:
+    prometheus:
+      enabled: true
+`)
+			Expect(err).Should(Succeed())
+			Expect(objs[configMapTmpl]).Should(ContainSubstring("bindAddress: 0.0.0.0:8082"))
 		})
 	})
 	Describe("spire-server.controllerManager.cacheNamespaces", func() {
@@ -1557,4 +1665,47 @@ var _ = Describe("spire-server.keyManager.azureKeyVault", func() {
 		_, err := ValueStringRender(chart, base+"      keyVaultURI: https://v.vault.azure.net/\n")
 		Expect(err).Should(MatchError(ContainSubstring("Enable one of keyManager.azureKeyVault keyIdentifierFile or keyIdentifierValue")))
 	})
+})
+
+var _ = Describe("extraManifests", func() {
+	values := `
+extraManifests:
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: "{{ .Release.Name }}-extra"
+      namespace: "{{ .Release.Namespace }}"
+  - |
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: {{ .Release.Name }}-string
+`
+	DescribeTable("renders map and string entries through tpl", func(path string) {
+		chart, err := helmloader.Load(path)
+		Expect(err).Should(Succeed())
+		objs, err := ValueStringRender(chart, values)
+		Expect(err).Should(Succeed())
+		var names []string
+		for _, rendered := range objs {
+			decoder := yamlutil.NewYAMLOrJSONDecoder(strings.NewReader(rendered), 4096)
+			for {
+				var doc struct {
+					Kind     string `json:"kind"`
+					Metadata struct {
+						Name      string `json:"name"`
+						Namespace string `json:"namespace"`
+					} `json:"metadata"`
+				}
+				if decoder.Decode(&doc) != nil {
+					break
+				}
+				names = append(names, doc.Metadata.Name+"/"+doc.Metadata.Namespace)
+			}
+		}
+		Expect(names).Should(ContainElements("spire-extra/spire-server", "spire-string/"))
+	},
+		Entry("spire", "../../charts/spire"),
+		Entry("spire-nested", "../../charts/spire-nested"),
+	)
 })

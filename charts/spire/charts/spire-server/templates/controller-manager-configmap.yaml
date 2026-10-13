@@ -44,7 +44,11 @@ metadata:
   labels:
     {{- include "spire-server.labels" . | nindent 4 }}
 metrics:
+{{- if or (dig "telemetry" "prometheus" "enabled" .Values.telemetry.prometheus.enabled .Values.global) (and .Values.global.spire.recommendations.enabled .Values.global.spire.recommendations.prometheus) }}
   bindAddress: 0.0.0.0:{{ $promPort }}
+{{- else }}
+  bindAddress: "0"
+{{- end }}
 health:
   healthProbeBindAddress: 0.0.0.0:{{ $healthPort }}
 gcInterval: {{ .Values.controllerManager.gcInterval }}
