@@ -492,14 +492,14 @@ keyManager:
       identifier: ""
     ## @extra keyManager.gcpKMS.keyPolicy IAM policy to set on created keys. Without one, the plugin applies its default policy.
     keyPolicy:
-      ## @param keyManager.gcpKMS.keyPolicy.policy [nullable] Key policy in JSON format
-      policy: ""
+      ## @param keyManager.gcpKMS.keyPolicy.policy [object] IAM policy as YAML or a JSON string, written to the plugin as JSON
+      policy: {}
       ## @param keyManager.gcpKMS.keyPolicy.existingConfigMap [nullable] Name of a ConfigMap with a `policy.json` key
       existingConfigMap: ""
     ## @extra keyManager.gcpKMS.serviceAccountKey Service account key. Without one, the plugin uses Application Default Credentials.
     serviceAccountKey:
-      ## @param keyManager.gcpKMS.serviceAccountKey.json [nullable] Service account key in JSON format, stored in a Secret
-      json: ""
+      ## @param keyManager.gcpKMS.serviceAccountKey.json [object] Service account key as YAML or a JSON string, stored in a Secret as JSON
+      json: {}
       ## @param keyManager.gcpKMS.serviceAccountKey.existingSecret [nullable] Name of a Secret with a `service-account.json` key
       existingSecret: ""
 

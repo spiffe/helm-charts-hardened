@@ -1,5 +1,5 @@
 {{- with .Values.keyManager.gcpKMS }}
-{{- if and .enabled (ne .keyPolicy.policy "") }}
+{{- if and .enabled .keyPolicy.policy }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -7,9 +7,9 @@ metadata:
   namespace: {{ include "spire-server.namespace" $ }}
 data:
   policy.json: |
-    {{- .keyPolicy.policy | nindent 4 }}
+    {{- ternary .keyPolicy.policy (toPrettyJson .keyPolicy.policy) (kindIs "string" .keyPolicy.policy) | nindent 4 }}
 {{- end }}
-{{- if and .enabled (ne .serviceAccountKey.json "") }}
+{{- if and .enabled .serviceAccountKey.json }}
 ---
 apiVersion: v1
 kind: Secret
@@ -17,6 +17,6 @@ metadata:
   name: {{ include "spire-server.fullname" $ }}-gcp-kms
   namespace: {{ include "spire-server.namespace" $ }}
 data:
-  service-account.json: {{ .serviceAccountKey.json | b64enc }}
+  service-account.json: {{ ternary .serviceAccountKey.json (toJson .serviceAccountKey.json) (kindIs "string" .serviceAccountKey.json) | b64enc }}
 {{- end }}
 {{- end }}

@@ -1608,7 +1608,10 @@ var _ = Describe("spire-server.keyManager.gcpKMS", func() {
         enabled: true
         identifier: server-a
       keyPolicy:
-        policy: '{"bindings": []}'
+        policy:
+          bindings:
+            - role: roles/cloudkms.admin
+              members: [serviceAccount:a@p.iam.gserviceaccount.com]
       serviceAccountKey:
         existingSecret: gcp-sa
 `)
@@ -1633,11 +1636,23 @@ var _ = Describe("spire-server.keyManager.gcpKMS", func() {
 			"key_policy_file":      "/run/spire/gcp-kms/policy/policy.json",
 			"service_account_file": "/run/spire/gcp-kms/credentials/service-account.json",
 		}))
-		Expect(objs["spire/charts/spire-server/templates/gcp-kms.yaml"]).Should(ContainSubstring(`{"bindings": []}`))
+		Expect(objs["spire/charts/spire-server/templates/gcp-kms.yaml"]).Should(ContainSubstring(`"role": "roles/cloudkms.admin"`))
 		Expect(objs["spire/charts/spire-server/templates/gcp-kms.yaml"]).ShouldNot(ContainSubstring("kind: Secret"))
 		server := objs["spire/charts/spire-server/templates/server-resource.yaml"]
 		Expect(server).Should(ContainSubstring("secretName: gcp-sa"))
 		Expect(server).Should(ContainSubstring("name: spire-server-gcp-kms"))
+	})
+	It("stores an inline service account key in a Secret", func() {
+		objs, err := ValueStringRender(chart, base+"      keyRing: r\n      keyIdentifierFile:\n        enabled: true\n      serviceAccountKey:\n        json:\n          type: service_account\n")
+		Expect(err).Should(Succeed())
+		Expect(objs["spire/charts/spire-server/templates/gcp-kms.yaml"]).Should(ContainSubstring("service-account.json: eyJ0eXBlIjoic2VydmljZV9hY2NvdW50In0="))
+		Expect(objs["spire/charts/spire-server/templates/server-resource.yaml"]).Should(ContainSubstring("secretName: spire-server-gcp-kms"))
+	})
+	It("accepts the policy and key as JSON strings", func() {
+		objs, err := ValueStringRender(chart, base+"      keyRing: r\n      keyIdentifierFile:\n        enabled: true\n      keyPolicy:\n        policy: '{\"bindings\": []}'\n      serviceAccountKey:\n        json: '{\"type\":\"service_account\"}'\n")
+		Expect(err).Should(Succeed())
+		Expect(objs["spire/charts/spire-server/templates/gcp-kms.yaml"]).Should(ContainSubstring(`{"bindings": []}`))
+		Expect(objs["spire/charts/spire-server/templates/gcp-kms.yaml"]).Should(ContainSubstring("service-account.json: eyJ0eXBlIjoic2VydmljZV9hY2NvdW50In0="))
 	})
 	It("requires keyRing", func() {
 		_, err := ValueStringRender(chart, base)

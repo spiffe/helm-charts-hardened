@@ -428,10 +428,10 @@ plugins:
         {{- else }}
         {{- fail "Enable one of keyManager.gcpKMS keyIdentifierFile or keyIdentifierValue" }}
         {{- end }}
-        {{- if or (ne .keyPolicy.policy "") (ne .keyPolicy.existingConfigMap "") }}
+        {{- if or .keyPolicy.policy (ne .keyPolicy.existingConfigMap "") }}
         key_policy_file: "/run/spire/gcp-kms/policy/policy.json"
         {{- end }}
-        {{- if or (ne .serviceAccountKey.json "") (ne .serviceAccountKey.existingSecret "") }}
+        {{- if or .serviceAccountKey.json (ne .serviceAccountKey.existingSecret "") }}
         service_account_file: "/run/spire/gcp-kms/credentials/service-account.json"
         {{- end }}
   {{- end }}
