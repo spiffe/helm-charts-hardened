@@ -317,6 +317,10 @@ spec:
           env:
           - name: PATH
             value: "/opt/spire/bin:/bin"
+          {{- if .Values.gcpWorkloadIdentity.enabled }}
+          - name: GOOGLE_APPLICATION_CREDENTIALS
+            value: /etc/gcp-wif/credential-configuration.json
+          {{- end }}
           {{- with .Values.extraEnv }}
           {{- . | toYaml | nindent 10 }}
           {{- end }}
@@ -495,6 +499,14 @@ spec:
               mountPath: /run/spire/vault-upstream
             {{- end }}
             {{- end }}
+            {{- end }}
+            {{- if .Values.gcpWorkloadIdentity.enabled }}
+            - name: gcp-wif-token
+              mountPath: /var/run/secrets/gcp-wif
+              readOnly: true
+            - name: gcp-wif-credconfig
+              mountPath: /etc/gcp-wif
+              readOnly: true
             {{- end }}
             {{- if gt (len .Values.extraVolumeMounts) 0 }}
             {{- toYaml .Values.extraVolumeMounts | nindent 12 }}
@@ -778,6 +790,18 @@ spec:
             defaultMode: 420
             name: {{ include "spire-tornjak.config" . }}
         {{- end }}
+        {{- end }}
+        {{- if .Values.gcpWorkloadIdentity.enabled }}
+        - name: gcp-wif-token
+          projected:
+            sources:
+              - serviceAccountToken:
+                  path: token
+                  audience: https://iam.googleapis.com/{{ .Values.gcpWorkloadIdentity.providerResource }}
+                  expirationSeconds: 3600
+        - name: gcp-wif-credconfig
+          configMap:
+            name: {{ include "spire-server.fullname" . }}-gcp-wif
         {{- end }}
         {{- if gt (len .Values.extraVolumes) 0 }}
         {{- toYaml .Values.extraVolumes | nindent 8 }}
