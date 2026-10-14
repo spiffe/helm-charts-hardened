@@ -1676,3 +1676,82 @@ extraManifests:
 		Entry("spire-nested", "../../charts/spire-nested"),
 	)
 })
+
+var _ = Describe("spire-server.keyManager.gcpKMS", func() {
+	chart, err := helmloader.Load("../../charts/spire")
+	Expect(err).Should(Succeed())
+	base := "spire-server:\n  keyManager:\n    disk:\n      enabled: false\n    gcpKMS:\n      enabled: true\n"
+	It("renders plugin data, the policy ConfigMap and the credentials mount", func() {
+		objs, err := ValueStringRender(chart, base+`      keyRing: projects/p/locations/global/keyRings/r
+      keyIdentifierValue:
+        enabled: true
+        identifier: server-a
+      keyPolicy:
+        policy:
+          bindings:
+            - role: roles/cloudkms.admin
+              members: [serviceAccount:a@p.iam.gserviceaccount.com]
+      serviceAccountKey:
+        existingSecret: gcp-sa
+`)
+		Expect(err).Should(Succeed())
+		var configMap struct {
+			Data map[string]string `json:"data"`
+		}
+		rendered := objs["spire/charts/spire-server/templates/configmap.yaml"]
+		Expect(yamlutil.NewYAMLOrJSONDecoder(strings.NewReader(rendered), 4096).Decode(&configMap)).Should(Succeed())
+		var config struct {
+			Plugins struct {
+				KeyManager []map[string]struct {
+					PluginData map[string]any `json:"plugin_data"`
+				} `json:"KeyManager"`
+			} `json:"plugins"`
+		}
+		Expect(json.Unmarshal([]byte(configMap.Data["server.conf"]), &config)).Should(Succeed())
+		Expect(config.Plugins.KeyManager).Should(HaveLen(1))
+		Expect(config.Plugins.KeyManager[0]["gcp_kms"].PluginData).Should(Equal(map[string]any{
+			"key_ring":             "projects/p/locations/global/keyRings/r",
+			"key_identifier_value": "server-a",
+			"key_policy_file":      "/run/spire/gcp-kms/policy/policy.json",
+			"service_account_file": "/run/spire/gcp-kms/credentials/service-account.json",
+		}))
+		Expect(objs["spire/charts/spire-server/templates/gcp-kms.yaml"]).Should(ContainSubstring(`"role": "roles/cloudkms.admin"`))
+		Expect(objs["spire/charts/spire-server/templates/gcp-kms.yaml"]).ShouldNot(ContainSubstring("kind: Secret"))
+		server := objs["spire/charts/spire-server/templates/server-resource.yaml"]
+		Expect(server).Should(ContainSubstring("secretName: gcp-sa"))
+		Expect(server).Should(ContainSubstring("name: spire-server-gcp-kms"))
+	})
+	It("stores an inline service account key in a Secret", func() {
+		objs, err := ValueStringRender(chart, base+"      keyRing: r\n      keyIdentifierFile:\n        enabled: true\n      serviceAccountKey:\n        json:\n          type: service_account\n")
+		Expect(err).Should(Succeed())
+		Expect(objs["spire/charts/spire-server/templates/gcp-kms.yaml"]).Should(ContainSubstring("service-account.json: eyJ0eXBlIjoic2VydmljZV9hY2NvdW50In0="))
+		Expect(objs["spire/charts/spire-server/templates/server-resource.yaml"]).Should(ContainSubstring("secretName: spire-server-gcp-kms"))
+	})
+	It("accepts the policy and key as JSON strings", func() {
+		objs, err := ValueStringRender(chart, base+"      keyRing: r\n      keyIdentifierFile:\n        enabled: true\n      keyPolicy:\n        policy: '{\"bindings\": []}'\n      serviceAccountKey:\n        json: '{\"type\":\"service_account\"}'\n")
+		Expect(err).Should(Succeed())
+		Expect(objs["spire/charts/spire-server/templates/gcp-kms.yaml"]).Should(ContainSubstring(`{"bindings": []}`))
+		Expect(objs["spire/charts/spire-server/templates/gcp-kms.yaml"]).Should(ContainSubstring("service-account.json: eyJ0eXBlIjoic2VydmljZV9hY2NvdW50In0="))
+	})
+	It("requires keyRing", func() {
+		_, err := ValueStringRender(chart, base)
+		Expect(err).Should(MatchError(ContainSubstring("keyManager.gcpKMS.keyRing is required")))
+	})
+	It("rejects both key identifier options", func() {
+		_, err := ValueStringRender(chart, base+"      keyRing: r\n      keyIdentifierFile:\n        enabled: true\n      keyIdentifierValue:\n        enabled: true\n")
+		Expect(err).Should(MatchError(ContainSubstring("only enable one of keyManager.gcpKMS")))
+	})
+	It("warns when keyIdentifierFile has no persistence", func() {
+		file := base + "      keyRing: r\n      keyIdentifierFile:\n        enabled: true\n"
+		objs, err := ValueStringRender(chart, file)
+		Expect(err).Should(Succeed())
+		Expect(objs["spire/templates/NOTES.txt"]).ShouldNot(ContainSubstring("keyManager.gcpKMS.keyIdentifierFile is set"))
+		objs, err = ValueStringRender(chart, file+"  persistence:\n    type: emptyDir\n")
+		Expect(err).Should(Succeed())
+		Expect(objs["spire/templates/NOTES.txt"]).Should(ContainSubstring("keyManager.gcpKMS.keyIdentifierFile is set with persistence.type emptyDir"))
+	})
+	It("requires a key identifier option", func() {
+		_, err := ValueStringRender(chart, base+"      keyRing: r\n")
+		Expect(err).Should(MatchError(ContainSubstring("Enable one of keyManager.gcpKMS keyIdentifierFile or keyIdentifierValue")))
+	})
+})
