@@ -72,7 +72,7 @@ test-example-%:
 	@echo
 
 .PHONY: test-examples
-test-examples: $(patsubst examples/%/values.yaml,test-example-%,$(wildcard examples/*/values.yaml)) ## Run `helm install` and `helm test` for all the examples containing `run-tests.sh`
+test-examples: $(patsubst examples/%/run-tests.sh,test-example-%,$(wildcard examples/*/run-tests.sh)) ## Run `helm install` and `helm test` for all the examples containing `run-tests.sh`
 
 .PHONY: diagrams
 diagrams: ## Builds diagrams
