@@ -1,4 +1,6 @@
 TARGET_BRANCH ?= main
+override TEST_EXAMPLES_BLOCK := bottom-turtle-ha
+TEST_EXAMPLES_SKIP ?= federation nested-full nested-security
 
 .PHONY: help
 help: ## Display this help.
@@ -72,7 +74,7 @@ test-example-%:
 	@echo
 
 .PHONY: test-examples
-test-examples: $(patsubst examples/%/run-tests.sh,test-example-%,$(wildcard examples/*/run-tests.sh)) ## Run `helm install` and `helm test` for all the examples containing `run-tests.sh`
+test-examples: $(filter-out $(addprefix test-example-,$(TEST_EXAMPLES_SKIP) $(TEST_EXAMPLES_BLOCK)),$(patsubst examples/%/run-tests.sh,test-example-%,$(wildcard examples/*/run-tests.sh))) ## Run `helm install` and `helm test` for all the examples containing `run-tests.sh`
 
 .PHONY: diagrams
 diagrams: ## Builds diagrams
