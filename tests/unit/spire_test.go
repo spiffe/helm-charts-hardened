@@ -1810,9 +1810,9 @@ var _ = Describe("spire-server.keyManager.azureKeyVault", func() {
 		_, err := ValueStringRender(chart, base+"      keyVaultURI: u\n      keyIdentifierFile:\n        enabled: true\n      tenantID: t\n      subscriptionID: s\n      appID: a\n      appSecret: s3cret\n      existingSecret: azure-app\n")
 		Expect(err).Should(MatchError(ContainSubstring("Set only one of keyManager.azureKeyVault appSecret or existingSecret")))
 	})
-	It("allows tenantID alone for workload identity", func() {
+	It("rejects tenantID without the other app credentials", func() {
 		_, err := ValueStringRender(chart, base+"      keyVaultURI: u\n      keyIdentifierFile:\n        enabled: true\n      tenantID: t\n")
-		Expect(err).Should(Succeed())
+		Expect(err).Should(MatchError(ContainSubstring("keyManager.azureKeyVault app credentials need tenantID, subscriptionID, appID and appSecret or existingSecret")))
 	})
 	It("requires keyVaultURI", func() {
 		_, err := ValueStringRender(chart, base)

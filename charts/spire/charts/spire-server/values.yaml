@@ -515,7 +515,7 @@ keyManager:
       enabled: false
       ## @param keyManager.azureKeyVault.keyIdentifierValue.identifier Static identifier for the SPIRE server instance
       identifier: ""
-    ## @param keyManager.azureKeyVault.tenantID Tenant ID. Workload Identity and Managed Identity must fetch credentials for this tenant.
+    ## @param keyManager.azureKeyVault.tenantID Tenant ID for static app credentials. The plugin needs tenantID, subscriptionID, appID and an app secret together.
     tenantID: ""
     ## @param keyManager.azureKeyVault.subscriptionID Subscription ID for static app credentials
     subscriptionID: ""
