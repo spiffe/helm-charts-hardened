@@ -1797,10 +1797,22 @@ var _ = Describe("spire-server.keyManager.azureKeyVault", func() {
 		Expect(objs["spire/charts/spire-server/templates/cloud-secret.yaml"]).ShouldNot(ContainSubstring("kind: Secret"))
 	})
 	It("stores an inline app secret in the cloud Secret", func() {
-		objs, err := ValueStringRender(chart, base+"      keyVaultURI: u\n      keyIdentifierFile:\n        enabled: true\n      appSecret: s3cret\n")
+		objs, err := ValueStringRender(chart, base+"      keyVaultURI: u\n      keyIdentifierFile:\n        enabled: true\n      tenantID: t\n      subscriptionID: s\n      appID: a\n      appSecret: s3cret\n")
 		Expect(err).Should(Succeed())
 		Expect(objs["spire/charts/spire-server/templates/cloud-secret.yaml"]).Should(ContainSubstring("AZURE_KEY_VAULT_APP_SECRET:"))
 		Expect(objs["spire/charts/spire-server/templates/server-resource.yaml"]).Should(ContainSubstring("name: spire-server-cloud\n                key: AZURE_KEY_VAULT_APP_SECRET"))
+	})
+	It("requires the full set of app credentials", func() {
+		_, err := ValueStringRender(chart, base+"      keyVaultURI: u\n      keyIdentifierFile:\n        enabled: true\n      appID: a\n")
+		Expect(err).Should(MatchError(ContainSubstring("keyManager.azureKeyVault app credentials need tenantID, subscriptionID, appID and appSecret or existingSecret")))
+	})
+	It("rejects appSecret together with existingSecret", func() {
+		_, err := ValueStringRender(chart, base+"      keyVaultURI: u\n      keyIdentifierFile:\n        enabled: true\n      tenantID: t\n      subscriptionID: s\n      appID: a\n      appSecret: s3cret\n      existingSecret: azure-app\n")
+		Expect(err).Should(MatchError(ContainSubstring("Set only one of keyManager.azureKeyVault appSecret or existingSecret")))
+	})
+	It("allows tenantID alone for workload identity", func() {
+		_, err := ValueStringRender(chart, base+"      keyVaultURI: u\n      keyIdentifierFile:\n        enabled: true\n      tenantID: t\n")
+		Expect(err).Should(Succeed())
 	})
 	It("requires keyVaultURI", func() {
 		_, err := ValueStringRender(chart, base)

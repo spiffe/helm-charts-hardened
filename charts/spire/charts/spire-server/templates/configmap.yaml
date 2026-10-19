@@ -453,6 +453,12 @@ plugins:
         {{- else }}
         {{- fail "Enable one of keyManager.azureKeyVault keyIdentifierFile or keyIdentifierValue" }}
         {{- end }}
+        {{- if and .appSecret .existingSecret }}
+        {{- fail "Set only one of keyManager.azureKeyVault appSecret or existingSecret" }}
+        {{- end }}
+        {{- if and (or .subscriptionID .appID .appSecret .existingSecret) (not (and .tenantID .subscriptionID .appID (or .appSecret .existingSecret))) }}
+        {{- fail "keyManager.azureKeyVault app credentials need tenantID, subscriptionID, appID and appSecret or existingSecret" }}
+        {{- end }}
         {{- with .tenantID }}
         tenant_id: {{ . | quote }}
         {{- end }}

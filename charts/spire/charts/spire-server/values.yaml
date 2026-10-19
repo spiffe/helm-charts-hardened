@@ -519,7 +519,7 @@ keyManager:
     tenantID: ""
     ## @param keyManager.azureKeyVault.subscriptionID Subscription ID for static app credentials
     subscriptionID: ""
-    ## @param keyManager.azureKeyVault.appID Application ID for static app credentials. Without app credentials, the plugin uses DefaultAzureCredential.
+    ## @param keyManager.azureKeyVault.appID Application ID for static app credentials. Without app credentials, the plugin uses DefaultAzureCredential. For AKS Workload Identity, set podLabels `azure.workload.identity/use: "true"` and the serviceAccount annotation `azure.workload.identity/client-id`.
     appID: ""
     ## @param keyManager.azureKeyVault.appSecret [nullable] Application secret, stored in a Secret
     appSecret: ""
