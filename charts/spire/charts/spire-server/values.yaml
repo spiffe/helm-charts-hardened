@@ -453,7 +453,7 @@ keyManager:
     ## @param keyManager.awsKMS.region Specify the region for AWS KMS
     region: ""
     keyIdentifierFile:
-      ## @param keyManager.awsKMS.keyIdentifierFile.enabled Enable key identifier data to be stored in a file in persistent storage.
+      ## @param keyManager.awsKMS.keyIdentifierFile.enabled Store the key identifier in the server data directory. Needs persistence, or each restart creates new keys.
       enabled: false
     keyIdentifierValue:
       ## @param keyManager.awsKMS.keyIdentifierValue.enabled Enable specifying a key identifier value for AWS KMS
@@ -462,8 +462,8 @@ keyManager:
       identifier: ""
     ## @extra keyManager.awsKMS.keyPolicy Policy to use when creating keys. If no policy is specified, a default policy will be used.
     keyPolicy:
-      ## @param keyManager.awsKMS.keyPolicy.policy [nullable] Key policy in JSON format.
-      policy: ""
+      ## @param keyManager.awsKMS.keyPolicy.policy [object] Key policy as YAML or a JSON string, written to the plugin as JSON
+      policy: {}
       ## @param keyManager.awsKMS.keyPolicy.existingConfigMap [nullable] Name of a ConfigMap that has a `policy.json` file with the key policy in JSON format.
       existingConfigMap: ""
     ## @param keyManager.awsKMS.keyTags [object] Custom tags to apply to KMS keys created by the plugin. Tags are key-value pairs used for resource management and cost allocation. When using key tagging, you must add the `kms:TagResource` permission to your IAM policy. Constraints: keys (1-128 chars), values (0-256 chars), max 50 tags, valid chars (letters, numbers, spaces, + - = . _ : / @), keys cannot start with 'aws:' or 'spire-'.
