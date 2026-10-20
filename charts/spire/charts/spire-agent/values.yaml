@@ -252,8 +252,9 @@ workloadAttestors:
     useNewContainerLocator: true
     ## @param workloadAttestors.k8s.verboseContainerLocatorLogs If true, enables verbose logging of mountinfo and cgroup information used to locate containers. Defaults to false
     verboseContainerLocatorLogs: false
-    ## @param workloadAttestors.k8s.enableNamespaceLabels If true, adds k8s:ns-label selectors from the workload's namespace labels and lets the agent read namespaces. Defaults to false
-    enableNamespaceLabels: false
+    namespaceLabels:
+      ## @param workloadAttestors.k8s.namespaceLabels.enabled If true, adds k8s:ns-label selectors from the workload's namespace labels and lets the agent read namespaces. Defaults to false
+      enabled: false
     sigstore:
       ## @param workloadAttestors.k8s.sigstore.enabled Enables verification of container image signatures and attestations with Sigstore
       enabled: false

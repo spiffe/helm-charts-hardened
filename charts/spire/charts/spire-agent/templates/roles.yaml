@@ -12,7 +12,7 @@ rules:
       - nodes
       - nodes/proxy
     verbs: ["get"]
-  {{- if .Values.workloadAttestors.k8s.enableNamespaceLabels }}
+  {{- if .Values.workloadAttestors.k8s.namespaceLabels.enabled }}
   - apiGroups: [""]
     resources: ["namespaces"]
     verbs: ["get"]

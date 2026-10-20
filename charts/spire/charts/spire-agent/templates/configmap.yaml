@@ -211,7 +211,7 @@ plugins:
         disable_container_selectors: {{ eq .Values.workloadAttestors.k8s.disableContainerSelectors true}}
         use_new_container_locator: {{ eq .Values.workloadAttestors.k8s.useNewContainerLocator true }}
         verbose_container_locator_logs: {{ eq .Values.workloadAttestors.k8s.verboseContainerLocatorLogs true }}
-        enable_namespace_labels: {{ eq .Values.workloadAttestors.k8s.enableNamespaceLabels true }}
+        enable_namespace_labels: {{ eq .Values.workloadAttestors.k8s.namespaceLabels.enabled true }}
         {{- if eq (include "spire-agent.should-set-node-name-env" .) "true" }}
         node_name_env: "KUBELET_ADDR"
         {{- end }}
