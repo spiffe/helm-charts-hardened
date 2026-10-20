@@ -225,6 +225,9 @@ spire-server:
       enabled: true
       region: us-west-2
       plugin_data: {}
+      keyIdentifierValue:
+        enabled: true
+        identifier: server-a
     disk:
       enabled: false
 `)
@@ -241,6 +244,9 @@ spire-server:
       enabled: true
       region: us-west-2
       enableTagBasedKeyDiscovery: true
+      keyIdentifierValue:
+        enabled: true
+        identifier: server-a
     disk:
       enabled: false
 `)
@@ -248,6 +254,33 @@ spire-server:
 			notes := objs["spire/charts/spire-server/templates/configmap.yaml"]
 			Expect(notes).Should(ContainSubstring("\"aws_kms\": {"))
 			Expect(notes).Should(ContainSubstring("\"enable_tag_based_key_discovery\": true"))
+		})
+	})
+	Describe("spire-server.keyManager.awsKMS checks", func() {
+		base := "spire-server:\n  keyManager:\n    disk:\n      enabled: false\n    awsKMS:\n      enabled: true\n      region: us-west-2\n"
+		It("requires a key identifier option", func() {
+			_, err := ValueStringRender(chart, base)
+			Expect(err).Should(MatchError(ContainSubstring("Enable one of keyManager.awsKMS keyIdentifierFile or keyIdentifierValue")))
+		})
+		It("warns when keyIdentifierFile has no persistence", func() {
+			file := base + "      keyIdentifierFile:\n        enabled: true\n"
+			objs, err := ValueStringRender(chart, file)
+			Expect(err).Should(Succeed())
+			Expect(objs["spire/templates/NOTES.txt"]).ShouldNot(ContainSubstring("keyManager.awsKMS.keyIdentifierFile is set"))
+			objs, err = ValueStringRender(chart, file+"  persistence:\n    type: emptyDir\n")
+			Expect(err).Should(Succeed())
+			Expect(objs["spire/templates/NOTES.txt"]).Should(ContainSubstring("keyManager.awsKMS.keyIdentifierFile is set with persistence.type emptyDir"))
+		})
+		It("accepts the key policy as YAML", func() {
+			objs, err := ValueStringRender(chart, base+"      keyIdentifierFile:\n        enabled: true\n      keyPolicy:\n        policy:\n          Version: \"2012-10-17\"\n")
+			Expect(err).Should(Succeed())
+			Expect(objs["spire/charts/spire-server/templates/aws-kms-configmap.yaml"]).Should(ContainSubstring(`"Version": "2012-10-17"`))
+			Expect(objs["spire/charts/spire-server/templates/server-resource.yaml"]).Should(ContainSubstring("name: aws-kms-key-policy"))
+		})
+		It("accepts the key policy as a JSON string", func() {
+			objs, err := ValueStringRender(chart, base+"      keyIdentifierFile:\n        enabled: true\n      keyPolicy:\n        policy: '{\"Version\": \"2012-10-17\"}'\n")
+			Expect(err).Should(Succeed())
+			Expect(objs["spire/charts/spire-server/templates/aws-kms-configmap.yaml"]).Should(ContainSubstring(`{"Version": "2012-10-17"}`))
 		})
 	})
 	Describe("spire-server.UpstreamAuthority.aws_pca", func() {
