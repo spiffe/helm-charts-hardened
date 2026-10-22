@@ -43,7 +43,7 @@ jobs:
 
       - uses: actions/setup-python@v7
         with:
-          python-version: '3.9'
+          python-version: '3.12'
 
       - name: Install ubuntu packages
         run: sudo apt-get install wget apt-transport-https gnupg lsb-release
@@ -52,7 +52,9 @@ jobs:
         run: go install github.com/mikefarah/yq/v4@latest
 
       - name: Install python dependencies
-        run: pip install -r .github/scripts/requirements.txt
+        run: |
+          python -m pip install --upgrade 'pip>=26.2.2'
+          python -m pip install -r .github/scripts/requirements.txt
 
       - name: Update image tags
         run: |
