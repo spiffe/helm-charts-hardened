@@ -48,6 +48,10 @@ Warning: keyManager.gcpKMS.keyIdentifierFile is set with persistence.type emptyD
 
 Warning: keyManager.azureKeyVault.keyIdentifierFile is set with persistence.type emptyDir. The key identifier is lost on restart, so the server creates new keys in the Key Vault each time. Use a pvc or hostPath, or keyIdentifierValue.
 {{-   end }}
+{{-   if and .enabled .keyManager.awsKMS.enabled .keyManager.awsKMS.keyIdentifierFile.enabled (eq .persistence.type "emptyDir") }}
+
+Warning: keyManager.awsKMS.keyIdentifierFile is set with persistence.type emptyDir. The key identifier is lost on restart, so the server creates new KMS keys each time. Use a pvc or hostPath, or keyIdentifierValue.
+{{-   end }}
 {{- end }}
 {{- if (index .Values "spire-server").enabled }}
 {{-   $className := include "spire-server.controller-manager-class-name" (dict "Values" (index .Values "spire-server") "Release" .Release) }}

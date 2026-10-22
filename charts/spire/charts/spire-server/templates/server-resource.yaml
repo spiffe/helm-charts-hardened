@@ -502,7 +502,7 @@ spec:
             {{- end }}
             {{- end }}
             {{- with .Values.keyManager.awsKMS }}
-            {{- if and (eq (.enabled | toString) "true") (or (ne .keyPolicy.policy "") (ne .keyPolicy.existingConfigMap "")) }}
+            {{- if and (eq (.enabled | toString) "true") (or .keyPolicy.policy (ne .keyPolicy.existingConfigMap "")) }}
             - name: aws-kms-key-policy
               mountPath: /run/spire/data/aws-kms-key-policy.json
               subPath: policy.json
@@ -802,10 +802,10 @@ spec:
         {{- end }}
         {{- end }}
         {{- with .Values.keyManager.awsKMS }}
-        {{- if and (eq (.enabled | toString) "true") (or (ne .keyPolicy.policy "") (ne .keyPolicy.existingConfigMap "")) }}
+        {{- if and (eq (.enabled | toString) "true") (or .keyPolicy.policy (ne .keyPolicy.existingConfigMap "")) }}
         - name: aws-kms-key-policy
           configMap:
-            {{- if ne .keyPolicy.policy "" }}
+            {{- if .keyPolicy.policy }}
             name: {{ $fullname }}-aws-kms
             {{- else if ne .keyPolicy.existingConfigMap "" }}
             name: {{ .keyPolicy.existingConfigMap }}
