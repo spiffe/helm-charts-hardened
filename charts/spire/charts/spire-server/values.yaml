@@ -1760,7 +1760,7 @@ jwtSVIDExecConfig:
     registry: ghcr.io
     repository: spiffe/k8s-spiffe-workload-jwt-exec-auth
     pullPolicy: IfNotPresent
-    tag: "0.2.0"
+    tag: "1.0.1"
   pluginPath: /ko-app/cmd
   spiffeID: "/spire-root"
 
