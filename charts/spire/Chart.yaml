@@ -5,7 +5,7 @@ description: >
 
 type: application
 version: 0.30.3
-appVersion: "1.15.3"
+appVersion: "1.15.5"
 keywords: ["spiffe", "spire", "spire-server", "spire-agent", "oidc", "spire-controller-manager"]
 home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire
 sources:

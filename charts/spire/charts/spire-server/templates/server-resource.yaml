@@ -370,6 +370,15 @@ spec:
                 name: {{ $fullname }}-cloud
                 key: AWS_KMS_SECRET_ACCESS_KEY
           {{- end }}
+          {{- with .Values.keyManager.azureKeyVault }}
+          {{- if and .enabled (or (ne .appSecret "") (ne .existingSecret "")) }}
+          - name: AZURE_KEY_VAULT_APP_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: {{ .existingSecret | default (printf "%s-cloud" $fullname) }}
+                key: AZURE_KEY_VAULT_APP_SECRET
+          {{- end }}
+          {{- end }}
           {{- if ne .Values.secrets.aws.accessKeyID "" }}
           - name: AWS_ACCESS_KEY_ID
             valueFrom:

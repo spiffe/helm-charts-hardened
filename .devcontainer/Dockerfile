@@ -2,17 +2,17 @@ FROM ubuntu:22.04
 RUN \
   apt-get update && \
   apt-get install -y bash ca-certificates gnupg make curl vim sudo jq && \
-  curl -sL https://deb.nodesource.com/setup_18.x -o nodesource_setup.sh && \
+  curl -sL https://deb.nodesource.com/setup_24.x -o nodesource_setup.sh && \
   mkdir -p /etc/apt/keyrings && \
   curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
-  echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list && \
+  echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_24.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list && \
   apt-get update && \
   apt-get install -y nodejs && \
   apt-get clean && \
   curl -o /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.35.2/yq_linux_amd64 && \
   chmod +x /usr/local/bin/yq
 RUN \
-  curl -q -l -o /tmp/go.tgz "https://dl.google.com/go/go1.21.4.linux-amd64.tar.gz" && \
+  curl -q -l -o /tmp/go.tgz "https://dl.google.com/go/go1.26.10.linux-amd64.tar.gz" && \
   cd /usr/local && \
   tar -xvf /tmp/go.tgz && \
   rm -f /tmp/go.tgz && \
