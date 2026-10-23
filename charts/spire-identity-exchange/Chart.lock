@@ -1,6 +1,6 @@
 dependencies:
 - name: spire-lib
   repository: file://../spire-lib
-  version: 0.3.2
-digest: sha256:1360466b9040d3ec4947a299db81a6c1635f5b87042b73cf95c99c1badc4634f
-generated: "2026-09-04T14:16:48.149156-07:00"
+  version: 0.3.3
+digest: sha256:b43d7b19b39e31f3fe02270db7fd3592ff500a57e13f8ff676886fcda47c5e1c
+generated: "2026-10-23T09:16:37.066604-07:00"
