@@ -1,0 +1,26 @@
+{{- with .Values.gcpWorkloadIdentity }}
+{{- if .enabled }}
+{{- if ne $.Values.secrets.gcp.applicationCredentials "" }}
+{{-   fail "Set only one of gcpWorkloadIdentity and secrets.gcp.applicationCredentials" }}
+{{- end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spire-server.fullname" $ }}-gcp-wif
+  namespace: {{ include "spire-server.namespace" $ }}
+data:
+  credential-configuration.json: |
+    {
+      "type": "external_account",
+      "audience": "//iam.googleapis.com/{{ required "gcpWorkloadIdentity.providerResource is required" .providerResource }}",
+      "subject_token_type": "urn:ietf:params:oauth:token-type:jwt",
+      "token_url": "https://sts.googleapis.com/v1/token",
+      "credential_source": {
+        "file": "/var/run/secrets/gcp-wif/token",
+        "format": {
+          "type": "text"
+        }
+      }
+    }
+{{- end }}
+{{- end }}

@@ -1,6 +1,6 @@
 # spire
 
-![Version: 0.30.2](https://img.shields.io/badge/Version-0.30.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.15.3](https://img.shields.io/badge/AppVersion-1.15.3-informational?style=flat-square)
+![Version: 0.30.3](https://img.shields.io/badge/Version-0.30.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.15.5](https://img.shields.io/badge/AppVersion-1.15.5-informational?style=flat-square)
 [![Development Phase](https://github.com/spiffe/spiffe/blob/main/.img/maturity/dev.svg)](https://github.com/spiffe/spiffe/blob/main/MATURITY.md#development)
 
 A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
@@ -328,6 +328,21 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `spireIdentityExchange.spiffe.grpc.gatewayAPI.listenerSet.enabled`       | Manage a ListenerSet for this service's SNI listener. Null inherits global.spire.gatewayAPI.manageListenerSets.                                                                                                                        | `nil`                                 |
 | `spireIdentityExchange.spiffe.grpc.gatewayAPI.parentRefs`                | parentRefs used when ListenerSet management is disabled (direct attach)                                                                                                                                                                | `[]`                                  |
 | `spireIdentityExchange.spiffe.grpc.gatewayAPI.sectionName`               | Listener sectionName override when attaching directly to a Gateway                                                                                                                                                                     | `""`                                  |
+
+### Grafana dashboard parameters
+
+| Name                                    | Description                                                                                             | Value   |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------- |
+| `grafanaDashboards.namespace`           | Namespace for the dashboard ConfigMaps. Defaults to the release namespace.                              | `""`    |
+| `grafanaDashboards.labels`              | Labels the Grafana sidecar uses to discover dashboards                                                  | `{}`    |
+| `grafanaDashboards.annotations`         | Annotations for the dashboard ConfigMaps, e.g. grafana_folder                                           | `{}`    |
+| `grafanaDashboards.spireServer.enabled` | Render a ConfigMap holding the SPIRE Server Grafana dashboard for the Grafana dashboard sidecar to load | `false` |
+
+### Extra manifests
+
+| Name             | Description                                                                                        | Value |
+| ---------------- | -------------------------------------------------------------------------------------------------- | ----- |
+| `extraManifests` | Extra objects to deploy with the release. Each entry is a map or a string and renders through tpl. | `[]`  |
 
 ### Spire agent parameters
 
