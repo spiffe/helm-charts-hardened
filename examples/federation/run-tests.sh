@@ -64,8 +64,8 @@ helm upgrade --install --namespace spire-mgmt --values "${SCRIPTPATH}/a-values.y
 helm upgrade --install --namespace spire-mgmt --values "${SCRIPTPATH}/b-values.yaml" \
   --wait spire-b charts/spire
 
-kubectl exec -it -n spire-server spire-a-server-0 -c spire-server -- spire-server bundle show -format spiffe | kubectl exec -i -n spire-server spire-b-server-0 -c spire-server -- spire-server bundle set -format spiffe -id spiffe://a-org.local
-kubectl exec -it -n spire-server spire-b-server-0 -c spire-server -- spire-server bundle show -format spiffe | kubectl exec -i -n spire-server spire-a-server-0 -c spire-server -- spire-server bundle set -format spiffe -id spiffe://b-org.local
+kubectl exec -i -n spire-server spire-a-server-0 -c spire-server -- spire-server bundle show -format spiffe | kubectl exec -i -n spire-server spire-b-server-0 -c spire-server -- spire-server bundle set -format spiffe -id spiffe://a-org.local
+kubectl exec -i -n spire-server spire-b-server-0 -c spire-server -- spire-server bundle show -format spiffe | kubectl exec -i -n spire-server spire-a-server-0 -c spire-server -- spire-server bundle set -format spiffe -id spiffe://b-org.local
 
 kubectl exec -it -n spire-server spire-b-server-0 -c spire-server -- spire-server bundle list
 kubectl exec -it -n spire-server spire-a-server-0 -c spire-server -- spire-server bundle list
