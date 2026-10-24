@@ -33,9 +33,17 @@ teardown() {
   fi
 
   if [ "${CLEANUP}" -eq 1 ]; then
+    kubectl delete -f "${SCRIPTPATH}/client-pod.yaml"
+    kubectl delete -f "${SCRIPTPATH}/server-pod.yaml"
+    kubectl delete -f "${SCRIPTPATH}/server-svc.yaml"
+
     helm uninstall --namespace spire-mgmt spire-b 2>/dev/null || true
     helm uninstall --namespace spire-mgmt spire-a 2>/dev/null || true
     kubectl delete ns spire-mgmt 2>/dev/null || true
+    kubectl wait --for=delete ns/spire-server ns/spire-system --timeout=120s 2>/dev/null || true
+
+    helm uninstall --namespace ingress-nginx ingress-nginx 2>/dev/null || true
+    kubectl delete ns ingress-nginx 2>/dev/null || true
   fi
 }
 
