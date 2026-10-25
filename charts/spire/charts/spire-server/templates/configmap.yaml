@@ -38,6 +38,12 @@
 {{- if and (eq (.Values.keyManager.awsKMS.keyIdentifierFile.enabled | toString) "true") (eq (.Values.keyManager.awsKMS.keyIdentifierValue.enabled | toString ) "true") }}
 {{-   fail "You can only enable one of keyIdentifierFile or keyIdentifierValue at a time" }}
 {{- end }}
+{{- if and .Values.keyManager.gcpKMS.keyIdentifierFile.enabled .Values.keyManager.gcpKMS.keyIdentifierValue.enabled }}
+{{-   fail "You can only enable one of keyManager.gcpKMS keyIdentifierFile or keyIdentifierValue at a time" }}
+{{- end }}
+{{- if and .Values.keyManager.azureKeyVault.keyIdentifierFile.enabled .Values.keyManager.azureKeyVault.keyIdentifierValue.enabled }}
+{{-   fail "You can only enable one of keyManager.azureKeyVault keyIdentifierFile or keyIdentifierValue at a time" }}
+{{- end }}
 {{- define "spire-server.yaml-config" -}}
 {{- $upstreamAuthorityUsed := 0 }}
 {{- $keyManagerUsed := 0 }}
@@ -389,6 +395,8 @@ plugins:
         key_identifier_file: "/run/spire/data/aws-kms-key-identifier"
         {{- else if eq (.keyIdentifierValue.enabled | toString) "true" }}
         key_identifier_value: {{ .keyIdentifierValue.identifier | quote }}
+        {{- else }}
+        {{- fail "Enable one of keyManager.awsKMS keyIdentifierFile or keyIdentifierValue" }}
         {{- end }}
         {{- if ne .accessKeyID "" }}
         access_key_id: "${AWS_KMS_ACCESS_KEY_ID}"
@@ -396,7 +404,7 @@ plugins:
         {{- if ne .secretAccessKey "" }}
         secret_access_key: "${AWS_KMS_SECRET_ACCESS_KEY}"
         {{- end }}
-        {{- if or (ne .keyPolicy.policy "") (ne .keyPolicy.existingConfigMap "") }}
+        {{- if or .keyPolicy.policy (ne .keyPolicy.existingConfigMap "") }}
         key_policy_file: "/run/spire/data/aws-kms-key-policy.json"
         {{- end }}
         {{- with .keyTags }}
@@ -407,6 +415,63 @@ plugins:
         {{- end }}
         {{- if eq (.enableTagBasedKeyDiscovery | toString) "true" }}
         enable_tag_based_key_discovery: true
+        {{- end }}
+  {{- end }}
+  {{- end }}
+
+  {{- with .Values.keyManager.gcpKMS }}
+  {{- if .enabled }}
+  {{- $keyManagerUsed = add1 $keyManagerUsed }}
+  KeyManager:
+    gcp_kms:
+      plugin_data:
+        key_ring: {{ required "keyManager.gcpKMS.keyRing is required" .keyRing | quote }}
+        {{- if .keyIdentifierFile.enabled }}
+        key_identifier_file: "/run/spire/data/gcp-kms-key-identifier"
+        {{- else if .keyIdentifierValue.enabled }}
+        key_identifier_value: {{ .keyIdentifierValue.identifier | quote }}
+        {{- else }}
+        {{- fail "Enable one of keyManager.gcpKMS keyIdentifierFile or keyIdentifierValue" }}
+        {{- end }}
+        {{- if or .keyPolicy.policy (ne .keyPolicy.existingConfigMap "") }}
+        key_policy_file: "/run/spire/gcp-kms/policy/policy.json"
+        {{- end }}
+        {{- if or .serviceAccountKey.json (ne .serviceAccountKey.existingSecret "") }}
+        service_account_file: "/run/spire/gcp-kms/credentials/service-account.json"
+        {{- end }}
+  {{- end }}
+  {{- end }}
+  {{- with .Values.keyManager.azureKeyVault }}
+  {{- if .enabled }}
+  {{- $keyManagerUsed = add1 $keyManagerUsed }}
+  KeyManager:
+    azure_key_vault:
+      plugin_data:
+        key_vault_uri: {{ required "keyManager.azureKeyVault.keyVaultURI is required" .keyVaultURI | quote }}
+        {{- if .keyIdentifierFile.enabled }}
+        key_identifier_file: "/run/spire/data/azure-key-vault-key-identifier"
+        {{- else if .keyIdentifierValue.enabled }}
+        key_identifier_value: {{ .keyIdentifierValue.identifier | quote }}
+        {{- else }}
+        {{- fail "Enable one of keyManager.azureKeyVault keyIdentifierFile or keyIdentifierValue" }}
+        {{- end }}
+        {{- if and .appSecret .existingSecret }}
+        {{- fail "Set only one of keyManager.azureKeyVault appSecret or existingSecret" }}
+        {{- end }}
+        {{- if and (or .tenantID .subscriptionID .appID .appSecret .existingSecret) (not (and .tenantID .subscriptionID .appID (or .appSecret .existingSecret))) }}
+        {{- fail "keyManager.azureKeyVault app credentials need tenantID, subscriptionID, appID and appSecret or existingSecret" }}
+        {{- end }}
+        {{- with .tenantID }}
+        tenant_id: {{ . | quote }}
+        {{- end }}
+        {{- with .subscriptionID }}
+        subscription_id: {{ . | quote }}
+        {{- end }}
+        {{- with .appID }}
+        app_id: {{ . | quote }}
+        {{- end }}
+        {{- if or (ne .appSecret "") (ne .existingSecret "") }}
+        app_secret: "${AZURE_KEY_VAULT_APP_SECRET}"
         {{- end }}
   {{- end }}
   {{- end }}
@@ -696,6 +761,16 @@ telemetry:
   - Prometheus:
       - host: "0.0.0.0"
         port: 9988
+{{- with .Values.telemetry.prometheus.tls }}
+{{- if eq .mode "spireSVID" }}
+        tls:
+          - use_spire_svid: true
+            {{- with .authorizedSPIFFEIDs }}
+            authorized_spiffe_ids:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+{{- end }}
+{{- end }}
 {{- end }}
 
 {{- if .Values.telemetry.datadog.enabled }}

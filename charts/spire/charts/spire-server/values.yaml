@@ -453,7 +453,7 @@ keyManager:
     ## @param keyManager.awsKMS.region Specify the region for AWS KMS
     region: ""
     keyIdentifierFile:
-      ## @param keyManager.awsKMS.keyIdentifierFile.enabled Enable key identifier data to be stored in a file in persistent storage.
+      ## @param keyManager.awsKMS.keyIdentifierFile.enabled Store the key identifier in the server data directory. Needs persistence, or each restart creates new keys.
       enabled: false
     keyIdentifierValue:
       ## @param keyManager.awsKMS.keyIdentifierValue.enabled Enable specifying a key identifier value for AWS KMS
@@ -462,8 +462,8 @@ keyManager:
       identifier: ""
     ## @extra keyManager.awsKMS.keyPolicy Policy to use when creating keys. If no policy is specified, a default policy will be used.
     keyPolicy:
-      ## @param keyManager.awsKMS.keyPolicy.policy [nullable] Key policy in JSON format.
-      policy: ""
+      ## @param keyManager.awsKMS.keyPolicy.policy [object] Key policy as YAML or a JSON string, written to the plugin as JSON
+      policy: {}
       ## @param keyManager.awsKMS.keyPolicy.existingConfigMap [nullable] Name of a ConfigMap that has a `policy.json` file with the key policy in JSON format.
       existingConfigMap: ""
     ## @param keyManager.awsKMS.keyTags [object] Custom tags to apply to KMS keys created by the plugin. Tags are key-value pairs used for resource management and cost allocation. When using key tagging, you must add the `kms:TagResource` permission to your IAM policy. Constraints: keys (1-128 chars), values (0-256 chars), max 50 tags, valid chars (letters, numbers, spaces, + - = . _ : / @), keys cannot start with 'aws:' or 'spire-'.
@@ -477,6 +477,54 @@ keyManager:
     accessKeyID: ""
     ## @param keyManager.awsKMS.secretAccessKey [nullable] Secret access key for the AWS account.
     secretAccessKey: ""
+  gcpKMS:
+    ## @param keyManager.gcpKMS.enabled Flag to enable the GCP KMS key manager
+    enabled: false
+    ## @param keyManager.gcpKMS.keyRing Key ring for the keys, in the form projects/<project>/locations/<location>/keyRings/<keyRing>
+    keyRing: ""
+    keyIdentifierFile:
+      ## @param keyManager.gcpKMS.keyIdentifierFile.enabled Store the key identifier in the server data directory. Needs persistence, or each restart creates new keys.
+      enabled: false
+    keyIdentifierValue:
+      ## @param keyManager.gcpKMS.keyIdentifierValue.enabled Use a static key identifier value
+      enabled: false
+      ## @param keyManager.gcpKMS.keyIdentifierValue.identifier Static identifier for the SPIRE server instance
+      identifier: ""
+    ## @extra keyManager.gcpKMS.keyPolicy IAM policy to set on created keys. Without one, the plugin applies its default policy.
+    keyPolicy:
+      ## @param keyManager.gcpKMS.keyPolicy.policy [object] IAM policy as YAML or a JSON string, written to the plugin as JSON
+      policy: {}
+      ## @param keyManager.gcpKMS.keyPolicy.existingConfigMap [nullable] Name of a ConfigMap with a `policy.json` key
+      existingConfigMap: ""
+    ## @extra keyManager.gcpKMS.serviceAccountKey Service account key. Without one, the plugin uses Application Default Credentials.
+    serviceAccountKey:
+      ## @param keyManager.gcpKMS.serviceAccountKey.json [object] Service account key as YAML or a JSON string, stored in a Secret as JSON
+      json: {}
+      ## @param keyManager.gcpKMS.serviceAccountKey.existingSecret [nullable] Name of a Secret with a `service-account.json` key
+      existingSecret: ""
+  azureKeyVault:
+    ## @param keyManager.azureKeyVault.enabled Flag to enable the Azure Key Vault key manager
+    enabled: false
+    ## @param keyManager.azureKeyVault.keyVaultURI URI of the Key Vault that holds the keys
+    keyVaultURI: ""
+    keyIdentifierFile:
+      ## @param keyManager.azureKeyVault.keyIdentifierFile.enabled Store the key identifier in the server data directory. Needs persistence, or each restart creates new keys.
+      enabled: false
+    keyIdentifierValue:
+      ## @param keyManager.azureKeyVault.keyIdentifierValue.enabled Use a static key identifier value
+      enabled: false
+      ## @param keyManager.azureKeyVault.keyIdentifierValue.identifier Static identifier for the SPIRE server instance
+      identifier: ""
+    ## @param keyManager.azureKeyVault.tenantID Tenant ID for static app credentials. The plugin needs tenantID, subscriptionID, appID and an app secret together.
+    tenantID: ""
+    ## @param keyManager.azureKeyVault.subscriptionID Subscription ID for static app credentials
+    subscriptionID: ""
+    ## @param keyManager.azureKeyVault.appID Application ID for static app credentials. Without app credentials, the plugin uses DefaultAzureCredential, which covers AKS Workload Identity and node managed identity. For Workload Identity, set podLabels `azure.workload.identity/use: "true"` and the serviceAccount annotation `azure.workload.identity/client-id`.
+    appID: ""
+    ## @param keyManager.azureKeyVault.appSecret [nullable] Application secret, stored in a Secret
+    appSecret: ""
+    ## @param keyManager.azureKeyVault.existingSecret [nullable] Name of a Secret with an `AZURE_KEY_VAULT_APP_SECRET` key
+    existingSecret: ""
 
 upstreamAuthority:
   disk:
@@ -1086,6 +1134,11 @@ telemetry:
   prometheus:
     ## @param telemetry.prometheus.enabled Flag to enable prometheus monitoring
     enabled: false
+    tls:
+      ## @param telemetry.prometheus.tls.mode Metrics endpoint TLS mode: `disabled`, or `spireSVID` to serve TLS with the SPIRE SVID
+      mode: disabled
+      ## @param telemetry.prometheus.tls.authorizedSPIFFEIDs [array] SPIFFE IDs allowed to scrape the metrics endpoint; empty allows any client
+      authorizedSPIFFEIDs: []
     podMonitor:
       ## @param telemetry.prometheus.podMonitor.enabled Enable podMonitor for prometheus
       enabled: false
@@ -1148,6 +1201,13 @@ gatewayAPI:
   parentRefs: []
   ## @param gatewayAPI.sectionName Listener sectionName override when attaching directly to a Gateway
   sectionName: ""
+
+## Workload Identity Federation for GCP APIs. Sets GOOGLE_APPLICATION_CREDENTIALS from a projected service account token.
+gcpWorkloadIdentity:
+  ## @param gcpWorkloadIdentity.enabled Authenticate to GCP with Workload Identity Federation
+  enabled: false
+  ## @param gcpWorkloadIdentity.providerResource Provider resource name: projects/<number>/locations/global/workloadIdentityPools/<pool>/providers/<provider>
+  providerResource: ""
 
 ## @param extraEnv [array] Extra environment variables to add to the spire server
 extraEnv: []
@@ -1700,7 +1760,7 @@ jwtSVIDExecConfig:
     registry: ghcr.io
     repository: spiffe/k8s-spiffe-workload-jwt-exec-auth
     pullPolicy: IfNotPresent
-    tag: "0.2.0"
+    tag: "1.0.1"
   pluginPath: /ko-app/cmd
   spiffeID: "/spire-root"
 

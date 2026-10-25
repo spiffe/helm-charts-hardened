@@ -317,6 +317,10 @@ spec:
           env:
           - name: PATH
             value: "/opt/spire/bin:/bin"
+          {{- if .Values.gcpWorkloadIdentity.enabled }}
+          - name: GOOGLE_APPLICATION_CREDENTIALS
+            value: /etc/gcp-wif/credential-configuration.json
+          {{- end }}
           {{- with .Values.extraEnv }}
           {{- . | toYaml | nindent 10 }}
           {{- end }}
@@ -365,6 +369,15 @@ spec:
               secretKeyRef:
                 name: {{ $fullname }}-cloud
                 key: AWS_KMS_SECRET_ACCESS_KEY
+          {{- end }}
+          {{- with .Values.keyManager.azureKeyVault }}
+          {{- if and .enabled (or (ne .appSecret "") (ne .existingSecret "")) }}
+          - name: AZURE_KEY_VAULT_APP_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: {{ .existingSecret | default (printf "%s-cloud" $fullname) }}
+                key: AZURE_KEY_VAULT_APP_SECRET
+          {{- end }}
           {{- end }}
           {{- if ne .Values.secrets.aws.accessKeyID "" }}
           - name: AWS_ACCESS_KEY_ID
@@ -476,8 +489,20 @@ spec:
               mountPath: /run/spire/upstream_agent
               readOnly: true
             {{ end }}
+            {{- with .Values.keyManager.gcpKMS }}
+            {{- if and .enabled (or .keyPolicy.policy (ne .keyPolicy.existingConfigMap "")) }}
+            - name: gcp-kms-key-policy
+              mountPath: /run/spire/gcp-kms/policy
+              readOnly: true
+            {{- end }}
+            {{- if and .enabled (or .serviceAccountKey.json (ne .serviceAccountKey.existingSecret "")) }}
+            - name: gcp-kms-credentials
+              mountPath: /run/spire/gcp-kms/credentials
+              readOnly: true
+            {{- end }}
+            {{- end }}
             {{- with .Values.keyManager.awsKMS }}
-            {{- if and (eq (.enabled | toString) "true") (or (ne .keyPolicy.policy "") (ne .keyPolicy.existingConfigMap "")) }}
+            {{- if and (eq (.enabled | toString) "true") (or .keyPolicy.policy (ne .keyPolicy.existingConfigMap "")) }}
             - name: aws-kms-key-policy
               mountPath: /run/spire/data/aws-kms-key-policy.json
               subPath: policy.json
@@ -495,6 +520,14 @@ spec:
               mountPath: /run/spire/vault-upstream
             {{- end }}
             {{- end }}
+            {{- end }}
+            {{- if .Values.gcpWorkloadIdentity.enabled }}
+            - name: gcp-wif-token
+              mountPath: /var/run/secrets/gcp-wif
+              readOnly: true
+            - name: gcp-wif-credconfig
+              mountPath: /etc/gcp-wif
+              readOnly: true
             {{- end }}
             {{- if gt (len .Values.extraVolumeMounts) 0 }}
             {{- toYaml .Values.extraVolumeMounts | nindent 12 }}
@@ -750,11 +783,29 @@ spec:
             driver: {{ .Values.upstreamAuthority.spire.upstreamDriver }}
             readOnly: true
         {{- end }}
+        {{- with .Values.keyManager.gcpKMS }}
+        {{- if and .enabled (or .keyPolicy.policy (ne .keyPolicy.existingConfigMap "")) }}
+        - name: gcp-kms-key-policy
+          configMap:
+            name: {{ .keyPolicy.existingConfigMap | default (printf "%s-gcp-kms" $fullname) }}
+            items:
+              - key: policy.json
+                path: policy.json
+        {{- end }}
+        {{- if and .enabled (or .serviceAccountKey.json (ne .serviceAccountKey.existingSecret "")) }}
+        - name: gcp-kms-credentials
+          secret:
+            secretName: {{ .serviceAccountKey.existingSecret | default (printf "%s-gcp-kms" $fullname) }}
+            items:
+              - key: service-account.json
+                path: service-account.json
+        {{- end }}
+        {{- end }}
         {{- with .Values.keyManager.awsKMS }}
-        {{- if and (eq (.enabled | toString) "true") (or (ne .keyPolicy.policy "") (ne .keyPolicy.existingConfigMap "")) }}
+        {{- if and (eq (.enabled | toString) "true") (or .keyPolicy.policy (ne .keyPolicy.existingConfigMap "")) }}
         - name: aws-kms-key-policy
           configMap:
-            {{- if ne .keyPolicy.policy "" }}
+            {{- if .keyPolicy.policy }}
             name: {{ $fullname }}-aws-kms
             {{- else if ne .keyPolicy.existingConfigMap "" }}
             name: {{ .keyPolicy.existingConfigMap }}
@@ -778,6 +829,18 @@ spec:
             defaultMode: 420
             name: {{ include "spire-tornjak.config" . }}
         {{- end }}
+        {{- end }}
+        {{- if .Values.gcpWorkloadIdentity.enabled }}
+        - name: gcp-wif-token
+          projected:
+            sources:
+              - serviceAccountToken:
+                  path: token
+                  audience: https://iam.googleapis.com/{{ .Values.gcpWorkloadIdentity.providerResource }}
+                  expirationSeconds: 3600
+        - name: gcp-wif-credconfig
+          configMap:
+            name: {{ include "spire-server.fullname" . }}-gcp-wif
         {{- end }}
         {{- if gt (len .Values.extraVolumes) 0 }}
         {{- toYaml .Values.extraVolumes | nindent 8 }}

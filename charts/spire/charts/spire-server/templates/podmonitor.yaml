@@ -2,6 +2,7 @@
 {{- if (dig "telemetry" "prometheus" "podMonitor" "enabled" .Values.telemetry.prometheus.podMonitor.enabled .Values.global) }}
 {{- $namespace := include "spire-server.podMonitor.namespace" . }}
 {{- $podNamespace := ( include "spire-server.namespace" . ) }}
+{{- $relabelings := list (dict "targetLabel" "spire_server" "replacement" (include "spire-server.fullname" .)) }}
 apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor
 metadata:
@@ -21,8 +22,12 @@ spec:
       {{- include "spire-server.selectorLabels" . | nindent 6 }}
   podMetricsEndpoints:
     - port: prom
+      relabelings:
+        {{- toYaml $relabelings | nindent 8 }}
   {{- range (include "spire-controller-manager.prometheusPortNames" . | fromYamlArray) }}
     - port: {{ . }}
+      relabelings:
+        {{- toYaml $relabelings | nindent 8 }}
   {{- end }}
   {{- if ne $namespace $podNamespace }}
   namespaceSelector:
