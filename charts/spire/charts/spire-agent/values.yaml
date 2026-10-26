@@ -159,7 +159,7 @@ fsGroupFix:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: IfNotPresent
-    tag: latest@sha256:90041f375e30f41aa7e0390075d8a69dc61900771d52fa98d63ee5d03d866a58
+    tag: latest@sha256:228755e961451b03c1b37c90aa2644088e51e528d77abea1d92758b641b56011
 
 keyManager:
   memory:
@@ -397,7 +397,7 @@ socketAlternate:
     registry: cgr.dev
     repository: chainguard/bash
     pullPolicy: IfNotPresent
-    tag: latest@sha256:90041f375e30f41aa7e0390075d8a69dc61900771d52fa98d63ee5d03d866a58
+    tag: latest@sha256:228755e961451b03c1b37c90aa2644088e51e528d77abea1d92758b641b56011
 
 hostCert:
   ## @param hostCert.image.registry The OCI registry to pull the image from
@@ -409,7 +409,7 @@ hostCert:
     registry: cgr.dev
     repository: chainguard/min-toolkit-debug
     pullPolicy: IfNotPresent
-    tag: latest@sha256:9e45e6836c28489a6e57ca1210ec66927e88eca2409e403616a1278e210e86c9
+    tag: latest@sha256:a570467950dc34f96b5f9cf3f7d280785f4be0d3569a10b925e6973db5f0bcff
 
 ## @param priorityClassName Priority class assigned to daemonset pods. Can be auto set with global.recommendations.priorityClassName.
 priorityClassName: ""

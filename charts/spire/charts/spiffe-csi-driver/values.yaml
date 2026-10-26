@@ -142,7 +142,7 @@ nodeDriverRegistrar:
     registry: registry.k8s.io
     repository: sig-storage/csi-node-driver-registrar
     pullPolicy: IfNotPresent
-    tag: v2.15.0
+    tag: v2.9.4
   ## @param nodeDriverRegistrar.extraEnvVars [array] Extra environment variables to be added to the nodeDriverRegistrar container
   extraEnvVars: []
   ## @param nodeDriverRegistrar.securityContext [object] Security context for the nodeDriverRegistrar container
@@ -180,4 +180,4 @@ selinux:
     registry: registry.access.redhat.com
     repository: ubi10/ubi-minimal
     pullPolicy: IfNotPresent
-    tag: 10.1-1776834797
+    tag: 10.2-1792742351
