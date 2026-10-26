@@ -59,7 +59,7 @@ spiffeHelper:
     registry: ghcr.io
     repository: spiffe/spiffe-helper
     pullPolicy: IfNotPresent
-    tag: 0.11.0
+    tag: 0.12.2
   ## @param spiffeHelper.resources [object] Resource requests and limits
   resources: {}
 
@@ -187,7 +187,7 @@ insecureScheme:
       registry: docker.io
       repository: nginxinc/nginx-unprivileged
       pullPolicy: IfNotPresent
-      tag: 1.30.0-alpine
+      tag: 1.31.7-alpine
     ## @param insecureScheme.nginx.ipMode IP modes supported by the cluster. Must be one of [ipv4, ipv6, both]
     ipMode: both
     ## @param insecureScheme.nginx.resources Resource requests and limits
@@ -300,7 +300,7 @@ telemetry:
         registry: docker.io
         repository: nginx/nginx-prometheus-exporter
         pullPolicy: IfNotPresent
-        tag: "1.5.1"
+        tag: "1.5.3"
 
       ## @param telemetry.prometheus.nginxExporter.resources [object] Resource requests and limits
       resources: {}
@@ -393,7 +393,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:90041f375e30f41aa7e0390075d8a69dc61900771d52fa98d63ee5d03d866a58
+      tag: latest@sha256:228755e961451b03c1b37c90aa2644088e51e528d77abea1d92758b641b56011
 
   toolkit:
     ## @param tests.toolkit.image.registry The OCI registry to pull the image from
@@ -405,7 +405,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/min-toolkit-debug
       pullPolicy: IfNotPresent
-      tag: latest@sha256:9e45e6836c28489a6e57ca1210ec66927e88eca2409e403616a1278e210e86c9
+      tag: latest@sha256:a570467950dc34f96b5f9cf3f7d280785f4be0d3569a10b925e6973db5f0bcff
 
   step:
     ## @param tests.step.image.registry The OCI registry to pull the image from
@@ -417,7 +417,7 @@ tests:
       registry: "docker.io"
       repository: smallstep/step-cli
       pullPolicy: IfNotPresent
-      tag: 0.30.2
+      tag: 0.31.0
 
   busybox:
     ## @param tests.busybox.image.registry The OCI registry to pull the image from
@@ -429,7 +429,7 @@ tests:
       registry: ""
       repository: busybox
       pullPolicy: IfNotPresent
-      tag: 1.37.0-uclibc
+      tag: 1.38.0-uclibc
 
   agent:
     ## @param tests.agent.image.registry The OCI registry to pull the image from
