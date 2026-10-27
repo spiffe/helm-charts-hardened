@@ -62,11 +62,16 @@ spec:
       initContainers:
       {{- if or (dig "openshift" false .Values.global) (dig "selinux" false .Values.global) .Values.selinux.enabled }}
         - name: set-context
+          # Hosts without SELinux leave the directory unlabeled, and chcon -t cannot change the type of an unlabeled file.
           command:
-            - chcon
-            - '-Rvt'
-            - {{ .Values.selinux.context }}
-            - spire-agent-socket/
+            - sh
+            - -c
+            - |
+              if [ "$(ls -Zd spire-agent-socket/ | cut -d' ' -f1)" = "?" ]; then
+                echo "spire-agent-socket/ has no SELinux label, skipping chcon"
+              else
+                exec chcon -Rvt {{ .Values.selinux.context }} spire-agent-socket/
+              fi
           image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.selinux.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.selinux.image.pullPolicy }}
           securityContext:
