@@ -34,11 +34,11 @@ A Helm chart to deploy spike pilot
 | `image.repository`               | The repository within the registry                                                          | `spiffe/spike-pilot` |
 | `image.pullPolicy`               | The image pull policy                                                                       | `IfNotPresent`       |
 | `image.tag`                      | Overrides the image tag whose default is the chart appVersion                               | `""`                 |
-| `shell.image.registry`           | The OCI registry to pull the image from                                                     | `""`                 |
+| `shell.image.registry`           | The OCI registry to pull the image from                                                     | `docker.io`          |
 | `shell.image.repository`         | The repository within the registry                                                          | `busybox`            |
 | `shell.image.pullPolicy`         | The image pull policy                                                                       | `IfNotPresent`       |
 | `shell.image.tag`                | Overrides the image tag whose default is the chart appVersion                               | `1.37.0-uclibc`      |
-| `tools.busybox.image.registry`   | The OCI registry to pull the image from                                                     | `""`                 |
+| `tools.busybox.image.registry`   | The OCI registry to pull the image from                                                     | `docker.io`          |
 | `tools.busybox.image.repository` | The repository within the registry                                                          | `busybox`            |
 | `tools.busybox.image.pullPolicy` | The image pull policy                                                                       | `IfNotPresent`       |
 | `tools.busybox.image.tag`        | Overrides the image tag whose default is the chart appVersion                               | `1.37.0-uclibc`      |
