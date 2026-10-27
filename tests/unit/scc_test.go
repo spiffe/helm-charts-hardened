@@ -10,11 +10,11 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"go.yaml.in/yaml/v3"
 
 	helmloader "helm.sh/helm/v3/pkg/chart/loader"
 	helmutil "helm.sh/helm/v3/pkg/chartutil"
 	corev1 "k8s.io/api/core/v1"
-	yamlutil "k8s.io/apimachinery/pkg/util/yaml"
 )
 
 type scc struct {
@@ -179,7 +179,7 @@ func decodeAll(objs map[string]string, values helmutil.Values) (sccs []scc, work
 		if enabled, err := values.PathValue(sub + ".enabled"); !strings.HasSuffix(name, ".yaml") || (err == nil && enabled == false) {
 			continue
 		}
-		dec := yamlutil.NewYAMLOrJSONDecoder(strings.NewReader(rendered), 4096)
+		dec := yaml.NewDecoder(strings.NewReader(rendered))
 		for {
 			var raw map[string]any
 			if err := dec.Decode(&raw); err == io.EOF {
