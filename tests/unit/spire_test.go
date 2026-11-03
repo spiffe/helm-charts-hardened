@@ -835,6 +835,48 @@ global:
 			Expect(objs["spire/charts/spiffe-csi-driver/templates/scc-spiffe-csi-driver.yaml"]).Should(ContainSubstring("seccompProfiles:\n  - runtime/default\n"))
 		})
 	})
+	Describe("spire-server.nodeAttestor.k8sPSAT.usePodUIDForAgentID", func() {
+		It("leaves the setting out by default", func() {
+			objs, err := ValueStringRender(chart, ``)
+			Expect(err).Should(Succeed())
+			serverCM := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(serverCM).ShouldNot(ContainSubstring("use_pod_uid_for_agent_id"))
+		})
+
+		It("renders the local cluster setting", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  nodeAttestor:
+    k8sPSAT:
+      usePodUIDForAgentID: true
+`)
+			Expect(err).Should(Succeed())
+			serverCM := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(serverCM).Should(ContainSubstring(`"use_pod_uid_for_agent_id": true`))
+		})
+
+		It("allows an external cluster to override the default", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  kubeConfigs:
+    sandbox:
+      kubeConfig: |
+        apiVersion: v1
+        kind: Config
+  nodeAttestor:
+    externalK8sPSAT:
+      defaults:
+        usePodUIDForAgentID: false
+      clusters:
+        sandbox:
+          usePodUIDForAgentID: true
+`)
+			Expect(err).Should(Succeed())
+			serverCM := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(serverCM).Should(ContainSubstring(`"sandbox": {`))
+			Expect(serverCM).Should(ContainSubstring(`"use_pod_uid_for_agent_id": true`))
+		})
+	})
 	Describe("spiffe-csi-driver.syncWave", func() {
 		csiTmpl := "spire/charts/spiffe-csi-driver/templates/spiffe-csi-driver.yaml"
 		It("renders the default sync-wave annotation on OpenShift", func() {
