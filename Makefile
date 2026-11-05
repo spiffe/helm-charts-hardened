@@ -1,6 +1,6 @@
 TARGET_BRANCH ?= main
 override TEST_EXAMPLES_BLOCK := bottom-turtle-ha
-TEST_EXAMPLES_SKIP ?= federation nested-full nested-security
+TEST_EXAMPLES_SKIP ?= nested-full nested-security
 
 .PHONY: help
 help: ## Display this help.
