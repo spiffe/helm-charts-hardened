@@ -297,6 +297,13 @@ plugins:
         ca_bundle_path: "/run/spire/data/x509pop-ca-bundle.pem"
         max_intermediates: {{ .maxIntermediates }}
         max_rsa_key_size: {{ .maxRSAKeySize }}
+        {{- if ne .agentPathTemplate "" }}
+        {{- $cn := "" }}
+        {{- if .addClusterName.agentPathTemplate }}
+        {{-   $cn = printf "/%s" (include "spire-lib.cluster-name" $root) }}
+        {{- end }}
+        agent_path_template: {{ replace "${HELM_ADD_CLUSTER_NAME}" $cn .agentPathTemplate | quote }}
+        {{- end }}
         {{- else }}
         mode: {{ .mode }}
         spiffe_prefix: {{ include "spire-server.identity-exchange-spiffe-prefix" $root | quote }}
