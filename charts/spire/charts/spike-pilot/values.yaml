@@ -24,7 +24,7 @@ shell:
   ## @param shell.image.tag Overrides the image tag whose default is the chart appVersion
   ##
   image:
-    registry: ""
+    registry: docker.io
     repository: busybox
     pullPolicy: IfNotPresent
     tag: 1.37.0-uclibc
@@ -37,7 +37,7 @@ tools:
     ## @param tools.busybox.image.tag Overrides the image tag whose default is the chart appVersion
     ##
     image:
-      registry: ""
+      registry: docker.io
       repository: busybox
       pullPolicy: IfNotPresent
       tag: 1.37.0-uclibc
