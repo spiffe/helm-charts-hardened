@@ -286,6 +286,28 @@ plugins:
         {{- else }}
         hash_path: /run/spire/data/tpm-direct/hashes
         {{- end }}
+        {{- with .pve }}
+        {{- if eq (.enabled | toString) "true" }}
+        pve:
+          enabled: true
+          cluster:
+            {{- range .clusters }}
+            {{ .clusterId }}:
+              {{- if .hosts }}
+              hosts:
+              {{- range .hosts }}
+                - {{ . }}
+              {{- end }}
+              {{- end }}
+              {{- if .port }}
+              port: {{ .port }}
+              {{- end }}
+              {{- if .expectedSpiffeId }}
+              expected_spiffe_id: {{ .expectedSpiffeId }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- end }}
   {{- end }}
   {{- end }}
   {{- with .Values.nodeAttestor.x509POP }}

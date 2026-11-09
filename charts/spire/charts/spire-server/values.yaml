@@ -1306,15 +1306,28 @@ nodeAttestor:
       registry: ghcr.io
       repository: spiffe/spire-tpm-plugin-tpm-attestor-server
       pullPolicy: IfNotPresent
-      tag: "v1.9.0"
+      tag: "v1.11.3"
     ## @param nodeAttestor.tpmDirect.checksum The sha256 checksum of the plugin binary
-    checksum: 46d0caad8c25a027dd11c93e18b58a8bc6fbd9f1fe2e36fa2a0dd440986de4dc
+    checksum: 5f32c3e8cc6c81fa1060a9155eea0a455935d199278406384567ffa125127d83
     ## @param nodeAttestor.tpmDirect.pluginPath The filename in the container of the plugin
     pluginPath: /app/tpm_attestor_server
     ## @param nodeAttestor.tpmDirect.cas A dictionary of TPM CA PEM or DER files that are allowed to connect.
     cas: {}
     ## @param nodeAttestor.tpmDirect.hashes A list of TPM hashes that are allowed to connect.
     hashes: []
+    ## Warning! This is an early version of PVE support. It has only been lightly tested. Please use with caution.
+    pve:
+      ## @param nodeAttestor.tpmDirect.pve.enabled Enable PVE support. See [here](https://github.com/spiffe/spire-tpm-plugin/blob/master/PVE.md).
+      enabled: false
+      ## @param nodeAttestor.tpmDirect.pve.clusters [array] A list of PVE clusters that are allowed to connect.
+      clusters: []
+        # - clusterId: ""
+        #   hosts:
+        #     - hypervisor1.exmaple.com
+        #     - hypervisor2.exmaple.com
+        #     - hypervisor3.exmaple.com
+        #   port: 9443
+        #   expectedSpiffeId: ""
   awsIID:
     ## @param nodeAttestor.awsIID.enabled Enable the aws_iid node attestor
     enabled: false
