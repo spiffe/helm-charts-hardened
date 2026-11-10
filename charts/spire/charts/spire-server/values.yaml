@@ -1126,7 +1126,7 @@ tools:
     ##
     image:
       registry: docker.io
-      repository: busybox
+      repository: library/busybox
       pullPolicy: IfNotPresent
       tag: 1.37.0-uclibc
 
@@ -1673,7 +1673,7 @@ chown:
   ##
   image:
     registry: docker.io
-    repository: busybox
+    repository: library/busybox
     pullPolicy: IfNotPresent
     tag: 1.37.0-uclibc
 
