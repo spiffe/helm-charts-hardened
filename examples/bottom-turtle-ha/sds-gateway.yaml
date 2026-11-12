@@ -92,6 +92,10 @@ metadata:
 spec:
   parentRefs:
   - name: sds
+  # Every route names its host, so a request for a host whose route is not programmed yet gets a
+  # 404 rather than falling through to this one.
+  hostnames:
+  - hello-world.sds.test
   rules:
   - backendRefs:
     - name: hello-world
@@ -116,6 +120,80 @@ spec:
     # Required by the api and sent as SNI. An SVID carries no dns name, so the backend is
     # verified by its SPIFFE id below instead.
     hostname: hello-world.default.svc.cluster.local
+    subjectAltNames:
+    - type: URI
+      uri: spiffe://production.other/ns/default/sa/default
+---
+# Negative test: Envoy must refuse a backend whose SPIFFE id is not the one expected. The
+# service is the hello-world pod under another name, so everything but the id below is valid.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: hello-world-wrong-id
+  namespace: default
+spec:
+  parentRefs:
+  - name: sds
+  hostnames:
+  - wrong-id.sds.test
+  rules:
+  - backendRefs:
+    - name: hello-world-wrong-id
+      port: 8443
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: BackendTLSPolicy
+metadata:
+  name: hello-world-wrong-id
+  namespace: default
+spec:
+  targetRefs:
+  - group: ""
+    kind: Service
+    name: hello-world-wrong-id
+  validation:
+    caCertificateRefs:
+    - group: ""
+      kind: Secret
+      name: spire-bundle
+    hostname: hello-world-wrong-id.default.svc.cluster.local
+    subjectAltNames:
+    - type: URI
+      uri: spiffe://production.other/ns/default/sa/not-hello-world
+---
+# Negative test: ghostunnel must refuse Envoy. Envoy's view of this backend is entirely valid,
+# the pod just does not list the proxy's id in its --allow-uri.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: hello-world-deny
+  namespace: default
+spec:
+  parentRefs:
+  - name: sds
+  hostnames:
+  - deny.sds.test
+  rules:
+  - backendRefs:
+    - name: hello-world-deny
+      port: 8443
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: BackendTLSPolicy
+metadata:
+  name: hello-world-deny
+  namespace: default
+spec:
+  targetRefs:
+  - group: ""
+    kind: Service
+    name: hello-world-deny
+  validation:
+    caCertificateRefs:
+    - group: ""
+      kind: Secret
+      name: spire-bundle
+    hostname: hello-world-deny.default.svc.cluster.local
     subjectAltNames:
     - type: URI
       uri: spiffe://production.other/ns/default/sa/default
