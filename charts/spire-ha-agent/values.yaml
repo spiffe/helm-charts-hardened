@@ -12,10 +12,10 @@ global: {}
 ## @param image.tag Overrides the image tag whose default is the chart appVersion
 ##
 image:
-  #registry: ghcr.io
-  #repository: spiffe/spire-ha-agent
+  # registry: ghcr.io
+  # repository: spiffe/spire-ha-agent
   pullPolicy: IfNotPresent
-  #tag: ""
+  # tag: ""
   registry: docker.io
   repository: kfox1111/misc2
   tag: spire-ha-agent-sds
