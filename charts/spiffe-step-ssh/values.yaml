@@ -163,7 +163,7 @@ busybox:
   ##
   image:
     registry: docker.io
-    repository: busybox
+    repository: library/busybox
     pullPolicy: IfNotPresent
     tag: "1.36.1-uclibc"
 
