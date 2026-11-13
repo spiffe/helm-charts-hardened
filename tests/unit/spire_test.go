@@ -492,6 +492,39 @@ spire-server:
 			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
 			Expect(serverResource).Should(ContainSubstring("name: my-enrollment-ca"))
 		})
+		It("renders agentPathTemplate in externalPKI mode", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  nodeAttestor:
+    k8sPSAT:
+      enabled: false
+    x509POP:
+      enabled: true
+      mode: externalPKI
+      caBundle:
+        existingConfigMap: my-enrollment-ca
+      agentPathTemplate: "/x509pop/cn/{{ .Subject.CommonName }}"
+`)
+			Expect(err).Should(Succeed())
+			serverCM := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(serverCM).Should(ContainSubstring(`"agent_path_template": "/x509pop/cn/{{ .Subject.CommonName }}"`))
+		})
+		It("omits agent_path_template in externalPKI mode by default", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  nodeAttestor:
+    k8sPSAT:
+      enabled: false
+    x509POP:
+      enabled: true
+      mode: externalPKI
+      caBundle:
+        existingConfigMap: my-enrollment-ca
+`)
+			Expect(err).Should(Succeed())
+			serverCM := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(serverCM).ShouldNot(ContainSubstring(`agent_path_template`))
+		})
 	})
 	Describe("spire-server.nodeAttestor.awsIID.verifyOrganization", func() {
 		It("emits verify_organization in server config JSON", func() {
