@@ -224,6 +224,9 @@ plugins:
               {{ toYaml .allowedNodeLabelKeys | nindent 14 }}
             allowed_pod_label_keys:
               {{ toYaml .allowedPodLabelKeys | nindent 14 }}
+            {{- if .usePodUIDForAgentID }}
+            use_pod_uid_for_agent_id: true
+            {{- end }}
           {{- end }}
           {{- end }}
           {{- if eq (.Values.nodeAttestor.externalK8sPSAT.enabled | toString) "true" }}
@@ -246,6 +249,9 @@ plugins:
               {{ if hasKey $clusterSettings "allowedNodeLabelKeys" }}{{ toYaml $clusterSettings.allowedNodeLabelKeys | nindent 14 }}{{ else }}{{ toYaml $clusterDefaults.allowedNodeLabelKeys | nindent 14 }}{{ end }}
             allowed_pod_label_keys:
               {{ if hasKey $clusterSettings "allowedPodLabelKeys" }}{{ toYaml $clusterSettings.allowedPodLabelKeys | nindent 14 }}{{ else }}{{ toYaml $clusterDefaults.allowedPodLabelKeys | nindent 14 }}{{ end }}
+            {{- if hasKey $clusterSettings "usePodUIDForAgentID" | ternary $clusterSettings.usePodUIDForAgentID $clusterDefaults.usePodUIDForAgentID }}
+            use_pod_uid_for_agent_id: true
+            {{- end }}
           {{- end }}
           {{- end }}
   {{- end }}

@@ -1262,6 +1262,8 @@ nodeAttestor:
     allowedNodeLabelKeys: []
     ## @param nodeAttestor.k8sPSAT.allowedPodLabelKeys [array] Pod label keys considered for selectors
     allowedPodLabelKeys: []
+    ## @param nodeAttestor.k8sPSAT.usePodUIDForAgentID Use the attesting pod UID instead of the node UID when generating the agent SPIFFE ID
+    usePodUIDForAgentID: false
   externalK8sPSAT:
     ## @param nodeAttestor.externalK8sPSAT.enabled Enable PSAT k8s nodeattestor for external Kubernetes clusters
     enabled: true
@@ -1274,11 +1276,14 @@ nodeAttestor:
       allowedNodeLabelKeys: []
       ## @param nodeAttestor.externalK8sPSAT.defaults.allowedPodLabelKeys [array] Pod label keys considered for selectors
       allowedPodLabelKeys: []
+      ## @param nodeAttestor.externalK8sPSAT.defaults.usePodUIDForAgentID Use the attesting pod UID instead of the node UID when generating the agent SPIFFE ID
+      usePodUIDForAgentID: false
     ## @param nodeAttestor.externalK8sPSAT.clusters [object] A dictionary of clusters to add with optional overrides. If empty, all clusters defined in kubeConfigs will be used.
     clusters: {}
     # clustera:
     #   kubeConfigName: foo
     #   serviceAccountAllowList: ["other-ns:other-agent"]
+    #   usePodUIDForAgentID: true
     # clusterb: {}
   joinToken:
     ## @param nodeAttestor.joinToken.enabled Enable the join_token nodeattestor
