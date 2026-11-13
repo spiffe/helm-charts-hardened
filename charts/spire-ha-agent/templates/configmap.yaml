@@ -53,6 +53,14 @@ upstream_keepalive:
 metrics:
   bind_address: {{ printf "%s:%v" .Values.telemetry.prometheus.host .Values.telemetry.prometheus.port | quote }}
 {{- end }}
+disable_sds_api: {{ .Values.sds.enabled | not | toYaml }}
+{{- if .Values.sds.enabled }}
+sds:
+  default_svid_name: {{ .Values.sds.defaultNames.svid }}
+  default_bundle_name: {{ .Values.sds.defaultNames.bundle }}
+  default_all_bundles_name: {{ .Values.sds.defaultNames.allBundles }}
+  disable_spiffe_cert_validation: {{ .Values.sds.spiffeCertValidation | not | toYaml }}
+{{- end }}
 {{- if .Values.brokerAPI.enabled }}
 broker_endpoint:
   {{- /* Deliberately not under the workload api socket directory: the agent

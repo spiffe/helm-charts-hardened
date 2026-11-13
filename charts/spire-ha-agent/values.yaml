@@ -94,6 +94,19 @@ brokerAPI:
         - typeURL: "type.googleapis.com/spiffe.broker.WorkloadPIDReference"
           allowOverTCP: false
 
+sds:
+  ## @param sds.enabled Serve the Envoy SDS protocol to downstream consumers. Only supported when mode is broker.
+  enabled: true
+  defaultNames:
+    ## @param sds.defaultNames.svid the default name for svids. Only supported when mode is broker.
+    svid: default
+    ## @param sds.defaultNames.bundle the default name for the bundle. Only supported when mode is broker.
+    bundle: ROOTCA
+    ## @param sds.defaultNames.allBundles the default name for all bundles. Only supported when mode is broker.
+    allBundles: ALL
+  ## @param sds.spiffeCertValidation Enables SDS custom validation. Only supported when mode is broker.
+  spiffeCertValidation: true
+
 upstreamKeepalive:
   ## @param upstreamKeepalive.time How often to ping an upstream broker to notice a connection that died silently. 0 disables. Do not lower below 5m: a spire-agent that does not configure a keepalive enforcement policy answers more frequent pings with GOAWAY too_many_pings and drops the connection.
   time: 5m
