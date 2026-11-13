@@ -79,7 +79,7 @@
 {{- range $name, $value := .Values.kubeConfigs }}
 {{-   if hasKey $value "jwtSVIDExec" }}{{ $jwtExecNeeded = true }}{{- end }}
 {{- end }}
-{{- $pluginLoaderNeeded := or .Values.credentialComposer.cel.enabled .Values.spireIdentityExchange.enabled (gt (len $pluginsToLoad) 0) $jwtExecNeeded }}
+{{- $pluginLoaderNeeded := or .Values.credentialComposer.cel.enabled (gt (len $pluginsToLoad) 0) $jwtExecNeeded }}
 {{- if not .Values.externalServer }}
 apiVersion: apps/v1
 {{- if eq .Values.kind "statefulset" }}
@@ -180,23 +180,6 @@ spec:
             - name: plugins
               mountPath: /plugins
           imagePullPolicy: {{ .Values.credentialComposer.cel.image.pullPolicy }}
-        {{- end }}
-        {{- if .Values.spireIdentityExchange.enabled }}
-        - name: init-six
-          securityContext:
-            {{- include "spire-lib.securitycontext" . | nindent 12 }}
-          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.credentialComposer.spireIdentityExchange.image "global" .Values.global) }}
-          # Second, use the previously copied busybox to copy the plugin into a volume that can be mounted where SPIRE can execute it.
-          command:
-            - /plugins/busybox
-            - sh
-            - -ec
-            - |
-              /plugins/busybox cp -a {{ .Values.credentialComposer.spireIdentityExchange.pluginPath }} /plugins/credentialcomposer-identity-exchange
-          volumeMounts:
-            - name: plugins
-              mountPath: /plugins
-          imagePullPolicy: {{ .Values.credentialComposer.spireIdentityExchange.image.pullPolicy }}
         {{- end }}
         {{- if $jwtExecNeeded }}
         - name: init-jwt-svid-exec

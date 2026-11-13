@@ -553,3 +553,23 @@ subjects:
 {{-   end }}
 {{-   replace "${HELM_ADD_CLUSTER_NAME}" $cn .Values.nodeAttestor.x509POP.spiffePrefix }}
 {{- end }}
+
+{{/*
+The x509pop group prefix for the spire-identity-exchange. It is the x509pop spiffe prefix
+(including the cluster name when enabled) without its leading slash and with a trailing slash.
+*/}}
+{{- define "spire-server.identity-exchange-group-prefix" -}}
+{{-   $prefix := include "spire-server.identity-exchange-spiffe-prefix" . | trimPrefix "/" }}
+{{-   if not (hasSuffix "/" $prefix) }}
+{{-     $prefix = printf "%s/" $prefix }}
+{{-   end }}
+{{-   $prefix }}
+{{- end }}
+
+{{/*
+The x509pop group the spire-identity-exchange agents are placed in. Scoped by the spiffe prefix so
+that it is cluster specific.
+*/}}
+{{- define "spire-server.identity-exchange-group" -}}
+{{-   printf "%sspire-identity-exchange" (include "spire-server.identity-exchange-group-prefix" .) }}
+{{- end }}

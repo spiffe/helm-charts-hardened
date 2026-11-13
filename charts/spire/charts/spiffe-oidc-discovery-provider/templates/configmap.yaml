@@ -38,10 +38,17 @@ domains:
 allow_insecure_scheme: true
 listen_socket_path: {{ $oidcSocket | quote }}
 {{- else }}
-serving_cert_file:
-  cert_file_path: /certs/tls.crt
-  key_file_path: /certs/tls.key
-  addr: ':8443'
+serving_cert_source:
+  {{- if .Values.tls.spire.enabled }}
+  workload_api:
+    socket_path: {{ include "spiffe-oidc-discovery-provider.workload-api-socket-path" . | quote }}
+    addr: ':8443'
+  {{- else }}
+  cert_file:
+    cert_file_path: /certs/tls.crt
+    key_file_path: /certs/tls.key
+    addr: ':8443'
+  {{- end }}
 {{- end }}
 
 {{- if .Values.config.jwksUri}}
@@ -111,9 +118,3 @@ data:
       }
     }
   {{- end }}
-  spiffe-helper.conf: |
-    agent_address = {{ include "spiffe-oidc-discovery-provider.workload-api-socket-path" . | quote }}
-    cert_dir = "/certs"
-    svid_file_name = "tls.crt"
-    svid_key_file_name = "tls.key"
-    svid_bundle_file_name = "ca.pem"
