@@ -82,7 +82,6 @@ We only support upgrading one major/minor version at a time. Version skipping is
 ### 0.31.X
 
 - The spire-identity-exchange integration now uses the x509pop node attestor's group feature (SPIRE 1.16.0+) instead of the spire-credentialcomposer-identity-exchange plugin. The `spire-server.credentialComposer.spireIdentityExchange.*` values have been removed, and the `spire-identity-exchange` node alias now selects on `x509pop:group:<spiffePrefix>spire-identity-exchange` (for example `x509pop:group:spire-exchange/k8s/<cluster>/spire-identity-exchange`). After upgrading the SPIRE Server, restart the spire-identity-exchange pods so their agents reattest and receive the group selector.
-- The x509POP plugin can now emit group selectors via `spire-server.nodeAttestor.x509POP.groupTemplate` and `spire-server.nodeAttestor.x509POP.allowedGroups`.
 
 ### 0.30.X
 

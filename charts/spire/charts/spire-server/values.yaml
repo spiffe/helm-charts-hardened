@@ -1345,9 +1345,9 @@ nodeAttestor:
     spiffePrefix: "/spire-exchange/k8s${HELM_ADD_CLUSTER_NAME}/"
     ## @param nodeAttestor.x509POP.agentPathTemplate Override the default agent path template
     agentPathTemplate: ""
-    ## @param nodeAttestor.x509POP.groupTemplate Go text/template used to derive a group from the certificate, emitted as an `x509pop:group:<value>` selector. If empty and spireIdentityExchange is enabled, defaults to the spiffePrefix (without the leading slash) followed by `{{ dir .SVIDPathTrimmed }}`. If overridden while spireIdentityExchange is enabled, it must still produce the exchange's group, `<spiffePrefix>spire-identity-exchange`, for the exchange's agents.
+    ## @param nodeAttestor.x509POP.groupTemplate Template used to derive a group, emitted as an `x509pop:group:<value>` selector.
     groupTemplate: ""
-    ## @param nodeAttestor.x509POP.allowedGroups [array] Allowlist of group values that may be emitted as selectors. Required when groupTemplate is set. The exchange's group, `<spiffePrefix>spire-identity-exchange`, is always appended when spireIdentityExchange is enabled.
+    ## @param nodeAttestor.x509POP.allowedGroups [array] Allowlist of group values that may be emitted as selectors. Required when groupTemplate is set.
     allowedGroups: []
     ## @param nodeAttestor.x509POP.maxIntermediates Maximum number of intermediate certificates allowed in the certificate chain
     maxIntermediates: 4
