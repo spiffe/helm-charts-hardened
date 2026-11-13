@@ -42,7 +42,7 @@ serving_cert_source:
   {{- if .Values.tls.spire.enabled }}
   workload_api:
     socket_path: {{ include "spiffe-oidc-discovery-provider.workload-api-socket-path" . | quote }}
-    trust_domain: {{ include "spire-lib.trust-domain" . | quote }}
+    addr: ':8443'
   {{- else }}
   cert_file:
     cert_file_path: /certs/tls.crt

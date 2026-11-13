@@ -140,7 +140,7 @@ server:
   {{- end }}
 
 plugins:
-  {{- if or .Values.credentialComposer.uniqueID.enabled .Values.credentialComposer.cel.enabled .Values.spireIdentityExchange.enabled }}
+  {{- if or .Values.credentialComposer.uniqueID.enabled .Values.credentialComposer.cel.enabled }}
   CredentialComposer:
     {{- if or .Values.credentialComposer.uniqueID.enabled }}
     uniqueid: {}
@@ -153,27 +153,6 @@ plugins:
       plugin_data:
         jwt:
           expression_string: {{ .jwt.expression | quote }}
-    {{- end }}
-    {{- end }}
-    {{- with .Values.credentialComposer.spireIdentityExchange }}
-    {{- if $root.Values.spireIdentityExchange.enabled }}
-    identityexchange:
-      plugin_cmd: "/plugins/credentialcomposer-identity-exchange"
-      plugin_checksum: {{ .checksum }}
-      plugin_data:
-        {{- $spiffePrefix := $root.Values.nodeAttestor.x509POP.spiffePrefix }}
-        {{- if not (hasSuffix "/" $spiffePrefix) }}
-        {{-   $spiffePrefix = printf "%s/" $spiffePrefix }}
-        {{- end }}
-        {{- if eq .prefix "" }}
-        {{-   if $root.Values.nodeAttestor.x509POP.addClusterName.spiffePrefix }}
-        prefix: {{ printf "%s%s/spire-identity-exchange/" $spiffePrefix (include "spire-lib.cluster-name" $root) | quote }}
-        {{-   else }}
-        prefix: {{ printf "%s/spire-identity-exchange/" $spiffePrefix | quote }}
-        {{-   end }}
-        {{- else }}
-        prefix: {{ .prefix | quote }}
-        {{- end }}
     {{- end }}
     {{- end }}
   {{- end }}
@@ -315,6 +294,25 @@ plugins:
         {{-   $cn = printf "/%s" (include "spire-lib.cluster-name" $root) }}
         {{- end }}
         agent_path_template: {{ replace "${HELM_ADD_CLUSTER_NAME}" $cn $agentPathTemplate | quote }}
+        {{- end }}
+        {{- $groupTemplate := .groupTemplate }}
+        {{- $allowedGroups := .allowedGroups | default list }}
+        {{- if $root.Values.spireIdentityExchange.enabled }}
+        {{-   if eq $groupTemplate "" }}
+        {{-     $groupTemplate = "{{ dir .SVIDPathTrimmed }}" }}
+        {{-   end }}
+        {{-   $allowedGroups = concat $allowedGroups (list "spire-identity-exchange") | uniq }}
+        {{- end }}
+        {{- if and (eq $groupTemplate "") (gt (len $allowedGroups) 0) }}
+        {{-   fail "nodeAttestor.x509POP.groupTemplate must be set when nodeAttestor.x509POP.allowedGroups is configured" }}
+        {{- end }}
+        {{- if ne $groupTemplate "" }}
+        {{-   if eq (len $allowedGroups) 0 }}
+        {{-     fail "nodeAttestor.x509POP.allowedGroups must be set when nodeAttestor.x509POP.groupTemplate is configured" }}
+        {{-   end }}
+        group_template: {{ $groupTemplate | quote }}
+        allowed_groups:
+          {{- toYaml $allowedGroups | nindent 10 }}
         {{- end }}
   {{- end }}
   {{- end }}

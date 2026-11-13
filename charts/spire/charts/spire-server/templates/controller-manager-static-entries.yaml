@@ -60,9 +60,8 @@
     {{- toYaml . | nindent 6 }}
     {{- end }}
     {{- if and (eq $key "spire-identity-exchange") (not (hasKey $value "selectors")) }}
-    {{- $iePrefix := include "spire-server.identity-exchange-spiffe-prefix" $root | trimPrefix "/" }}
     selectors:
-      - x509pop:subject:cn:{{ $iePrefix }}spire-identity-exchange
+      - x509pop:group:spire-identity-exchange
     {{- else }}
     {{- with $value.selectors }}
     selectors:

@@ -492,6 +492,76 @@ spire-server:
 			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
 			Expect(serverResource).Should(ContainSubstring("name: my-enrollment-ca"))
 		})
+		It("does not render groups by default", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  nodeAttestor:
+    x509POP:
+      enabled: true
+`)
+			Expect(err).Should(Succeed())
+			serverCM := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(serverCM).Should(ContainSubstring(`"x509pop"`))
+			Expect(serverCM).ShouldNot(ContainSubstring("group_template"))
+			Expect(serverCM).ShouldNot(ContainSubstring("allowed_groups"))
+		})
+		It("renders user supplied groups", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  nodeAttestor:
+    x509POP:
+      enabled: true
+      groupTemplate: "{{ .Subject.CommonName }}"
+      allowedGroups:
+        - foo
+        - bar
+`)
+			Expect(err).Should(Succeed())
+			serverCM := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(serverCM).Should(ContainSubstring(`"group_template": "{{ .Subject.CommonName }}"`))
+			Expect(serverCM).Should(MatchRegexp(`"allowed_groups": \[\s*"foo",\s*"bar"\s*\]`))
+		})
+		It("fails when only one of groupTemplate and allowedGroups is set", func() {
+			_, err := ValueStringRender(chart, `
+spire-server:
+  nodeAttestor:
+    x509POP:
+      enabled: true
+      groupTemplate: "{{ .Subject.CommonName }}"
+`)
+			Expect(err).Should(MatchError(ContainSubstring("allowedGroups must be set")))
+			_, err = ValueStringRender(chart, `
+spire-server:
+  nodeAttestor:
+    x509POP:
+      enabled: true
+      allowedGroups:
+        - foo
+`)
+			Expect(err).Should(MatchError(ContainSubstring("groupTemplate must be set")))
+		})
+		It("uses a group for spire-identity-exchange instead of a credential composer", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  spireIdentityExchange:
+    enabled: true
+  nodeAttestor:
+    x509POP:
+      allowedGroups:
+        - foo
+`)
+			Expect(err).Should(Succeed())
+			serverCM := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(serverCM).Should(ContainSubstring(`"group_template": "{{ dir .SVIDPathTrimmed }}"`))
+			Expect(serverCM).Should(MatchRegexp(`"allowed_groups": \[\s*"foo",\s*"spire-identity-exchange"\s*\]`))
+			Expect(serverCM).ShouldNot(ContainSubstring("CredentialComposer"))
+			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
+			Expect(serverResource).ShouldNot(ContainSubstring("init-six"))
+			Expect(serverResource).ShouldNot(ContainSubstring("credentialcomposer-identity-exchange"))
+			entries := objs["spire/charts/spire-server/templates/controller-manager-static-entries.yaml"]
+			Expect(entries).Should(ContainSubstring("x509pop:group:spire-identity-exchange"))
+			Expect(entries).ShouldNot(ContainSubstring("x509pop:subject:cn"))
+		})
 	})
 	Describe("spire-server.nodeAttestor.awsIID.verifyOrganization", func() {
 		It("emits verify_organization in server config JSON", func() {

@@ -422,23 +422,6 @@ credentialComposer:
   uniqueID:
     ## @param credentialComposer.uniqueID.enabled Add the x509UniqueIdentifier attribute to workload X509-SVIDs
     enabled: false
-  spireIdentityExchange:
-    ## @param credentialComposer.spireIdentityExchange.image.registry The OCI registry to pull the image from
-    ## @param credentialComposer.spireIdentityExchange.image.repository The repository within the registry
-    ## @param credentialComposer.spireIdentityExchange.image.pullPolicy The image pull policy
-    ## @param credentialComposer.spireIdentityExchange.image.tag Overrides the image tag
-    ##
-    image:
-      registry: ghcr.io
-      repository: spiffe/spire-credentialcomposer-identity-exchange
-      pullPolicy: IfNotPresent
-      tag: "v0.2.0"
-    ## @param credentialComposer.spireIdentityExchange.checksum The sha256 checksum of the plugin binary
-    checksum: 198bfed106794a60e565cb804cb6b360d4633e4542981abbea0c0c669ddd6036
-    ## @param credentialComposer.spireIdentityExchange.pluginPath The filename in the container of the plugin
-    pluginPath: /ko-app/spire-credentialcomposer-identity-exchange
-    ## @param credentialComposer.spireIdentityExchange.prefix The prefix to operate on
-    prefix: ""
 
 keyManager:
   disk:
@@ -1362,6 +1345,10 @@ nodeAttestor:
     spiffePrefix: "/spire-exchange/k8s${HELM_ADD_CLUSTER_NAME}/"
     ## @param nodeAttestor.x509POP.agentPathTemplate Override the default agent path template
     agentPathTemplate: ""
+    ## @param nodeAttestor.x509POP.groupTemplate Go text/template used to derive a group from the certificate, emitted as an `x509pop:group:<value>` selector. If empty and spireIdentityExchange is enabled, defaults to `{{ dir .SVIDPathTrimmed }}`. If overridden while spireIdentityExchange is enabled, it must still produce `spire-identity-exchange` for the exchange's agents.
+    groupTemplate: ""
+    ## @param nodeAttestor.x509POP.allowedGroups [array] Allowlist of group values that may be emitted as selectors. Required when groupTemplate is set. `spire-identity-exchange` is always appended when spireIdentityExchange is enabled.
+    allowedGroups: []
     ## @param nodeAttestor.x509POP.maxIntermediates Maximum number of intermediate certificates allowed in the certificate chain
     maxIntermediates: 4
     ## @param nodeAttestor.x509POP.maxRSAKeySize Maximum RSA key size in bits allowed in certificates
