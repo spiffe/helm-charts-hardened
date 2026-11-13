@@ -1957,3 +1957,119 @@ var _ = Describe("spire-server.keyManager.azureKeyVault", func() {
 		Expect(err).Should(MatchError(ContainSubstring("Enable one of keyManager.azureKeyVault keyIdentifierFile or keyIdentifierValue")))
 	})
 })
+
+var _ = Describe("spire-server.controllerManager probes", func() {
+	chart, err := helmloader.Load("../../charts/spire")
+	if err != nil {
+		panic(err)
+	}
+	serverTmpl := "spire/charts/spire-server/templates/server-resource.yaml"
+	external := `
+  kubeConfigs:
+    child01:
+      kubeConfig: |
+        apiVersion: v1
+        kind: Config
+    child02:
+      kubeConfig: |
+        apiVersion: v1
+        kind: Config
+  externalControllerManagers:
+    enabled: true
+`
+	// The controller manager containers are the only ones probing /healthz and /readyz.
+	probes := func(values string) (int, int, string) {
+		objs, err := ValueStringRender(chart, values)
+		Expect(err).Should(Succeed())
+		server := objs[serverTmpl]
+		return strings.Count(server, "path: /healthz"), strings.Count(server, "path: /readyz"), server
+	}
+
+	It("enables both probes by default", func() {
+		liveness, readiness, server := probes(`
+spire-server:
+  controllerManager:
+    enabled: true
+`)
+		Expect(liveness).Should(Equal(1))
+		Expect(readiness).Should(Equal(1))
+		Expect(server).ShouldNot(ContainSubstring("enabled: true"))
+	})
+
+	It("disables the liveness probe on its own", func() {
+		liveness, readiness, _ := probes(`
+spire-server:
+  controllerManager:
+    enabled: true
+    livenessProbe:
+      enabled: false
+`)
+		Expect(liveness).Should(Equal(0))
+		Expect(readiness).Should(Equal(1))
+	})
+
+	It("disables the readiness probe on its own", func() {
+		liveness, readiness, _ := probes(`
+spire-server:
+  controllerManager:
+    enabled: true
+    readinessProbe:
+      enabled: false
+`)
+		Expect(liveness).Should(Equal(1))
+		Expect(readiness).Should(Equal(0))
+	})
+
+	It("enables both probes on external controller managers by default", func() {
+		liveness, readiness, _ := probes(`
+spire-server:
+  controllerManager:
+    enabled: true
+` + external)
+		Expect(liveness).Should(Equal(3))
+		Expect(readiness).Should(Equal(3))
+	})
+
+	It("disables the probes for all external controller managers through the defaults", func() {
+		liveness, readiness, server := probes(`
+spire-server:
+  controllerManager:
+    enabled: true
+` + external + `
+    defaults:
+      livenessProbe:
+        enabled: false
+      readinessProbe:
+        enabled: false
+`)
+		Expect(liveness).Should(Equal(1))
+		Expect(readiness).Should(Equal(1))
+		Expect(server).Should(ContainSubstring("port: hp-cm\n"))
+		Expect(server).ShouldNot(ContainSubstring("port: hp-cm-child01"))
+		Expect(server).ShouldNot(ContainSubstring("port: hp-cm-child02"))
+	})
+
+	It("lets a cluster override the external defaults", func() {
+		liveness, readiness, server := probes(`
+spire-server:
+  controllerManager:
+    enabled: true
+` + external + `
+    defaults:
+      livenessProbe:
+        enabled: false
+    clusters:
+      child01:
+        livenessProbe:
+          enabled: true
+      child02:
+        readinessProbe:
+          enabled: false
+`)
+		// liveness: internal + child01, readiness: internal + child01
+		Expect(liveness).Should(Equal(2))
+		Expect(readiness).Should(Equal(2))
+		Expect(server).Should(ContainSubstring("port: hp-cm-child01"))
+		Expect(server).ShouldNot(ContainSubstring("port: hp-cm-child02"))
+	})
+})

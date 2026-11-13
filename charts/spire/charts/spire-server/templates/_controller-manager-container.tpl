@@ -153,6 +153,10 @@ Auto-generation preserves trailing numbers from cluster names or uses hash for u
 {{-   if hasKey .settings "securityContext" }}
 {{-     $securityContext = mergeOverwrite .defaults.securityContext .settings.securityContext }}
 {{-   end }}
+{{-   $livenessProbeEnabled := dig "livenessProbe" "enabled" true .defaults }}
+{{-   $livenessProbeEnabled = dig "livenessProbe" "enabled" $livenessProbeEnabled .settings }}
+{{-   $readinessProbeEnabled := dig "readinessProbe" "enabled" true .defaults }}
+{{-   $readinessProbeEnabled = dig "readinessProbe" "enabled" $readinessProbeEnabled .settings }}
 - name: spire-controller-manager{{ .suffix }}
   securityContext:
     {{- include "spire-lib.securitycontext-extended" (dict "root" . "securityContext" $securityContext) | nindent 4 }}
@@ -193,16 +197,20 @@ Auto-generation preserves trailing numbers from cluster names or uses hash for u
       name: {{ $pmName }}
     {{- end }}
 {{- if eq .Values.controllerManager.staticManifestMode "off" }}
+{{-   if $livenessProbeEnabled }}
   livenessProbe:
     httpGet:
       path: /healthz
       port: {{ $hpName }}
-    {{- toYaml .Values.controllerManager.livenessProbe | nindent 4 }}
+    {{- toYaml (omit .Values.controllerManager.livenessProbe "enabled") | nindent 4 }}
+{{-   end }}
+{{-   if $readinessProbeEnabled }}
   readinessProbe:
     httpGet:
       path: /readyz
       port: {{ $hpName }}
-    {{- toYaml .Values.controllerManager.readinessProbe | nindent 4 }}
+    {{- toYaml (omit .Values.controllerManager.readinessProbe "enabled") | nindent 4 }}
+{{-   end }}
 {{- end }}
   resources:
     {{- toYaml .resources | nindent 4 }}

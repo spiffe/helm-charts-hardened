@@ -734,21 +734,25 @@ controllerManager:
     renewDeadline: "10s"
     retryPeriod: "2s"
 
+  ## @param controllerManager.livenessProbe.enabled Enable the livenessProbe on the controller manager
   ## @param controllerManager.livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
   ## @param controllerManager.livenessProbe.periodSeconds Period seconds for livenessProbe
   ## @param controllerManager.livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
   ## @param controllerManager.livenessProbe.failureThreshold Failure threshold for livenessProbe
   livenessProbe:
+    enabled: true
     initialDelaySeconds: 5
     periodSeconds: 10
     timeoutSeconds: 5
     failureThreshold: 3
 
+  ## @param controllerManager.readinessProbe.enabled Enable the readinessProbe on the controller manager
   ## @param controllerManager.readinessProbe.initialDelaySeconds Initial delay seconds for readinessProbe
   ## @param controllerManager.readinessProbe.periodSeconds Period seconds for readinessProbe
   ## @param controllerManager.readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
   ## @param controllerManager.readinessProbe.failureThreshold Failure threshold for readinessProbe
   readinessProbe:
+    enabled: true
     initialDelaySeconds: 5
     periodSeconds: 10
     timeoutSeconds: 5
@@ -1070,8 +1074,14 @@ externalControllerManagers:
       - ibm-.*
     ## @param externalControllerManagers.defaults.cacheNamespaces [object] If specified restricts the manager's cache to watch objects in the desired namespaces. Defaults to all namespaces.
     cacheNamespaces: {}
+    livenessProbe:
+      ## @param externalControllerManagers.defaults.livenessProbe.enabled Enable the livenessProbe on the external controller managers. Timings come from controllerManager.livenessProbe.
+      enabled: true
+    readinessProbe:
+      ## @param externalControllerManagers.defaults.readinessProbe.enabled Enable the readinessProbe on the external controller managers. Timings come from controllerManager.readinessProbe.
+      enabled: true
 
-  ## @param externalControllerManagers.clusters [object] A dictionary of clusters to add with optional overrides (kubeConfigName, reconcile, resources, healthPortName, prometheusPortName). If empty, all clusters defined in kubeConfigs will be used.
+  ## @param externalControllerManagers.clusters [object] A dictionary of clusters to add with optional overrides (kubeConfigName, reconcile, resources, healthPortName, prometheusPortName, livenessProbe.enabled, readinessProbe.enabled). If empty, all clusters defined in kubeConfigs will be used.
   clusters: {}
   # clustera:
       # Should match the name of the config in the kubeConfigs section
@@ -1080,6 +1090,10 @@ externalControllerManagers:
   #     clusterStaticEntries: true
   #   healthPortName: "hp-clustera-01"
   #   prometheusPortName: "pm-clustera-01"
+  #   livenessProbe:
+  #     enabled: false
+  #   readinessProbe:
+  #     enabled: false
   #   resources:
   #     requests:
   #       cpu: 100m
