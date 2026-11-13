@@ -61,7 +61,7 @@
     {{- end }}
     {{- if and (eq $key "spire-identity-exchange") (not (hasKey $value "selectors")) }}
     selectors:
-      - x509pop:group:spire-identity-exchange
+      - x509pop:group:{{ include "spire-server.identity-exchange-group" $root }}
     {{- else }}
     {{- with $value.selectors }}
     selectors:

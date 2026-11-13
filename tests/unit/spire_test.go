@@ -552,15 +552,33 @@ spire-server:
 `)
 			Expect(err).Should(Succeed())
 			serverCM := objs["spire/charts/spire-server/templates/configmap.yaml"]
-			Expect(serverCM).Should(ContainSubstring(`"group_template": "{{ dir .SVIDPathTrimmed }}"`))
-			Expect(serverCM).Should(MatchRegexp(`"allowed_groups": \[\s*"foo",\s*"spire-identity-exchange"\s*\]`))
+			Expect(serverCM).Should(ContainSubstring(`"group_template": "spire-exchange/k8s/example-cluster/{{ dir .SVIDPathTrimmed }}"`))
+			Expect(serverCM).Should(MatchRegexp(`"allowed_groups": \[\s*"foo",\s*"spire-exchange/k8s/example-cluster/spire-identity-exchange"\s*\]`))
 			Expect(serverCM).ShouldNot(ContainSubstring("CredentialComposer"))
 			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
 			Expect(serverResource).ShouldNot(ContainSubstring("init-six"))
 			Expect(serverResource).ShouldNot(ContainSubstring("credentialcomposer-identity-exchange"))
 			entries := objs["spire/charts/spire-server/templates/controller-manager-static-entries.yaml"]
-			Expect(entries).Should(ContainSubstring("x509pop:group:spire-identity-exchange"))
+			Expect(entries).Should(ContainSubstring("x509pop:group:spire-exchange/k8s/example-cluster/spire-identity-exchange"))
 			Expect(entries).ShouldNot(ContainSubstring("x509pop:subject:cn"))
+		})
+		It("scopes the spire-identity-exchange group by the spiffe prefix", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  spireIdentityExchange:
+    enabled: true
+  nodeAttestor:
+    x509POP:
+      spiffePrefix: /custom/prefix/
+      addClusterName:
+        spiffePrefix: false
+`)
+			Expect(err).Should(Succeed())
+			serverCM := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(serverCM).Should(ContainSubstring(`"group_template": "custom/prefix/{{ dir .SVIDPathTrimmed }}"`))
+			Expect(serverCM).Should(MatchRegexp(`"allowed_groups": \[\s*"custom/prefix/spire-identity-exchange"\s*\]`))
+			entries := objs["spire/charts/spire-server/templates/controller-manager-static-entries.yaml"]
+			Expect(entries).Should(ContainSubstring("x509pop:group:custom/prefix/spire-identity-exchange"))
 		})
 	})
 	Describe("spire-server.nodeAttestor.awsIID.verifyOrganization", func() {
