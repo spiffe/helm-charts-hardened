@@ -118,9 +118,19 @@ teardown() {
     done
     dump_zot
     dump_kubelet_all
+    if [ "${BROKER}" -eq 1 ]; then
+      dump_sds_gateway
+    fi
   fi
 
   if [ "${CLEANUP}" -eq 1 ]; then
+    if [ "${BROKER}" -eq 1 ]; then
+      kubectl delete -f "${SCRIPTPATH}/sds-hello-world.yaml" 2>/dev/null || true
+      kubectl delete -f "${SCRIPTPATH}/sds-gateway.yaml" 2>/dev/null || true
+      helm uninstall --namespace envoy-gateway-system eg 2>/dev/null || true
+      kubectl delete ns envoy-gateway-system 2>/dev/null || true
+      # Leave the Gateway API CRDs installed, as the gatewayapi integration test does.
+    fi
     kubectl delete job federation-test 2>/dev/null || true
     kubectl delete job image-push image-pull image-push-denied 2>/dev/null || true
     helm uninstall --namespace zot zot 2>/dev/null || true
@@ -320,6 +330,152 @@ run_federation_test_job() {
     "${SCRIPTPATH}/federation-test-job.yaml" | kubectl apply -f -
   kubectl wait --for=condition=complete --timeout=240s job/federation-test
   kubectl logs job/federation-test | grep FEDERATION-OK
+}
+
+# The Envoy Gateway proxy for the sds Gateway. Envoy Gateway runs it in its own namespace and
+# labels everything it creates for a Gateway with the Gateway's namespace and name.
+SDS_GATEWAY_NS=envoy-gateway-system
+SDS_GATEWAY_SELECTOR="gateway.envoyproxy.io/owning-gateway-namespace=default,gateway.envoyproxy.io/owning-gateway-name=sds"
+SDS_GATEWAY_DEPLOYED=0
+
+# Same treatment as dump_job. The proxy log is where an SDS or upstream handshake failure shows
+# up, the Envoy Gateway log is where a rejected SDS secret reference does, and ghostunnel logs
+# the peer id it turned away.
+dump_sds_gateway() {
+  set +x
+  echo "===== BEGIN sds gateway ====="
+  kubectl get gatewayclass,gateway,httproute,backendtlspolicy,envoyproxy -A -o yaml 2>&1 || true
+  kubectl get pods,svc,deploy -n "${SDS_GATEWAY_NS}" -o wide 2>&1 || true
+  kubectl describe pod -n "${SDS_GATEWAY_NS}" 2>&1 || true
+  kubectl logs -n "${SDS_GATEWAY_NS}" deployment/envoy-gateway --all-containers --prefix --tail=200 2>&1 || true
+  kubectl logs -n "${SDS_GATEWAY_NS}" -l "${SDS_GATEWAY_SELECTOR}" --all-containers --prefix --tail=300 2>&1 || true
+  kubectl describe pod hello-world 2>&1 || true
+  kubectl logs pod/hello-world --all-containers --prefix 2>&1 || true
+  kubectl describe pod hello-world-deny 2>&1 || true
+  kubectl logs pod/hello-world-deny --all-containers --prefix 2>&1 || true
+  echo "===== END sds gateway ====="
+  set -x
+}
+
+# Start the proxy and the workload over so neither carries an SVID, a bundle or a connection
+# from before. The workloads are bare pods, so they are deleted and applied again from the
+# manifest rendered by the first run_sds_gateway_test.
+restart_sds_gateway_workloads() {
+  local deploy
+  deploy=$(kubectl -n "${SDS_GATEWAY_NS}" get deployment -l "${SDS_GATEWAY_SELECTOR}" -o jsonpath='{.items[0].metadata.name}')
+  kubectl delete pod hello-world hello-world-deny --wait=true --timeout=2m
+  kubectl apply -f /tmp/sds-hello-world.yaml
+  kubectl rollout restart -n "${SDS_GATEWAY_NS}" "deployment/${deploy}"
+  kubectl rollout status -n "${SDS_GATEWAY_NS}" --timeout=5m "deployment/${deploy}"
+  kubectl wait --for=condition=Ready --timeout=5m pod/hello-world pod/hello-world-deny
+}
+
+# A request through the sds Gateway for a host whose backend handshake must fail. Envoy answers
+# for the upstream it could not reach, so a 5xx is the pass. A 200 means an identity check let
+# something through. Anything else, a 404 or no answer at all, is the route or the proxy not
+# being ready, which says nothing either way, so wait for it and fail if it never settles.
+expect_sds_gateway_denied() {
+  local host="$1"
+  local nodeport="$2"
+  local count=0
+  local code=""
+  while [ "$count" -lt 30 ]; do
+    code=$(curl -s -o /tmp/sds-gateway-denied-body -w '%{http_code}' -H "Host: ${host}" "http://${IP}:${nodeport}/" || true)
+    case "$code" in
+      5*)
+        # Envoy's body names the reason the upstream connection failed.
+        echo "${host} denied with ${code}: $(cat /tmp/sds-gateway-denied-body)"
+        return 0
+        ;;
+      200)
+        echo "${host} was served, an identity check did not hold: $(cat /tmp/sds-gateway-denied-body)"
+        return 1
+        ;;
+    esac
+    sleep 3
+    ((count++)) || true
+  done
+  echo "${host} never gave a usable answer, last status ${code}"
+  return 1
+}
+
+# Host -> Envoy Gateway (http) -> SPIFFE mTLS -> ghostunnel -> nginx. Envoy takes its client
+# certificate and trust bundle from the spire-ha-agent's SDS api, and ghostunnel only admits the
+# proxy's identity, so "hello world" coming back proves both directions of the handshake.
+# The first call deploys everything. Later calls only repeat the request.
+run_sds_gateway_test() {
+  local count sa nodeport body
+
+  if [ "${SDS_GATEWAY_DEPLOYED}" -eq 0 ]; then
+    # Its gateway-crds-helm dependency also installs the Gateway API CRDs. SDS secret
+    # references are off by default.
+    helm upgrade --install --create-namespace eg "$HELM_REGISTRY_ENVOY_GATEWAY" \
+      --version "$VERSION_ENVOY_GATEWAY" \
+      --namespace "${SDS_GATEWAY_NS}" \
+      --set gateway-crds-helm.crds.gatewayAPI.channel=standard \
+      --set config.envoyGateway.extensionApis.enableSDSSecretRef=true \
+      --wait
+    kubectl wait --timeout=5m -n "${SDS_GATEWAY_NS}" deployment/envoy-gateway --for=condition=Available
+
+    kubectl apply -f "${SCRIPTPATH}/sds-gateway.yaml"
+
+    # The proxy needs no registration of its own: the default ClusterSPIFFEID on both sides
+    # already gives every pod an ns/sa id. Envoy Gateway generates the service account name
+    # though, so read it back to tell ghostunnel who to let in.
+    sa=""
+    count=0
+    while [ "$count" -lt 60 ]; do
+      sa=$(kubectl -n "${SDS_GATEWAY_NS}" get deployment -l "${SDS_GATEWAY_SELECTOR}" \
+        -o jsonpath='{.items[0].spec.template.spec.serviceAccountName}' 2>/dev/null || true)
+      if [ -n "$sa" ]; then
+        break
+      fi
+      sleep 5
+      ((count++)) || true
+    done
+    if [ -z "$sa" ]; then
+      echo "Envoy Gateway did not create a proxy deployment for the sds Gateway"
+      return 1
+    fi
+
+    # Substitute rather than rewrite, and fail loudly on a half substituted manifest.
+    sed -e "s|ENVOY_SPIFFE_ID|spiffe://production.other/ns/${SDS_GATEWAY_NS}/sa/${sa}|g" \
+      "${SCRIPTPATH}/sds-hello-world.yaml" > /tmp/sds-hello-world.yaml
+    if grep -q 'ENVOY_SPIFFE_ID' /tmp/sds-hello-world.yaml; then
+      echo "unsubstituted placeholder left in /tmp/sds-hello-world.yaml"
+      return 1
+    fi
+    kubectl apply -f /tmp/sds-hello-world.yaml
+    kubectl wait --for=condition=Ready --timeout=5m pod/hello-world pod/hello-world-deny
+    kubectl rollout status -n "${SDS_GATEWAY_NS}" --timeout=5m "deployment/$(kubectl -n "${SDS_GATEWAY_NS}" get deployment -l "${SDS_GATEWAY_SELECTOR}" -o jsonpath='{.items[0].metadata.name}')"
+    SDS_GATEWAY_DEPLOYED=1
+  fi
+
+  nodeport=$(kubectl -n "${SDS_GATEWAY_NS}" get svc -l "${SDS_GATEWAY_SELECTOR}" -o jsonpath='{.items[0].spec.ports[0].nodePort}')
+  if [ -z "$nodeport" ]; then
+    echo "the sds Gateway's service has no node port"
+    return 1
+  fi
+
+  # Retry generously. The route is only usable once Envoy has both SDS secrets and ghostunnel
+  # has its SVID, and neither is reflected in pod readiness.
+  body=$(curl -s --fail --retry 30 --retry-delay 3 --retry-all-errors -H "Host: hello-world.sds.test" "http://${IP}:${nodeport}/")
+  if [ "$body" != "hello world" ]; then
+    echo "unexpected response through the sds Gateway: ${body}"
+    return 1
+  fi
+  echo SDS-GATEWAY-OK
+
+  # The request above only shows the right identities are accepted. These show the wrong ones
+  # are refused, one per direction, and they run after it so a gateway that is simply broken
+  # cannot pass them. Both use the same trust bundle and valid SVIDs; only the id is wrong.
+  # Envoy must refuse a backend that is not the id its BackendTLSPolicy names.
+  expect_sds_gateway_denied wrong-id.sds.test "${nodeport}"
+  # ghostunnel must refuse a client that is not the id its --allow-uri names.
+  expect_sds_gateway_denied deny.sds.test "${nodeport}"
+  # ghostunnel logs the peer it turned away.
+  kubectl logs pod/hello-world-deny -c ghostunnel --tail=20 || true
+  echo SDS-GATEWAY-DENY-OK
 }
 
 "${SCRIPTPATH}/../../.github/scripts/prepare-local-chart-deps.sh"
@@ -670,6 +826,9 @@ if [ "${BROKER}" -eq 1 ]; then
   # Verify a workload on the ha-agent socket receives the other.invalid federated trust bundles,
   # x509 and jwt, merged from both sides.
   run_federation_test_job
+
+  # Verify Envoy Gateway can secure a backend connection with the ha-agent's SDS api.
+  run_sds_gateway_test
 fi
 
 #Test out running only on side b since we know already only both servers work together, and that only side a works if we made it this far.
@@ -683,6 +842,12 @@ curl -k --resolve "oidc-discovery.production.other:443:$IP" "https://oidc-discov
 if [ "${BROKER}" -eq 1 ]; then
   # Verify the other.invalid federated trust bundles still serve with only side b running.
   run_federation_test_job
+
+  # Replace both ends first. Otherwise Envoy can answer over the upstream connection and the
+  # secrets it already holds from when side a was up, which proves nothing about side b. Fresh
+  # processes have to fetch their SVID and bundle from side b alone and handshake again.
+  restart_sds_gateway_workloads
+  run_sds_gateway_test
 fi
 
 # The image pull path has to survive losing a side too. Everything it depends on is HA:
