@@ -37,6 +37,11 @@ spec:
     clientCertificateRef:
       kind: Secret
       name: spire-svid
+  # For the test only: do not hold a terminating proxy open for the default 60s drain. Nothing
+  # here has connections worth draining, and the wait lands on every teardown and restart.
+  shutdown:
+    drainTimeout: 5s
+    minDrainDuration: 1s
   provider:
     type: Kubernetes
     kubernetes:
