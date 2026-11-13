@@ -191,7 +191,7 @@ jobs:
         run: ./.github/scripts/install-image-cred-provider.sh
 
       - name: Create kind ${{ matrix.k8s }} cluster
-        uses: helm/kind-action@v1.14.0
+        uses: helm/kind-action@v1.15.2
         # Only build a kind cluster if there are chart changes to test.
         with:
           version: ${{ env.KIND_VERSION }}
@@ -380,7 +380,7 @@ jobs:
         run: ./.github/scripts/install-image-cred-provider.sh
 
       - name: Create kind cluster
-        uses: helm/kind-action@v1.14.0
+        uses: helm/kind-action@v1.15.2
         # Only build a kind cluster if there are chart changes to test.
         with:
           version: ${{ env.KIND_VERSION }}
@@ -438,7 +438,7 @@ jobs:
         run: ./.github/scripts/install-image-cred-provider.sh
 
       - name: Create kind cluster
-        uses: helm/kind-action@v1.14.0
+        uses: helm/kind-action@v1.15.2
         # Only build a kind cluster if there are chart changes to test.
         with:
           version: ${{ env.KIND_VERSION }}
@@ -487,7 +487,7 @@ jobs:
         run: ./.github/scripts/install-image-cred-provider.sh
 
       - name: Create kind cluster
-        uses: helm/kind-action@v1.14.0
+        uses: helm/kind-action@v1.15.2
         # Only build a kind cluster if there are chart changes to test.
         with:
           version: ${{ env.KIND_VERSION }}
