@@ -1321,13 +1321,13 @@ nodeAttestor:
       enabled: false
       ## @param nodeAttestor.tpmDirect.pve.clusters [array] A list of PVE clusters that are allowed to connect.
       clusters: []
-        # - clusterId: ""
+        # - id: ""
         #   hosts:
         #     - hypervisor1.exmaple.com
         #     - hypervisor2.exmaple.com
         #     - hypervisor3.exmaple.com
         #   port: 9443
-        #   expectedSpiffeId: ""
+        #   expectedSpiffeID: ""
   awsIID:
     ## @param nodeAttestor.awsIID.enabled Enable the aws_iid node attestor
     enabled: false

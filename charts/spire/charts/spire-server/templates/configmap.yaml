@@ -292,7 +292,7 @@ plugins:
           enabled: true
           cluster:
             {{- range .clusters }}
-            {{ .clusterId }}:
+            {{ .id }}:
               {{- if .hosts }}
               hosts:
               {{- range .hosts }}
@@ -302,8 +302,8 @@ plugins:
               {{- if .port }}
               port: {{ .port }}
               {{- end }}
-              {{- if .expectedSpiffeId }}
-              expected_spiffe_id: {{ .expectedSpiffeId }}
+              {{- if .expectedSpiffeID }}
+              expected_spiffe_id: {{ .expectedSpiffeID }}
               {{- end }}
             {{- end }}
           {{- end }}
