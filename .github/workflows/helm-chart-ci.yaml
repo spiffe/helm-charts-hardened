@@ -217,6 +217,106 @@ jobs:
         run: ./post-install.sh
         working-directory: .github/tests
 
+  openshift-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+
+    needs:
+      - lint-chart
+
+    env:
+      MICROSHIFT_VERSION: 4.22.0_202610071017_g0a516b4eb_4.22.0_okd_scos.ec.16
+      VM_IMAGE: https://cloud.centos.org/centos/10-stream/x86_64/images/CentOS-Stream-GenericCloud-10-latest.x86_64.qcow2
+      KUBECONFIG: ${{ github.workspace }}/microshift.kubeconfig
+      SSH: ssh -p 2222 -i vm/id_ed25519 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5 cloud@localhost
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v5
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Start a CentOS Stream VM with SELinux enforcing
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          sudo apt-get update -q
+          sudo apt-get install -yq qemu-system-x86 qemu-utils cloud-image-utils
+          mkdir vm
+          ssh-keygen -q -t ed25519 -N '' -f vm/id_ed25519
+          curl -fsSL -o vm/disk.qcow2 "${VM_IMAGE}"
+          qemu-img resize vm/disk.qcow2 40G
+          cat > vm/user-data <<EOF
+          #cloud-config
+          hostname: microshift-vm
+          fqdn: microshift-vm.example.internal
+          users:
+            - name: cloud
+              sudo: ALL=(ALL) NOPASSWD:ALL
+              ssh_authorized_keys:
+                - $(cat vm/id_ed25519.pub)
+          packages: [podman, make, git, lvm2, jq]
+          runcmd:
+            - [sh, -c, "dnf install -y kernel-modules-extra-\$(uname -r) && modprobe xt_comment"]
+          EOF
+          cloud-localds vm/seed.img vm/user-data
+          qemu-system-x86_64 -enable-kvm -cpu host -smp 3 -m 11264 -display none -daemonize \
+            -drive file=vm/disk.qcow2,if=virtio -drive file=vm/seed.img,if=virtio,format=raw \
+            -nic user,model=virtio-net-pci,hostfwd=tcp::2222-:22,hostfwd=tcp::6443-:6443
+          for _ in $(seq 60); do ${SSH} true && break; sleep 5; done
+          ${SSH} cloud-init status --wait
+          ${SSH} getenforce | grep -x Enforcing
+          ${SSH} lsmod | grep -w xt_comment
+
+      - name: Start MicroShift in the VM
+        run: |
+          cat > vm/start.sh <<EOF
+          git clone -q --depth 1 --branch "${MICROSHIFT_VERSION}" https://github.com/microshift-io/microshift
+          cd microshift
+          sudo podman pull "ghcr.io/microshift-io/microshift:${MICROSHIFT_VERSION}"
+          sudo podman tag "ghcr.io/microshift-io/microshift:${MICROSHIFT_VERSION}" localhost/microshift-okd:latest
+          make run LVM_VOLSIZE=4G
+          make run-ready || make run-ready || make run-ready
+          make run-healthy || make run-healthy
+          EOF
+          scp -P 2222 -i vm/id_ed25519 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null vm/start.sh cloud@localhost:
+          ${SSH} bash -eux start.sh < /dev/null
+          ${SSH} sudo podman exec microshift-okd-1 cat /var/lib/microshift/resources/kubeadmin/microshift-okd-1/kubeconfig > "${KUBECONFIG}"
+          kubectl config set-cluster "$(kubectl config view -o jsonpath='{.clusters[0].name}')" --server=https://localhost:6443 --tls-server-name=microshift-okd-1
+          kubectl get nodes
+
+      - name: Prepare local chart dependencies
+        run: ./.github/scripts/prepare-local-chart-deps.sh
+
+      - name: Install and test the spire chart
+        run: |
+          # Helm creates the CSIDriver last; OpenShift rejects its inline volumes before then in non-privileged namespaces.
+          kubectl create namespace spire-mgmt
+          kubectl label namespace spire-mgmt --overwrite security.openshift.io/scc.podSecurityLabelSync=false \
+            pod-security.kubernetes.io/enforce=privileged
+          helm install spire-crds charts/spire-crds -n spire-mgmt
+          helm install spire charts/spire -n spire-mgmt --set global.openshift=true \
+            --set spiffe-csi-driver.restrictedScc.enabled=true --wait --timeout 10m
+          helm test spire -n spire-mgmt
+          kubectl logs -n spire-mgmt -l app.kubernetes.io/name=spiffe-csi-driver -c set-context | grep 'changing security context'
+          kubectl get pods -n spire-mgmt -o custom-columns=NAME:.metadata.name,SCC:.metadata.annotations.openshift\\.io/scc
+
+      - name: Show cluster state
+        if: failure()
+        run: |
+          ${SSH} sudo ausearch -m avc -ts recent || true
+          ${SSH} sudo podman exec microshift-okd-1 systemctl --failed --no-pager || true
+          ${SSH} sudo podman exec microshift-okd-1 journalctl -u microshift --no-pager -n 120 || true
+          ${SSH} sudo podman exec microshift-okd-1 crictl ps -a || true
+          ${SSH} "sudo podman exec microshift-okd-1 sh -c 'crictl logs --tail 60 \$(crictl ps -a -q --name kube-kindnet | sed -n 2p); ls -laZ /etc/cni/net.d'" || true
+          ${SSH} sudo podman exec microshift-okd-1 bash -lc 'oc get nodes -o wide; oc get pods -A' || true
+          kubectl get pods -A -o wide
+          kubectl get events -A --sort-by=.lastTimestamp
+
   build-matrix:
     name: Build matrix
     runs-on: ubuntu-22.04
