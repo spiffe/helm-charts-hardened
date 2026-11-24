@@ -706,15 +706,6 @@ spiffefs-csi-driver:
     mutate:
       ## @param spiffefs-csi-driver.workloadMountPropagationPolicy.mutate.enabled Sets mountPropagation for workloads that leave it unset, where the cluster supports MutatingAdmissionPolicy
       enabled: true
-  ## @param spiffefs-csi-driver.image.registry The OCI registry to pull the image from
-  ## @param spiffefs-csi-driver.image.repository The repository within the registry
-  ## @param spiffefs-csi-driver.image.tag Overrides the image tag whose default is the chart appVersion
-  ## Temporary: recursiveBind needs a driver build with -recursive-bind, which is not yet
-  ## in a release.
-  image:
-    registry: docker.io
-    repository: kfox1111/misc2
-    tag: csi6
   healthChecks:
     ## @param spiffefs-csi-driver.healthChecks.port The port where the spiffefs CSI driver health checks are exposed
     port: 9818
