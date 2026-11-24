@@ -35,6 +35,19 @@
 {{-   $hostNetwork = eq $hostNetworkValue "true" }}
 {{- end }}
 {{- $dnsPolicy := .Values.dnsPolicy }}
+{{- $sigstore := .Values.workloadAttestors.k8s.sigstore }}
+{{- $sigstoreSecret := "" }}
+{{- if $sigstore.enabled }}
+{{- $mode := $sigstore.registryAuth.mode }}
+{{- if eq $mode "pullSecret" }}
+{{- $sigstoreSecret = required "sigstore.registryAuth.pullSecret is required in pullSecret mode" $sigstore.registryAuth.pullSecret }}
+{{- else if eq $mode "podPullSecret" }}
+{{- $podSecrets := coalesce .Values.imagePullSecrets .Values.global.imagePullSecrets }}
+{{- $sigstoreSecret = (first (required "sigstore.registryAuth.mode podPullSecret needs imagePullSecrets" $podSecrets)).name }}
+{{- else if ne $mode "none" }}
+{{- fail (printf "sigstore.registryAuth.mode must be none, podPullSecret or pullSecret, got %q" $mode) }}
+{{- end }}
+{{- end }}
 {{- if (and (eq $dnsPolicy "") $hostNetwork) }}
 {{-   $dnsPolicy = "ClusterFirstWithHostNet" }}
 {{- end }}
@@ -270,7 +283,7 @@ spec:
         - name: ensure-alternate-names
           image: {{ template "spire-lib.image" (dict "image" .Values.socketAlternate.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.socketAlternate.image.pullPolicy | quote }}
-          command: ["bash", "-xc"]
+          command: ["sh", "-xc"]
           {{- /* 1. Look for symlinks pointing at the wrong place and remove them. 2. Make symlinks that don't exist. 3. If new socket is pointing at an existing symlink, remove old symlink. */}}
           args:
             - |
@@ -295,7 +308,7 @@ spec:
         - name: fsgroupfix
           image: {{ template "spire-lib.image" (dict "image" .Values.fsGroupFix.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.fsGroupFix.image.pullPolicy | quote }}
-          command: ["bash", "-c"]
+          command: ["sh", "-c"]
           args:
             - |
               chown -R {{ printf "%v:%v" $podSecurityContext.runAsUser $podSecurityContext.fsGroup | quote }} {{ $socketPath | dir }} /tmp/spire-agent/private
@@ -342,6 +355,10 @@ spec:
           {{- end }}
           {{- /* Note: For localhost and custom modes, KUBELET_ADDR is not set here */ -}}
           {{- /* For custom mode, user sets KUBELET_ADDR via extraEnvVars */ -}}
+          {{- if $sigstoreSecret }}
+            - name: DOCKER_CONFIG
+              value: /run/spire/registry-auth
+          {{- end }}
           {{- with .Values.extraEnvVars }}
           {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -413,6 +430,11 @@ spec:
             - name: x509pop-upstream
               mountPath: {{ .Values.nodeAttestor.x509POP.spiffeEndpointSocket | dir }}
             {{- end }}
+            {{- if $sigstoreSecret }}
+            - name: sigstore-registry-auth
+              mountPath: /run/spire/registry-auth
+              readOnly: true
+            {{- end }}
             {{- if gt (len .Values.extraVolumeMounts) 0 }}
             {{- toYaml .Values.extraVolumeMounts | nindent 12 }}
             {{- end }}
@@ -471,6 +493,14 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       volumes:
+        {{- if $sigstoreSecret }}
+        - name: sigstore-registry-auth
+          secret:
+            secretName: {{ $sigstoreSecret | quote }}
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+        {{- end }}
         - name: spire-config
           configMap:
             name: {{ printf "%s%s" (include "spire-agent.fullname" .) $nameSuffix | quote }}

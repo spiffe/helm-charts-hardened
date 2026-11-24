@@ -163,4 +163,8 @@ common_test_file_exists "/var/run/spiffe/step-ssh/main/ssh_host_rsa_key-cert.pub
 kubectl get configmap spiffe-step-ssh-certs -o 'go-template={{ index .data "ssh_host_ca_key.pub" }}' | sed '/^$/d; s/^/@cert-authority *.production.other /' | sudo -u spiffe-test dd of=/home/spiffe-test/.ssh/known_hosts
 sudo -u spiffe-test cat /home/spiffe-test/.ssh/known_hosts
 
-sudo -u spiffe-test ssh -T -n -i /home/spiffe-test/.ssh/id_ed25519 spiffe-test@test.production.other hostname
+for i in $(seq 15); do
+  sudo -u spiffe-test ssh -T -n -i /home/spiffe-test/.ssh/id_ed25519 spiffe-test@test.production.other hostname && break
+  [ "$i" -eq 15 ] && exit 1
+  sleep 2
+done

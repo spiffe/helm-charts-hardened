@@ -211,8 +211,28 @@ plugins:
         disable_container_selectors: {{ eq .Values.workloadAttestors.k8s.disableContainerSelectors true}}
         use_new_container_locator: {{ eq .Values.workloadAttestors.k8s.useNewContainerLocator true }}
         verbose_container_locator_logs: {{ eq .Values.workloadAttestors.k8s.verboseContainerLocatorLogs true }}
+        enable_namespace_labels: {{ eq .Values.workloadAttestors.k8s.namespaceLabels.enabled true }}
         {{- if eq (include "spire-agent.should-set-node-name-env" .) "true" }}
         node_name_env: "KUBELET_ADDR"
+        {{- end }}
+        {{- with .Values.workloadAttestors.k8s.sigstore }}
+        {{- if .enabled }}
+        sigstore:
+          {{- with .allowedIdentities }}
+          allowed_identities:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .skippedImages }}
+          skipped_images:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .rekorURL }}
+          rekor_url: {{ . | quote }}
+          {{- end }}
+          ignore_tlog: {{ .ignoreTLog }}
+          ignore_attestations: {{ .ignoreAttestations }}
+          ignore_sct: {{ .ignoreSCT }}
+        {{- end }}
         {{- end }}
         {{- if or .Values.sockets.broker.enabled .Values.brokerAPI.tcp.enabled }}
         experimental:
@@ -252,6 +272,16 @@ telemetry:
   - Prometheus:
       - host: {{ .Values.telemetry.prometheus.host }}
         port: {{ .Values.telemetry.prometheus.port }}
+{{- with .Values.telemetry.prometheus.tls }}
+{{- if eq .mode "spireSVID" }}
+        tls:
+          - use_spire_svid: true
+            {{- with .authorizedSPIFFEIDs }}
+            authorized_spiffe_ids:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+{{- end }}
+{{- end }}
 {{- end }}
 
 {{- if .Values.telemetry.datadog.enabled }}

@@ -1,6 +1,6 @@
 # spire
 
-![Version: 0.30.2](https://img.shields.io/badge/Version-0.30.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.15.3](https://img.shields.io/badge/AppVersion-1.15.3-informational?style=flat-square)
+![Version: 0.31.0](https://img.shields.io/badge/Version-0.31.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.16.0](https://img.shields.io/badge/AppVersion-1.16.0-informational?style=flat-square)
 [![Development Phase](https://github.com/spiffe/spiffe/blob/main/.img/maturity/dev.svg)](https://github.com/spiffe/spiffe/blob/main/MATURITY.md#development)
 
 A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
@@ -78,6 +78,10 @@ kubectl delete crds clusterfederatedtrustdomains.spire.spiffe.io clusterspiffeid
 ## Upgrade notes
 
 We only support upgrading one major/minor version at a time. Version skipping isn't supported. Please see <https://spiffe.io/docs/latest/spire-helm-charts-hardened-about/upgrading/> for details.
+
+### 0.31.X
+
+- The spire-identity-exchange integration now uses the x509pop node attestor's group feature (SPIRE 1.16.0+) instead of the spire-credentialcomposer-identity-exchange plugin. The `spire-server.credentialComposer.spireIdentityExchange.*` values have been removed, and the `spire-identity-exchange` node alias now selects on `x509pop:group:<spiffePrefix>spire-identity-exchange` (for example `x509pop:group:spire-exchange/k8s/<cluster>/spire-identity-exchange`). After upgrading the SPIRE Server, restart the spire-identity-exchange pods so their agents reattest and receive the group selector.
 
 ### 0.30.X
 
@@ -287,7 +291,7 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `global.spire.clusterName`                       | The name of the k8s cluster for Spire install                                                                                                                                                                                          | `example-cluster` |
 | `global.spire.jwtIssuer`                         | Issuer URL used for both the JWT-SVID `iss` claim minted by spire-server and the `issuer` field advertised by the OIDC discovery document. Defaults to oidc-discovery.$trustDomain if unset                                            | `""`              |
 | `global.spire.trustDomain`                       | The trust domain for Spire install                                                                                                                                                                                                     | `example.org`     |
-| `global.spire.upstreamServerAddress`             | Set what address to use for the upstream server when using nested spire                                                                                                                                                                | `""`              |
+| `global.spire.upstreamSpireAddress`              | Set what address to use for the upstream server when using nested spire                                                                                                                                                                | `""`              |
 | `global.spire.caSubject.country`                 | Country for Spire server CA                                                                                                                                                                                                            | `""`              |
 | `global.spire.caSubject.organization`            | Organization for Spire server CA                                                                                                                                                                                                       | `""`              |
 | `global.spire.caSubject.commonName`              | Common Name for Spire server CA                                                                                                                                                                                                        | `""`              |
@@ -321,6 +325,12 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `global.deleteHooks.enabled`                     | Enable Helm hooks to autofix common delete issues (should be disabled when using `helm template`)                                                                                                                                      | `true`            |
 | `global.deleteHooks.resources`                   | Resource requests and limits for deleteHooks                                                                                                                                                                                           | `{}`              |
 
+### Extra manifests
+
+| Name             | Description                                                                                        | Value |
+| ---------------- | -------------------------------------------------------------------------------------------------- | ----- |
+| `extraManifests` | Extra objects to deploy with the release. Each entry is a map or a string and renders through tpl. | `[]`  |
+
 ### Gateway API parameters
 
 | Name                                            | Description                                                                                                                                  | Value   |
@@ -332,6 +342,15 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `gatewayAPI.gateway.allowedListenersNamespaces` | From which namespaces ListenerSets may attach to the Gateway. One of All, Same, Selector.                                                    | `All`   |
 | `gatewayAPI.gateway.allowedRoutesNamespaces`    | From which namespaces routes may attach directly to the base listener (used when ListenerSet management is off). One of All, Same, Selector. | `All`   |
 | `gatewayAPI.gateway.extraListeners`             | Additional listeners to add to the Gateway                                                                                                   | `[]`    |
+
+### Grafana dashboard parameters
+
+| Name                                    | Description                                                                                             | Value   |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------- |
+| `grafanaDashboards.namespace`           | Namespace for the dashboard ConfigMaps. Defaults to the release namespace.                              | `""`    |
+| `grafanaDashboards.labels`              | Labels the Grafana sidecar uses to discover dashboards                                                  | `{}`    |
+| `grafanaDashboards.annotations`         | Annotations for the dashboard ConfigMaps, e.g. grafana_folder                                           | `{}`    |
+| `grafanaDashboards.spireServer.enabled` | Render a ConfigMap holding the SPIRE Server Grafana dashboard for the Grafana dashboard sidecar to load | `false` |
 
 ### Spire server parameters
 
