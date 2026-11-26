@@ -1011,6 +1011,7 @@ spire-server:
         flux: {}
 `)
 			Expect(err).Should(MatchError(ContainSubstring("podAgents.flux")))
+		})
 	})
 	Describe("spiffe-csi-driver.selinux", func() {
 		ds := "spire/charts/spiffe-csi-driver/templates/daemonset.yaml"
