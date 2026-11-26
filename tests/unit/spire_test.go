@@ -959,6 +959,60 @@ global:
 			Expect(objs["spire/charts/spiffe-csi-driver/templates/scc-spiffe-csi-driver.yaml"]).Should(ContainSubstring("seccompProfiles:\n  - runtime/default\n"))
 		})
 	})
+	Describe("spire-server.nodeAttestor podAgents", func() {
+		serverCM := "spire/charts/spire-server/templates/configmap.yaml"
+		It("renders no pod UID cluster by default", func() {
+			objs, err := ValueStringRender(chart, ``)
+			Expect(err).Should(Succeed())
+			Expect(objs[serverCM]).ShouldNot(ContainSubstring("use_pod_uid_for_agent_id"))
+		})
+
+		It("adds <cluster>/<key> clusters with pod UID forced on and parent settings inherited", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  spire:
+    clusterName: home
+spire-server:
+  kubeConfigs:
+    sandbox:
+      kubeConfig: |
+        apiVersion: v1
+        kind: Config
+  nodeAttestor:
+    k8sPSAT:
+      podAgents:
+        flux:
+          serviceAccountAllowList: ["flux-system:broker"]
+          audience: ["broker"]
+    externalK8sPSAT:
+      clusters:
+        sandbox:
+          serviceAccountAllowList: ["spire-system:spire-agent"]
+          allowedPodLabelKeys: ["app"]
+          podAgents:
+            ci:
+              serviceAccountAllowList: ["ci:runner", "builder"]
+`)
+			Expect(err).Should(Succeed())
+			cm := objs[serverCM]
+			Expect(cm).Should(MatchRegexp(`"home/flux": \{[^}]*"audience": \[\s*"broker"\s*\][^}]*"use_pod_uid_for_agent_id": true`))
+			Expect(cm).Should(MatchRegexp(`"sandbox/ci": \{[^}]*"allowed_pod_label_keys": \[\s*"app"\s*\][^}]*"kube_config_file": "/kubeconfigs/sandbox"[^}]*"use_pod_uid_for_agent_id": true`))
+			Expect(cm).Should(MatchRegexp(`"sandbox/ci": \{[^}]*"service_account_allow_list": \[\s*"ci:runner",\s*"spire-server:builder"\s*\]`))
+			// the parent clusters keep node UID agent IDs
+			Expect(cm).ShouldNot(MatchRegexp(`"(home|sandbox)": \{[^}]*use_pod_uid_for_agent_id`))
+		})
+
+		It("requires serviceAccountAllowList", func() {
+			_, err := ValueStringRender(chart, `
+spire-server:
+  nodeAttestor:
+    k8sPSAT:
+      podAgents:
+        flux: {}
+`)
+			Expect(err).Should(MatchError(ContainSubstring("podAgents.flux")))
+		})
+	})
 	Describe("spiffe-csi-driver.selinux", func() {
 		ds := "spire/charts/spiffe-csi-driver/templates/daemonset.yaml"
 		It("leaves the default socket label to the driver", func() {
