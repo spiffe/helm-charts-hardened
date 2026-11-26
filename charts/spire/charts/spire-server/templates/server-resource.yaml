@@ -118,7 +118,7 @@ spec:
   template:
     metadata:
       annotations:
-        kubectl.kubernetes.io/default-container: spire-server
+        kubectl.kubernetes.io/default-container: {{ .Chart.Name }}
         checksum/config: {{ $configSum }}
         checksum/config2: {{ $configSum2 }}
         checksum/config3: {{ $configSum3 }}
