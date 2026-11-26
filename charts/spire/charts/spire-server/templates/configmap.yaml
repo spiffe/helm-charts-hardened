@@ -273,7 +273,7 @@ plugins:
       plugin_data:
         {{- if eq .mode "externalPKI" }}
         mode: external_pki
-        ca_bundle_path: "/run/spire/data/x509pop-ca-bundle.pem"
+        ca_bundle_path: "/run/spire/x509pop/ca-bundle.pem"
         max_intermediates: {{ .maxIntermediates }}
         max_rsa_key_size: {{ .maxRSAKeySize }}
         {{- if ne .agentPathTemplate "" }}

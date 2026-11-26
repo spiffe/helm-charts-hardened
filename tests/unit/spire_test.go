@@ -466,11 +466,12 @@ spire-server:
 			Expect(err).Should(Succeed())
 			serverCM := objs["spire/charts/spire-server/templates/configmap.yaml"]
 			Expect(serverCM).Should(ContainSubstring(`"mode": "external_pki"`))
-			Expect(serverCM).Should(ContainSubstring(`"ca_bundle_path": "/run/spire/data/x509pop-ca-bundle.pem"`))
+			Expect(serverCM).Should(ContainSubstring(`"ca_bundle_path": "/run/spire/x509pop/ca-bundle.pem"`))
 			Expect(objs).Should(HaveKey("spire/charts/spire-server/templates/x509pop-configmap.yaml"))
 			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
 			Expect(serverResource).Should(ContainSubstring("x509pop-ca-bundle"))
-			Expect(serverResource).Should(ContainSubstring("/run/spire/data/x509pop-ca-bundle.pem"))
+			Expect(serverResource).Should(ContainSubstring("mountPath: /run/spire/x509pop"))
+			Expect(serverResource).ShouldNot(ContainSubstring("subPath: ca-bundle.pem"))
 		})
 		It("renders externalPKI mode with existing ConfigMap reference", func() {
 			objs, err := ValueStringRender(chart, `
@@ -487,10 +488,12 @@ spire-server:
 			Expect(err).Should(Succeed())
 			serverCM := objs["spire/charts/spire-server/templates/configmap.yaml"]
 			Expect(serverCM).Should(ContainSubstring(`"mode": "external_pki"`))
-			Expect(serverCM).Should(ContainSubstring(`"ca_bundle_path": "/run/spire/data/x509pop-ca-bundle.pem"`))
+			Expect(serverCM).Should(ContainSubstring(`"ca_bundle_path": "/run/spire/x509pop/ca-bundle.pem"`))
 			Expect(objs["spire/charts/spire-server/templates/x509pop-configmap.yaml"]).ShouldNot(ContainSubstring("kind: ConfigMap"))
 			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
 			Expect(serverResource).Should(ContainSubstring("name: my-enrollment-ca"))
+			Expect(serverResource).Should(ContainSubstring("mountPath: /run/spire/x509pop"))
+			Expect(serverResource).ShouldNot(ContainSubstring("subPath: ca-bundle.pem"))
 		})
 		It("does not render groups by default", func() {
 			objs, err := ValueStringRender(chart, `
