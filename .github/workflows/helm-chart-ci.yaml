@@ -197,7 +197,6 @@ jobs:
           version: ${{ env.KIND_VERSION }}
           node_image: kindest/node:${{ matrix.k8s }}
           config: .github/kind/conf/kind-config.yaml
-          kubectl_version: v1.35.0
           verbosity: 1
 
       - name: Setup Test dependencies
@@ -398,7 +397,6 @@ jobs:
           version: ${{ env.KIND_VERSION }}
           node_image: kindest/node:${{ matrix.k8s }}
           config: .github/kind/conf/kind-config.yaml
-          kubectl_version: v1.35.0
           verbosity: 1
 
       - name: Prepare local chart dependencies
@@ -457,7 +455,6 @@ jobs:
           version: ${{ env.KIND_VERSION }}
           node_image: kindest/node:${{ matrix.k8s }}
           config: .github/kind/conf/kind-config.yaml
-          kubectl_version: v1.35.0
           verbosity: 1
 
       - name: Prepare local chart dependencies
@@ -507,7 +504,6 @@ jobs:
           version: ${{ env.KIND_VERSION }}
           node_image: kindest/node:${{ matrix.k8s }}
           config: .github/kind/conf/kind-config.yaml
-          kubectl_version: v1.35.0
           verbosity: 1
 
       - name: Prepare local chart dependencies
