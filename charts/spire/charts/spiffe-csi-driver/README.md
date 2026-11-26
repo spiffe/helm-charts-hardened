@@ -1,6 +1,6 @@
 # spiffe-csi-driver
 
-!![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.3.0](https://img.shields.io/badge/AppVersion-0.3.0-informational?style=flat-square)
+!![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.4.0](https://img.shields.io/badge/AppVersion-0.4.0-informational?style=flat-square)
 
 A Helm chart to install the SPIFFE CSI driver.
 
@@ -74,7 +74,7 @@ A Helm chart to install the SPIFFE CSI driver.
 | `restrictedScc.name`                          | Set the name of the restricted SCC with CSI support                                                                                                                                     | `""`                                        |
 | `restrictedScc.version`                       | Version of the restricted SCC                                                                                                                                                           | `2`                                         |
 | `selinux.enabled`                             | Enable selinux support                                                                                                                                                                  | `false`                                     |
-| `selinux.context`                             | Which selinux context to use                                                                                                                                                            | `container_file_t`                          |
+| `selinux.context`                             | Socket dir SELinux type; the driver sets container_file_t from container_var_run_t                                                                                                      | `container_file_t`                          |
 | `selinux.image.registry`                      | The OCI registry to pull the image from                                                                                                                                                 | `registry.access.redhat.com`                |
 | `selinux.image.repository`                    | The repository within the registry                                                                                                                                                      | `ubi10/ubi-minimal`                         |
 | `selinux.image.pullPolicy`                    | The image pull policy                                                                                                                                                                   | `IfNotPresent`                              |

@@ -956,6 +956,40 @@ global:
 			Expect(objs["spire/charts/spiffe-csi-driver/templates/scc-spiffe-csi-driver.yaml"]).Should(ContainSubstring("seccompProfiles:\n  - runtime/default\n"))
 		})
 	})
+	Describe("spiffe-csi-driver.selinux", func() {
+		ds := "spire/charts/spiffe-csi-driver/templates/daemonset.yaml"
+		It("leaves the default socket label to the driver", func() {
+			objs, err := ValueStringRender(chart, "spiffe-csi-driver:\n  selinux:\n    enabled: true\n")
+			Expect(err).Should(Succeed())
+			Expect(objs[ds]).ShouldNot(ContainSubstring("set-context"))
+			Expect(objs[ds]).ShouldNot(ContainSubstring("initContainers"))
+			Expect(objs[ds]).Should(ContainSubstring("name: spire-agent-socket-dir\n              readOnly: false"))
+		})
+		It("mounts the socket dir read-only without SELinux", func() {
+			objs, err := ValueStringRender(chart, "")
+			Expect(err).Should(Succeed())
+			Expect(objs[ds]).Should(ContainSubstring("name: spire-agent-socket-dir\n              readOnly: true"))
+		})
+		It("leaves the relabel to the driver on OpenShift", func() {
+			objs, err := ValueStringRender(chart, "global:\n  openshift: true\n")
+			Expect(err).Should(Succeed())
+			Expect(objs[ds]).ShouldNot(ContainSubstring("set-context"))
+			Expect(objs[ds]).Should(ContainSubstring("name: spire-agent-socket-dir\n              readOnly: false"))
+		})
+		It("renders only the user init containers when the driver relabels", func() {
+			objs, err := ValueStringRender(chart, "spiffe-csi-driver:\n  selinux:\n    enabled: true\n  initContainers:\n    - name: user-init\n      image: busybox\n")
+			Expect(err).Should(Succeed())
+			Expect(objs[ds]).Should(ContainSubstring("name: user-init"))
+			Expect(objs[ds]).ShouldNot(ContainSubstring("set-context"))
+		})
+		It("runs chcon for another context", func() {
+			objs, err := ValueStringRender(chart, "spiffe-csi-driver:\n  selinux:\n    enabled: true\n    context: svirt_sandbox_file_t\n")
+			Expect(err).Should(Succeed())
+			Expect(objs[ds]).Should(ContainSubstring("set-context"))
+			Expect(objs[ds]).Should(ContainSubstring("svirt_sandbox_file_t"))
+			Expect(objs[ds]).Should(ContainSubstring("name: spire-agent-socket-dir\n              readOnly: true"))
+		})
+	})
 	Describe("spiffe-csi-driver.syncWave", func() {
 		csiTmpl := "spire/charts/spiffe-csi-driver/templates/spiffe-csi-driver.yaml"
 		It("renders the default sync-wave annotation on OpenShift", func() {

@@ -56,11 +56,16 @@ spec:
       hostNetwork: true
       {{- end }}
       {{- include "spire-lib.default_node_priority_class_name" . | nindent 6 }}
-      {{- if or (gt (len .Values.initContainers) 0) (dig "openshift" false .Values.global) (dig "selinux" false .Values.global) .Values.selinux.enabled }}
+      {{- $selinux := or (dig "openshift" false .Values.global) (dig "selinux" false .Values.global) .Values.selinux.enabled }}
+      {{- /* spiffe-csi-driver 0.4.0+ changes container_var_run_t to container_file_t on its socket dir at startup. */}}
+      {{- $chcon := and $selinux (ne .Values.selinux.context "container_file_t") }}
+      {{- if or (gt (len .Values.initContainers) 0) $selinux }}
       securityContext:
         {{- toYaml $podSecurityContext | nindent 8 }}
+      {{- end }}
+      {{- if or (gt (len .Values.initContainers) 0) $chcon }}
       initContainers:
-      {{- if or (dig "openshift" false .Values.global) (dig "selinux" false .Values.global) .Values.selinux.enabled }}
+      {{- if $chcon }}
         - name: set-context
           command:
             - chcon
@@ -108,7 +113,7 @@ spec:
             # driver will mount this directory into containers.
             - mountPath: /spire-agent-socket
               name: spire-agent-socket-dir
-              readOnly: true
+              readOnly: {{ or (not $selinux) $chcon }}
             # The volume that will contain the CSI driver socket shared
             # with the kubelet and the driver registrar.
             - mountPath: /spiffe-csi
