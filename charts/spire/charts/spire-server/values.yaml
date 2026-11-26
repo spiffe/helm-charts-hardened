@@ -1259,6 +1259,14 @@ nodeAttestor:
     allowedNodeLabelKeys: []
     ## @param nodeAttestor.k8sPSAT.allowedPodLabelKeys [array] Pod label keys considered for selectors
     allowedPodLabelKeys: []
+    ## Each key adds a k8s_psat cluster "<clusterName>/<key>" with use_pod_uid_for_agent_id forced on,
+    ## giving agent IDs spiffe://<trustDomain>/spire/agent/k8s_psat/<clusterName>/<key>/<podUID>.
+    ## Entry fields: serviceAccountAllowList (required; release namespace if none given); audience,
+    ## allowedNodeLabelKeys and allowedPodLabelKeys default to the parent cluster's values.
+    ## @param nodeAttestor.k8sPSAT.podAgents [object] Pod-based agents (e.g. brokers, CI runners) on this cluster
+    podAgents: {}
+    # ci:
+    #   serviceAccountAllowList: ["ci:runner"]
   externalK8sPSAT:
     ## @param nodeAttestor.externalK8sPSAT.enabled Enable PSAT k8s nodeattestor for external Kubernetes clusters
     enabled: true
@@ -1276,6 +1284,9 @@ nodeAttestor:
     # clustera:
     #   kubeConfigName: foo
     #   serviceAccountAllowList: ["other-ns:other-agent"]
+    #   podAgents:              # same as nodeAttestor.k8sPSAT.podAgents; adds cluster "clustera/ci"
+    #     ci:
+    #       serviceAccountAllowList: ["ci:runner"]
     # clusterb: {}
   joinToken:
     ## @param nodeAttestor.joinToken.enabled Enable the join_token nodeattestor

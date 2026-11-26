@@ -448,8 +448,7 @@ spec:
             {{- if and .Values.nodeAttestor.x509POP.enabled (eq .Values.nodeAttestor.x509POP.mode "externalPKI") }}
             {{- with .Values.nodeAttestor.x509POP }}
             - name: x509pop-ca-bundle
-              mountPath: /run/spire/data/x509pop-ca-bundle.pem
-              subPath: ca-bundle.pem
+              mountPath: /run/spire/x509pop
               readOnly: true
             {{- end }}
             {{- end }}
@@ -720,6 +719,9 @@ spec:
             {{- else if .caBundle.existingConfigMap }}
             name: {{ .caBundle.existingConfigMap }}
             {{- end }}
+            items:
+              - key: ca-bundle.pem
+                path: ca-bundle.pem
         {{- end }}
         {{- end }}
         {{- if .Values.federation.tls.certManager.enabled }}
