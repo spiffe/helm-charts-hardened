@@ -279,6 +279,10 @@ jobs:
           cd microshift
           sudo podman pull "ghcr.io/microshift-io/microshift:${MICROSHIFT_VERSION}"
           sudo podman tag "ghcr.io/microshift-io/microshift:${MICROSHIFT_VERSION}" localhost/microshift-okd:latest
+          # OpenShift kubelet creates the socket dir as container_var_run_t; the podman /run cannot hold that label.
+          sudo mkdir -p /run/spire/agent-sockets /etc/containers/containers.conf.d
+          sudo chcon -t container_var_run_t /run/spire/agent-sockets
+          printf '[containers]\\nvolumes = ["/run/spire:/run/spire"]\\n' | sudo tee /etc/containers/containers.conf.d/spire.conf
           make run LVM_VOLSIZE=4G
           make run-ready || make run-ready || make run-ready
           make run-healthy || make run-healthy
@@ -299,10 +303,16 @@ jobs:
           kubectl label namespace spire-mgmt --overwrite security.openshift.io/scc.podSecurityLabelSync=false \
             pod-security.kubernetes.io/enforce=privileged
           helm install spire-crds charts/spire-crds -n spire-mgmt
+          ${SSH} sudo podman exec microshift-okd-1 ls -dZ /run/spire/agent-sockets | grep ':container_var_run_t:'
           helm install spire charts/spire -n spire-mgmt --set global.openshift=true \
             --set spiffe-csi-driver.restrictedScc.enabled=true --wait --timeout 10m
           helm test spire -n spire-mgmt
-          kubectl logs -n spire-mgmt -l app.kubernetes.io/name=spiffe-csi-driver -c set-context | grep 'changing security context'
+          ${SSH} sudo podman exec microshift-okd-1 ls -dZ /run/spire/agent-sockets | grep ':container_file_t:'
+          kubectl logs -n spire-mgmt -l app.kubernetes.io/name=spiffe-csi-driver -c spiffe-csi-driver --tail=-1 \
+            | grep 'Set the SELinux container file type'
+          ${SSH} sudo podman exec microshift-okd-1 ls -Z /run/spire/agent-sockets/spire-agent.sock | grep ':container_file_t:'
+          ic=$(kubectl get ds -n spire-mgmt spire-spiffe-csi-driver -o jsonpath='{.spec.template.spec.initContainers}')
+          test -z "$ic"
           kubectl get pods -n spire-mgmt -o custom-columns=NAME:.metadata.name,SCC:.metadata.annotations.openshift\\.io/scc
 
       - name: Show cluster state
@@ -314,6 +324,7 @@ jobs:
           ${SSH} sudo podman exec microshift-okd-1 crictl ps -a || true
           ${SSH} "sudo podman exec microshift-okd-1 sh -c 'crictl logs --tail 60 \$(crictl ps -a -q --name kube-kindnet | sed -n 2p); ls -laZ /etc/cni/net.d'" || true
           ${SSH} sudo podman exec microshift-okd-1 bash -lc 'oc get nodes -o wide; oc get pods -A' || true
+          kubectl logs -n spire-mgmt -l app.kubernetes.io/name=spiffe-csi-driver --all-containers --tail=-1 || true
           kubectl get pods -A -o wide
           kubectl get events -A --sort-by=.lastTimestamp
 
