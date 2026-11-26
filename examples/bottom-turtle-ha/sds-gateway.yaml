@@ -1,0 +1,204 @@
+# Envoy Gateway exposing the hello-world workload over plain http, while talking to it over
+# SPIFFE mTLS. Envoy gets both its client certificate and the trust bundle at runtime from the
+# spire-ha-agent's SDS api, which is served on the workload api socket in broker mode.
+#
+# Requires Envoy Gateway's extensionApis.enableSDSSecretRef.
+
+# The two SDS resources. These carry no key material, only where to ask and what to ask for.
+# "default" and "ROOTCA" are the spire-ha-agent's default svid and bundle resource names.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: spire-svid
+  namespace: default
+type: gateway.envoyproxy.io/sds
+stringData:
+  url: unix:///run/secrets/workload-spiffe-uds/spire-agent.sock
+  secretName: default
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: spire-bundle
+  namespace: default
+type: gateway.envoyproxy.io/sds
+stringData:
+  url: unix:///run/secrets/workload-spiffe-uds/spire-agent.sock
+  secretName: ROOTCA
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: sds-proxy-config
+  namespace: default
+spec:
+  # The client certificate Envoy presents to backends.
+  backendTLS:
+    clientCertificateRef:
+      kind: Secret
+      name: spire-svid
+  # For the test only: do not hold a terminating proxy open for the default 60s drain. Nothing
+  # here has connections worth draining, and the wait lands on every teardown and restart.
+  shutdown:
+    drainTimeout: 5s
+    minDrainDuration: 1s
+  provider:
+    type: Kubernetes
+    kubernetes:
+      envoyDeployment:
+        # Mount the spire-ha-agent socket into the proxy. Envoy Gateway does not do this itself.
+        pod:
+          volumes:
+          - name: workload-spiffe-uds
+            csi:
+              driver: csi.spiffe.io
+              readOnly: true
+        container:
+          volumeMounts:
+          - name: workload-spiffe-uds
+            mountPath: /run/secrets/workload-spiffe-uds
+            readOnly: true
+      envoyService:
+        # For the test only: kind publishes nothing to the host and the ingress controller already
+        # holds 80/443 on the node address, so reach the gateway through a node port. Cluster
+        # policy lets any node answer, not just the one running the proxy.
+        type: NodePort
+        externalTrafficPolicy: Cluster
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: eg
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: sds
+  namespace: default
+spec:
+  gatewayClassName: eg
+  infrastructure:
+    parametersRef:
+      group: gateway.envoyproxy.io
+      kind: EnvoyProxy
+      name: sds-proxy-config
+  listeners:
+  - name: http
+    protocol: HTTP
+    port: 80
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: hello-world
+  namespace: default
+spec:
+  parentRefs:
+  - name: sds
+  # Every route names its host, so a request for a host whose route is not programmed yet gets a
+  # 404 rather than falling through to this one.
+  hostnames:
+  - hello-world.sds.test
+  rules:
+  - backendRefs:
+    - name: hello-world
+      port: 8443
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: BackendTLSPolicy
+metadata:
+  name: hello-world
+  namespace: default
+spec:
+  targetRefs:
+  - group: ""
+    kind: Service
+    name: hello-world
+  validation:
+    # The trust bundle Envoy verifies the backend against.
+    caCertificateRefs:
+    - group: ""
+      kind: Secret
+      name: spire-bundle
+    # Required by the api and sent as SNI. An SVID carries no dns name, so the backend is
+    # verified by its SPIFFE id below instead.
+    hostname: hello-world.default.svc.cluster.local
+    subjectAltNames:
+    - type: URI
+      uri: spiffe://production.other/ns/default/sa/default
+---
+# Negative test: Envoy must refuse a backend whose SPIFFE id is not the one expected. The
+# service is the hello-world pod under another name, so everything but the id below is valid.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: hello-world-wrong-id
+  namespace: default
+spec:
+  parentRefs:
+  - name: sds
+  hostnames:
+  - wrong-id.sds.test
+  rules:
+  - backendRefs:
+    - name: hello-world-wrong-id
+      port: 8443
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: BackendTLSPolicy
+metadata:
+  name: hello-world-wrong-id
+  namespace: default
+spec:
+  targetRefs:
+  - group: ""
+    kind: Service
+    name: hello-world-wrong-id
+  validation:
+    caCertificateRefs:
+    - group: ""
+      kind: Secret
+      name: spire-bundle
+    hostname: hello-world-wrong-id.default.svc.cluster.local
+    subjectAltNames:
+    - type: URI
+      uri: spiffe://production.other/ns/default/sa/not-hello-world
+---
+# Negative test: ghostunnel must refuse Envoy. Envoy's view of this backend is entirely valid,
+# the pod just does not list the proxy's id in its --allow-uri.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: hello-world-deny
+  namespace: default
+spec:
+  parentRefs:
+  - name: sds
+  hostnames:
+  - deny.sds.test
+  rules:
+  - backendRefs:
+    - name: hello-world-deny
+      port: 8443
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: BackendTLSPolicy
+metadata:
+  name: hello-world-deny
+  namespace: default
+spec:
+  targetRefs:
+  - group: ""
+    kind: Service
+    name: hello-world-deny
+  validation:
+    caCertificateRefs:
+    - group: ""
+      kind: Secret
+      name: spire-bundle
+    hostname: hello-world-deny.default.svc.cluster.local
+    subjectAltNames:
+    - type: URI
+      uri: spiffe://production.other/ns/default/sa/default
