@@ -30,7 +30,7 @@ spec:
   template:
     metadata:
       annotations:
-        kubectl.kubernetes.io/default-container: spire-ha-agent
+        kubectl.kubernetes.io/default-container: {{ .Chart.Name | quote }}
         {{- if eq .Values.mode "broker" }}
         checksum/config: {{ $configSum | quote }}
         {{- end }}

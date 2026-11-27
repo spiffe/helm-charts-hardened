@@ -203,6 +203,7 @@ plugins:
               {{ toYaml .allowedNodeLabelKeys | nindent 14 }}
             allowed_pod_label_keys:
               {{ toYaml .allowedPodLabelKeys | nindent 14 }}
+          {{- include "spire-server.podAgentsClusters" (dict "namespace" (include "spire-server.namespace" $root) "cluster" (include "spire-lib.cluster-name" $root) "podAgents" .podAgents "kubeConfigFile" "" "audience" .audience "allowedNodeLabelKeys" .allowedNodeLabelKeys "allowedPodLabelKeys" .allowedPodLabelKeys) }}
           {{- end }}
           {{- end }}
           {{- if eq (.Values.nodeAttestor.externalK8sPSAT.enabled | toString) "true" }}
@@ -212,19 +213,20 @@ plugins:
           {{- if hasKey $root.Values.nodeAttestor.externalK8sPSAT.clusters $name }}
           {{- $clusterSettings = index $root.Values.nodeAttestor.externalK8sPSAT.clusters $name }}
           {{- end }}
+          {{- $kubeConfigFile := printf "/kubeconfigs/%s" (default $name $clusterSettings.kubeConfigName) }}
+          {{- $audience := ternary $clusterSettings.audience $clusterDefaults.audience (hasKey $clusterSettings "audience") }}
+          {{- $nodeLabelKeys := ternary $clusterSettings.allowedNodeLabelKeys $clusterDefaults.allowedNodeLabelKeys (hasKey $clusterSettings "allowedNodeLabelKeys") }}
+          {{- $podLabelKeys := ternary $clusterSettings.allowedPodLabelKeys $clusterDefaults.allowedPodLabelKeys (hasKey $clusterSettings "allowedPodLabelKeys") }}
         - {{ $name }}:
-            {{- if hasKey $clusterSettings "kubeConfigName" }}
-            kube_config_file: /kubeconfigs/{{ $clusterSettings.kubeConfigName }}
-            {{- else }}
-            kube_config_file: /kubeconfigs/{{ $name }}
-            {{- end }}
+            kube_config_file: {{ $kubeConfigFile }}
             service_account_allow_list:
               {{ if hasKey $clusterSettings "serviceAccountAllowList" }}{{ toYaml $clusterSettings.serviceAccountAllowList | nindent 14 }}{{ else }}{{ toYaml $clusterDefaults.serviceAccountAllowList | nindent 14 }}{{ end }}
-            audience: {{ if hasKey $clusterSettings "audience" }}{{ $clusterSettings.audience }}{{ else }}{{ $clusterDefaults.audience }}{{ end }}
+            audience: {{ $audience }}
             allowed_node_label_keys:
-              {{ if hasKey $clusterSettings "allowedNodeLabelKeys" }}{{ toYaml $clusterSettings.allowedNodeLabelKeys | nindent 14 }}{{ else }}{{ toYaml $clusterDefaults.allowedNodeLabelKeys | nindent 14 }}{{ end }}
+              {{ toYaml $nodeLabelKeys | nindent 14 }}
             allowed_pod_label_keys:
-              {{ if hasKey $clusterSettings "allowedPodLabelKeys" }}{{ toYaml $clusterSettings.allowedPodLabelKeys | nindent 14 }}{{ else }}{{ toYaml $clusterDefaults.allowedPodLabelKeys | nindent 14 }}{{ end }}
+              {{ toYaml $podLabelKeys | nindent 14 }}
+          {{- include "spire-server.podAgentsClusters" (dict "namespace" (include "spire-server.namespace" $root) "cluster" $name "podAgents" $clusterSettings.podAgents "kubeConfigFile" $kubeConfigFile "audience" $audience "allowedNodeLabelKeys" $nodeLabelKeys "allowedPodLabelKeys" $podLabelKeys) }}
           {{- end }}
           {{- end }}
   {{- end }}
@@ -273,7 +275,7 @@ plugins:
       plugin_data:
         {{- if eq .mode "externalPKI" }}
         mode: external_pki
-        ca_bundle_path: "/run/spire/data/x509pop-ca-bundle.pem"
+        ca_bundle_path: "/run/spire/x509pop/ca-bundle.pem"
         max_intermediates: {{ .maxIntermediates }}
         max_rsa_key_size: {{ .maxRSAKeySize }}
         {{- if ne .agentPathTemplate "" }}
