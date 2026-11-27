@@ -24,7 +24,7 @@ Kubernetes: `>=1.21.0-0`
 
 | Repository | Name | Version |
 |------------|------|---------|
-| file://../spire-lib | spire-lib | 0.3.1 |
+| file://../spire-lib | spire-lib | 0.4.0 |
 
 ## Usage
 
