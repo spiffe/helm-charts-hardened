@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: spiffefs-test
+spec:
+  terminationGracePeriodSeconds: 1
+  containers:
+    - name: main
+      image: busybox
+      command: ["/bin/sh", "-c", "sleep infinity"]
+      volumeMounts:
+        - name: spiffefs
+          mountPath: /spiffe
+          readOnly: true
+          # Required so the pod picks up spiffefs remounting on restart
+          # instead of holding a stale mount.
+          mountPropagation: HostToContainer
+  volumes:
+    - name: spiffefs
+      csi:
+        driver: spiffefs.csi.spiffe.io
+        readOnly: true

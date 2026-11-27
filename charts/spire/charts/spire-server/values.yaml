@@ -922,6 +922,14 @@ controllerManager:
         ## @param controllerManager.identities.clusterSPIFFEIDs.spike-pilot.spiffeIDTemplate The template to use for this rule.
         spiffeIDTemplate: spiffe://{{ .TrustDomain }}/spike/pilot/role/superuser
 
+      spiffefs:
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spiffefs.enabled Enable this identity for controller manager. This feature is experimental.
+        enabled: false
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spiffefs.type The type of rule this is.
+        type: spiffefs
+        ## @param controllerManager.identities.clusterSPIFFEIDs.spiffefs.spiffeIDTemplate The template to use for this rule.
+        spiffeIDTemplate: spiffe://{{ .TrustDomain }}/spiffefs
+
       spire-ha-agent:
         ## @param controllerManager.identities.clusterSPIFFEIDs.spire-ha-agent.enabled Enable this identity for controller manager
         enabled: false
@@ -1259,6 +1267,14 @@ nodeAttestor:
     allowedNodeLabelKeys: []
     ## @param nodeAttestor.k8sPSAT.allowedPodLabelKeys [array] Pod label keys considered for selectors
     allowedPodLabelKeys: []
+    ## Each key adds a k8s_psat cluster "<clusterName>/<key>" with use_pod_uid_for_agent_id forced on,
+    ## giving agent IDs spiffe://<trustDomain>/spire/agent/k8s_psat/<clusterName>/<key>/<podUID>.
+    ## Entry fields: serviceAccountAllowList (required; release namespace if none given); audience,
+    ## allowedNodeLabelKeys and allowedPodLabelKeys default to the parent cluster's values.
+    ## @param nodeAttestor.k8sPSAT.podAgents [object] Pod-based agents (e.g. brokers, CI runners) on this cluster
+    podAgents: {}
+    # ci:
+    #   serviceAccountAllowList: ["ci:runner"]
   externalK8sPSAT:
     ## @param nodeAttestor.externalK8sPSAT.enabled Enable PSAT k8s nodeattestor for external Kubernetes clusters
     enabled: true
@@ -1276,6 +1292,9 @@ nodeAttestor:
     # clustera:
     #   kubeConfigName: foo
     #   serviceAccountAllowList: ["other-ns:other-agent"]
+    #   podAgents:              # same as nodeAttestor.k8sPSAT.podAgents; adds cluster "clustera/ci"
+    #     ci:
+    #       serviceAccountAllowList: ["ci:runner"]
     # clusterb: {}
   joinToken:
     ## @param nodeAttestor.joinToken.enabled Enable the join_token nodeattestor
@@ -1722,7 +1741,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:6386ad6bd017a549585d3833b654b5aa9da70bf231d4701c689b6b908f26725f
+      tag: latest@sha256:2d2c16c60135177c694a1a013f403fba5c92252a7d0b7a02c5a875d2a69f45ec
 
 ## @param kubeConfigs [object] Manage additional kubeconfig files to talk to external Kubernetes clusters
 ## Each entry sets exactly one of kubeConfig, kubeConfigBase64, externalSecret, or jwtSVIDExec. Use externalSecret

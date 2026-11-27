@@ -4,7 +4,7 @@ description: >
   A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
 
 type: application
-version: 0.31.0
+version: 0.31.1
 appVersion: "1.16.0"
 keywords: ["spiffe", "spire", "spire-server", "spire-agent", "oidc", "spire-controller-manager"]
 home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire
@@ -48,6 +48,11 @@ dependencies:
     condition: upstream.enabled
     repository: file://./charts/spiffe-csi-driver
     version: 0.1.0
+  - name: spiffe-csi-driver
+    alias: spiffefs-csi-driver
+    condition: spiffefs.enabled
+    repository: file://./charts/spiffe-csi-driver
+    version: 0.1.0
   - name: spiffe-oidc-discovery-provider
     condition: spiffe-oidc-discovery-provider.enabled
     repository: file://./charts/spiffe-oidc-discovery-provider
@@ -72,6 +77,10 @@ dependencies:
     condition: spire-identity-exchange.enabled
     repository: file://../spire-identity-exchange
     version: 0.3.0
+  - name: spiffefs
+    condition: spiffefs.enabled
+    repository: file://../spiffefs
+    version: 0.1.1
 annotations:
   org.opencontainers.image.source: https://github.com/spiffe/helm-charts-hardened
   artifacthub.io/category: security
