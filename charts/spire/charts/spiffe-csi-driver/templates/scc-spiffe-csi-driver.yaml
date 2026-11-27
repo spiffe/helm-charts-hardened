@@ -32,7 +32,5 @@ fsGroup:
 groups: []
 priority: null
 requiredDropCapabilities: null
-seccompProfiles:
-  - runtime/default
 
 {{ end }}

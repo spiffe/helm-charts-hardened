@@ -260,6 +260,38 @@ current-context: cluster
 {{- end }}
 {{- end }}
 
+{{/*
+Renders one extra k8s_psat cluster "<cluster>/<key>" per podAgents entry. Pod-based agents
+(brokers, CI runners) share the parent cluster's API server but get agent IDs keyed by pod UID,
+so they never collide with the parent's DaemonSet agents, which stay keyed by node UID.
+use_pod_uid_for_agent_id is forced on and cannot be overridden. Unset audience and label keys
+are inherited from the parent cluster. serviceAccountAllowList is not inherited: the parent's
+list names the DaemonSet agent, which must not be allowed to attest as a pod agent. Entries
+without a namespace get the release namespace.
+*/}}
+{{- define "spire-server.podAgentsClusters" }}
+{{- $parent := . }}
+{{- range $key, $agent := .podAgents }}
+{{- $agent = default dict $agent }}
+{{- if empty $agent.serviceAccountAllowList }}
+{{- fail (printf "podAgents.%s of cluster %s: serviceAccountAllowList must not be empty" $key $parent.cluster) }}
+{{- end }}
+{{- $serviceAccounts := list }}
+{{- range $agent.serviceAccountAllowList }}
+{{- $serviceAccounts = append $serviceAccounts (ternary . (printf "%s:%s" $parent.namespace .) (contains ":" .)) }}
+{{- end }}
+        - {{ printf "%s/%s" $parent.cluster $key | quote }}:
+            {{- with $parent.kubeConfigFile }}
+            kube_config_file: {{ . }}
+            {{- end }}
+            service_account_allow_list: {{ toJson $serviceAccounts }}
+            use_pod_uid_for_agent_id: true
+            audience: {{ toJson (ternary $agent.audience $parent.audience (hasKey $agent "audience")) }}
+            allowed_node_label_keys: {{ toJson (ternary $agent.allowedNodeLabelKeys $parent.allowedNodeLabelKeys (hasKey $agent "allowedNodeLabelKeys")) }}
+            allowed_pod_label_keys: {{ toJson (ternary $agent.allowedPodLabelKeys $parent.allowedPodLabelKeys (hasKey $agent "allowedPodLabelKeys")) }}
+{{- end }}
+{{- end }}
+
 {{- define "spire-server.config-sqlite-query" }}
 {{- $lst := list }}
 {{- range . }}
@@ -552,4 +584,24 @@ subjects:
 {{-     $cn = printf "/%s" (include "spire-lib.cluster-name" .) }}
 {{-   end }}
 {{-   replace "${HELM_ADD_CLUSTER_NAME}" $cn .Values.nodeAttestor.x509POP.spiffePrefix }}
+{{- end }}
+
+{{/*
+The x509pop group prefix for the spire-identity-exchange. It is the x509pop spiffe prefix
+(including the cluster name when enabled) without its leading slash and with a trailing slash.
+*/}}
+{{- define "spire-server.identity-exchange-group-prefix" -}}
+{{-   $prefix := include "spire-server.identity-exchange-spiffe-prefix" . | trimPrefix "/" }}
+{{-   if not (hasSuffix "/" $prefix) }}
+{{-     $prefix = printf "%s/" $prefix }}
+{{-   end }}
+{{-   $prefix }}
+{{- end }}
+
+{{/*
+The x509pop group the spire-identity-exchange agents are placed in. Scoped by the spiffe prefix so
+that it is cluster specific.
+*/}}
+{{- define "spire-server.identity-exchange-group" -}}
+{{-   printf "%sspire-identity-exchange" (include "spire-server.identity-exchange-group-prefix" .) }}
 {{- end }}

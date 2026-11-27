@@ -466,11 +466,12 @@ spire-server:
 			Expect(err).Should(Succeed())
 			serverCM := objs["spire/charts/spire-server/templates/configmap.yaml"]
 			Expect(serverCM).Should(ContainSubstring(`"mode": "external_pki"`))
-			Expect(serverCM).Should(ContainSubstring(`"ca_bundle_path": "/run/spire/data/x509pop-ca-bundle.pem"`))
+			Expect(serverCM).Should(ContainSubstring(`"ca_bundle_path": "/run/spire/x509pop/ca-bundle.pem"`))
 			Expect(objs).Should(HaveKey("spire/charts/spire-server/templates/x509pop-configmap.yaml"))
 			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
 			Expect(serverResource).Should(ContainSubstring("x509pop-ca-bundle"))
-			Expect(serverResource).Should(ContainSubstring("/run/spire/data/x509pop-ca-bundle.pem"))
+			Expect(serverResource).Should(ContainSubstring("mountPath: /run/spire/x509pop"))
+			Expect(serverResource).ShouldNot(ContainSubstring("subPath: ca-bundle.pem"))
 		})
 		It("renders externalPKI mode with existing ConfigMap reference", func() {
 			objs, err := ValueStringRender(chart, `
@@ -487,10 +488,133 @@ spire-server:
 			Expect(err).Should(Succeed())
 			serverCM := objs["spire/charts/spire-server/templates/configmap.yaml"]
 			Expect(serverCM).Should(ContainSubstring(`"mode": "external_pki"`))
-			Expect(serverCM).Should(ContainSubstring(`"ca_bundle_path": "/run/spire/data/x509pop-ca-bundle.pem"`))
+			Expect(serverCM).Should(ContainSubstring(`"ca_bundle_path": "/run/spire/x509pop/ca-bundle.pem"`))
 			Expect(objs["spire/charts/spire-server/templates/x509pop-configmap.yaml"]).ShouldNot(ContainSubstring("kind: ConfigMap"))
 			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
 			Expect(serverResource).Should(ContainSubstring("name: my-enrollment-ca"))
+			Expect(serverResource).Should(ContainSubstring("mountPath: /run/spire/x509pop"))
+			Expect(serverResource).ShouldNot(ContainSubstring("subPath: ca-bundle.pem"))
+		})
+		It("does not render groups by default", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  nodeAttestor:
+    x509POP:
+      enabled: true
+`)
+			Expect(err).Should(Succeed())
+			serverCM := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(serverCM).Should(ContainSubstring(`"x509pop"`))
+			Expect(serverCM).ShouldNot(ContainSubstring("group_template"))
+			Expect(serverCM).ShouldNot(ContainSubstring("allowed_groups"))
+		})
+		It("renders user supplied groups", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  nodeAttestor:
+    x509POP:
+      enabled: true
+      groupTemplate: "{{ .Subject.CommonName }}"
+      allowedGroups:
+        - foo
+        - bar
+`)
+			Expect(err).Should(Succeed())
+			serverCM := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(serverCM).Should(ContainSubstring(`"group_template": "{{ .Subject.CommonName }}"`))
+			Expect(serverCM).Should(MatchRegexp(`"allowed_groups": \[\s*"foo",\s*"bar"\s*\]`))
+		})
+		It("fails when only one of groupTemplate and allowedGroups is set", func() {
+			_, err := ValueStringRender(chart, `
+spire-server:
+  nodeAttestor:
+    x509POP:
+      enabled: true
+      groupTemplate: "{{ .Subject.CommonName }}"
+`)
+			Expect(err).Should(MatchError(ContainSubstring("allowedGroups must be set")))
+			_, err = ValueStringRender(chart, `
+spire-server:
+  nodeAttestor:
+    x509POP:
+      enabled: true
+      allowedGroups:
+        - foo
+`)
+			Expect(err).Should(MatchError(ContainSubstring("groupTemplate must be set")))
+		})
+		It("uses a group for spire-identity-exchange instead of a credential composer", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  spireIdentityExchange:
+    enabled: true
+  nodeAttestor:
+    x509POP:
+      allowedGroups:
+        - foo
+`)
+			Expect(err).Should(Succeed())
+			serverCM := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(serverCM).Should(ContainSubstring(`"group_template": "spire-exchange/k8s/example-cluster/{{ dir .SVIDPathTrimmed }}"`))
+			Expect(serverCM).Should(MatchRegexp(`"allowed_groups": \[\s*"foo",\s*"spire-exchange/k8s/example-cluster/spire-identity-exchange"\s*\]`))
+			Expect(serverCM).ShouldNot(ContainSubstring("CredentialComposer"))
+			serverResource := objs["spire/charts/spire-server/templates/server-resource.yaml"]
+			Expect(serverResource).ShouldNot(ContainSubstring("init-six"))
+			Expect(serverResource).ShouldNot(ContainSubstring("credentialcomposer-identity-exchange"))
+			entries := objs["spire/charts/spire-server/templates/controller-manager-static-entries.yaml"]
+			Expect(entries).Should(ContainSubstring("x509pop:group:spire-exchange/k8s/example-cluster/spire-identity-exchange"))
+			Expect(entries).ShouldNot(ContainSubstring("x509pop:subject:cn"))
+		})
+		It("scopes the spire-identity-exchange group by the spiffe prefix", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  spireIdentityExchange:
+    enabled: true
+  nodeAttestor:
+    x509POP:
+      spiffePrefix: /custom/prefix/
+      addClusterName:
+        spiffePrefix: false
+`)
+			Expect(err).Should(Succeed())
+			serverCM := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(serverCM).Should(ContainSubstring(`"group_template": "custom/prefix/{{ dir .SVIDPathTrimmed }}"`))
+			Expect(serverCM).Should(MatchRegexp(`"allowed_groups": \[\s*"custom/prefix/spire-identity-exchange"\s*\]`))
+			entries := objs["spire/charts/spire-server/templates/controller-manager-static-entries.yaml"]
+			Expect(entries).Should(ContainSubstring("x509pop:group:custom/prefix/spire-identity-exchange"))
+		})
+		It("renders agentPathTemplate in externalPKI mode", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  nodeAttestor:
+    k8sPSAT:
+      enabled: false
+    x509POP:
+      enabled: true
+      mode: externalPKI
+      caBundle:
+        existingConfigMap: my-enrollment-ca
+      agentPathTemplate: "/x509pop/cn/{{ .Subject.CommonName }}"
+`)
+			Expect(err).Should(Succeed())
+			serverCM := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(serverCM).Should(ContainSubstring(`"agent_path_template": "/x509pop/cn/{{ .Subject.CommonName }}"`))
+		})
+		It("omits agent_path_template in externalPKI mode by default", func() {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  nodeAttestor:
+    k8sPSAT:
+      enabled: false
+    x509POP:
+      enabled: true
+      mode: externalPKI
+      caBundle:
+        existingConfigMap: my-enrollment-ca
+`)
+			Expect(err).Should(Succeed())
+			serverCM := objs["spire/charts/spire-server/templates/configmap.yaml"]
+			Expect(serverCM).ShouldNot(ContainSubstring(`agent_path_template`))
 		})
 	})
 	Describe("spire-server.nodeAttestor.awsIID.verifyOrganization", func() {
@@ -833,6 +957,94 @@ global:
 `)
 			Expect(err).Should(Succeed())
 			Expect(objs["spire/charts/spiffe-csi-driver/templates/scc-spiffe-csi-driver.yaml"]).Should(ContainSubstring("seccompProfiles:\n  - runtime/default\n"))
+		})
+	})
+	Describe("spire-server.nodeAttestor podAgents", func() {
+		serverCM := "spire/charts/spire-server/templates/configmap.yaml"
+		It("renders no pod UID cluster by default", func() {
+			objs, err := ValueStringRender(chart, ``)
+			Expect(err).Should(Succeed())
+			Expect(objs[serverCM]).ShouldNot(ContainSubstring("use_pod_uid_for_agent_id"))
+		})
+
+		It("adds <cluster>/<key> clusters with pod UID forced on and parent settings inherited", func() {
+			objs, err := ValueStringRender(chart, `
+global:
+  spire:
+    clusterName: home
+spire-server:
+  kubeConfigs:
+    sandbox:
+      kubeConfig: |
+        apiVersion: v1
+        kind: Config
+  nodeAttestor:
+    k8sPSAT:
+      podAgents:
+        flux:
+          serviceAccountAllowList: ["flux-system:broker"]
+          audience: ["broker"]
+    externalK8sPSAT:
+      clusters:
+        sandbox:
+          serviceAccountAllowList: ["spire-system:spire-agent"]
+          allowedPodLabelKeys: ["app"]
+          podAgents:
+            ci:
+              serviceAccountAllowList: ["ci:runner", "builder"]
+`)
+			Expect(err).Should(Succeed())
+			cm := objs[serverCM]
+			Expect(cm).Should(MatchRegexp(`"home/flux": \{[^}]*"audience": \[\s*"broker"\s*\][^}]*"use_pod_uid_for_agent_id": true`))
+			Expect(cm).Should(MatchRegexp(`"sandbox/ci": \{[^}]*"allowed_pod_label_keys": \[\s*"app"\s*\][^}]*"kube_config_file": "/kubeconfigs/sandbox"[^}]*"use_pod_uid_for_agent_id": true`))
+			Expect(cm).Should(MatchRegexp(`"sandbox/ci": \{[^}]*"service_account_allow_list": \[\s*"ci:runner",\s*"spire-server:builder"\s*\]`))
+			// the parent clusters keep node UID agent IDs
+			Expect(cm).ShouldNot(MatchRegexp(`"(home|sandbox)": \{[^}]*use_pod_uid_for_agent_id`))
+		})
+
+		It("requires serviceAccountAllowList", func() {
+			_, err := ValueStringRender(chart, `
+spire-server:
+  nodeAttestor:
+    k8sPSAT:
+      podAgents:
+        flux: {}
+`)
+			Expect(err).Should(MatchError(ContainSubstring("podAgents.flux")))
+		})
+	})
+	Describe("spiffe-csi-driver.selinux", func() {
+		ds := "spire/charts/spiffe-csi-driver/templates/daemonset.yaml"
+		It("leaves the default socket label to the driver", func() {
+			objs, err := ValueStringRender(chart, "spiffe-csi-driver:\n  selinux:\n    enabled: true\n")
+			Expect(err).Should(Succeed())
+			Expect(objs[ds]).ShouldNot(ContainSubstring("set-context"))
+			Expect(objs[ds]).ShouldNot(ContainSubstring("initContainers"))
+			Expect(objs[ds]).Should(ContainSubstring("name: spire-agent-socket-dir\n              readOnly: false"))
+		})
+		It("mounts the socket dir read-only without SELinux", func() {
+			objs, err := ValueStringRender(chart, "")
+			Expect(err).Should(Succeed())
+			Expect(objs[ds]).Should(ContainSubstring("name: spire-agent-socket-dir\n              readOnly: true"))
+		})
+		It("leaves the relabel to the driver on OpenShift", func() {
+			objs, err := ValueStringRender(chart, "global:\n  openshift: true\n")
+			Expect(err).Should(Succeed())
+			Expect(objs[ds]).ShouldNot(ContainSubstring("set-context"))
+			Expect(objs[ds]).Should(ContainSubstring("name: spire-agent-socket-dir\n              readOnly: false"))
+		})
+		It("renders only the user init containers when the driver relabels", func() {
+			objs, err := ValueStringRender(chart, "spiffe-csi-driver:\n  selinux:\n    enabled: true\n  initContainers:\n    - name: user-init\n      image: busybox\n")
+			Expect(err).Should(Succeed())
+			Expect(objs[ds]).Should(ContainSubstring("name: user-init"))
+			Expect(objs[ds]).ShouldNot(ContainSubstring("set-context"))
+		})
+		It("runs chcon for another context", func() {
+			objs, err := ValueStringRender(chart, "spiffe-csi-driver:\n  selinux:\n    enabled: true\n    context: svirt_sandbox_file_t\n")
+			Expect(err).Should(Succeed())
+			Expect(objs[ds]).Should(ContainSubstring("set-context"))
+			Expect(objs[ds]).Should(ContainSubstring("svirt_sandbox_file_t"))
+			Expect(objs[ds]).Should(ContainSubstring("name: spire-agent-socket-dir\n              readOnly: true"))
 		})
 	})
 	Describe("spiffe-csi-driver.syncWave", func() {
@@ -1867,5 +2079,121 @@ var _ = Describe("spire-server.keyManager.azureKeyVault", func() {
 	It("requires a key identifier option", func() {
 		_, err := ValueStringRender(chart, base+"      keyVaultURI: https://v.vault.azure.net/\n")
 		Expect(err).Should(MatchError(ContainSubstring("Enable one of keyManager.azureKeyVault keyIdentifierFile or keyIdentifierValue")))
+	})
+})
+
+var _ = Describe("spire-server.controllerManager probes", func() {
+	chart, err := helmloader.Load("../../charts/spire")
+	if err != nil {
+		panic(err)
+	}
+	serverTmpl := "spire/charts/spire-server/templates/server-resource.yaml"
+	external := `
+  kubeConfigs:
+    child01:
+      kubeConfig: |
+        apiVersion: v1
+        kind: Config
+    child02:
+      kubeConfig: |
+        apiVersion: v1
+        kind: Config
+  externalControllerManagers:
+    enabled: true
+`
+	// The controller manager containers are the only ones probing /healthz and /readyz.
+	probes := func(values string) (int, int, string) {
+		objs, err := ValueStringRender(chart, values)
+		Expect(err).Should(Succeed())
+		server := objs[serverTmpl]
+		return strings.Count(server, "path: /healthz"), strings.Count(server, "path: /readyz"), server
+	}
+
+	It("enables both probes by default", func() {
+		liveness, readiness, server := probes(`
+spire-server:
+  controllerManager:
+    enabled: true
+`)
+		Expect(liveness).Should(Equal(1))
+		Expect(readiness).Should(Equal(1))
+		Expect(server).ShouldNot(ContainSubstring("enabled: true"))
+	})
+
+	It("disables the liveness probe on its own", func() {
+		liveness, readiness, _ := probes(`
+spire-server:
+  controllerManager:
+    enabled: true
+    livenessProbe:
+      enabled: false
+`)
+		Expect(liveness).Should(Equal(0))
+		Expect(readiness).Should(Equal(1))
+	})
+
+	It("disables the readiness probe on its own", func() {
+		liveness, readiness, _ := probes(`
+spire-server:
+  controllerManager:
+    enabled: true
+    readinessProbe:
+      enabled: false
+`)
+		Expect(liveness).Should(Equal(1))
+		Expect(readiness).Should(Equal(0))
+	})
+
+	It("enables both probes on external controller managers by default", func() {
+		liveness, readiness, _ := probes(`
+spire-server:
+  controllerManager:
+    enabled: true
+` + external)
+		Expect(liveness).Should(Equal(3))
+		Expect(readiness).Should(Equal(3))
+	})
+
+	It("disables the probes for all external controller managers through the defaults", func() {
+		liveness, readiness, server := probes(`
+spire-server:
+  controllerManager:
+    enabled: true
+` + external + `
+    defaults:
+      livenessProbe:
+        enabled: false
+      readinessProbe:
+        enabled: false
+`)
+		Expect(liveness).Should(Equal(1))
+		Expect(readiness).Should(Equal(1))
+		Expect(server).Should(ContainSubstring("port: hp-cm\n"))
+		Expect(server).ShouldNot(ContainSubstring("port: hp-cm-child01"))
+		Expect(server).ShouldNot(ContainSubstring("port: hp-cm-child02"))
+	})
+
+	It("lets a cluster override the external defaults", func() {
+		liveness, readiness, server := probes(`
+spire-server:
+  controllerManager:
+    enabled: true
+` + external + `
+    defaults:
+      livenessProbe:
+        enabled: false
+    clusters:
+      child01:
+        livenessProbe:
+          enabled: true
+      child02:
+        readinessProbe:
+          enabled: false
+`)
+		// liveness: internal + child01, readiness: internal + child01
+		Expect(liveness).Should(Equal(2))
+		Expect(readiness).Should(Equal(2))
+		Expect(server).Should(ContainSubstring("port: hp-cm-child01"))
+		Expect(server).ShouldNot(ContainSubstring("port: hp-cm-child02"))
 	})
 })

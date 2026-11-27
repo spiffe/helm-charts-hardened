@@ -140,7 +140,7 @@ server:
   {{- end }}
 
 plugins:
-  {{- if or .Values.credentialComposer.uniqueID.enabled .Values.credentialComposer.cel.enabled .Values.spireIdentityExchange.enabled }}
+  {{- if or .Values.credentialComposer.uniqueID.enabled .Values.credentialComposer.cel.enabled }}
   CredentialComposer:
     {{- if or .Values.credentialComposer.uniqueID.enabled }}
     uniqueid: {}
@@ -153,27 +153,6 @@ plugins:
       plugin_data:
         jwt:
           expression_string: {{ .jwt.expression | quote }}
-    {{- end }}
-    {{- end }}
-    {{- with .Values.credentialComposer.spireIdentityExchange }}
-    {{- if $root.Values.spireIdentityExchange.enabled }}
-    identityexchange:
-      plugin_cmd: "/plugins/credentialcomposer-identity-exchange"
-      plugin_checksum: {{ .checksum }}
-      plugin_data:
-        {{- $spiffePrefix := $root.Values.nodeAttestor.x509POP.spiffePrefix }}
-        {{- if not (hasSuffix "/" $spiffePrefix) }}
-        {{-   $spiffePrefix = printf "%s/" $spiffePrefix }}
-        {{- end }}
-        {{- if eq .prefix "" }}
-        {{-   if $root.Values.nodeAttestor.x509POP.addClusterName.spiffePrefix }}
-        prefix: {{ printf "%s%s/spire-identity-exchange/" $spiffePrefix (include "spire-lib.cluster-name" $root) | quote }}
-        {{-   else }}
-        prefix: {{ printf "%s/spire-identity-exchange/" $spiffePrefix | quote }}
-        {{-   end }}
-        {{- else }}
-        prefix: {{ .prefix | quote }}
-        {{- end }}
     {{- end }}
     {{- end }}
   {{- end }}
@@ -224,6 +203,7 @@ plugins:
               {{ toYaml .allowedNodeLabelKeys | nindent 14 }}
             allowed_pod_label_keys:
               {{ toYaml .allowedPodLabelKeys | nindent 14 }}
+          {{- include "spire-server.podAgentsClusters" (dict "namespace" (include "spire-server.namespace" $root) "cluster" (include "spire-lib.cluster-name" $root) "podAgents" .podAgents "kubeConfigFile" "" "audience" .audience "allowedNodeLabelKeys" .allowedNodeLabelKeys "allowedPodLabelKeys" .allowedPodLabelKeys) }}
           {{- end }}
           {{- end }}
           {{- if eq (.Values.nodeAttestor.externalK8sPSAT.enabled | toString) "true" }}
@@ -233,19 +213,20 @@ plugins:
           {{- if hasKey $root.Values.nodeAttestor.externalK8sPSAT.clusters $name }}
           {{- $clusterSettings = index $root.Values.nodeAttestor.externalK8sPSAT.clusters $name }}
           {{- end }}
+          {{- $kubeConfigFile := printf "/kubeconfigs/%s" (default $name $clusterSettings.kubeConfigName) }}
+          {{- $audience := ternary $clusterSettings.audience $clusterDefaults.audience (hasKey $clusterSettings "audience") }}
+          {{- $nodeLabelKeys := ternary $clusterSettings.allowedNodeLabelKeys $clusterDefaults.allowedNodeLabelKeys (hasKey $clusterSettings "allowedNodeLabelKeys") }}
+          {{- $podLabelKeys := ternary $clusterSettings.allowedPodLabelKeys $clusterDefaults.allowedPodLabelKeys (hasKey $clusterSettings "allowedPodLabelKeys") }}
         - {{ $name }}:
-            {{- if hasKey $clusterSettings "kubeConfigName" }}
-            kube_config_file: /kubeconfigs/{{ $clusterSettings.kubeConfigName }}
-            {{- else }}
-            kube_config_file: /kubeconfigs/{{ $name }}
-            {{- end }}
+            kube_config_file: {{ $kubeConfigFile }}
             service_account_allow_list:
               {{ if hasKey $clusterSettings "serviceAccountAllowList" }}{{ toYaml $clusterSettings.serviceAccountAllowList | nindent 14 }}{{ else }}{{ toYaml $clusterDefaults.serviceAccountAllowList | nindent 14 }}{{ end }}
-            audience: {{ if hasKey $clusterSettings "audience" }}{{ $clusterSettings.audience }}{{ else }}{{ $clusterDefaults.audience }}{{ end }}
+            audience: {{ $audience }}
             allowed_node_label_keys:
-              {{ if hasKey $clusterSettings "allowedNodeLabelKeys" }}{{ toYaml $clusterSettings.allowedNodeLabelKeys | nindent 14 }}{{ else }}{{ toYaml $clusterDefaults.allowedNodeLabelKeys | nindent 14 }}{{ end }}
+              {{ toYaml $nodeLabelKeys | nindent 14 }}
             allowed_pod_label_keys:
-              {{ if hasKey $clusterSettings "allowedPodLabelKeys" }}{{ toYaml $clusterSettings.allowedPodLabelKeys | nindent 14 }}{{ else }}{{ toYaml $clusterDefaults.allowedPodLabelKeys | nindent 14 }}{{ end }}
+              {{ toYaml $podLabelKeys | nindent 14 }}
+          {{- include "spire-server.podAgentsClusters" (dict "namespace" (include "spire-server.namespace" $root) "cluster" $name "podAgents" $clusterSettings.podAgents "kubeConfigFile" $kubeConfigFile "audience" $audience "allowedNodeLabelKeys" $nodeLabelKeys "allowedPodLabelKeys" $podLabelKeys) }}
           {{- end }}
           {{- end }}
   {{- end }}
@@ -294,9 +275,16 @@ plugins:
       plugin_data:
         {{- if eq .mode "externalPKI" }}
         mode: external_pki
-        ca_bundle_path: "/run/spire/data/x509pop-ca-bundle.pem"
+        ca_bundle_path: "/run/spire/x509pop/ca-bundle.pem"
         max_intermediates: {{ .maxIntermediates }}
         max_rsa_key_size: {{ .maxRSAKeySize }}
+        {{- if ne .agentPathTemplate "" }}
+        {{- $cn := "" }}
+        {{- if .addClusterName.agentPathTemplate }}
+        {{-   $cn = printf "/%s" (include "spire-lib.cluster-name" $root) }}
+        {{- end }}
+        agent_path_template: {{ replace "${HELM_ADD_CLUSTER_NAME}" $cn .agentPathTemplate | quote }}
+        {{- end }}
         {{- else }}
         mode: {{ .mode }}
         spiffe_prefix: {{ include "spire-server.identity-exchange-spiffe-prefix" $root | quote }}
@@ -315,6 +303,25 @@ plugins:
         {{-   $cn = printf "/%s" (include "spire-lib.cluster-name" $root) }}
         {{- end }}
         agent_path_template: {{ replace "${HELM_ADD_CLUSTER_NAME}" $cn $agentPathTemplate | quote }}
+        {{- end }}
+        {{- $groupTemplate := .groupTemplate }}
+        {{- $allowedGroups := .allowedGroups | default list }}
+        {{- if $root.Values.spireIdentityExchange.enabled }}
+        {{-   if eq $groupTemplate "" }}
+        {{-     $groupTemplate = printf "%s{{ dir .SVIDPathTrimmed }}" (include "spire-server.identity-exchange-group-prefix" $root) }}
+        {{-   end }}
+        {{-   $allowedGroups = concat $allowedGroups (list (include "spire-server.identity-exchange-group" $root)) | uniq }}
+        {{- end }}
+        {{- if and (eq $groupTemplate "") (gt (len $allowedGroups) 0) }}
+        {{-   fail "nodeAttestor.x509POP.groupTemplate must be set when nodeAttestor.x509POP.allowedGroups is configured" }}
+        {{- end }}
+        {{- if ne $groupTemplate "" }}
+        {{-   if eq (len $allowedGroups) 0 }}
+        {{-     fail "nodeAttestor.x509POP.allowedGroups must be set when nodeAttestor.x509POP.groupTemplate is configured" }}
+        {{-   end }}
+        group_template: {{ $groupTemplate | quote }}
+        allowed_groups:
+          {{- toYaml $allowedGroups | nindent 10 }}
         {{- end }}
   {{- end }}
   {{- end }}

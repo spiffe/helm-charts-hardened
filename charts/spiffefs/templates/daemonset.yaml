@@ -1,0 +1,180 @@
+{{- $mountPath := include "spiffefs.mount-path" . }}
+{{- $parentPath := $mountPath | dir }}
+{{- if eq $parentPath "/" }}
+{{- fail "spiffefs.mountPath must be at least one directory deep: the csi driver publishes its parent" }}
+{{- end }}
+{{- $brokerSocketPath := include "spiffefs.broker-socket-path" . }}
+{{- $workloadSocketPath := include "spiffefs.workload-socket-path" . }}
+{{- if eq ($brokerSocketPath | dir) ($workloadSocketPath | dir) }}
+{{- fail "spiffefs.brokerSocketPath and spiffefs.workloadSocketPath must live in different directories: spire rejects a broker socket sharing a directory with the workload api socket" }}
+{{- end }}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "spiffefs.fullname" . | quote }}
+  namespace: {{ include "spiffefs.namespace" . | quote }}
+  labels:
+    {{- include "spiffefs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: spiffefs
+spec:
+  selector:
+    matchLabels:
+      {{- include "spiffefs.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: spiffefs
+  {{- with .Values.updateStrategy }}
+  updateStrategy:
+    {{- if not (has .type (list "RollingUpdate" "OnDelete")) }}
+    {{- fail "updateStrategy.type can only be RollingUpdate or OnDelete"}}
+    {{- end }}
+    type: {{ .type }}
+    {{- if eq .type "RollingUpdate" }}
+    rollingUpdate:
+      maxUnavailable: {{ .rollingUpdate.maxUnavailable }}
+    {{- end }}
+  {{- end }}
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: spiffefs
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "spiffefs.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: spiffefs
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with (coalesce .Values.imagePullSecrets (dig "imagePullSecrets" list .Values.global)) }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- /* spiffefs identifies callers by pid. */}}
+      hostPID: true
+      serviceAccountName: {{ include "spiffefs.serviceAccountName" . | quote }}
+      {{- include "spire-lib.default_node_priority_class_name" . | nindent 6 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      initContainers:
+        {{- /* The mount point lives inside the published parent, so it has to
+               exist before spiffefs can mount on it. Clearing a leftover fuse
+               mount here is what recovers from an instance that died without
+               unmounting; binding the parent rather than the mount point is what
+               makes that possible at all. */}}
+        - name: prepare-mount-point
+          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              mkdir -p {{ $mountPath | quote }}
+              if awk -v mp={{ $mountPath | quote }} '$2 == mp && $3 ~ /^fuse/ { found = 1 } END { exit !found }' /proc/self/mounts; then
+                echo "clearing stale spiffefs mount at {{ $mountPath }}"
+                umount -l {{ $mountPath | quote }}
+              else
+                echo "no stale spiffefs mount at {{ $mountPath }}"
+              fi
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          volumeMounts:
+            - name: spiffefs-mount-dir
+              mountPath: {{ $parentPath | quote }}
+              mountPropagation: Bidirectional
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+        {{- if gt (len .Values.initContainers) 0 }}
+        {{- toYaml .Values.initContainers | nindent 8 }}
+        {{- end }}
+      containers:
+        - name: spiffefs
+          image: {{ template "spire-lib.image" (dict "appVersion" $.Chart.AppVersion "image" .Values.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          {{- /* -umount makes spiffefs unmount on SIGTERM. Without it the
+                 filesystem outlives the pod as a dead mount, and kubelet cannot
+                 bind that into the replacement pod, so a restart never starts.
+                 It only ever unmounts a fuse mount, so kubelet's bind mount
+                 underneath is left alone. */}}
+          args:
+            - "-mode=broker"
+            - "-umount"
+            - {{ $mountPath | quote }}
+          env:
+            {{- /* The broker endpoint is mTLS, and the client certificate is an
+                   svid spiffefs fetches for itself from the workload api. That
+                   needs its own registration entry, matched on the
+                   app.kubernetes.io/name: spiffefs label. */}}
+            - name: SPIFFE_BROKER_ADDRESS
+              value: {{ printf "unix://%s" $brokerSocketPath | quote }}
+            - name: SPIFFE_ENDPOINT_SOCKET
+              value: {{ printf "unix://%s" $workloadSocketPath | quote }}
+          {{- with .Values.extraEnvVars }}
+          {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- /* Without this the pod is Ready as soon as the process starts,
+                 which is before the filesystem is mounted. That makes rollout
+                 status return too early and anything sequencing on it race. */}}
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - grep -q " {{ $mountPath }} fuse" /proc/self/mounts
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          volumeMounts:
+            {{- /* The parent, not the mount point: a mount made underneath a
+                   bind of the parent propagates out to the host and on to the
+                   csi driver, and survives being replaced. Binding the mount
+                   point itself ties the csi driver to one filesystem instance,
+                   which is orphaned the moment spiffefs restarts. */}}
+            - name: spiffefs-mount-dir
+              mountPath: {{ $parentPath | quote }}
+              mountPropagation: Bidirectional
+            - name: spire-agent-broker-socket-dir
+              mountPath: {{ $brokerSocketPath | dir | quote }}
+              readOnly: true
+            - name: spire-agent-workload-socket-dir
+              mountPath: {{ $workloadSocketPath | dir | quote }}
+              readOnly: true
+            - name: dev-fuse
+              mountPath: /dev/fuse
+            {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+        {{- with .Values.extraContainers }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: spiffefs-mount-dir
+          hostPath:
+            path: {{ $parentPath | quote }}
+            type: DirectoryOrCreate
+        - name: spire-agent-broker-socket-dir
+          hostPath:
+            path: {{ $brokerSocketPath | dir | quote }}
+            type: DirectoryOrCreate
+        - name: spire-agent-workload-socket-dir
+          hostPath:
+            path: {{ $workloadSocketPath | dir | quote }}
+            type: DirectoryOrCreate
+        - name: dev-fuse
+          hostPath:
+            path: /dev/fuse
+            type: CharDevice
+        {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}

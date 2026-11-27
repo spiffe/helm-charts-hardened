@@ -1,6 +1,6 @@
 # spire
 
-![Version: 0.30.3](https://img.shields.io/badge/Version-0.30.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.15.5](https://img.shields.io/badge/AppVersion-1.15.5-informational?style=flat-square)
+![Version: 0.31.0](https://img.shields.io/badge/Version-0.31.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.16.0](https://img.shields.io/badge/AppVersion-1.16.0-informational?style=flat-square)
 [![Development Phase](https://github.com/spiffe/spiffe/blob/main/.img/maturity/dev.svg)](https://github.com/spiffe/spiffe/blob/main/MATURITY.md#development)
 
 A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
@@ -78,6 +78,10 @@ kubectl delete crds clusterfederatedtrustdomains.spire.spiffe.io clusterspiffeid
 ## Upgrade notes
 
 We only support upgrading one major/minor version at a time. Version skipping isn't supported. Please see <https://spiffe.io/docs/latest/spire-helm-charts-hardened-about/upgrading/> for details.
+
+### 0.31.X
+
+- The spire-identity-exchange integration now uses the x509pop node attestor's group feature (SPIRE 1.16.0+) instead of the spire-credentialcomposer-identity-exchange plugin. The `spire-server.credentialComposer.spireIdentityExchange.*` values have been removed, and the `spire-identity-exchange` node alias now selects on `x509pop:group:<spiffePrefix>spire-identity-exchange` (for example `x509pop:group:spire-exchange/k8s/<cluster>/spire-identity-exchange`). After upgrading the SPIRE Server, restart the spire-identity-exchange pods so their agents reattest and receive the group selector.
 
 ### 0.30.X
 
@@ -429,3 +433,21 @@ Now you can interact with the Spire agent socket from your own application. The 
 | `spike-pilot.enabled`                  | Enables deployment of SPIKE Pilot (Not for production)                 | `false`             |
 | `spire-identity-exchange.enabled`      | Enables deployment of the SPIRE Identity Exchange (Not for production) | `false`             |
 | `spire-identity-exchange.nameOverride` | Overrides the name of the SPIRE Identity Exchnage                      | `identity-exchange` |
+
+### spiffefs parameters
+
+| Name               | Description                                                                                      | Value   |
+| ------------------ | ------------------------------------------------------------------------------------------------ | ------- |
+| `spiffefs.enabled` | Enables deployment of spiffefs and its spiffe-csi-driver instance. This feature is experimental. | `false` |
+
+### spiffefs SPIFFE CSI Driver parameters
+
+| Name                                                                | Description                                                                                                                                                                                                                                                      | Value                             |
+| ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| `spiffefs-csi-driver.pluginName`                                    | The plugin name for the spiffefs CSI driver instance                                                                                                                                                                                                             | `spiffefs.csi.spiffe.io`          |
+| `spiffefs-csi-driver.agentSocketPath`                               | Only its directory is used. That directory is published to workloads and must be the parent of spiffefs.mountPath, never the mount point itself: publishing the mount point ties workloads to one filesystem instance, which is orphaned when spiffefs restarts. | `/run/spire/k8s/spiffefs/private` |
+| `spiffefs-csi-driver.agentSocketMountPropagation`                   | spiffefs remounts its filesystem when it restarts, so this instance has to receive mounts from the host rather than hold a stale bind mount.                                                                                                                     | `HostToContainer`                 |
+| `spiffefs-csi-driver.recursiveBind`                                 | Publishes the spiffefs filesystem mounted beneath the socket directory, and follows it as spiffefs remounts it.                                                                                                                                                  | `true`                            |
+| `spiffefs-csi-driver.workloadMountPropagationPolicy.enabled`        | Rejects workloads whose spiffefs mount would go stale when spiffefs restarts                                                                                                                                                                                     | `true`                            |
+| `spiffefs-csi-driver.workloadMountPropagationPolicy.mutate.enabled` | Sets mountPropagation for workloads that leave it unset, where the cluster supports MutatingAdmissionPolicy                                                                                                                                                      | `true`                            |
+| `spiffefs-csi-driver.healthChecks.port`                             | The port where the spiffefs CSI driver health checks are exposed                                                                                                                                                                                                 | `9811`                            |

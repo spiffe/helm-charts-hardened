@@ -1,7 +1,7 @@
 dependencies:
 - name: spire-lib
   repository: file://../spire-lib
-  version: 0.3.2
+  version: 0.4.0
 - name: spire-server
   repository: file://./charts/spire-server
   version: 0.1.0
@@ -10,6 +10,9 @@ dependencies:
   version: 0.1.0
 - name: spire-agent
   repository: file://./charts/spire-agent
+  version: 0.1.0
+- name: spiffe-csi-driver
+  repository: file://./charts/spiffe-csi-driver
   version: 0.1.0
 - name: spiffe-csi-driver
   repository: file://./charts/spiffe-csi-driver
@@ -34,6 +37,9 @@ dependencies:
   version: 0.1.0
 - name: spire-identity-exchange
   repository: file://../spire-identity-exchange
-  version: 0.2.3
-digest: sha256:5b4366fc6d0713afbd0fd435fdfdcaacdc02ce57874e81838fea4a3da127943d
-generated: "2026-09-30T06:35:27.987532-07:00"
+  version: 0.3.0
+- name: spiffefs
+  repository: file://../spiffefs
+  version: 0.1.0
+digest: sha256:a1faecf3840006a770b7336e23a36402bb9d047cf15fc59298fcf62d69e99560
+generated: "2026-11-24T14:38:15.53069-08:00"

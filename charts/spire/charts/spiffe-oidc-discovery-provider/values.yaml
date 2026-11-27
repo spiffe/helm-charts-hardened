@@ -59,7 +59,7 @@ spiffeHelper:
     registry: ghcr.io
     repository: spiffe/spiffe-helper
     pullPolicy: IfNotPresent
-    tag: 0.11.0
+    tag: 0.12.4
   ## @param spiffeHelper.resources [object] Resource requests and limits
   resources: {}
 
@@ -187,7 +187,7 @@ insecureScheme:
       registry: docker.io
       repository: nginxinc/nginx-unprivileged
       pullPolicy: IfNotPresent
-      tag: 1.30.0-alpine
+      tag: 1.31.7-alpine
     ## @param insecureScheme.nginx.ipMode IP modes supported by the cluster. Must be one of [ipv4, ipv6, both]
     ipMode: both
     ## @param insecureScheme.nginx.resources Resource requests and limits
@@ -300,7 +300,7 @@ telemetry:
         registry: docker.io
         repository: nginx/nginx-prometheus-exporter
         pullPolicy: IfNotPresent
-        tag: "1.5.1"
+        tag: "1.5.3"
 
       ## @param telemetry.prometheus.nginxExporter.resources [object] Resource requests and limits
       resources: {}
@@ -393,7 +393,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/bash
       pullPolicy: IfNotPresent
-      tag: latest@sha256:90041f375e30f41aa7e0390075d8a69dc61900771d52fa98d63ee5d03d866a58
+      tag: latest@sha256:2d2c16c60135177c694a1a013f403fba5c92252a7d0b7a02c5a875d2a69f45ec
 
   toolkit:
     ## @param tests.toolkit.image.registry The OCI registry to pull the image from
@@ -405,7 +405,7 @@ tests:
       registry: cgr.dev
       repository: chainguard/min-toolkit-debug
       pullPolicy: IfNotPresent
-      tag: latest@sha256:9e45e6836c28489a6e57ca1210ec66927e88eca2409e403616a1278e210e86c9
+      tag: latest@sha256:2daf39a4c807b47091134e7eebfad05ff17e43afd591e80a5f8faa20efc55531
 
   step:
     ## @param tests.step.image.registry The OCI registry to pull the image from
@@ -417,7 +417,7 @@ tests:
       registry: "docker.io"
       repository: smallstep/step-cli
       pullPolicy: IfNotPresent
-      tag: 0.30.2
+      tag: 0.31.0
 
   busybox:
     ## @param tests.busybox.image.registry The OCI registry to pull the image from
@@ -426,10 +426,10 @@ tests:
     ## @param tests.busybox.image.tag Overrides the image tag whose default is the chart appVersion
     ##
     image:
-      registry: ""
-      repository: busybox
+      registry: docker.io
+      repository: library/busybox
       pullPolicy: IfNotPresent
-      tag: 1.37.0-uclibc
+      tag: 1.38.0-uclibc
 
   agent:
     ## @param tests.agent.image.registry The OCI registry to pull the image from
