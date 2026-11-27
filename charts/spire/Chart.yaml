@@ -80,7 +80,7 @@ dependencies:
   - name: spiffefs
     condition: spiffefs.enabled
     repository: file://../spiffefs
-    version: 0.1.0
+    version: 0.1.1
 annotations:
   org.opencontainers.image.source: https://github.com/spiffe/helm-charts-hardened
   artifacthub.io/category: security
