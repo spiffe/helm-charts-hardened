@@ -97,6 +97,14 @@ spec:
             "-workload-api-socket-dir", "/spire-agent-socket",
             "-plugin-name", "{{ .Values.pluginName }}",
             "-csi-socket-path", "/spiffe-csi/csi.sock",
+            {{- if .Values.recursiveBind }}
+            {{- /* The driver refuses to start on a socket directory that
+                   receives no mounts from the host. */}}
+            {{- if ne .Values.agentSocketMountPropagation "HostToContainer" }}
+            {{- fail "recursiveBind requires agentSocketMountPropagation to be HostToContainer" }}
+            {{- end }}
+            "-recursive-bind",
+            {{- end }}
           ]
           env:
             # The CSI driver needs a unique node ID. The node name can be
@@ -113,6 +121,12 @@ spec:
             # driver will mount this directory into containers.
             - mountPath: /spire-agent-socket
               name: spire-agent-socket-dir
+              {{- with .Values.agentSocketMountPropagation }}
+              {{- if not (has . (list "None" "HostToContainer")) }}
+              {{- fail "agentSocketMountPropagation can only be None or HostToContainer" }}
+              {{- end }}
+              mountPropagation: {{ . }}
+              {{- end }}
               readOnly: {{ or (not $selinux) $chcon }}
             # The volume that will contain the CSI driver socket shared
             # with the kubelet and the driver registrar.

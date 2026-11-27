@@ -1,0 +1,62 @@
+spiffefs:
+  enabled: true
+
+spire-server:
+  controllerManager:
+    identities:
+      clusterSPIFFEIDs:
+        # spiffefs authenticates to the broker endpoint with an svid of its own,
+        # so it needs this entry. Off by default while spiffefs is experimental.
+        spiffefs:
+          enabled: true
+        # Two identities for the late test pod. Two svids on one workload is
+        # what exercises the indexed file names and the hint mapping in
+        # hints.json.
+        #
+        # Both have to be explicit. The chart's stock "default" identity is a
+        # fallback, so it is replaced rather than added to the moment any other
+        # identity matches a pod: relying on it for one of the two would leave
+        # the workload with a single svid.
+        spiffefs-multi-main:
+          enabled: true
+          spiffeIDTemplate: spiffe://{{ .TrustDomain }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}
+          hint: multi-main
+          podSelector:
+            matchLabels:
+              spiffefs.test/multi-svid: "true"
+        spiffefs-multi-extra:
+          enabled: true
+          spiffeIDTemplate: spiffe://{{ .TrustDomain }}/spiffefs-test/extra
+          hint: extra
+          podSelector:
+            matchLabels:
+              spiffefs.test/multi-svid: "true"
+
+spire-agent:
+  sockets:
+    broker:
+      # spiffefs talks the Broker API to the agent, and reaches it through the
+      # host, so the agent has to publish the socket there.
+      enabled: true
+      mountOnHost: true
+  brokerAPI:
+    brokers:
+      # Only listed brokers may connect to the endpoint. spiffefs authenticates
+      # with the svid its own registration entry mints.
+      spiffefs:
+        enabled: true
+  workloadAttestors:
+    k8s:
+      brokerAPI:
+        brokers:
+          # Lets the k8s attestor resolve the pids spiffefs names, so a reader
+          # gets what its own entry entitles it to.
+          #
+          # The chart's accessPolicy default of auto lands on permissive here,
+          # because spiffefs is limited to pid references and those cannot name
+          # anything off this node. That matters: enforced asks the cluster
+          # authorizer on every broker stream open, and spiffefs subscribes once
+          # per reading pid, so a workload reading from a fresh process each
+          # time would pay an uncached apiserver round trip per read.
+          spiffefs:
+            enabled: true
