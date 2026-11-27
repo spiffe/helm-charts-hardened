@@ -1,11 +1,10 @@
 apiVersion: v2
 name: spiffefs
 description: >
-  A Helm chart to install spiffefs, a FUSE filesystem that delivers SPIFFE X.509
-  credentials to workloads as files.
+  A Helm chart to install spiffefs, a FUSE filesystem that delivers SPIFFE X.509 credentials to workloads as files.
 
 type: application
-version: 0.1.0
+version: 0.1.1
 appVersion: "0.6.0"
 keywords: ["spiffe", "spiffefs", "fuse"]
 home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spiffefs

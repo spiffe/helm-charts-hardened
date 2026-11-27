@@ -4,7 +4,7 @@ description: >
   A Helm chart for deploying the complete Spire stack including: spire-server, spire-agent, spiffe-csi-driver, spiffe-oidc-discovery-provider and spire-controller-manager.
 
 type: application
-version: 0.31.0
+version: 0.31.1
 appVersion: "1.16.0"
 keywords: ["spiffe", "spire", "spire-server", "spire-agent", "oidc", "spire-controller-manager"]
 home: https://github.com/spiffe/helm-charts-hardened/tree/main/charts/spire
@@ -127,7 +127,7 @@ dependencies:
       - haAgentCommon
   - name: spiffefs
     repository: file://../spiffefs
-    version: 0.1.0
+    version: 0.1.1
     condition: spiffefs.enabled
     tags:
       - haAgentCommon
