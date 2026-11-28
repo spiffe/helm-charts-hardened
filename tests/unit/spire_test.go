@@ -400,6 +400,60 @@ spire-agent:
 			Expect(err).Should(MatchError(ContainSubstring("registryAuth.mode")))
 		})
 	})
+	Describe("spire-agent.nodeAttestor.k8sPSAT.audience", func() {
+		spireTokenSource := func(values string) map[string]any {
+			objs, err := ValueStringRender(chart, values)
+			Expect(err).Should(Succeed())
+			var ds struct {
+				Kind string `json:"kind"`
+				Spec struct {
+					Template struct {
+						Spec struct {
+							Volumes []struct {
+								Name      string `json:"name"`
+								Projected struct {
+									Sources []struct {
+										ServiceAccountToken map[string]any `json:"serviceAccountToken"`
+									} `json:"sources"`
+								} `json:"projected"`
+							} `json:"volumes"`
+						} `json:"spec"`
+					} `json:"template"`
+				} `json:"spec"`
+			}
+			decoder := yamlutil.NewYAMLOrJSONDecoder(strings.NewReader(objs["spire/charts/spire-agent/templates/daemonset.yaml"]), 4096)
+			for ds.Kind == "" {
+				Expect(decoder.Decode(&ds)).Should(Succeed())
+			}
+			for _, volume := range ds.Spec.Template.Spec.Volumes {
+				if volume.Name == "spire-token" {
+					Expect(volume.Projected.Sources).Should(HaveLen(1))
+					return volume.Projected.Sources[0].ServiceAccountToken
+				}
+			}
+			Fail("spire-token volume not rendered")
+			return nil
+		}
+		It("defaults to spire-server", func() {
+			Expect(spireTokenSource(``)).Should(HaveKeyWithValue("audience", "spire-server"))
+		})
+		It("uses the configured audience", func() {
+			Expect(spireTokenSource(`
+spire-agent:
+  nodeAttestor:
+    k8sPSAT:
+      audience: spire-server-other
+`)).Should(HaveKeyWithValue("audience", "spire-server-other"))
+		})
+		It("omits the audience when empty", func() {
+			Expect(spireTokenSource(`
+spire-agent:
+  nodeAttestor:
+    k8sPSAT:
+      audience: ""
+`)).ShouldNot(HaveKey("audience"))
+		})
+	})
 	Describe("spire-agent.customPlugin.tpm", func() {
 		It("plugin set ok", func() {
 			objs, err := ValueStringRender(chart, `
