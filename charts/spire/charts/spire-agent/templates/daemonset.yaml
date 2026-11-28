@@ -593,7 +593,9 @@ spec:
             - serviceAccountToken:
                 path: spire-agent
                 expirationSeconds: 7200
-                audience: spire-server
+                {{- with .Values.nodeAttestor.k8sPSAT.audience }}
+                audience: {{ . | quote }}
+                {{- end }}
         - name: spire-agent-socket-dir
           hostPath:
             path: {{ $socketPath | dir }}

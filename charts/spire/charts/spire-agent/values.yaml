@@ -175,6 +175,8 @@ nodeAttestor:
   k8sPSAT:
     ## @param nodeAttestor.k8sPSAT.enabled Enable PSAT k8s Node Attestor
     enabled: true
+    ## @param nodeAttestor.k8sPSAT.audience Audience of the projected service account token presented to the server. Must be one of the audiences in the server's nodeAttestor.k8sPSAT.audience. If empty, the Kubernetes API server audience is used. Set a distinct audience per SPIRE installation when running more than one in a cluster
+    audience: spire-server
   httpChallenge:
     ## @param nodeAttestor.httpChallenge.enabled Enable the http challenge Node Attestor
     enabled: false
