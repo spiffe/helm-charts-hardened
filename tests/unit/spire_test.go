@@ -436,6 +436,51 @@ spire-agent:
 			Expect(notes).Should(ContainSubstring("join_token"))
 		})
 	})
+	Describe("tornjak-frontend.resources", func() {
+		frontendResources := func(values string) map[string]any {
+			objs, err := ValueStringRender(chart, `
+spire-server:
+  tornjak:
+    enabled: true
+tornjak-frontend:
+  enabled: true
+`+values)
+			Expect(err).Should(Succeed())
+			var deployment struct {
+				Kind string `json:"kind"`
+				Spec struct {
+					Template struct {
+						Spec struct {
+							Containers []struct {
+								Resources map[string]any `json:"resources"`
+							} `json:"containers"`
+						} `json:"spec"`
+					} `json:"template"`
+				} `json:"spec"`
+			}
+			decoder := yamlutil.NewYAMLOrJSONDecoder(strings.NewReader(objs["spire/charts/tornjak-frontend/templates/deployment.yaml"]), 4096)
+			for deployment.Kind == "" {
+				Expect(decoder.Decode(&deployment)).Should(Succeed())
+			}
+			Expect(deployment.Spec.Template.Spec.Containers).Should(HaveLen(1))
+			return deployment.Spec.Template.Spec.Containers[0].Resources
+		}
+		It("renders no requests or limits by default", func() {
+			Expect(frontendResources(``)).Should(BeEmpty())
+		})
+		It("renders the configured requests and limits", func() {
+			Expect(frontendResources(`  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+`)).Should(Equal(map[string]any{
+				"requests": map[string]any{"cpu": "50m", "memory": "128Mi"},
+				"limits":   map[string]any{"memory": "512Mi"},
+			}))
+		})
+	})
 	Describe("spire-server.disabled", func() {
 		It("spire server off", func() {
 			objs, err := ValueStringRender(chart, `
