@@ -75,14 +75,18 @@ tolerations: []
 ## @param topologySpreadConstraints [array] List of topology spread constraints for resilience
 topologySpreadConstraints: []
 
-## Provide minimal resources to prevent accidental crashes due to resource exhaustion
-# resources:
-#   requests:
-#     cpu: 50m
-#     memory: 128Mi
-#   limits:
-#     cpu: 100m
-#     memory: 512Mi
+## @param resources [object] Resource requests and limits
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # requests:
+  #   cpu: 50m
+  #   memory: 128Mi
+  # limits:
+  #   cpu: 100m
+  #   memory: 512Mi
 
 ## @param apiServerURL URL of the Tornjak APIs (backend). Since Tornjak Frontend runs in the browser, this URL must be accessible from the machine running a browser. If not provided, auto-detection is attempted.
 apiServerURL: ""

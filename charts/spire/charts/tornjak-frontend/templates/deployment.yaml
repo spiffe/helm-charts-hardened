@@ -55,6 +55,8 @@ spec:
             successThreshold: {{ .Values.startupProbe.successThreshold }}
             timeoutSeconds: {{ .Values.startupProbe.timeoutSeconds }}
           {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
             - name: cache
               mountPath: {{ include "tornjak-frontend.workingDir" . }}/node_modules/.cache
